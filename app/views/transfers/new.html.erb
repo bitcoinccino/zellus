@@ -1,0 +1,369 @@
+<style>
+  .bb-dark-field {
+    color: #fff !important;
+  }
+  .bb-dark-field::placeholder {
+    color: rgba(255, 255, 255, 0.5) !important;
+    opacity: 1;
+    font-weight: 400 !important;
+  }
+  .bb-dark-select {
+    color: #fff !important;
+  }
+  .bb-dark-select option {
+    background: #fff;
+    color: #111827;
+  }
+</style>
+
+<div class="container d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+  <div class="card-base p-4 w-100 shadow-lg" style="max-width: 420px;">
+
+    <% if flash[:alert].present? %>
+      <div class="alert alert-warning rounded-3 mb-3" style="background: #fefce8; border: 1px solid #fde68a; color: #854d0e;">
+        <i class="ri-error-warning-line me-1"></i><%= flash[:alert] %>
+      </div>
+    <% end %>
+    <% if flash[:notice].present? %>
+      <div class="alert rounded-3 mb-3" style="background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534;">
+        <i class="ri-checkbox-circle-line me-1"></i><%= flash[:notice] %>
+      </div>
+    <% end %>
+
+    <% if @transfer.errors.any? %>
+      <div class="alert alert-danger rounded-3 mb-3">
+        <ul class="mb-0">
+          <% @transfer.errors.full_messages.each do |msg| %>
+            <li><%= msg %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+
+    <%# ── PIN Setup (blocks form if no PIN) ── %>
+    <% unless current_user.transfer_pin_set? %>
+      <div class="p-3 mb-3 rounded-4" style="background-color: rgba(197,160,89,0.12); border: 1px solid rgba(197,160,89,0.55);">
+        <div class="small fw-bold text-uppercase mb-2" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">
+          <i class="ri-lock-line me-1"></i> Kreye PIN Transfè
+        </div>
+        <p class="small mb-3" style="color: var(--haiti-charcoal);">Ou dwe kreye yon PIN 4 chif anvan ou ka voye lajan.</p>
+        <%= form_with(url: set_pin_transfers_path, method: :post, local: true) do |f| %>
+          <div class="mb-3">
+            <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">PIN (4 chif)</label>
+            <div class="input-group">
+              <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);">
+                <i class="ri-lock-2-line"></i>
+              </span>
+              <input type="password" name="transfer_pin" class="form-control border-0 fw-bold shadow-none p-3 bb-dark-field text-center"
+                     maxlength="4" pattern="\d{4}" inputmode="numeric" placeholder="• • • •" required
+                     style="background-color: var(--haiti-charcoal); color: white; letter-spacing: 10px;">
+            </div>
+          </div>
+          <%= f.button class: "btn w-100 py-3 fw-bold rounded-4 shadow-sm border-0 d-flex align-items-center justify-content-center gap-2",
+              style: "background-color: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 14px; letter-spacing: 0.5px;" do %>
+            <i class="ri-lock-unlock-line"></i> Enstale PIN
+          <% end %>
+        <% end %>
+      </div>
+    <% end %>
+
+    <%# ── Main Send Form ── %>
+    <div style="<%= current_user.transfer_pin_set? ? '' : 'opacity: 0.4; pointer-events: none;' %>">
+
+      <div class="text-center mb-4">
+        <div class="d-inline-flex align-items-center justify-content-center mb-3 rounded-3"
+          style="width: 56px; height: 56px; background-color: var(--haiti-charcoal);">
+          <i class="ri-send-plane-fill ri-xl" style="color: var(--haiti-gold);"></i>
+        </div>
+        <h1 class="h5 fw-black mb-0" style="color: var(--haiti-charcoal);">Voye Lajan</h1>
+        <p class="small mb-0" style="color: var(--haiti-olive);">Voye HTG, USDC oswa ETH bay nenpòt moun</p>
+      </div>
+
+      <%# ── Daily Limit Widget ── %>
+      <div class="p-3 rounded-4 d-flex align-items-center justify-content-between mb-3"
+        style="background-color: rgba(93,99,69,0.08); border: 1px dashed var(--haiti-olive);">
+        <span class="small fw-bold" style="color: var(--haiti-olive);">
+          <i class="ri-shield-check-line me-1"></i>Limit Jounalye
+        </span>
+        <span class="fw-black" style="color: <%= @daily_remaining.to_f > 0 ? 'var(--haiti-charcoal)' : '#991b1b' %>;">
+          <%= number_with_delimiter(@daily_remaining.to_i) %> / <%= number_with_delimiter(User::DAILY_TRANSFER_LIMIT_HTG.to_i) %> HTG
+        </span>
+      </div>
+
+      <%= form_with(model: @transfer, url: transfers_path, method: :post, local: true, class: "row g-3") do |f| %>
+
+        <%# ── Asset Selector ── %>
+        <div class="col-12">
+          <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Ki Sa W Ap Voye</label>
+          <div class="d-flex gap-2">
+            <label class="flex-fill text-center p-2 rounded-3 cursor-pointer" style="border: 2px solid var(--haiti-olive); background: var(--haiti-cream);" id="lbl-htg">
+              <input type="radio" name="asset" value="htg" checked class="d-none" id="radio-htg" onchange="switchAsset('htg')">
+              <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;"><i class="ri-money-dollar-circle-line me-1"></i>HTG</div>
+              <div style="color: var(--haiti-olive); font-size: 10px;">MonCash</div>
+            </label>
+            <label class="flex-fill text-center p-2 rounded-3 cursor-pointer" style="border: 2px solid #d9d6c4; background: var(--haiti-cream);" id="lbl-usdc">
+              <input type="radio" name="asset" value="usdc" class="d-none" id="radio-usdc" onchange="switchAsset('usdc')">
+              <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;"><i class="ri-copper-coin-line me-1"></i>USDC</div>
+              <div style="color: var(--haiti-olive); font-size: 10px;">Base</div>
+            </label>
+            <label class="flex-fill text-center p-2 rounded-3 cursor-pointer" style="border: 2px solid #d9d6c4; background: var(--haiti-cream);" id="lbl-eth">
+              <input type="radio" name="asset" value="eth" class="d-none" id="radio-eth" onchange="switchAsset('eth')">
+              <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;"><i class="ri-ethereum-line me-1"></i>ETH</div>
+              <div style="color: var(--haiti-olive); font-size: 10px;">Base</div>
+            </label>
+          </div>
+          <div class="small mt-1" style="color: var(--haiti-olive); font-size: 10px;">
+            <i class="ri-information-line me-1"></i>WBTC ap vini byento.
+          </div>
+        </div>
+
+        <%# ── HTG Receiver (MonCash) ── %>
+        <div class="col-12" id="receiver-htg">
+          <% if @moncash_methods.any? %>
+            <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Nimewo MonCash Anrejistre</label>
+            <select name="moncash_method_id" id="moncash-select"
+                class="form-select border-0 fw-bold shadow-none p-3 mb-2 bb-dark-select"
+                style="background-color: var(--haiti-charcoal); color: white;"
+                onchange="toggleManualPhone()">
+              <% @moncash_methods.each do |pm| %>
+                <option value="<%= pm.id %>"><%= "#{pm.display_label} (#{pm.masked_account_number})" %></option>
+              <% end %>
+              <option value="other">Antre yon lòt nimewo...</option>
+            </select>
+            <div class="small mb-2" style="color: var(--haiti-olive); font-size: 10px;">
+              <i class="ri-bank-card-line me-1"></i>
+              <%= link_to "Jere metòd peman", payment_methods_path, style: "color: var(--haiti-olive);" %>
+            </div>
+          <% end %>
+
+          <div id="manual-phone-wrapper" style="<%= @moncash_methods.any? ? 'display:none;' : '' %>">
+            <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Nimewo MonCash</label>
+            <div class="input-group">
+              <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);">
+                <i class="ri-phone-line"></i>
+              </span>
+              <%= f.telephone_field :receiver_phone, placeholder: "50912345678", maxlength: 11,
+                  class: "form-control border-0 fw-bold shadow-none p-3 bb-dark-field",
+                  style: "background-color: var(--haiti-charcoal); color: white;" %>
+            </div>
+          </div>
+
+          <div class="mt-2">
+            <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">
+              Imèl <span class="text-lowercase fw-normal">(opsyonèl — pou lyen reklame)</span>
+            </label>
+            <div class="input-group">
+              <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);">
+                <i class="ri-mail-line"></i>
+              </span>
+              <%= f.email_field :receiver_email, placeholder: "moun@egzanp.com",
+                  class: "form-control border-0 fw-bold shadow-none p-3 bb-dark-field",
+                  style: "background-color: var(--haiti-charcoal); color: white;" %>
+            </div>
+          </div>
+        </div>
+
+        <%# ── Crypto Receiver (Base Wallet) ── %>
+        <div class="col-12" id="receiver-crypto" style="display: none;">
+          <% if @crypto_methods.any? %>
+            <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Pòtfèy Kripto Anrejistre</label>
+            <select name="crypto_method_id" id="crypto-select"
+                class="form-select border-0 fw-bold shadow-none p-3 mb-2 bb-dark-select"
+                style="background-color: var(--haiti-charcoal); color: white;"
+                onchange="toggleManualWallet()">
+              <% @crypto_methods.each do |pm| %>
+                <option value="<%= pm.id %>"><%= "#{pm.display_label} (#{pm.masked_wallet_address})" %></option>
+              <% end %>
+              <option value="other">Antre yon lòt adrès...</option>
+            </select>
+            <div class="small mb-2" style="color: var(--haiti-olive); font-size: 10px;">
+              <i class="ri-wallet-3-line me-1"></i>
+              <%= link_to "Jere metòd peman", payment_methods_path, style: "color: var(--haiti-olive);" %>
+            </div>
+          <% end %>
+
+          <div id="manual-wallet-wrapper" style="<%= @crypto_methods.any? ? 'display:none;' : '' %>">
+            <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Adrès Base (Pòtfèy Resevè)</label>
+            <div class="input-group">
+              <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);">
+                <i class="ri-wallet-3-line"></i>
+              </span>
+              <%= f.text_field :receiver_wallet_address, placeholder: "0x...",
+                  class: "form-control border-0 fw-bold shadow-none p-3 bb-dark-field",
+                  style: "background-color: var(--haiti-charcoal); color: white;" %>
+            </div>
+          </div>
+        </div>
+
+        <%# ── Receiver Name (optional) ── %>
+        <div class="col-12">
+          <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">
+            Non <span class="text-lowercase fw-normal">(opsyonèl)</span>
+          </label>
+          <div class="input-group">
+            <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);">
+              <i class="ri-user-line"></i>
+            </span>
+            <%= f.text_field :receiver_name, placeholder: "Jean Pierre",
+                class: "form-control border-0 fw-bold shadow-none p-3 bb-dark-field",
+                style: "background-color: var(--haiti-charcoal); color: white;" %>
+          </div>
+        </div>
+
+        <%# ── Amount (HTG) ── %>
+        <div class="col-12">
+          <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Montan an Goud (HTG)</label>
+          <div class="input-group">
+            <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);">
+              <i class="ri-money-dollar-circle-line"></i>
+            </span>
+            <%= f.number_field :amount, placeholder: "e.g. 500", min: Transfer::SEND_MIN_HTG, max: Transfer::SEND_MAX_HTG, step: 1,
+                id: "transfer_amount",
+                class: "form-control border-0 fw-bold shadow-none p-3 bb-dark-field",
+                style: "background-color: var(--haiti-charcoal); color: white;",
+                required: true %>
+          </div>
+          <div class="small mt-1" style="color: var(--haiti-olive); font-size: 10px;">
+            <i class="ri-information-line me-1"></i>
+            Limit: <%= Transfer::SEND_MIN_HTG %> - <%= number_with_delimiter(Transfer::SEND_MAX_HTG) %> HTG
+          </div>
+        </div>
+
+        <%# ── Fee + Crypto Preview Widget ── %>
+        <div class="col-12">
+          <div class="p-3 rounded-4" style="background-color: rgba(93,99,69,0.08); border: 1px dashed var(--haiti-olive);">
+            <div class="d-flex justify-content-between small">
+              <span class="fw-bold" style="color: var(--haiti-olive);">Frè (1%)</span>
+              <span class="fw-black" style="color: var(--haiti-charcoal);" id="fee-display">0 HTG</span>
+            </div>
+            <div class="d-flex justify-content-between small mt-1">
+              <span class="fw-bold" style="color: var(--haiti-olive);">Moun Nan Ap Resevwa</span>
+              <span class="fw-black" style="color: var(--haiti-gold);" id="net-display">0 HTG</span>
+            </div>
+            <div id="crypto-equiv" class="d-flex justify-content-between small mt-1" style="display: none;">
+              <span class="fw-bold" style="color: var(--haiti-olive);">Ekivalan Kripto</span>
+              <span class="fw-black" style="color: var(--haiti-charcoal);" id="crypto-display">—</span>
+            </div>
+          </div>
+        </div>
+
+        <%# ── Rate Widget (crypto only) ── %>
+        <div class="col-12" id="rate-widget" style="display: none;">
+          <div class="p-3 rounded-4 d-flex align-items-center justify-content-between"
+            style="background-color: rgba(93,99,69,0.08); border: 1px dashed var(--haiti-olive);">
+            <span class="small fw-bold" style="color: var(--haiti-olive);">To Aktyèl</span>
+            <span id="rate-display" class="fw-black" style="color: var(--haiti-charcoal);">—</span>
+          </div>
+        </div>
+
+        <%# ── Note ── %>
+        <div class="col-12">
+          <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">
+            Nòt <span class="text-lowercase fw-normal">(opsyonèl)</span>
+          </label>
+          <div class="input-group">
+            <span class="input-group-text border-0 align-items-start pt-3" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);">
+              <i class="ri-chat-1-line"></i>
+            </span>
+            <%= f.text_area :note, rows: 2, maxlength: 280, placeholder: "Pou kisa lajan sa a ye?",
+                class: "form-control border-0 fw-bold shadow-none p-3 bb-dark-field",
+                style: "background-color: var(--haiti-charcoal); color: white;" %>
+          </div>
+        </div>
+
+        <%# ── Submit ── %>
+        <div class="col-12 mt-2">
+          <%= f.button class: "btn w-100 py-3 fw-bold rounded-4 shadow-sm border-0 d-flex align-items-center justify-content-center gap-2",
+              style: "background-color: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 14px; letter-spacing: 0.5px;" do %>
+            <i class="ri-flashlight-fill"></i> Kontinye pou Revize
+          <% end %>
+        </div>
+
+        <div class="col-12 text-center">
+          <%= link_to zellus_path, class: "small text-decoration-none fw-bold", style: "color: var(--haiti-olive);" do %>
+            <i class="ri-arrow-left-line me-1"></i>Retounen nan Zèllus
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const USDC_HTG_RATE = <%= (@usdc_htg_rate || 135.50).to_f.round(2) %>;
+const ETH_HTG_RATE  = <%= (@eth_htg_rate || 390000).to_f.round(2) %>;
+const WBTC_HTG_RATE = <%= (@wbtc_htg_rate || 12872500).to_f.round(2) %>;
+const SAVED_MONCASH = <%= (@moncash_methods || []).map { |pm| [pm.id.to_s, pm.account_number] }.to_h.to_json.html_safe %>;
+const SAVED_WALLETS = <%= (@crypto_methods || []).map { |pm| [pm.id.to_s, pm.wallet_address] }.to_h.to_json.html_safe %>;
+
+let currentAsset = "htg";
+
+function switchAsset(asset) {
+  currentAsset = asset;
+
+  // Toggle receiver sections
+  document.getElementById("receiver-htg").style.display   = (asset === "htg") ? "" : "none";
+  document.getElementById("receiver-crypto").style.display = (asset !== "htg") ? "" : "none";
+
+  // Highlight selected asset card
+  ["htg", "usdc", "eth"].forEach(a => {
+    const lbl = document.getElementById("lbl-" + a);
+    lbl.style.borderColor = (a === asset) ? "var(--haiti-olive)" : "#d9d6c4";
+  });
+
+  // Rate widget
+  const rateWidget = document.getElementById("rate-widget");
+  const rateDisplay = document.getElementById("rate-display");
+  if (asset !== "htg") {
+    rateWidget.style.display = "";
+    if (asset === "usdc") rateDisplay.textContent = "1 USDC = " + USDC_HTG_RATE.toFixed(2) + " HTG";
+    else if (asset === "eth") rateDisplay.textContent = "1 ETH = " + ETH_HTG_RATE.toLocaleString() + " HTG";
+  } else {
+    rateWidget.style.display = "none";
+  }
+
+  updateFee();
+}
+
+function toggleManualPhone() {
+  const sel = document.getElementById("moncash-select");
+  document.getElementById("manual-phone-wrapper").style.display = (sel && sel.value === "other") ? "" : "none";
+}
+
+function toggleManualWallet() {
+  const sel = document.getElementById("crypto-select");
+  document.getElementById("manual-wallet-wrapper").style.display = (sel && sel.value === "other") ? "" : "none";
+}
+
+function updateFee() {
+  const amountInput = document.getElementById("transfer_amount");
+  const amount = parseFloat(amountInput?.value) || 0;
+  const fee = Math.round(amount * 0.01);
+  const net = amount - fee;
+
+  document.getElementById("fee-display").textContent = fee.toLocaleString() + " HTG";
+  document.getElementById("net-display").textContent = Math.max(net, 0).toLocaleString() + " HTG";
+
+  const cryptoRow = document.getElementById("crypto-equiv");
+  const cryptoDisp = document.getElementById("crypto-display");
+
+  if (currentAsset !== "htg" && net > 0) {
+    cryptoRow.style.display = "flex";
+    let rate, label, prec;
+    if (currentAsset === "usdc")      { rate = USDC_HTG_RATE; label = "USDC"; prec = 2; }
+    else if (currentAsset === "eth")  { rate = ETH_HTG_RATE;  label = "ETH";  prec = 6; }
+    else if (currentAsset === "wbtc") { rate = WBTC_HTG_RATE; label = "WBTC"; prec = 8; }
+    const cryptoAmt = rate > 0 ? (net / rate).toFixed(prec) : "—";
+    cryptoDisp.textContent = "~" + cryptoAmt + " " + label;
+  } else {
+    cryptoRow.style.display = "none";
+  }
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+  const amountInput = document.getElementById("transfer_amount");
+  if (amountInput) amountInput.addEventListener("input", updateFee);
+  switchAsset("htg");
+});
+</script>

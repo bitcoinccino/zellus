@@ -1,0 +1,19 @@
+<%= @brand_name %> — Ou Gen Lajan!
+
+Bonjou <%= @transfer.receiver_name %>,
+
+<%= @sender_name %> voye <%= format_htg(@transfer.net_amount) %> ba ou atravè Priotelus Zèllus!
+
+<% if @transfer.note.present? %>Mesaj: "<%= @transfer.note %>"
+
+<% end %>
+<% if @transfer.receiver_phone.present? %>
+Lajan an ap rive nan MonCash ou (<%= @transfer.receiver_phone %>) nan kèk minit.
+<% else %>
+Pou resevwa lajan an, ouvri lyen sa a epi antre nimewo MonCash ou:
+<%= @claim_url %>
+
+Lyen sa a ekspire nan 72 èdtan.
+<% end %>
+
+— Ekip Priotelus

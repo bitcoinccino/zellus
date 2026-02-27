@@ -1,0 +1,97 @@
+<div class="mb-4">
+  <h2 class="fw-bold" style="color: var(--haiti-charcoal);">
+    <i class="ri-exchange-funds-line me-2" style="color: var(--haiti-gold);"></i>PrioLink
+  </h2>
+  <p class="mb-0" style="color: var(--haiti-olive);">Achte oswa Vann USDC, WBTC, ak ETH pou konbat enflasyon.</p>
+</div>
+
+<div class="row g-4">
+  <%# ── LEFT: Kijan Li Mache ── %>
+  <div class="col-lg-6">
+    <div class="card border-0 shadow-sm h-100" style="background: var(--haiti-cream); border-radius: 16px;">
+      <div class="card-body p-4">
+        <h5 class="fw-bold mb-4" style="color: var(--haiti-charcoal);">
+          <i class="ri-lightbulb-line me-2" style="color: var(--haiti-gold);"></i>Kijan Li Mache
+        </h5>
+
+        <div class="d-flex align-items-start gap-3 mb-4">
+          <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px; background: var(--haiti-gold); color: var(--haiti-charcoal); font-weight: 800;">1</div>
+          <div>
+            <div class="fw-bold" style="color: var(--haiti-charcoal);">Chwazi Achte oswa Vann</div>
+            <div style="color: var(--haiti-olive); font-size: 13px; font-weight: 400;">Deside si w vle achte kripto (USDC, WBTC, ETH) ak MonCash oswa vann kripto pou resevwa MonCash.</div>
+          </div>
+        </div>
+
+        <div class="d-flex align-items-start gap-3 mb-4">
+          <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px; background: var(--haiti-gold); color: var(--haiti-charcoal); font-weight: 800;">2</div>
+          <div>
+            <div class="fw-bold" style="color: var(--haiti-charcoal);">Antre Montan An</div>
+            <div style="color: var(--haiti-olive); font-size: 13px; font-weight: 400;">Mete kantite HTG oswa kripto ou vle. Ou wè to a an tan reyèl.</div>
+          </div>
+        </div>
+
+        <div class="d-flex align-items-start gap-3 mb-4">
+          <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px; background: var(--haiti-gold); color: var(--haiti-charcoal); font-weight: 800;">3</div>
+          <div>
+            <div class="fw-bold" style="color: var(--haiti-charcoal);">Peye ak MonCash</div>
+            <div style="color: var(--haiti-olive); font-size: 13px; font-weight: 400;">Pou achte, peye ak MonCash. Pou vann, voye kripto nan adrès nou bay ou.</div>
+          </div>
+        </div>
+
+        <div class="d-flex align-items-start gap-3">
+          <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px; background: var(--haiti-gold); color: var(--haiti-charcoal); font-weight: 800;">4</div>
+          <div>
+            <div class="fw-bold" style="color: var(--haiti-charcoal);">Resevwa Lajan'w</div>
+            <div style="color: var(--haiti-olive); font-size: 13px; font-weight: 400;">Kripto rive nan pòtfèy ou an kèk minit. MonCash rive dirèkteman sou telefòn ou.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <%# ── RIGHT: Eta Aktyèl ── %>
+  <div class="col-lg-6">
+    <div class="card border-0 shadow-sm h-100" style="background: white; border-radius: 16px;">
+      <div class="card-body p-4">
+        <h5 class="fw-bold mb-4" style="color: var(--haiti-charcoal);">
+          <i class="ri-pie-chart-line me-2" style="color: var(--haiti-gold);"></i>Eta Aktyèl
+        </h5>
+
+        <div class="d-flex justify-content-between align-items-center p-3 rounded-3 mb-3" style="background: var(--haiti-mint);">
+          <div>
+            <div style="color: var(--haiti-olive); font-size: 11px;">Tranzaksyon Total</div>
+            <div class="fw-bold fs-4" style="color: var(--haiti-charcoal);"><%= @transactions.count %></div>
+          </div>
+          <i class="ri-exchange-funds-line" style="font-size: 2rem; color: var(--haiti-gold);"></i>
+        </div>
+
+        <% if @transactions.any? %>
+          <div class="fw-bold small mb-2" style="color: var(--haiti-charcoal);">Dènye Tranzaksyon</div>
+          <% @transactions.each do |tx| %>
+            <div class="d-flex justify-content-between align-items-center py-2 border-bottom" style="border-color: var(--haiti-mint) !important;">
+              <div>
+                <div class="fw-bold small" style="color: var(--haiti-charcoal);"><%= tx.transaction_type&.capitalize %></div>
+                <div style="color: var(--haiti-olive); font-size: 11px;"><%= tx.created_at.strftime("%d %b %Y") %></div>
+              </div>
+              <div class="text-end">
+                <div class="fw-bold small" style="color: var(--haiti-charcoal);"><%= number_to_currency(tx.fiat_amount, unit: "HTG ") %></div>
+                <span class="badge rounded-pill" style="font-size: 9px; background: <%= tx.status == 'completed' ? '#f0fdf4' : '#fefce8' %>; color: <%= tx.status == 'completed' ? '#166534' : '#854d0e' %>;"><%= tx.status %></span>
+              </div>
+            </div>
+          <% end %>
+        <% else %>
+          <div class="text-center py-4">
+            <i class="ri-inbox-line" style="font-size: 2.5rem; color: var(--haiti-olive); opacity: 0.4;"></i>
+            <div class="mt-2" style="color: var(--haiti-olive); font-size: 13px; font-weight: 400;">Ou poko fè okenn tranzaksyon.</div>
+          </div>
+        <% end %>
+
+        <div class="mt-4">
+          <%= link_to new_transaction_path, class: "btn btn-prestige w-100 rounded-pill" do %>
+            <i class="ri-exchange-funds-line me-2"></i>Achte oswa Vann Kripto
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

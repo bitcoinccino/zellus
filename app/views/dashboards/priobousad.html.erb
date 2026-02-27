@@ -1,0 +1,114 @@
+<div class="mb-4">
+  <h2 class="fw-bold" style="color: var(--haiti-charcoal);">
+    <i class="ri-hand-coin-line me-2" style="color: var(--haiti-gold);"></i>PrioBousad
+  </h2>
+  <p class="mb-0" style="color: var(--haiti-olive);">Prète pou ede biznis ou dekole.</p>
+</div>
+
+<div class="row g-4">
+  <%# ── LEFT: Kijan Li Mache ── %>
+  <div class="col-lg-6">
+    <div class="card border-0 shadow-sm h-100" style="background: var(--haiti-cream); border-radius: 16px;">
+      <div class="card-body p-4">
+        <h5 class="fw-bold mb-4" style="color: var(--haiti-charcoal);">
+          <i class="ri-lightbulb-line me-2" style="color: var(--haiti-gold);"></i>Kijan Li Mache
+        </h5>
+
+        <div class="d-flex align-items-start gap-3 mb-4">
+          <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px; background: var(--haiti-gold); color: var(--haiti-charcoal); font-weight: 800;">1</div>
+          <div>
+            <div class="fw-bold" style="color: var(--haiti-charcoal);">Bati Repitasyon'w</div>
+            <div style="color: var(--haiti-olive); font-size: 13px; font-weight: 400;">Patisipe nan Sòl epi peye alè pou ogmante pwen kredi'w. Ou bezwen omwen nivo Toutrèl (300+ pwen).</div>
+          </div>
+        </div>
+
+        <div class="d-flex align-items-start gap-3 mb-4">
+          <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px; background: var(--haiti-gold); color: var(--haiti-charcoal); font-weight: 800;">2</div>
+          <div>
+            <div class="fw-bold" style="color: var(--haiti-charcoal);">Mande yon Prè</div>
+            <div style="color: var(--haiti-olive); font-size: 13px; font-weight: 400;">Chwazi montan an baze sou nivo kredi'w. Toutrèl: jiska 5,000 HTG. Malfini: 25,000 HTG. Fokon: 100,000 HTG.</div>
+          </div>
+        </div>
+
+        <div class="d-flex align-items-start gap-3 mb-4">
+          <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px; background: var(--haiti-gold); color: var(--haiti-charcoal); font-weight: 800;">3</div>
+          <div>
+            <div class="fw-bold" style="color: var(--haiti-charcoal);">Resevwa Lajan An</div>
+            <div style="color: var(--haiti-olive); font-size: 13px; font-weight: 400;">Apre apwobasyon, lajan an rive dirèkteman sou MonCash oswa pòtfèy USDC ou.</div>
+          </div>
+        </div>
+
+        <div class="d-flex align-items-start gap-3">
+          <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px; background: var(--haiti-gold); color: var(--haiti-charcoal); font-weight: 800;">4</div>
+          <div>
+            <div class="fw-bold" style="color: var(--haiti-charcoal);">Ranbouse Prè A</div>
+            <div style="color: var(--haiti-olive); font-size: 13px; font-weight: 400;">Peye alè pou kontinye ogmante pwen kredi'w epi jwenn aksè a pi gwo montan alavni.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <%# ── RIGHT: Eta Aktyèl / Aplike ── %>
+  <div class="col-lg-6">
+    <div class="card border-0 shadow-sm h-100" style="background: white; border-radius: 16px;">
+      <div class="card-body p-4">
+        <h5 class="fw-bold mb-4" style="color: var(--haiti-charcoal);">
+          <i class="ri-pie-chart-line me-2" style="color: var(--haiti-gold);"></i>Eligibilite'w
+        </h5>
+
+        <%# Credit tier display %>
+        <div class="p-3 rounded-3 mb-3" style="background: var(--haiti-mint);">
+          <div class="d-flex align-items-center gap-3">
+            <span style="font-size: 2rem;"><%= current_user.tier_icon %></span>
+            <div class="flex-fill">
+              <div class="fw-bold" style="color: var(--haiti-charcoal);"><%= current_user.credit_tier %></div>
+              <div style="color: var(--haiti-olive); font-size: 11px;"><%= current_user.credit_score || 0 %> / <%= User::MAX_CREDIT_SCORE %> pwen</div>
+              <div class="mt-1" style="height: 6px; background: #e5e7eb; border-radius: 3px; overflow: hidden;">
+                <div style="width: <%= ((current_user.credit_score || 0) * 100.0 / User::MAX_CREDIT_SCORE).round %>%; height: 100%; background: var(--haiti-gold); border-radius: 3px;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <%# Loan limit %>
+        <div class="p-3 rounded-3 mb-3" style="background: var(--haiti-mint);">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <div style="color: var(--haiti-olive); font-size: 11px;">Limit Prè'w</div>
+              <div class="fw-bold fs-4" style="color: var(--haiti-charcoal);">
+                <% if current_user.loan_limit > 0 %>
+                  <%= number_to_currency(current_user.loan_limit, unit: "HTG ", precision: 0) %>
+                <% else %>
+                  <span style="color: var(--haiti-olive); font-size: 14px;">Pa disponib ankò</span>
+                <% end %>
+              </div>
+            </div>
+            <i class="ri-hand-coin-line" style="font-size: 2rem; color: var(--haiti-gold);"></i>
+          </div>
+        </div>
+
+        <% if current_user.loan_limit > 0 %>
+          <div class="mt-4">
+            <%= link_to new_loan_path, class: "btn btn-prestige w-100 rounded-pill" do %>
+              <i class="ri-hand-coin-line me-2"></i>Mande yon Prè
+            <% end %>
+          </div>
+        <% else %>
+          <div class="p-3 rounded-3 text-center" style="background: #fefce8; border: 1px solid #fde047;">
+            <i class="ri-lock-line" style="font-size: 1.5rem; color: #854d0e;"></i>
+            <div class="fw-bold mt-1" style="color: #854d0e; font-size: 13px;">
+              Ou bezwen nivo Toutrèl (300+ pwen) pou mande yon prè.
+            </div>
+            <div style="color: #854d0e; font-size: 11px;" class="mt-1">
+              Patisipe nan PrioSòl epi peye alè pou ogmante pwen'w.
+            </div>
+            <%= link_to priosol_path, class: "btn btn-sm btn-outline-dark rounded-pill mt-3" do %>
+              <i class="ri-loop-right-line me-1"></i>Ale nan PrioSòl
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>

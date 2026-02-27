@@ -1,0 +1,41 @@
+<div style="margin-bottom:20px;">
+  <div style="font-size:15px; font-weight:800; color:#166534; margin-bottom:6px;">Demann Peman Peye &#10003;</div>
+  <div style="font-size:13px; color:#5D6345;">Demann #<%= @payment_request.id %> — <%= @payment_request.updated_at.strftime("%b %d, %Y %l:%M %p").strip %></div>
+</div>
+
+<div style="background:#dcfce7; border:2px solid #166534; border-radius:14px; padding:16px; margin-bottom:16px;">
+  <table width="100%" cellspacing="0" cellpadding="0">
+    <tr>
+      <td style="color:#166534; font-size:12px; font-weight:600; padding-bottom:8px;">Montan Resevwa</td>
+      <td style="color:#2E2E38; font-weight:800; text-align:right; padding-bottom:8px;"><%= @amount_display %></td>
+    </tr>
+    <tr>
+      <td style="color:#166534; font-size:12px; font-weight:600; padding-bottom:8px;">Lajan</td>
+      <td style="color:#2E2E38; font-weight:700; text-align:right; padding-bottom:8px;"><%= @payment_request.asset.upcase %></td>
+    </tr>
+    <% if @payment_request.payer_name.present? %>
+      <tr>
+        <td style="color:#166534; font-size:12px; font-weight:600;">Peyè</td>
+        <td style="color:#2E2E38; font-weight:600; text-align:right;"><%= @payment_request.payer_name %></td>
+      </tr>
+    <% end %>
+    <tr>
+      <td colspan="2" style="border-top:1px dashed #166534; padding-top:10px;"></td>
+    </tr>
+    <tr>
+      <td style="color:#166534; font-size:13px; font-weight:900; text-transform:uppercase;">Estati</td>
+      <td style="color:#166534; font-size:18px; font-weight:900; text-align:right;">PEYE</td>
+    </tr>
+  </table>
+</div>
+
+<% if @payment_request.note.present? %>
+  <div style="background:#fff; border:1px solid #d9d6c4; border-radius:12px; padding:12px; margin-bottom:16px;">
+    <div style="color:#5D6345; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">Nòt</div>
+    <div style="color:#2E2E38; font-size:13px;"><%= @payment_request.note %></div>
+  </div>
+<% end %>
+
+<div style="font-size:13px; color:#5D6345; line-height:1.6;">
+  Demann peman ou resevwa peman avèk siksè. Mèsi pou konfyans ou nan Priotelus!
+</div>

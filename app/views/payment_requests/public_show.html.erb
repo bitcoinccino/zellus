@@ -1,0 +1,148 @@
+<div class="container d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+  <div class="card-base p-4 w-100 shadow-lg" style="max-width: 420px;">
+
+    <% status_pill = case @payment_request.status
+      when "active"   then "color: #166534; background-color: #dcfce7;"
+      when "paid"     then "color: #1d4ed8; background-color: #dbeafe;"
+      when "expired"  then "color: #92400e; background-color: #fef3c7;"
+      else                 "color: #991b1b; background-color: #fee2e2;"
+    end %>
+
+    <%# ── Header ── %>
+    <div class="text-center mb-4">
+      <div class="d-inline-flex align-items-center justify-content-center mb-3 rounded-3"
+        style="width: 56px; height: 56px; background-color: var(--haiti-charcoal);">
+        <i class="ri-links-line ri-xl" style="color: var(--haiti-gold);"></i>
+      </div>
+      <h1 class="h5 fw-black mb-0" style="color: var(--haiti-charcoal);">Demann Peman</h1>
+      <p class="small mb-0" style="color: var(--haiti-olive);">Pataje ak Priotelus</p>
+    </div>
+
+    <%# ── Status ── %>
+    <div class="p-3 rounded-4 d-flex align-items-center justify-content-between mb-3"
+      style="background-color: rgba(93,99,69,0.08); border: 1px dashed var(--haiti-olive);">
+      <span class="small fw-bold" style="color: var(--haiti-olive);">
+        <i class="ri-pulse-line me-1"></i>Estati
+      </span>
+      <span class="badge rounded-pill fw-bold" style="<%= status_pill %> font-size: 10px; letter-spacing: 0.5px;">
+        <%= @payment_request.status.upcase %>
+      </span>
+    </div>
+
+    <%# ── Amount ── %>
+    <div class="p-3 rounded-4 mb-3" style="background-color: rgba(93,99,69,0.08); border: 1px dashed var(--haiti-olive);">
+      <div class="small fw-bold text-uppercase mb-1" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Montan Mande</div>
+      <div class="text-center">
+        <span class="fw-black" style="color: var(--haiti-gold); font-size: 28px; letter-spacing: -1px;">
+          <% if @payment_request.htg? %>
+            <%= number_to_currency(@payment_request.amount, unit: "", precision: 2) %>
+            <small style="font-size: 14px; letter-spacing: 0;">HTG</small>
+          <% else %>
+            <%= number_with_precision(@payment_request.amount, precision: 2) %>
+            <small style="font-size: 14px; letter-spacing: 0;">USDC</small>
+          <% end %>
+        </span>
+      </div>
+      <div class="text-center mt-1">
+        <span class="badge rounded-pill fw-bold" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 10px;">
+          <% if @payment_request.htg? %>
+            <i class="ri-smartphone-line me-1"></i>MONCASH
+          <% else %>
+            <i class="ri-instance-line me-1"></i>REZO BASE · USDC
+          <% end %>
+        </span>
+      </div>
+    </div>
+
+    <%# ── Details ── %>
+    <div class="p-3 rounded-4 mb-3" style="background-color: rgba(93,99,69,0.08); border: 1px dashed var(--haiti-olive);">
+      <div class="d-flex justify-content-between small mb-1">
+        <span class="fw-bold" style="color: var(--haiti-olive);">Peyè</span>
+        <span class="fw-black" style="color: var(--haiti-charcoal);"><%= @payment_request.payer_name.presence || "Nenpòt peyè" %></span>
+      </div>
+      <% if @payment_request.note.present? %>
+        <div class="d-flex justify-content-between small mb-1">
+          <span class="fw-bold" style="color: var(--haiti-olive);">Nòt</span>
+          <span class="fw-bold" style="color: var(--haiti-charcoal);"><%= @payment_request.note %></span>
+        </div>
+      <% end %>
+      <div class="d-flex justify-content-between small">
+        <span class="fw-bold" style="color: var(--haiti-olive);">Ekspire</span>
+        <span class="fw-bold" style="color: var(--haiti-charcoal);">
+          <%= @payment_request.expires_at.present? ? @payment_request.expires_at.strftime("%b %d, %Y %l:%M %p").strip : "Pa gen ekspirasyon" %>
+        </span>
+      </div>
+      <div class="text-end mt-1">
+        <% countdown_style = if @payment_request.expired_now?
+            "color: #991b1b; background: #fee2e2;"
+          elsif @payment_request.expires_soon?
+            "color: #92400e; background: #fef3c7;"
+          else
+            "color: var(--haiti-olive); background: rgba(93,99,69,0.12);"
+          end %>
+        <span class="badge rounded-pill" style="<%= countdown_style %> font-size: 9px; font-weight: 700; letter-spacing: 0.3px;">
+          <i class="ri-timer-line me-1"></i><%= @payment_request.expiry_countdown_label %>
+        </span>
+      </div>
+    </div>
+
+    <%# ── Receiver (if set) ── %>
+    <% if @payment_request.receiver_present? %>
+      <div class="p-3 rounded-4 mb-3" style="background-color: rgba(93,99,69,0.08); border: 1px dashed var(--haiti-olive);">
+        <div class="d-flex justify-content-between small">
+          <span class="fw-bold" style="color: var(--haiti-olive);">Resevè</span>
+          <span class="fw-bold" style="color: var(--haiti-charcoal);">
+            <%= @payment_request.receiver_display_label %>
+            <% if @payment_request.receiver_mobile_wallet? %>
+              · <code style="font-size: 10px;"><%= @payment_request.masked_receiver_account_number %></code>
+            <% else %>
+              · <code style="font-size: 10px;"><%= @payment_request.masked_receiver_wallet_address %></code>
+            <% end %>
+          </span>
+        </div>
+      </div>
+    <% end %>
+
+    <%# ── How To Pay / Inactive ── %>
+    <% if @payment_request.active? %>
+      <div class="p-3 rounded-4 mb-3" style="background-color: rgba(93,99,69,0.08); border: 1px dashed var(--haiti-olive);">
+        <div class="small fw-bold text-uppercase mb-1" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">
+          <i class="ri-information-line me-1"></i>Kijan Pou Peye
+        </div>
+        <div class="small" style="color: var(--haiti-charcoal);">
+          <% if @payment_request.usdc? %>
+            Priotelus ap ouvri fliks <strong>ACHTE USDC</strong> epi estime montan HTG ki nesesè pou livre montan USDC mande a.
+          <% else %>
+            Priotelus ap ouvri fliks <strong>VANN USDC</strong> epi estime montan USDC ki nesesè pou livre montan HTG mande a.
+          <% end %>
+        </div>
+      </div>
+    <% else %>
+      <div class="p-3 rounded-4 mb-3" style="background-color: rgba(93,99,69,0.08); border: 1px dashed var(--haiti-olive);">
+        <div class="small" style="color: var(--haiti-charcoal);">
+          Demann sa a pa ka peye ankò paske li <strong><%= @payment_request.status %></strong>.
+        </div>
+      </div>
+    <% end %>
+
+    <%# ── Actions ── %>
+    <div class="d-grid gap-2 mt-2">
+      <% if @payment_request.active? %>
+        <%= link_to new_transaction_path(
+              request_token: @payment_request.token,
+              prefill_tab: (@payment_request.htg? ? "sell" : "buy")
+            ),
+            class: "btn w-100 py-3 fw-bold rounded-4 shadow-sm border-0 d-flex align-items-center justify-content-center gap-2",
+            style: "background-color: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 14px; letter-spacing: 0.5px;" do %>
+          <i class="ri-flashlight-fill"></i> Peye ak Priotelus
+        <% end %>
+      <% end %>
+      <%= link_to root_path,
+          class: "btn w-100 py-2 fw-bold rounded-4 border-0 d-flex align-items-center justify-content-center gap-2",
+          style: "background: rgba(93,99,69,0.08); color: var(--haiti-charcoal); font-size: 12px;" do %>
+        <i class="ri-exchange-dollar-line"></i> Ouvri Priotelus
+      <% end %>
+    </div>
+
+  </div>
+</div>

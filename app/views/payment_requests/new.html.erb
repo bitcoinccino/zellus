@@ -1,0 +1,284 @@
+<style>
+  .bb-dark-field { color: #fff !important; }
+  .bb-dark-field::placeholder { color: rgba(255,255,255,0.5) !important; opacity:1; font-weight:400 !important; }
+</style>
+
+<div class="container d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+  <div class="card-base p-4 w-100 shadow-lg" style="max-width: 420px;">
+
+    <% if flash[:alert].present? %>
+      <div class="alert alert-warning rounded-3 mb-3" style="background: #fefce8; border: 1px solid #fde68a; color: #854d0e;">
+        <i class="ri-error-warning-line me-1"></i><%= flash[:alert] %>
+      </div>
+    <% end %>
+
+    <% if @payment_request.errors.any? %>
+      <div class="alert alert-danger rounded-3 mb-3" style="background: #fdf2f2; border: 1px solid #fca5a5; color: #991b1b; font-size: 12px;">
+        <i class="ri-error-warning-fill me-1"></i><%= @payment_request.errors.full_messages.to_sentence %>
+      </div>
+    <% end %>
+
+    <%# ── PIN Setup (blocks form if no PIN) ── %>
+    <% unless current_user.transfer_pin_set? %>
+      <div class="p-3 mb-3 rounded-4" style="background-color: rgba(197,160,89,0.12); border: 1px solid rgba(197,160,89,0.55);">
+        <div class="small fw-bold text-uppercase mb-2" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">
+          <i class="ri-lock-line me-1"></i> Kreye PIN Transfè
+        </div>
+        <p class="small mb-3" style="color: var(--haiti-charcoal);">Ou dwe kreye yon PIN 4 chif anvan ou ka fè demann peman.</p>
+        <%= form_with(url: set_pin_transfers_path, method: :post, local: true) do |f| %>
+          <div class="mb-3">
+            <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">PIN (4 chif)</label>
+            <div class="input-group">
+              <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);">
+                <i class="ri-lock-2-line"></i>
+              </span>
+              <input type="password" name="transfer_pin" class="form-control border-0 fw-bold shadow-none p-3 bb-dark-field text-center"
+                     maxlength="4" pattern="\d{4}" inputmode="numeric" placeholder="• • • •" required
+                     style="background-color: var(--haiti-charcoal); color: white; letter-spacing: 10px;">
+            </div>
+          </div>
+          <%= f.button class: "btn w-100 py-3 fw-bold rounded-4 shadow-sm border-0 d-flex align-items-center justify-content-center gap-2",
+              style: "background-color: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 14px; letter-spacing: 0.5px;" do %>
+            <i class="ri-lock-unlock-line"></i> Enstale PIN
+          <% end %>
+        <% end %>
+      </div>
+    <% end %>
+
+    <%# ── Main Request Form ── %>
+    <div style="<%= current_user.transfer_pin_set? ? '' : 'opacity: 0.4; pointer-events: none;' %>">
+
+      <%# ── Header ── %>
+      <div class="text-center mb-4">
+        <div class="d-inline-flex align-items-center justify-content-center mb-3 rounded-3"
+          style="width: 56px; height: 56px; background-color: var(--haiti-charcoal);">
+          <i class="ri-links-line ri-xl" style="color: var(--haiti-gold);"></i>
+        </div>
+        <h1 class="h5 fw-black mb-0" style="color: var(--haiti-charcoal);">Demann Peman</h1>
+        <p class="small mb-0" style="color: var(--haiti-olive);">Voye yon demann peman rapid</p>
+      </div>
+
+      <%= form_with model: @payment_request, url: payment_requests_path, local: true, class: "row g-3", id: "pr-form" do |f| %>
+
+        <%# ── 1. To: Payee ── %>
+        <div class="col-12">
+          <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Bay Moun</label>
+          <div class="input-group">
+            <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);">
+              <i class="ri-user-line"></i>
+            </span>
+            <%= f.text_field :payer_name, placeholder: "Non moun ki dwe peye",
+                class: "form-control border-0 fw-bold shadow-none p-3 bb-dark-field",
+                style: "background-color: var(--haiti-charcoal); color: white;" %>
+          </div>
+        </div>
+
+        <%# ── 2. Currency Type ── %>
+        <div class="col-12">
+          <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Lajan</label>
+          <div class="d-flex gap-2">
+            <label class="flex-fill text-center p-2 rounded-3 cursor-pointer" style="border: 2px solid var(--haiti-olive); background: var(--haiti-cream);" id="lbl-pr-htg">
+              <input type="radio" name="payment_request[asset]" value="htg" <%= "checked" if (@payment_request.asset || "htg") == "htg" %> class="d-none" id="radio-pr-htg" onchange="switchPrAsset('htg')">
+              <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;"><i class="ri-money-dollar-circle-line me-1"></i>HTG</div>
+              <div style="color: var(--haiti-olive); font-size: 10px;">MonCash</div>
+            </label>
+            <label class="flex-fill text-center p-2 rounded-3 cursor-pointer" style="border: 2px solid #d9d6c4; background: var(--haiti-cream);" id="lbl-pr-usdc">
+              <input type="radio" name="payment_request[asset]" value="usdc" <%= "checked" if @payment_request.asset == "usdc" %> class="d-none" id="radio-pr-usdc" onchange="switchPrAsset('usdc')">
+              <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;"><i class="ri-copper-coin-line me-1"></i>USDC</div>
+              <div style="color: var(--haiti-olive); font-size: 10px;">Base</div>
+            </label>
+          </div>
+        </div>
+
+        <%# ── 3. Amount ── %>
+        <div class="col-12">
+          <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Montan</label>
+          <div class="input-group">
+            <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);">
+              <i class="ri-money-dollar-circle-line"></i>
+            </span>
+            <%= f.number_field :amount, step: "0.01", min: "0.01", placeholder: "150.00", id: "pr-amount",
+                class: "form-control border-0 fw-bold shadow-none p-3 bb-dark-field",
+                style: "background-color: var(--haiti-charcoal); color: white;",
+                required: true %>
+            <span class="input-group-text border-0 fw-bold" id="pr-currency-suffix"
+                  style="background-color: var(--haiti-charcoal); color: rgba(255,255,255,0.5); font-size: 13px;">
+              HTG
+            </span>
+          </div>
+        </div>
+
+        <%# ── 4. For: Label ── %>
+        <div class="col-12">
+          <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Pou ki sa</label>
+          <div class="input-group">
+            <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);">
+              <i class="ri-price-tag-3-line"></i>
+            </span>
+            <%= f.text_field :note, placeholder: "Fakti, frè lekòl, pwovizyon...", maxlength: 140,
+                class: "form-control border-0 fw-bold shadow-none p-3 bb-dark-field",
+                style: "background-color: var(--haiti-charcoal); color: white;" %>
+          </div>
+        </div>
+
+        <%# ── Hidden PIN field (filled by modal) ── %>
+        <input type="hidden" name="transfer_pin" id="pr-pin-hidden" value="">
+
+        <%# ── Submit ── %>
+        <div class="col-12 mt-2">
+          <button type="button" onclick="openPrPinModal()"
+              class="btn w-100 py-3 fw-bold rounded-4 shadow-sm border-0 d-flex align-items-center justify-content-center gap-2"
+              style="background-color: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 14px; letter-spacing: 0.5px;">
+            <i class="ri-flashlight-fill"></i> Konfime Demann
+          </button>
+        </div>
+
+        <div class="col-12 text-center">
+          <%= link_to payment_requests_path, class: "small text-decoration-none fw-bold", style: "color: var(--haiti-olive);" do %>
+            <i class="ri-arrow-left-line me-1"></i>Retounen nan Demann Yo
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+
+  </div>
+</div>
+
+<%# ── PIN Confirmation Modal ── %>
+<% if current_user.transfer_pin_set? %>
+  <div id="pr-pin-modal" style="display:none; position:fixed; inset:0; z-index:1050; background:rgba(0,0,0,0.6); backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); align-items:center; justify-content:center; padding:1rem;">
+    <div class="card-base p-4 w-100 shadow-lg" style="max-width: 420px;">
+
+      <div class="text-center mb-4">
+        <div class="d-inline-flex align-items-center justify-content-center mb-3 rounded-3"
+          style="width: 56px; height: 56px; background-color: var(--haiti-charcoal);">
+          <i class="ri-lock-2-fill ri-xl" style="color: var(--haiti-gold);"></i>
+        </div>
+        <h1 class="h5 fw-black mb-0" style="color: var(--haiti-charcoal);">Konfime Demann</h1>
+        <p class="small mb-0" style="color: var(--haiti-olive);">Antre PIN 4 chif ou pou kreye demann nan</p>
+      </div>
+
+      <%# ── Confirm Summary ── %>
+      <div class="p-3 rounded-4 mb-3" style="background-color: rgba(93,99,69,0.08); border: 1px dashed var(--haiti-olive);">
+        <div class="d-flex justify-content-between small mb-1">
+          <span class="fw-bold" style="color: var(--haiti-olive);">Bay</span>
+          <span class="fw-black" style="color: var(--haiti-charcoal);" id="pr-modal-payer">—</span>
+        </div>
+        <div class="d-flex justify-content-between small mb-1">
+          <span class="fw-bold" style="color: var(--haiti-olive);">Montan</span>
+          <span class="fw-black" style="color: var(--haiti-gold);" id="pr-modal-amount">—</span>
+        </div>
+        <div class="d-flex justify-content-between small">
+          <span class="fw-bold" style="color: var(--haiti-olive);">Pou</span>
+          <span class="fw-black" style="color: var(--haiti-charcoal);" id="pr-modal-note">—</span>
+        </div>
+      </div>
+
+      <div class="row g-3">
+        <div class="col-12">
+          <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">PIN Transfè (4 chif)</label>
+          <div class="input-group">
+            <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);">
+              <i class="ri-lock-2-line"></i>
+            </span>
+            <input type="password" id="pr-pin-modal-input"
+                   class="form-control border-0 fw-bold shadow-none p-3 bb-dark-field text-center"
+                   maxlength="4" pattern="\d{4}" inputmode="numeric" placeholder="• • • •" autocomplete="off"
+                   style="background-color: var(--haiti-charcoal); color: white; letter-spacing: 12px; font-size: 1.4rem;">
+          </div>
+        </div>
+
+        <div class="col-12">
+          <button type="button" onclick="submitPrWithPin()"
+              class="btn w-100 py-3 fw-bold rounded-4 shadow-sm border-0 d-flex align-items-center justify-content-center gap-2"
+              style="background-color: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 14px; letter-spacing: 0.5px;">
+            <i class="ri-send-plane-fill"></i> Voye Demann
+          </button>
+        </div>
+
+        <div class="col-12 text-center">
+          <a href="#" id="pr-pin-cancel" class="small text-decoration-none fw-bold" style="color: var(--haiti-olive);">
+            <i class="ri-close-line me-1"></i>Anile
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+<% end %>
+
+<script>
+var currentPrAsset = '<%= (@payment_request.asset || "htg") %>';
+
+function switchPrAsset(asset) {
+  currentPrAsset = asset;
+  document.getElementById('lbl-pr-htg').style.borderColor = (asset === 'htg') ? 'var(--haiti-olive)' : '#d9d6c4';
+  document.getElementById('lbl-pr-usdc').style.borderColor = (asset === 'usdc') ? 'var(--haiti-olive)' : '#d9d6c4';
+  document.getElementById('pr-currency-suffix').textContent = asset.toUpperCase();
+}
+
+function openPrPinModal() {
+  var modal = document.getElementById('pr-pin-modal');
+  if (!modal) return;
+
+  var amount = parseFloat(document.getElementById('pr-amount').value) || 0;
+  var payer = document.querySelector('[name="payment_request[payer_name]"]').value || '—';
+  var note = document.querySelector('[name="payment_request[note]"]').value || '—';
+
+  document.getElementById('pr-modal-payer').textContent = payer;
+  document.getElementById('pr-modal-amount').textContent = amount.toLocaleString() + ' ' + currentPrAsset.toUpperCase();
+  document.getElementById('pr-modal-note').textContent = note;
+
+  modal.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+  setTimeout(function() {
+    var input = document.getElementById('pr-pin-modal-input');
+    if (input) input.focus();
+  }, 150);
+}
+
+function closePrPinModal() {
+  var modal = document.getElementById('pr-pin-modal');
+  if (!modal) return;
+  modal.style.display = 'none';
+  document.body.style.overflow = '';
+  var input = document.getElementById('pr-pin-modal-input');
+  if (input) input.value = '';
+}
+
+function submitPrWithPin() {
+  var pinInput = document.getElementById('pr-pin-modal-input');
+  var pin = pinInput ? pinInput.value : '';
+  if (pin.length !== 4) {
+    pinInput.style.borderColor = '#991b1b';
+    pinInput.focus();
+    return;
+  }
+  document.getElementById('pr-pin-hidden').value = pin;
+  closePrPinModal();
+  document.getElementById('pr-form').submit();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  switchPrAsset(currentPrAsset);
+
+  var cancelBtn = document.getElementById('pr-pin-cancel');
+  if (cancelBtn) {
+    cancelBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      closePrPinModal();
+    });
+  }
+
+  var modal = document.getElementById('pr-pin-modal');
+  if (modal) {
+    modal.addEventListener('click', function(e) {
+      if (e.target === modal) closePrPinModal();
+    });
+  }
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closePrPinModal();
+  });
+});
+</script>

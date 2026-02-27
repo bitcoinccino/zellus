@@ -1,0 +1,41 @@
+<div style="margin-bottom:20px;">
+  <div style="font-size:15px; font-weight:800; color:#166534; margin-bottom:6px;">Transfè Konplete ✓</div>
+  <div style="font-size:13px; color:#5D6345;">Transfè #<%= @transfer.id %> — <%= @transfer.completed_at&.strftime("%b %d, %Y %l:%M %p")&.strip || @transfer.updated_at.strftime("%b %d, %Y") %></div>
+</div>
+
+<div style="background:#dcfce7; border:2px solid #166534; border-radius:14px; padding:16px; margin-bottom:16px;">
+  <table width="100%" cellspacing="0" cellpadding="0">
+    <tr>
+      <td style="color:#166534; font-size:12px; font-weight:600; padding-bottom:8px;">Montan Voye</td>
+      <td style="color:#2E2E38; font-weight:800; text-align:right; padding-bottom:8px;">HTG <%= format('%.0f', @transfer.amount.to_f) %></td>
+    </tr>
+    <tr>
+      <td style="color:#166534; font-size:13px; font-weight:900; text-transform:uppercase;">Resevè te jwenn</td>
+      <td style="color:#166534; font-size:18px; font-weight:900; text-align:right;">
+        <% if @transfer.crypto_transfer? && @transfer.crypto_amount.present? %>
+          <%= @transfer.crypto_amount %> <%= @transfer.asset_label %>
+        <% else %>
+          HTG <%= format('%.0f', @transfer.net_amount.to_f) %>
+        <% end %>
+      </td>
+    </tr>
+  </table>
+</div>
+
+<div style="background:#fff; border:1px solid #d9d6c4; border-radius:12px; padding:12px; margin-bottom:16px;">
+  <div style="color:#5D6345; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-bottom:6px;">Resevè</div>
+  <div style="color:#2E2E38; font-size:13px; font-weight:600;">
+    <%= @transfer.receiver_name.presence || @transfer.receiver_phone.presence || @transfer.receiver_email.presence || "—" %>
+  </div>
+</div>
+
+<% if @transfer.blockchain_tx_hash.present? %>
+  <div style="background:#fff; border:1px solid #d9d6c4; border-radius:12px; padding:12px; margin-bottom:16px;">
+    <div style="color:#5D6345; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-bottom:6px;">TX Blockchain</div>
+    <div style="color:#2E2E38; font-size:11px; word-break:break-all;"><%= @transfer.blockchain_tx_hash %></div>
+  </div>
+<% end %>
+
+<div style="font-size:13px; color:#5D6345; line-height:1.6;">
+  Transfè ou a konplete avèk siksè. Mèsi pou konfyans ou nan Priotelus!
+</div>

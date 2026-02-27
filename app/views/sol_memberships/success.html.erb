@@ -1,0 +1,42 @@
+<div class="container d-flex justify-content-center align-items-center" style="min-height: 85vh;">
+  <div class="card-base p-4 w-100 text-center shadow-lg" style="max-width: 440px;">
+
+    <div class="mb-3" style="font-size: 4rem; animation: flyIn 1s ease-out;">
+      <%= current_user.tier_icon %>
+    </div>
+
+    <h1 class="h4 fw-black text-uppercase mb-2" style="color: var(--haiti-charcoal);">Felisitasyon!</h1>
+    <p class="small mb-4" style="color: var(--haiti-olive);">
+      Ou enskri nan <strong><%= @circle.name %></strong>. Ou nan pozisyon
+      <strong>#<%= @circle.sol_memberships.find_by(user: current_user)&.position %></strong> nan wotasyon an.
+    </p>
+
+    <div class="p-3 mb-4 rounded-4 text-start" style="background-color: var(--haiti-mint); border: 2px solid var(--haiti-olive);">
+      <div class="small fw-bold text-uppercase mb-2" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">
+        <i class="ri-information-line me-1"></i> Kisa k ap Pase Apre
+      </div>
+      <ul class="small mb-0 ps-3" style="color: var(--haiti-charcoal); line-height: 1.8;">
+        <li>Sol la ap komanse le <strong><%= @circle.target_members %></strong> manm enskri</li>
+        <li>Chak manm kontribye <strong><%= number_to_currency(@circle.amount, unit: @circle.htg? ? "HTG " : "USDC ") %></strong></li>
+        <li>Dire Sol: <strong><%= @circle.duration_months %> Mwa</strong></li>
+        <li>Peye a le pou monte nivo ou!</li>
+      </ul>
+    </div>
+
+    <div class="d-grid">
+      <%= link_to sol_circle_path(@circle.token),
+          class: "btn py-3 fw-bold rounded-4 shadow-sm border-0",
+          style: "background-color: var(--haiti-charcoal); color: var(--haiti-gold); letter-spacing: 0.5px;" do %>
+        <i class="ri-eye-line me-1"></i> We Sol La
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<style>
+  @keyframes flyIn {
+    0% { transform: translateY(-40px) scale(0.5); opacity: 0; }
+    60% { transform: translateY(5px) scale(1.1); opacity: 1; }
+    100% { transform: translateY(0) scale(1); }
+  }
+</style>

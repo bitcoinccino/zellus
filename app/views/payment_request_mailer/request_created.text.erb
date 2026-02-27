@@ -1,0 +1,20 @@
+Priotelus — Demann Peman Kreye
+
+Bonjou <%= @creator_name %>,
+
+Demann peman ou kreye avèk siksè!
+
+Detay Demann:
+- Demann #<%= @payment_request.id %>
+- Montan: <%= @amount_display %>
+- Lajan: <%= @payment_request.asset.upcase %>
+<% if @payment_request.payer_name.present? %>- Peyè: <%= @payment_request.payer_name %><% end %>
+<% if @payment_request.note.present? %>- Nòt: <%= @payment_request.note %><% end %>
+<% if @payment_request.expires_at.present? %>- Ekspirasyon: <%= @payment_request.expires_at.strftime("%b %d, %Y %l:%M %p").strip %><% end %>
+
+<% if @share_url.present? %>
+Pataje lyen sa a ak peyè a:
+<%= @share_url %>
+<% end %>
+
+Mèsi paske w itilize Priotelus!

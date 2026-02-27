@@ -1,0 +1,20 @@
+Tranzaksyon Resevwa
+
+Bonjou <%= @user.email %>,
+
+Tranzaksyon <%= @transaction.transaction_type %> ou anrejistre epi ap tann tretman.
+
+TX ID: #<%= @transaction.id %>
+Estati: <%= @transaction.status.upcase %>
+Tip: <%= @transaction.transaction_type.upcase %>
+Montan: <%= @amount_line %>
+Frè: <%= number_to_currency(@transaction.fee_amount, unit: "HTG ", precision: 2) %>
+Metòd Peman: <%= @payment_method_label %>
+Rezo: <%= @network_label %>
+Soti nan: <%= @source_label %>
+Ale nan: <%= @destination_label %>
+<% if @transaction_url.present? %>
+Wè Tranzaksyon: <%= @transaction_url %>
+<% end %>
+
+Mèsi pou konfyans ou nan Priotelus!

@@ -1,0 +1,112 @@
+<div class="container d-flex justify-content-center align-items-start" style="min-height: 80vh;">
+  <div class="card-base p-4 w-100 shadow-lg" style="max-width: 520px;">
+
+    <%# ── Header ── %>
+    <div class="text-center mb-4">
+      <div class="d-inline-flex align-items-center justify-content-center mb-3 rounded-3"
+        style="width: 56px; height: 56px; background-color: var(--haiti-charcoal);">
+        <i class="ri-links-line ri-xl" style="color: var(--haiti-gold);"></i>
+      </div>
+      <h1 class="h5 fw-black mb-0" style="color: var(--haiti-charcoal);">Demann Peman</h1>
+      <p class="small mb-0" style="color: var(--haiti-olive);">Tout demann peman ou kreye</p>
+    </div>
+
+    <% if flash[:notice].present? %>
+      <div class="alert rounded-3 mb-3" style="background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; font-size: 12px;">
+        <i class="ri-checkbox-circle-line me-1"></i><%= flash[:notice] %>
+      </div>
+    <% end %>
+
+    <%# ── Create Button ── %>
+    <div class="mb-4">
+      <%= link_to new_payment_request_path,
+          class: "btn w-100 py-3 fw-bold rounded-4 shadow-sm border-0 d-flex align-items-center justify-content-center gap-2",
+          style: "background-color: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 14px; letter-spacing: 0.5px;" do %>
+        <i class="ri-add-circle-line"></i> Kreye Nouvo Demann
+      <% end %>
+    </div>
+
+    <%# ── Stats Widget ── %>
+    <div class="p-3 rounded-4 d-flex align-items-center justify-content-between mb-3"
+      style="background-color: rgba(93,99,69,0.08); border: 1px dashed var(--haiti-olive);">
+      <span class="small fw-bold" style="color: var(--haiti-olive);">
+        <i class="ri-file-list-line me-1"></i>Total Demann
+      </span>
+      <span class="badge rounded-pill fw-bold" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 10px;">
+        <%= @payment_requests.size %>
+      </span>
+    </div>
+
+    <%# ── Request List ── %>
+    <% if @payment_requests.any? %>
+      <div class="d-grid gap-3">
+        <% @payment_requests.each do |request| %>
+          <% status_pill = case request.status
+            when "active"   then "color: #166534; background-color: #dcfce7;"
+            when "paid"     then "color: #1d4ed8; background-color: #dbeafe;"
+            when "expired"  then "color: #92400e; background-color: #fef3c7;"
+            else                 "color: #991b1b; background-color: #fee2e2;"
+          end %>
+          <%= link_to payment_request_path(request), class: "text-decoration-none" do %>
+            <div class="p-3 rounded-4" style="background-color: rgba(93,99,69,0.08); border: 1px dashed var(--haiti-olive);">
+              <div class="d-flex justify-content-between align-items-start">
+                <div class="flex-grow-1">
+                  <div class="d-flex align-items-center gap-2 mb-1">
+                    <span class="fw-black" style="color: var(--haiti-charcoal);">
+                      <% if request.htg? %>
+                        <%= number_to_currency(request.amount, unit: "HTG ", precision: 2) %>
+                      <% else %>
+                        <%= number_with_precision(request.amount, precision: 2) %> USDC
+                      <% end %>
+                    </span>
+                    <span class="badge rounded-pill" style="<%= status_pill %> font-size: 9px; font-weight: 800; letter-spacing: 0.4px;">
+                      <%= request.status.upcase %>
+                    </span>
+                  </div>
+                  <div class="small" style="color: var(--haiti-olive); font-size: 11px;">
+                    <i class="ri-time-line me-1"></i><%= request.created_at.strftime("%b %d, %Y %l:%M %p").strip %>
+                    <% if request.payer_name.present? %>
+                      &middot; <i class="ri-user-line me-1"></i><%= request.payer_name %>
+                    <% end %>
+                  </div>
+                  <div class="mt-1">
+                    <% countdown_style = if request.expired_now?
+                        "color: #991b1b; background: #fee2e2;"
+                      elsif request.expires_soon?
+                        "color: #92400e; background: #fef3c7;"
+                      else
+                        "color: var(--haiti-olive); background: rgba(93,99,69,0.12);"
+                      end %>
+                    <span class="badge rounded-pill" style="<%= countdown_style %> font-size: 9px; font-weight: 700; letter-spacing: 0.3px;">
+                      <i class="ri-timer-line me-1"></i><%= request.expiry_countdown_label %>
+                    </span>
+                  </div>
+                  <% if request.note.present? %>
+                    <div class="small mt-1" style="color: var(--haiti-charcoal);"><%= request.note %></div>
+                  <% end %>
+                </div>
+                <div class="d-flex align-items-center" style="color: var(--haiti-olive);">
+                  <i class="ri-arrow-right-s-line ri-lg"></i>
+                </div>
+              </div>
+            </div>
+          <% end %>
+        <% end %>
+      </div>
+    <% else %>
+      <div class="text-center py-5 rounded-4" style="background-color: rgba(93,99,69,0.08); border: 1px dashed var(--haiti-olive);">
+        <i class="ri-links-line ri-2x d-block mb-2" style="color: var(--haiti-gold);"></i>
+        <div class="fw-bold" style="color: var(--haiti-charcoal);">Pa gen demann peman ankò</div>
+        <div class="small" style="color: var(--haiti-olive);">Kreye premye demann patajab ou.</div>
+      </div>
+    <% end %>
+
+    <%# ── Back Link ── %>
+    <div class="text-center mt-3">
+      <%= link_to zellus_path, class: "small text-decoration-none fw-bold", style: "color: var(--haiti-olive);" do %>
+        <i class="ri-arrow-left-line me-1"></i>Retounen nan Zèllus
+      <% end %>
+    </div>
+
+  </div>
+</div>

@@ -1,0 +1,48 @@
+<div style="margin-bottom:20px;">
+  <div style="font-size:15px; font-weight:800; color:#2E2E38; margin-bottom:6px;">Lajan Ou Depoze ✓</div>
+  <div style="font-size:13px; color:#5D6345;">Transfè #<%= @transfer.id %> — <%= @transfer.created_at.strftime("%b %d, %Y %l:%M %p").strip %></div>
+</div>
+
+<div style="background:#E8EDE0; border:2px solid #5D6345; border-radius:14px; padding:16px; margin-bottom:16px;">
+  <table width="100%" cellspacing="0" cellpadding="0">
+    <tr>
+      <td style="color:#5D6345; font-size:12px; font-weight:600; padding-bottom:8px;">Montan Voye</td>
+      <td style="color:#2E2E38; font-weight:800; text-align:right; padding-bottom:8px;">HTG <%= format('%.0f', @transfer.amount.to_f) %></td>
+    </tr>
+    <tr>
+      <td style="color:#5D6345; font-size:12px; font-weight:600; padding-bottom:8px;">Frè (1%)</td>
+      <td style="color:#D8000C; font-weight:700; text-align:right; padding-bottom:8px;">- HTG <%= format('%.0f', @transfer.fee.to_f) %></td>
+    </tr>
+    <tr>
+      <td colspan="2" style="border-top:1px dashed #5D6345; padding-top:10px;"></td>
+    </tr>
+    <tr>
+      <td style="color:#2E2E38; font-size:13px; font-weight:900; text-transform:uppercase;">Moun Nan Ap Resevwa</td>
+      <td style="color:#C5A059; font-size:18px; font-weight:900; text-align:right;">
+        <% if @transfer.crypto_transfer? && @transfer.crypto_amount.present? %>
+          <%= @transfer.crypto_amount %> <%= @transfer.asset_label %>
+        <% else %>
+          HTG <%= format('%.0f', @transfer.net_amount.to_f) %>
+        <% end %>
+      </td>
+    </tr>
+  </table>
+</div>
+
+<div style="background:#fff; border:1px solid #d9d6c4; border-radius:12px; padding:12px; margin-bottom:16px;">
+  <div style="color:#5D6345; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-bottom:6px;">Resevè</div>
+  <div style="color:#2E2E38; font-size:13px; font-weight:600;">
+    <%= @transfer.receiver_name.presence || @transfer.receiver_phone.presence || @transfer.receiver_email.presence || @transfer.receiver_wallet_address.to_s.truncate(20) %>
+  </div>
+</div>
+
+<div style="font-size:13px; color:#5D6345; line-height:1.6;">
+  N ap trete transfè ou kounye a. Ou ap resevwa yon lòt imèl lè transfè a konplete.
+</div>
+
+<% if @claim_url.present? && @transfer.receiver_email.blank? %>
+  <div style="margin-top:16px; background:#fcfcf9; border:1px dashed #5D6345; border-radius:12px; padding:12px;">
+    <div style="color:#5D6345; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-bottom:6px;">Lyen Reklame</div>
+    <div style="color:#2E2E38; font-size:12px; word-break:break-all;"><%= @claim_url %></div>
+  </div>
+<% end %>

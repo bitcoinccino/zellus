@@ -1,0 +1,137 @@
+<div class="container py-5">
+  <div class="d-flex justify-content-between align-items-end mb-5">
+    <div>
+      <h1 class="h2 fw-bold mb-1" style="color: var(--haiti-charcoal);"><i class="ri-dashboard-3-line me-2" style="color: var(--haiti-olive);"></i>Sant Machan Admin</h1>
+      <p class="small" style="color: var(--haiti-olive);">Siveyans likidite ak koleksyon frè Priotelus</p>
+    </div>
+    <div class="text-end">
+      <% if CryptoTransferWorker::CHAIN_ID == 8453 %>
+        <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 py-2 px-3 rounded-pill">
+          <i class="ri-radar-line me-1"></i> BASE MAINNET ACTIVE
+        </span>
+      <% else %>
+        <span class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 py-2 px-3 rounded-pill">
+          <i class="ri-test-tube-line me-1"></i> BASE SEPOLIA TESTNET
+        </span>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Treasury & Stats Grid -->
+  <div class="row g-4 mb-5">
+    <div class="col-md-4">
+      <div class="card-base p-4" style="background: var(--haiti-charcoal);">
+        <span class="small text-uppercase fw-bold" style="color: var(--haiti-gold); letter-spacing: 1px;"><i class="ri-money-dollar-circle-line me-1"></i>Pwofi (Frè)</span>
+        <h2 class="h2 fw-black mt-2" style="color: var(--haiti-gold);"><%= number_to_currency(@total_fees, unit: "HTG ", precision: 0) %></h2>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card-base p-4">
+        <span class="small text-uppercase fw-bold" style="color: var(--haiti-olive); letter-spacing: 1px;"><i class="ri-line-chart-line me-1"></i>Volim Total</span>
+        <h2 class="h2 fw-black mt-2" style="color: var(--haiti-charcoal);"><%= number_to_currency(@total_volume, unit: "HTG ", precision: 0) %></h2>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card-base p-4">
+        <span class="small text-uppercase fw-bold" style="color: var(--haiti-olive); letter-spacing: 1px;"><i class="ri-checkbox-circle-line me-1"></i>TX Trete</span>
+        <h2 class="h2 fw-black mt-2" style="color: var(--haiti-charcoal);"><%= @tx_processed %> <span class="small" style="color: var(--haiti-olive);">konplè</span></h2>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card-base p-4">
+        <span class="small text-uppercase fw-bold" style="color: var(--haiti-olive); letter-spacing: 1px;"><i class="ri-coin-line me-1"></i>Trezò USDC</span>
+        <h2 class="h2 fw-black mt-2" style="color: var(--haiti-charcoal);"><%= number_with_precision(@usdc_balance, precision: 2) %> <span class="small" style="color: var(--haiti-olive);">USDC</span></h2>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card-base p-4">
+        <span class="small text-uppercase fw-bold" style="color: var(--haiti-olive); letter-spacing: 1px;"><i class="ri-smartphone-line me-1"></i>MonCash Pre-finanse</span>
+        <% if @moncash_prefunded_balance.present? %>
+          <h2 class="h2 fw-black mt-2" style="color: var(--haiti-charcoal);"><%= number_with_precision(@moncash_prefunded_balance.to_f, precision: 2) %> <span class="small" style="color: var(--haiti-olive);">HTG</span></h2>
+        <% else %>
+          <h2 class="h5 fw-black mt-2 mb-1" style="color: #dc3545;">Pre-finanse Pa Disponib</h2>
+          <div class="small" style="color: var(--haiti-olive); line-height: 1.25;">
+            <%= (@moncash_prefunded_error.presence || "MonCash API unavailable").to_s.truncate(60) %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card-base p-4">
+        <span class="small text-uppercase fw-bold" style="color: var(--haiti-olive); letter-spacing: 1px;"><i class="ri-gas-station-line me-1"></i>Gaz (Base ETH)</span>
+        <h2 class="h2 fw-black mt-2" style="color: <%= @eth_balance < 0.005 ? '#dc3545' : 'var(--haiti-charcoal)' %>;"><%= number_with_precision(@eth_balance, precision: 4) %> <span class="small" style="color: var(--haiti-olive);">ETH</span></h2>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card-base p-4">
+        <span class="small text-uppercase fw-bold" style="color: var(--haiti-olive); letter-spacing: 1px;"><i class="ri-group-line me-1"></i>Itilizatè Aktif</span>
+        <h2 class="h2 fw-black mt-2" style="color: var(--haiti-charcoal);"><%= User.count %></h2>
+      </div>
+    </div>
+  </div>
+
+  <!-- Aktivite Global Resan -->
+  <div class="card-base p-0 overflow-hidden">
+    <div class="px-4 py-3" style="border-bottom: 2px solid var(--haiti-olive);">
+      <h3 class="h6 mb-0 fw-bold" style="color: var(--haiti-charcoal);">Aktivite Global Resan</h3>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-hover mb-0 align-middle" style="background-color: var(--haiti-cream);">
+        <thead style="font-size: 11px; letter-spacing: 1px; color: var(--haiti-olive); border-bottom: 2px solid var(--haiti-olive);">
+          <tr>
+            <th class="ps-4">ITILIZATÈ</th>
+            <th>HTG PEYE</th>
+            <th>USDC (BASE)</th>
+            <th>ESTATI</th>
+            <th class="pe-4 text-end">AKSYON</th>
+          </tr>
+        </thead>
+        <tbody class="small">
+          <% @recent_transactions.each do |t| %>
+            <tr style="border-color: var(--haiti-olive); border-color: rgba(93,99,69,0.2);">
+              <td class="ps-4" style="color: var(--haiti-olive);"><%= t.user.email.truncate(20) %></td>
+              <td class="fw-bold" style="color: var(--haiti-charcoal);"><%= number_to_currency(t.fiat_amount, unit: "") %></td>
+              <td class="fw-bold" style="color: var(--haiti-olive);"><%= t.crypto_amount %></td>
+              <td>
+                <% badge_class = case t.status
+                   when 'completed'   then 'bg-success bg-opacity-10 text-success'
+                   when 'crypto_sent' then 'bg-info bg-opacity-10 text-info'
+                   when 'paid'        then 'bg-primary bg-opacity-10 text-primary'
+                   when 'payout_failed' then 'bg-warning bg-opacity-10 text-warning'
+                   when 'failed'      then 'bg-danger bg-opacity-10 text-danger'
+                   else                    'bg-warning bg-opacity-10 text-warning'
+                   end %>
+                <span class="badge rounded-pill <%= badge_class %>">
+                  <%= t.status.humanize %>
+                </span>
+              </td>
+              <td class="pe-4 text-end">
+                <% if t.status == 'paid' || t.status == 'failed' %>
+                  <%= button_to retry_admin_transaction_path(t), method: :post, class: "btn btn-sm btn-outline-primary border-0 rounded-pill p-1 px-2" do %>
+                    <i class="ri-refresh-line"></i> Re-eseye
+                  <% end %>
+                <% end %>
+                <% if t.status == 'payout_failed' && t.sell? %>
+                  <%= button_to retry_admin_payout_path(t), method: :post, class: "btn btn-sm border-0 rounded-pill p-1 px-2 ms-1", style: "background-color: #fff7ed; color: #c2410c;" do %>
+                    <i class="ri-bank-card-line"></i> Re-eseye Peman
+                  <% end %>
+                <% end %>
+                <% if t.blockchain_tx_hash.present? %>
+                  <%= link_to basescan_tx_url(t.blockchain_tx_hash), target: "_blank", class: "text-success text-decoration-none ms-1" do %>
+                    <i class="ri-external-link-line"></i>
+                  <% end %>
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,22 @@
+Tranzaksyon Echwe
+
+Bonjou <%= @user.email %>,
+
+Tranzaksyon <%= @transaction.transaction_type %> ou pa t kapab konplete.
+
+TX ID: #<%= @transaction.id %>
+Estati: ECHWE
+Montan: <%= @amount_line %>
+Metòd Peman: <%= @payment_method_label %>
+Soti nan: <%= @source_label %>
+Ale nan: <%= @destination_label %>
+<% if @transaction.failure_reason.present? %>
+Rezon Echèk: <%= @customer_failure_message %>
+<% end %>
+<% if @transaction_url.present? %>
+Wè Tranzaksyon: <%= @transaction_url %>
+<% end %>
+
+Si lajan te debite nan kont ou, n ap ranbouse ou otomatikman. Kontakte sipò si ou gen kesyon.
+
+Priotelus

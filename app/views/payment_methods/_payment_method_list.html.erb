@@ -1,0 +1,83 @@
+<% if methods.any? %>
+  <div class="d-grid gap-3">
+    <% methods.each do |pm| %>
+      <div class="p-3 rounded-4" style="background-color: rgba(93,99,69,0.08); border: 1px solid rgba(93,99,69,0.25);">
+        <div class="d-flex justify-content-between align-items-start gap-3 mb-2">
+          <div>
+            <div class="fw-bold" style="color: var(--haiti-charcoal);">
+              <i class="<%= kind == :mobile ? 'ri-smartphone-line' : 'ri-wallet-3-line' %> me-1" style="color: var(--haiti-gold);"></i>
+              <%= pm.display_label %>
+            </div>
+            <div class="small" style="color: var(--haiti-olive);">
+              <% if kind == :mobile %>
+                <%= pm.account_number %>
+              <% else %>
+                <%= [pm.network&.humanize, pm.asset&.upcase].compact.join(' · ') %>
+              <% end %>
+            </div>
+            <% if kind == :crypto %>
+              <code style="font-size: 11px; color: var(--haiti-charcoal);"><%= pm.masked_wallet_address %></code>
+            <% end %>
+          </div>
+          <span class="badge rounded-pill <%= pm.active? ? '' : 'bg-secondary' %>" style="<%= pm.active? ? 'background-color: #dcfce7; color: #166534;' : '' %>">
+            <%= pm.active? ? 'ACTIVE' : 'INACTIVE' %>
+          </span>
+        </div>
+
+        <%= form_with model: pm, url: payment_method_path(pm), method: :patch, local: true, class: "row g-2 align-items-end" do |f| %>
+          <%= f.hidden_field :category %>
+          <%= f.hidden_field :provider %>
+          <% if pm.crypto_wallet? %>
+            <%= f.hidden_field :network %>
+            <%= f.hidden_field :asset %>
+          <% end %>
+
+          <div class="col-md-4">
+            <label class="form-label small fw-bold" style="color: var(--haiti-olive); font-size: 10px;">Label</label>
+            <%= f.text_field :label, class: "form-control form-control-sm fw-bold", style: "border-color: rgba(93,99,69,0.5);" %>
+          </div>
+
+          <% if pm.mobile_wallet? %>
+            <div class="col-md-4">
+              <label class="form-label small fw-bold" style="color: var(--haiti-olive); font-size: 10px;">MonCash Number</label>
+              <%= f.text_field :account_number, class: "form-control form-control-sm fw-bold", style: "border-color: rgba(93,99,69,0.5);" %>
+            </div>
+          <% else %>
+            <div class="col-md-4">
+              <label class="form-label small fw-bold" style="color: var(--haiti-olive); font-size: 10px;">Wallet Address</label>
+              <%= f.text_field :wallet_address, class: "form-control form-control-sm fw-bold", style: "border-color: rgba(93,99,69,0.5);" %>
+            </div>
+          <% end %>
+
+          <div class="col-md-2">
+            <div class="form-check mt-4">
+              <%= f.check_box :active, class: "form-check-input" %>
+              <%= f.label :active, class: "form-check-label small fw-bold", style: "color: var(--haiti-olive);" %>
+            </div>
+          </div>
+
+          <div class="col-md-2 d-grid">
+            <%= f.button class: "btn btn-sm fw-bold rounded-3", style: "background-color: var(--haiti-charcoal); color: var(--haiti-gold);" do %>
+              Save
+            <% end %>
+          </div>
+        <% end %>
+
+        <div class="mt-2 text-end">
+          <%= button_to payment_method_path(pm), method: :delete,
+              class: "btn btn-sm btn-link p-0 text-decoration-underline fw-bold",
+              style: "color: #991b1b;" do %>
+            <i class="ri-delete-bin-line me-1"></i> Remove
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+<% else %>
+  <div class="text-center py-4">
+    <i class="<%= kind == :mobile ? 'ri-smartphone-line' : 'ri-wallet-3-line' %> d-block mb-2" style="font-size: 2rem; color: var(--haiti-olive); opacity: 0.4;"></i>
+    <div class="small fw-bold text-uppercase" style="color: var(--haiti-olive); letter-spacing: 1px; opacity: 0.7;">
+      No <%= kind == :mobile ? 'mobile wallets' : 'crypto wallets' %> yet
+    </div>
+  </div>
+<% end %>

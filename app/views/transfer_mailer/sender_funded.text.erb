@@ -1,0 +1,21 @@
+<%= @brand_name %> — Zèllus Transfè
+
+Bonjou <%= @sender_name %>,
+
+Lajan ou depoze avèk siksè! N ap voye <%= format_htg(@transfer.net_amount) %> bay <%= @transfer.receiver_name %>.
+
+Detay Transfè:
+- Montan: <%= format_htg(@transfer.amount) %>
+- Frè: <%= format_htg(@transfer.fee) %>
+- Moun Nan Ap Resevwa: <%= format_htg(@transfer.net_amount) %>
+- Pou: <%= @transfer.receiver_name %>
+<% if @transfer.note.present? %>- Nòt: <%= @transfer.note %><% end %>
+
+<% if @transfer.receiver_phone.present? %>
+N ap voye lajan an dirèkteman nan MonCash moun nan.
+<% else %>
+Moun nan dwe reklame lajan an ak lyen sa a:
+<%= @claim_url %>
+<% end %>
+
+Mèsi paske w itilize Priotelus!

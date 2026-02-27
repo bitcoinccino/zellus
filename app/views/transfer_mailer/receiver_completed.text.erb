@@ -1,0 +1,12 @@
+<%= @brand_name %> — Lajan Ou Rive!
+
+Bonjou <%= @transfer.receiver_name %>,
+
+Ou resevwa <%= format_htg(@transfer.net_amount) %> nan MonCash ou!
+
+Voye pa: <%= @sender_name %>
+<% if @transfer.note.present? %>Mesaj: "<%= @transfer.note %>"<% end %>
+
+Tcheke MonCash ou pou konfime.
+
+Mèsi paske w itilize Priotelus!

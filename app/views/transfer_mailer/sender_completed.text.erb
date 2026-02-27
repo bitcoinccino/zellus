@@ -1,0 +1,13 @@
+<%= @brand_name %> — Zèllus Transfè Konplete
+
+Bonjou <%= @sender_name %>,
+
+Transfè ou konplete! <%= @transfer.receiver_name %> resevwa <%= format_htg(@transfer.net_amount) %> nan MonCash yo.
+
+Detay:
+- Montan voye: <%= format_htg(@transfer.net_amount) %>
+- Pou: <%= @transfer.receiver_name %>
+- Dat: <%= @transfer.completed_at&.strftime("%d %b %Y %H:%M") %>
+<% if @transfer.moncash_transaction_id.present? %>- MonCash TX: <%= @transfer.moncash_transaction_id %><% end %>
+
+Mèsi paske w itilize Priotelus!

@@ -1,0 +1,61 @@
+<div style="margin-bottom:20px;">
+  <div style="font-size:15px; font-weight:800; color:#2E2E38; margin-bottom:6px;">Demann Peman Kreye</div>
+  <div style="font-size:13px; color:#5D6345;">Demann #<%= @payment_request.id %> — <%= @payment_request.created_at.strftime("%b %d, %Y %l:%M %p").strip %></div>
+</div>
+
+<div style="background:#E8EDE0; border:2px solid #5D6345; border-radius:14px; padding:16px; margin-bottom:16px;">
+  <table width="100%" cellspacing="0" cellpadding="0">
+    <tr>
+      <td style="color:#5D6345; font-size:12px; font-weight:600; padding-bottom:8px;">Montan Mande</td>
+      <td style="color:#2E2E38; font-weight:800; text-align:right; padding-bottom:8px;"><%= @amount_display %></td>
+    </tr>
+    <tr>
+      <td style="color:#5D6345; font-size:12px; font-weight:600; padding-bottom:8px;">Lajan</td>
+      <td style="color:#2E2E38; font-weight:700; text-align:right; padding-bottom:8px;"><%= @payment_request.asset.upcase %></td>
+    </tr>
+    <% if @payment_request.payer_name.present? %>
+      <tr>
+        <td style="color:#5D6345; font-size:12px; font-weight:600;">Peyè</td>
+        <td style="color:#2E2E38; font-weight:600; text-align:right;"><%= @payment_request.payer_name %></td>
+      </tr>
+    <% end %>
+  </table>
+</div>
+
+<% if @payment_request.note.present? %>
+  <div style="background:#fff; border:1px solid #d9d6c4; border-radius:12px; padding:12px; margin-bottom:16px;">
+    <div style="color:#5D6345; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">Nòt</div>
+    <div style="color:#2E2E38; font-size:13px;"><%= @payment_request.note %></div>
+  </div>
+<% end %>
+
+<% if @payment_request.receiver_present? %>
+  <div style="background:#fff; border:1px solid #d9d6c4; border-radius:12px; padding:12px; margin-bottom:16px;">
+    <div style="color:#5D6345; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">Resevè</div>
+    <div style="color:#2E2E38; font-size:13px; font-weight:600;">
+      <%= @payment_request.receiver_display_label %>
+      <% if @payment_request.receiver_mobile_wallet? %>
+        · <code style="font-size:10px;"><%= @payment_request.masked_receiver_account_number %></code>
+      <% else %>
+        · <code style="font-size:10px;"><%= @payment_request.masked_receiver_wallet_address %></code>
+      <% end %>
+    </div>
+  </div>
+<% end %>
+
+<% if @payment_request.expires_at.present? %>
+  <div style="background:#fff; border:1px solid #d9d6c4; border-radius:12px; padding:12px; margin-bottom:16px;">
+    <div style="color:#5D6345; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">Ekspirasyon</div>
+    <div style="color:#2E2E38; font-size:13px;"><%= @payment_request.expires_at.strftime("%b %d, %Y %l:%M %p").strip %></div>
+  </div>
+<% end %>
+
+<% if @share_url.present? %>
+  <div style="margin-bottom:16px; text-align:center;">
+    <a href="<%= @share_url %>" style="color:#2E2E38; background:#C5A059; text-decoration:none; padding:10px 20px; border-radius:12px; font-weight:700; font-size:13px; display:inline-block;">Wè Demann Peman</a>
+  </div>
+<% end %>
+
+<div style="font-size:13px; color:#5D6345; line-height:1.6;">
+  Demann peman ou kreye avèk siksè. Pataje lyen piblik la ak peyè a pou l ka peye ou. Mèsi pou konfyans ou nan Priotelus!
+</div>

@@ -1,0 +1,15 @@
+<% if resource.errors.any? %>
+  <div class="p-3 mb-4 rounded-3" style="background-color: #fdf2f2; border: 1px solid #fee2e2;" data-turbo-temporary>
+    <div class="d-flex align-items-center mb-2">
+      <i class="ri-error-warning-fill me-2" style="color: #D8000C;"></i>
+      <span class="fw-bold small" style="color: #D8000C;">
+        <%= I18n.t("errors.messages.not_saved", count: resource.errors.count, resource: resource.class.model_name.human.downcase) %>
+      </span>
+    </div>
+    <ul class="mb-0 ps-3" style="color: var(--haiti-charcoal); font-size: 12px;">
+      <% resource.errors.full_messages.each do |message| %>
+        <li><%= message %></li>
+      <% end %>
+    </ul>
+  </div>
+<% end %>

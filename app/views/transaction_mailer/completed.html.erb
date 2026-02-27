@@ -1,0 +1,56 @@
+<div style="margin-bottom:20px;">
+  <div style="font-size:15px; font-weight:800; color:#166534; margin-bottom:6px;">Tranzaksyon Konplete &#10003;</div>
+  <div style="font-size:13px; color:#5D6345;">TX #<%= @transaction.id %> — <%= @transaction.updated_at.strftime("%b %d, %Y %l:%M %p").strip %></div>
+</div>
+
+<div style="background:#dcfce7; border:2px solid #166534; border-radius:14px; padding:16px; margin-bottom:16px;">
+  <table width="100%" cellspacing="0" cellpadding="0">
+    <tr>
+      <td style="color:#166534; font-size:12px; font-weight:600; padding-bottom:8px;">Tip</td>
+      <td style="color:#2E2E38; font-weight:800; text-align:right; padding-bottom:8px;"><%= @transaction.transaction_type.upcase %></td>
+    </tr>
+    <tr>
+      <td style="color:#166534; font-size:12px; font-weight:600; padding-bottom:8px;">Montan</td>
+      <td style="color:#2E2E38; font-weight:800; text-align:right; padding-bottom:8px;"><%= @amount_line %></td>
+    </tr>
+    <tr>
+      <td colspan="2" style="border-top:1px dashed #166534; padding-top:10px;"></td>
+    </tr>
+    <tr>
+      <td style="color:#166534; font-size:13px; font-weight:900; text-transform:uppercase;">Estati</td>
+      <td style="color:#166534; font-size:18px; font-weight:900; text-align:right;">KONPLETE</td>
+    </tr>
+  </table>
+</div>
+
+<div style="background:#fff; border:1px solid #d9d6c4; border-radius:12px; padding:12px; margin-bottom:16px;">
+  <div style="color:#5D6345; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-bottom:6px;">Detay</div>
+  <div style="color:#2E2E38; font-size:13px; margin-bottom:4px;"><strong>Metòd Peman:</strong> <%= @payment_method_label %></div>
+  <div style="color:#2E2E38; font-size:13px; margin-bottom:4px;"><strong>Soti nan:</strong> <%= @source_label %></div>
+  <div style="color:#2E2E38; font-size:13px; word-break:break-word; margin-bottom:4px;"><strong>Ale nan:</strong> <%= @destination_label %></div>
+  <% if @transaction.blockchain_tx_hash.present? %>
+    <div style="color:#2E2E38; font-size:11px; word-break:break-all; margin-top:8px;">
+      <strong>TX Blockchain:</strong> <code><%= @transaction.blockchain_tx_hash %></code>
+    </div>
+  <% end %>
+  <% if @transaction.sell? && @transaction.moncash_transaction_id.present? %>
+    <div style="color:#2E2E38; font-size:11px; word-break:break-all; margin-top:4px;">
+      <strong>MonCash Peman TX:</strong> <code><%= @transaction.moncash_transaction_id %></code>
+    </div>
+  <% end %>
+</div>
+
+<% if @transaction_url.present? || @basescan_url.present? %>
+  <div style="margin-bottom:16px; text-align:center;">
+    <% if @transaction_url.present? %>
+      <a href="<%= @transaction_url %>" style="color:#fff; background:#166534; text-decoration:none; padding:10px 20px; border-radius:12px; font-weight:700; font-size:13px; display:inline-block; margin-right:8px;">Wè Tranzaksyon</a>
+    <% end %>
+    <% if @basescan_url.present? %>
+      <a href="<%= @basescan_url %>" style="color:#2E2E38; background:#E8EDE0; text-decoration:none; padding:10px 20px; border-radius:12px; font-weight:700; font-size:13px; display:inline-block;">Wè sou Basescan</a>
+    <% end %>
+  </div>
+<% end %>
+
+<div style="font-size:13px; color:#5D6345; line-height:1.6;">
+  Tranzaksyon ou a konplete avèk siksè. Mèsi pou konfyans ou nan Priotelus!
+</div>

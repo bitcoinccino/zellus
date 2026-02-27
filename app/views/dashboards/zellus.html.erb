@@ -1,0 +1,107 @@
+<div class="container d-flex justify-content-center" style="min-height: 80vh; padding-top: 24px;">
+  <div class="w-100" style="max-width: 480px;">
+
+    <%# ══════════════════════════════════════ %>
+    <%# ── BALANCE HERO + ACTIONS          ── %>
+    <%# ══════════════════════════════════════ %>
+    <div class="p-5 rounded-4 mb-4 text-center position-relative" style="background: var(--haiti-charcoal);">
+      <% if @wallet.held? %>
+        <span class="badge rounded-pill position-absolute" style="top: 16px; right: 16px; background: #fee2e2; color: #991b1b; font-size: 9px;">
+          <i class="ri-lock-line me-1"></i>JELE
+        </span>
+      <% end %>
+      <div class="fw-bold text-uppercase mb-2" style="color: rgba(255,255,255,0.45); font-size: 11px; letter-spacing: 1.5px;">Balans Zèllus</div>
+      <div class="fw-black mb-3" style="color: #fff; font-size: 48px; letter-spacing: -2px; line-height: 1;">
+        <%= number_to_currency(@wallet.htg_balance, unit: "", precision: 2) %>
+        <span style="font-size: 18px; color: rgba(255,255,255,0.5); letter-spacing: 0;">HTG</span>
+      </div>
+      <div class="d-flex justify-content-center gap-2 mt-3">
+        <%= link_to wallet_path(action_panel: "deposit"), class: "btn rounded-pill px-4 py-2 fw-bold", style: "background: rgba(255,255,255,0.08); border: 1.5px solid rgba(255,255,255,0.15); color: rgba(255,255,255,0.8); font-size: 13px;" do %>
+          <i class="ri-add-line me-1"></i>Depoze
+        <% end %>
+        <%= link_to wallet_path(action_panel: "withdraw"), class: "btn rounded-pill px-4 py-2 fw-bold", style: "background: rgba(255,255,255,0.08); border: 1.5px solid rgba(255,255,255,0.15); color: rgba(255,255,255,0.8); font-size: 13px;" do %>
+          <i class="ri-arrow-up-line me-1"></i>Retire
+        <% end %>
+      </div>
+    </div>
+
+    <%# ══════════════════════════════════════ %>
+    <%# ── QUICK ACTIONS                   ── %>
+    <%# ══════════════════════════════════════ %>
+    <div class="mb-4">
+      <%= link_to new_transfer_path, class: "btn w-100 rounded-3 py-3 d-flex align-items-center justify-content-center gap-2 fw-bold", style: "background: var(--haiti-mint); color: var(--haiti-charcoal); font-size: 13px; border: 1.5px solid rgba(93,99,69,0.2);" do %>
+        <i class="ri-send-plane-fill" style="font-size: 16px; color: var(--haiti-olive);"></i>Voye Lajan
+      <% end %>
+    </div>
+
+    <%# ══════════════════════════════════════ %>
+    <%# ── TRANSACTION HISTORY             ── %>
+    <%# ══════════════════════════════════════ %>
+    <div class="mb-4">
+      <div class="small fw-bold text-uppercase mb-3" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">
+        <i class="ri-history-line me-1"></i>Istwa Tranzaksyon
+      </div>
+
+      <% if @ledger_entries.any? %>
+        <% @ledger_entries.each do |entry| %>
+          <div class="d-flex justify-content-between align-items-center p-3 rounded-3 mb-2"
+               style="background: white; border: 1px solid rgba(93,99,69,0.08);">
+            <div class="d-flex align-items-center gap-3">
+              <%# ── Icon ── %>
+              <div class="d-inline-flex align-items-center justify-content-center rounded-3"
+                   style="width: 40px; height: 40px; flex-shrink: 0;
+                   <% case entry.entry_type
+                      when 'deposit' %>background: #f0fdf4;
+                   <% when 'withdrawal' %>background: #fef2f2;
+                   <% when 'transfer_out' %>background: #fef2f2;
+                   <% when 'transfer_in' %>background: #f0fdf4;
+                   <% when 'fee', 'instant_fee' %>background: #fffbeb;
+                   <% when 'refund' %>background: #eff6ff;
+                   <% else %>background: #f9fafb;
+                   <% end %>">
+                <% case entry.entry_type %>
+                <% when "deposit" %>
+                  <i class="ri-add-circle-line" style="color: #166534; font-size: 18px;"></i>
+                <% when "withdrawal" %>
+                  <i class="ri-arrow-up-circle-line" style="color: #991b1b; font-size: 18px;"></i>
+                <% when "transfer_out" %>
+                  <i class="ri-send-plane-line" style="color: #991b1b; font-size: 18px;"></i>
+                <% when "transfer_in" %>
+                  <i class="ri-download-line" style="color: #166534; font-size: 18px;"></i>
+                <% when "fee" %>
+                  <i class="ri-percent-line" style="color: #92400e; font-size: 18px;"></i>
+                <% when "instant_fee" %>
+                  <i class="ri-flashlight-line" style="color: var(--haiti-gold); font-size: 18px;"></i>
+                <% when "refund" %>
+                  <i class="ri-refresh-line" style="color: #1d4ed8; font-size: 18px;"></i>
+                <% end %>
+              </div>
+              <%# ── Description ── %>
+              <div>
+                <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;">
+                  <%= entry.description.to_s.truncate(35) %>
+                </div>
+                <div style="color: var(--haiti-olive); font-size: 11px;"><%= entry.created_at.strftime("%d %b %Y · %l:%M %p").strip %></div>
+              </div>
+            </div>
+            <div class="text-end">
+              <div class="fw-black" style="font-size: 14px; color: <%= entry.credit? ? '#166534' : '#991b1b' %>;">
+                <%= entry.credit? ? "+" : "-" %><%= number_to_currency(entry.amount, unit: "", precision: 0) %> HTG
+              </div>
+              <div style="color: var(--haiti-olive); font-size: 10px;">
+                Bal: <%= number_to_currency(entry.balance_after, unit: "", precision: 0) %>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      <% else %>
+        <div class="text-center p-5 rounded-4" style="background: var(--haiti-cream); border: 1px solid rgba(93,99,69,0.15);">
+          <i class="ri-inbox-line" style="font-size: 40px; color: var(--haiti-olive); opacity: 0.3;"></i>
+          <div class="mt-2 fw-bold" style="color: var(--haiti-charcoal); font-size: 14px;">Okenn tranzaksyon ankò</div>
+          <div class="small mt-1" style="color: var(--haiti-olive);">Depoze lajan pou kòmanse itilize Zèllus.</div>
+        </div>
+      <% end %>
+    </div>
+
+  </div>
+</div>

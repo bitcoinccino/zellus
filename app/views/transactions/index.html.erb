@@ -1,0 +1,70 @@
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-end mb-4">
+    <div>
+      <h1 class="h3 fw-bold mb-1">Istwa Tranzaksyon</h1>
+      <p class="small fw-bold text-uppercase opacity-75" style="color: var(--haiti-olive); letter-spacing: 1px;">Transfè Rezo Base</p>
+    </div>
+    <%= link_to new_transaction_path, class: "btn btn-prestige rounded-pill px-4" do %>
+      <i class="ri-add-line me-1"></i> Nouvo Acha
+    <% end %>
+  </div>
+
+  <div class="card-base overflow-hidden">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0 align-middle">
+        <thead style="background-color: var(--haiti-mint); border-bottom: 2px solid var(--haiti-olive);">
+          <tr class="small text-uppercase fw-black" style="color: var(--haiti-olive); font-size: 11px;">
+            <th class="ps-4 py-3">Dat</th>
+            <th class="py-3">Montan Peye</th>
+            <th class="py-3">USDC Resevwa</th>
+            <th class="py-3">Pòtfèy Resevè</th>
+            <th class="py-3">Estati</th>
+            <th class="pe-4 py-3 text-end">Detay</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @transactions.each do |t| %>
+            <tr style="border-bottom: 1px solid rgba(46, 46, 56, 0.05);">
+              <td class="ps-4">
+                <span class="fw-bold d-block small"><%= t.created_at.strftime("%b %d, %Y") %></span>
+                <span class="opacity-50" style="font-size: 10px;"><%= t.created_at.strftime("%I:%M %p") %></span>
+              </td>
+              <td class="fw-bold text-dark"><%= number_to_currency(t.fiat_amount, unit: "HTG ", precision: 0) %></td>
+              <td class="fw-black" style="color: var(--haiti-olive);"><%= t.crypto_amount %> USDC</td>
+              <td>
+                <code style="font-size: 11px; color: var(--haiti-charcoal);">
+                  <%= t.destination_address.present? ? "#{t.destination_address.first(6)}...#{t.destination_address.last(4)}" : "—" %>
+                </code>
+              </td>
+              <td>
+                <% status_styles = case t.status
+                  when "completed"   then "color: #166534; background-color: #dcfce7; border-color: #166534;"
+                  when "paid", "crypto_sent" then "color: #92400e; background-color: #fef3c7; border-color: #92400e;"
+                  when "payout_failed" then "color: #7c2d12; background-color: #ffedd5; border-color: #c2410c;"
+                  when "failed"      then "color: #991b1b; background-color: #fee2e2; border-color: #991b1b;"
+                  else                    "color: var(--haiti-olive); background-color: transparent; border-color: var(--haiti-olive);"
+                  end %>
+                <span class="badge rounded-pill border" style="<%= status_styles %> font-size: 10px; font-weight: 800; letter-spacing: 0.5px;">
+                  <%= t.status.upcase %>
+                </span>
+              </td>
+              <td class="pe-4 text-end">
+                <%= link_to transaction_path(t), class: "btn btn-sm rounded-pill px-3 fw-bold", style: "background-color: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 11px;" do %>
+                  <i class="ri-eye-line me-1"></i> Wè
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
+          <% if @transactions.empty? %>
+            <tr>
+              <td colspan="6" class="text-center py-5">
+                <i class="ri-inbox-line d-block mb-2" style="font-size: 2rem; color: var(--haiti-olive); opacity: 0.4;"></i>
+                <span class="small fw-bold text-uppercase" style="color: var(--haiti-olive); opacity: 0.6; letter-spacing: 1px;">Pa gen tranzaksyon ankò</span>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

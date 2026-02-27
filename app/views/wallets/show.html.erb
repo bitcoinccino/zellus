@@ -1,0 +1,491 @@
+<style>
+  .bb-dark-field { color: #fff !important; }
+  .bb-dark-field::placeholder { color: rgba(255,255,255,0.72) !important; opacity:1; font-weight:400 !important; }
+  .bb-dark-select { color: #fff !important; }
+  .bb-dark-select option { background: #fff; color: #111827; }
+
+  .wallet-action-btn {
+    background: rgba(93,99,69,0.1);
+    border: 1.5px solid rgba(93,99,69,0.25);
+    color: var(--haiti-charcoal);
+    font-weight: 700;
+    font-size: 13px;
+    transition: all 0.15s ease;
+  }
+  .wallet-action-btn:hover { background: rgba(93,99,69,0.18); color: var(--haiti-charcoal); }
+  .wallet-action-btn.active {
+    background: var(--haiti-charcoal);
+    border-color: var(--haiti-charcoal);
+    color: var(--haiti-gold);
+  }
+
+  .amount-chip {
+    background: var(--haiti-mint);
+    border: 1.5px solid rgba(93,99,69,0.25);
+    color: var(--haiti-charcoal);
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .amount-chip:hover, .amount-chip.selected {
+    background: var(--haiti-charcoal);
+    border-color: var(--haiti-charcoal);
+    color: var(--haiti-gold);
+  }
+
+  .withdraw-option {
+    cursor: pointer;
+    transition: all 0.15s ease;
+    border-bottom: 1px solid rgba(93,99,69,0.12);
+  }
+  .withdraw-option:hover { background: rgba(93,99,69,0.05); }
+  .withdraw-option.selected { background: rgba(197,160,89,0.08); }
+
+  .panel-slide { display: none; }
+  .panel-slide.open { display: block; animation: slideDown 0.2s ease; }
+  @keyframes slideDown { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+
+<div class="container d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+  <div class="card-base p-4 w-100 shadow-lg" style="max-width: 440px;">
+
+    <%# ── Flash Messages ── %>
+    <% if flash[:alert].present? %>
+      <div class="alert alert-warning rounded-3 mb-3" style="background: #fefce8; border: 1px solid #fde68a; color: #854d0e; font-size: 12px;">
+        <i class="ri-error-warning-line me-1"></i><%= flash[:alert] %>
+      </div>
+    <% end %>
+    <% if flash[:notice].present? %>
+      <div class="alert rounded-3 mb-3" style="background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; font-size: 12px;">
+        <i class="ri-checkbox-circle-line me-1"></i><%= flash[:notice] %>
+      </div>
+    <% end %>
+
+    <%# ── Page Header ── %>
+    <div id="section-header" class="d-flex align-items-center justify-content-between mb-3">
+      <h1 class="h5 fw-black mb-0" style="color: var(--haiti-charcoal);">Pòtfèy Mwen</h1>
+      <%= link_to zellus_path, class: "small text-decoration-none fw-bold", style: "color: var(--haiti-olive);" do %>
+        <i class="ri-arrow-left-line me-1"></i>Zèllus
+      <% end %>
+    </div>
+
+    <%# ══════════════════════════════════════ %>
+    <%# ── BALANCE HERO                   ──  %>
+    <%# ══════════════════════════════════════ %>
+    <div id="section-hero" class="p-5 rounded-4 mb-4 text-center position-relative" style="background: var(--haiti-charcoal);">
+      <% if @wallet.held? %>
+        <span class="badge rounded-pill position-absolute" style="top: 16px; right: 16px; background: #fee2e2; color: #991b1b; font-size: 9px;">
+          <i class="ri-lock-line me-1"></i>JELE
+        </span>
+      <% end %>
+      <div class="fw-bold text-uppercase mb-2" style="color: rgba(255,255,255,0.45); font-size: 11px; letter-spacing: 1.5px;">Balans Zèllus</div>
+      <div class="fw-black mb-3" style="color: #fff; font-size: 48px; letter-spacing: -2px; line-height: 1;">
+        <%= number_to_currency(@wallet.htg_balance, unit: "", precision: 2) %>
+        <span style="font-size: 18px; color: rgba(255,255,255,0.5); letter-spacing: 0;">HTG</span>
+      </div>
+      <div class="d-flex justify-content-center gap-2 mt-3">
+        <button type="button" onclick="togglePanel('deposit')" id="btn-deposit"
+                class="btn wallet-action-btn rounded-pill px-4 py-2"
+                style="background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.15); color: rgba(255,255,255,0.8);">
+          <i class="ri-add-line me-1"></i>Depoze
+        </button>
+        <button type="button" onclick="togglePanel('withdraw')" id="btn-withdraw"
+                class="btn wallet-action-btn rounded-pill px-4 py-2"
+                style="background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.15); color: rgba(255,255,255,0.8);">
+          <i class="ri-arrow-up-line me-1"></i>Retire
+        </button>
+      </div>
+    </div>
+
+    <%# ── PIN Required Notice ── %>
+    <% unless current_user.transfer_pin_set? %>
+      <div id="section-pin-notice" class="p-3 mb-3 rounded-4" style="background-color: rgba(197,160,89,0.12); border: 1px solid rgba(197,160,89,0.55);">
+        <div class="d-flex align-items-center gap-2">
+          <i class="ri-lock-line" style="color: var(--haiti-gold); font-size: 18px;"></i>
+          <div>
+            <div class="small fw-bold" style="color: var(--haiti-charcoal);">PIN Obligatwa pou Retrè</div>
+            <div style="color: var(--haiti-olive); font-size: 11px;">Kreye yon PIN 4 chif anvan ou ka retire lajan.</div>
+          </div>
+          <%= link_to new_transfer_path, class: "btn btn-sm rounded-pill px-3 ms-auto", style: "background: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 11px; white-space: nowrap;" do %>
+            Kreye PIN
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+
+    <%# ══════════════════════════════════════ %>
+    <%# ── DEPOSIT PANEL (bottom-sheet)  ──  %>
+    <%# ══════════════════════════════════════ %>
+    <div id="panel-deposit" class="panel-slide mb-3">
+      <div class="p-3 rounded-4" style="background: var(--haiti-cream); border: 1.5px solid rgba(93,99,69,0.2);">
+
+        <%# ── Panel header with back button ── %>
+        <div class="d-flex align-items-center justify-content-between mb-3">
+          <div class="fw-black" style="color: var(--haiti-charcoal); font-size: 18px;">Depoze Lajan</div>
+          <button type="button" onclick="togglePanel('deposit')" class="btn btn-sm p-0" style="color: var(--haiti-olive);">
+            <i class="ri-close-line" style="font-size: 20px;"></i>
+          </button>
+        </div>
+
+        <%# ── Quick amount chips ── %>
+        <div class="row g-2 mb-3">
+          <% [500, 1000, 2500].each do |amt| %>
+            <div class="col-4">
+              <div class="amount-chip rounded-3 text-center py-2" onclick="selectDepositAmount(<%= amt %>)">
+                <%= number_to_currency(amt, unit: "", precision: 0) %>
+              </div>
+            </div>
+          <% end %>
+          <% [5000, 10000].each do |amt| %>
+            <div class="col-4">
+              <div class="amount-chip rounded-3 text-center py-2" onclick="selectDepositAmount(<%= amt %>)">
+                <%= number_to_currency(amt, unit: "", precision: 0) %>
+              </div>
+            </div>
+          <% end %>
+          <div class="col-4">
+            <div class="amount-chip rounded-3 text-center py-2" onclick="selectDepositAmount(0)" id="chip-custom">
+              <i class="ri-more-fill"></i>
+            </div>
+          </div>
+        </div>
+
+        <%# ── Deposit form ── %>
+        <%= form_with(url: deposit_wallet_path, method: :post, local: true, id: "deposit-form", html: { onsubmit: "return handleDepositSubmit(this);" }) do %>
+          <div class="input-group mb-2">
+            <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);">
+              <i class="ri-money-dollar-circle-line"></i>
+            </span>
+            <input type="number" name="amount" id="deposit-amount"
+                   class="form-control border-0 fw-bold shadow-none p-3 bb-dark-field"
+                   placeholder="Montan (HTG)" min="100" max="50000" step="1" required
+                   style="background-color: var(--haiti-charcoal); color: white;">
+            <span class="input-group-text border-0 fw-bold" style="background-color: var(--haiti-charcoal); color: var(--haiti-olive); font-size: 11px;">HTG</span>
+          </div>
+          <div class="d-flex justify-content-between mb-2">
+            <span class="small" style="color: var(--haiti-olive); font-size: 10px;">Min: 100 HTG</span>
+            <span class="small" style="color: var(--haiti-olive); font-size: 10px;">Max: 50,000 HTG</span>
+          </div>
+          <button type="submit" id="deposit-btn" class="btn w-100 py-2 fw-bold rounded-pill border-0"
+                  style="background-color: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 13px;">
+            <i class="ri-smartphone-line me-1"></i>Kontinye ak MonCash
+          </button>
+        <% end %>
+      </div>
+    </div>
+
+    <%# ══════════════════════════════════════════ %>
+    <%# ── WITHDRAW PANEL (Cash App style)    ── %>
+    <%# ══════════════════════════════════════════ %>
+    <div id="panel-withdraw" class="panel-slide mb-3">
+      <div class="p-3 rounded-4" style="background: var(--haiti-cream); border: 1.5px solid rgba(93,99,69,0.2);">
+
+        <%# ── Panel header with back button ── %>
+        <div class="d-flex align-items-center justify-content-between mb-3">
+          <div class="fw-black" style="color: var(--haiti-charcoal); font-size: 18px;">Retire Lajan</div>
+          <button type="button" onclick="togglePanel('withdraw')" class="btn btn-sm p-0" style="color: var(--haiti-olive);">
+            <i class="ri-close-line" style="font-size: 20px;"></i>
+          </button>
+        </div>
+        <div class="small mb-3" style="color: var(--haiti-olive);">
+          <%= number_to_currency(@wallet.htg_balance, unit: "", precision: 0) %> HTG disponib
+        </div>
+
+        <% if current_user.transfer_pin_set? %>
+          <%# ── Step 1: Amount + Phone + PIN ── %>
+          <%= form_with(url: withdraw_wallet_path, method: :post, local: true, id: "withdraw-form") do %>
+            <input type="hidden" name="instant" id="instant-field" value="0">
+
+            <div class="input-group mb-2">
+              <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);">
+                <i class="ri-money-dollar-circle-line"></i>
+              </span>
+              <input type="number" name="amount" id="withdraw-amount"
+                     class="form-control border-0 fw-bold shadow-none p-3 bb-dark-field"
+                     placeholder="Montan (HTG)" min="100" max="50000" step="1" required
+                     oninput="updateFeePreview()"
+                     style="background-color: var(--haiti-charcoal); color: white;">
+              <span class="input-group-text border-0 fw-bold" style="background-color: var(--haiti-charcoal); color: var(--haiti-olive); font-size: 11px;">HTG</span>
+            </div>
+
+            <div class="input-group mb-2">
+              <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);">
+                <i class="ri-smartphone-line"></i>
+              </span>
+              <% if @moncash_methods.any? %>
+                <select name="moncash_phone" class="form-select border-0 fw-bold shadow-none p-3 bb-dark-select"
+                        style="background-color: var(--haiti-charcoal); color: white;" required>
+                  <% @moncash_methods.each do |m| %>
+                    <option value="<%= m.account_number %>"><%= m.display_label %> · <%= m.account_number %></option>
+                  <% end %>
+                  <option value="">Lòt nimewo...</option>
+                </select>
+              <% else %>
+                <input type="tel" name="moncash_phone"
+                       class="form-control border-0 fw-bold shadow-none p-3 bb-dark-field"
+                       placeholder="509XXXXXXXX" pattern="509\d{8}" required
+                       style="background-color: var(--haiti-charcoal); color: white;">
+              <% end %>
+            </div>
+
+            <div class="input-group mb-3">
+              <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);">
+                <i class="ri-lock-password-line"></i>
+              </span>
+              <input type="password" name="transfer_pin"
+                     class="form-control border-0 fw-bold shadow-none p-3 bb-dark-field"
+                     placeholder="PIN 4 chif" maxlength="4" pattern="\d{4}" required inputmode="numeric"
+                     style="background-color: var(--haiti-charcoal); color: white; letter-spacing: 8px; text-align: center;">
+            </div>
+
+            <%# ── Step 2: Standard vs Instant (Cash App list style) ── %>
+            <div class="mb-3 rounded-3 overflow-hidden" style="border: 1px solid rgba(93,99,69,0.15);">
+              <div class="withdraw-option selected d-flex align-items-center justify-content-between p-3"
+                   id="opt-standard" onclick="selectWithdrawType('standard')">
+                <div class="d-flex align-items-center gap-2">
+                  <i class="ri-time-line" style="font-size: 18px; color: var(--haiti-olive);"></i>
+                  <div>
+                    <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;">Estanda (48 èdtan)</div>
+                  </div>
+                </div>
+                <span class="fw-black" style="color: #166534; font-size: 12px;">GRATIS</span>
+              </div>
+              <div class="withdraw-option d-flex align-items-center justify-content-between p-3"
+                   id="opt-instant" onclick="selectWithdrawType('instant')" style="border-bottom: none;">
+                <div class="d-flex align-items-center gap-2">
+                  <i class="ri-flashlight-fill" style="font-size: 18px; color: var(--haiti-gold);"></i>
+                  <div>
+                    <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;">Instant</div>
+                  </div>
+                </div>
+                <span id="fee-label" class="fw-bold" style="color: var(--haiti-olive); font-size: 12px;">0.8% frè</span>
+              </div>
+            </div>
+
+            <%# ── Fee summary (instant only) ── %>
+            <div id="fee-summary" class="p-2 rounded-3 mb-3" style="background: rgba(197,160,89,0.08); display: none;">
+              <div class="d-flex justify-content-between small">
+                <span style="color: var(--haiti-olive);">Montan retrè</span>
+                <span id="summary-amount" class="fw-bold" style="color: var(--haiti-charcoal);">0 HTG</span>
+              </div>
+              <div class="d-flex justify-content-between small">
+                <span style="color: var(--haiti-olive);">Frè instant (0.8%)</span>
+                <span id="summary-fee" class="fw-bold" style="color: var(--haiti-gold);">0 HTG</span>
+              </div>
+              <hr class="my-1" style="border-color: var(--haiti-olive); opacity: 0.15;">
+              <div class="d-flex justify-content-between small">
+                <span class="fw-bold" style="color: var(--haiti-charcoal);">Total debite</span>
+                <span id="summary-total" class="fw-black" style="color: var(--haiti-charcoal);">0 HTG</span>
+              </div>
+            </div>
+
+            <button type="submit" id="withdraw-btn" class="btn w-100 py-2 fw-bold rounded-pill border-0"
+                    style="background: rgba(93,99,69,0.12); color: var(--haiti-charcoal); font-size: 13px;">
+              <i class="ri-time-line me-1"></i>Retire nan 48 èdtan (Gratis)
+            </button>
+          <% end %>
+        <% else %>
+          <div class="text-center py-3" style="color: var(--haiti-olive);">
+            <i class="ri-lock-line ri-2x mb-2 d-block" style="color: var(--haiti-gold);"></i>
+            <div class="small">Ou dwe kreye yon PIN anvan ou ka retire lajan.</div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+    <%# ══════════════════════════════════ %>
+    <%# ── TRANSACTION HISTORY        ── %>
+    <%# ══════════════════════════════════ %>
+    <div class="mb-3">
+      <div class="small fw-bold text-uppercase mb-2" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">
+        <i class="ri-history-line me-1"></i>Istwa Tranzaksyon
+      </div>
+
+      <% if @ledger_entries.any? %>
+        <% @ledger_entries.each do |entry| %>
+          <div class="d-flex justify-content-between align-items-center p-2 rounded-3 mb-1"
+               style="background-color: rgba(93,99,69,0.05);">
+            <div>
+              <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 12px;">
+                <% case entry.entry_type %>
+                <% when "deposit" %>
+                  <i class="ri-add-circle-line me-1" style="color: #166534;"></i>
+                <% when "withdrawal" %>
+                  <i class="ri-arrow-up-circle-line me-1" style="color: #991b1b;"></i>
+                <% when "transfer_out" %>
+                  <i class="ri-send-plane-line me-1" style="color: #991b1b;"></i>
+                <% when "transfer_in" %>
+                  <i class="ri-download-line me-1" style="color: #166534;"></i>
+                <% when "fee" %>
+                  <i class="ri-percent-line me-1" style="color: #92400e;"></i>
+                <% when "instant_fee" %>
+                  <i class="ri-flashlight-line me-1" style="color: var(--haiti-gold);"></i>
+                <% when "refund" %>
+                  <i class="ri-refresh-line me-1" style="color: #1d4ed8;"></i>
+                <% end %>
+                <%= entry.description.to_s.truncate(40) %>
+              </div>
+              <div style="color: var(--haiti-olive); font-size: 10px;"><%= entry.created_at.strftime("%b %d, %Y %l:%M %p").strip %></div>
+            </div>
+            <div class="text-end">
+              <div class="fw-black" style="font-size: 13px; color: <%= entry.credit? ? '#166534' : '#991b1b' %>;">
+                <%= entry.credit? ? "+" : "-" %><%= number_to_currency(entry.amount, unit: "", precision: 0) %> HTG
+              </div>
+              <div style="color: var(--haiti-olive); font-size: 9px;">
+                Balans: <%= number_to_currency(entry.balance_after, unit: "", precision: 0) %> HTG
+              </div>
+            </div>
+          </div>
+        <% end %>
+      <% else %>
+        <div class="text-center p-4" style="color: var(--haiti-olive);">
+          <i class="ri-inbox-line ri-2x mb-2 d-block"></i>
+          <div class="small">Ou poko gen okenn tranzaksyon nan pòtfèy ou.</div>
+        </div>
+      <% end %>
+    </div>
+
+
+  </div>
+</div>
+
+<script>
+  var activePanel = null;
+
+  // ── Auto-open panel if linked from Zèllus dashboard ──
+  (function() {
+    var params = new URLSearchParams(window.location.search);
+    var panel = params.get('action_panel');
+    if (panel === 'deposit' || panel === 'withdraw') {
+      setTimeout(function() { togglePanel(panel); }, 100);
+    }
+  })();
+
+  // ── Panel toggle (deposit / withdraw) ──
+  function togglePanel(panel) {
+    var depositPanel  = document.getElementById('panel-deposit');
+    var withdrawPanel = document.getElementById('panel-withdraw');
+    var sectionHero   = document.getElementById('section-hero');
+    var sectionHeader = document.getElementById('section-header');
+    var pinNotice     = document.getElementById('section-pin-notice');
+
+    if (activePanel === panel) {
+      // Close — show balance hero again
+      depositPanel.classList.remove('open');
+      withdrawPanel.classList.remove('open');
+      sectionHero.style.display = '';
+      sectionHeader.style.display = '';
+      if (pinNotice) pinNotice.style.display = '';
+      activePanel = null;
+      return;
+    }
+
+    // Close all first
+    depositPanel.classList.remove('open');
+    withdrawPanel.classList.remove('open');
+
+    // Hide balance hero + header
+    sectionHero.style.display = 'none';
+    sectionHeader.style.display = 'none';
+    if (pinNotice) pinNotice.style.display = 'none';
+
+    // Open selected panel
+    if (panel === 'deposit') {
+      depositPanel.classList.add('open');
+    } else {
+      withdrawPanel.classList.add('open');
+    }
+    activePanel = panel;
+  }
+
+  // ── Quick deposit amounts ──
+  function selectDepositAmount(amount) {
+    var input = document.getElementById('deposit-amount');
+    var chips = document.querySelectorAll('.amount-chip');
+    chips.forEach(function(c) { c.classList.remove('selected'); });
+
+    if (amount > 0) {
+      input.value = amount;
+      event.currentTarget.classList.add('selected');
+    } else {
+      input.value = '';
+      input.focus();
+      document.getElementById('chip-custom').classList.add('selected');
+    }
+  }
+
+  // ── Withdraw type selection (Cash App list) ──
+  var currentType = 'standard';
+
+  function selectWithdrawType(type) {
+    currentType = type;
+    var optStandard  = document.getElementById('opt-standard');
+    var optInstant   = document.getElementById('opt-instant');
+    var instantField = document.getElementById('instant-field');
+    var withdrawBtn  = document.getElementById('withdraw-btn');
+    var feeSummary   = document.getElementById('fee-summary');
+
+    if (type === 'instant') {
+      optInstant.classList.add('selected');
+      optStandard.classList.remove('selected');
+      instantField.value = '1';
+      feeSummary.style.display = 'block';
+      withdrawBtn.innerHTML = '<i class="ri-flashlight-fill me-1"></i>Retire kounye a';
+      withdrawBtn.style.background = 'var(--haiti-charcoal)';
+      withdrawBtn.style.color = 'var(--haiti-gold)';
+    } else {
+      optStandard.classList.add('selected');
+      optInstant.classList.remove('selected');
+      instantField.value = '0';
+      feeSummary.style.display = 'none';
+      withdrawBtn.innerHTML = '<i class="ri-time-line me-1"></i>Retire nan 48 èdtan (Gratis)';
+      withdrawBtn.style.background = 'rgba(93,99,69,0.12)';
+      withdrawBtn.style.color = 'var(--haiti-charcoal)';
+    }
+    updateFeePreview();
+  }
+
+  function updateFeePreview() {
+    var amountInput = document.getElementById('withdraw-amount');
+    var amount = parseFloat(amountInput.value) || 0;
+
+    // 0.8% with 25 HTG minimum
+    var fee = Math.max(amount * 0.008, 25);
+    fee = Math.round(fee * 100) / 100;
+    var total = amount + fee;
+
+    // Update fee label on instant option
+    var feeLabel = document.getElementById('fee-label');
+    if (amount > 0) {
+      feeLabel.textContent = Math.round(fee) + ' HTG frè';
+    } else {
+      feeLabel.textContent = '0.8% frè';
+    }
+
+    // Update fee summary breakdown
+    document.getElementById('summary-amount').textContent = amount.toLocaleString('fr') + ' HTG';
+    document.getElementById('summary-fee').textContent = Math.round(fee) + ' HTG';
+    document.getElementById('summary-total').textContent = Math.round(total).toLocaleString('fr') + ' HTG';
+  }
+
+  // ── Double-submit prevention ──
+  function handleDepositSubmit(form) {
+    var btn = document.getElementById('deposit-btn');
+    if (btn.disabled) return false;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="ri-loader-4-line me-1 ri-spin"></i>Ap trete...';
+    return true;
+  }
+
+  // Same for withdraw form
+  var withdrawForm = document.getElementById('withdraw-form');
+  if (withdrawForm) {
+    withdrawForm.addEventListener('submit', function() {
+      var btn = document.getElementById('withdraw-btn');
+      if (btn.disabled) return false;
+      btn.disabled = true;
+      btn.innerHTML = '<i class="ri-loader-4-line me-1 ri-spin"></i>Ap trete...';
+    });
+  }
+</script>

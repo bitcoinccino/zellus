@@ -1,0 +1,13 @@
+Priotelus — Demann Peman Peye
+
+Bonjou <%= @creator_name %>,
+
+Demann peman ou resevwa peman avèk siksè!
+
+Detay:
+- Demann #<%= @payment_request.id %>
+- Montan Resevwa: <%= @amount_display %>
+- Lajan: <%= @payment_request.asset.upcase %>
+<% if @payment_request.payer_name.present? %>- Peyè: <%= @payment_request.payer_name %><% end %>
+
+Mèsi pou konfyans ou nan Priotelus!

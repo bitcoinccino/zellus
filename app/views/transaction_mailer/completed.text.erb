@@ -1,0 +1,26 @@
+Tranzaksyon Konplete
+
+Bonjou <%= @user.email %>,
+
+Tranzaksyon <%= @transaction.transaction_type %> ou konplete avèk siksè.
+
+TX ID: #<%= @transaction.id %>
+Estati: KONPLETE
+Montan: <%= @amount_line %>
+Metòd Peman: <%= @payment_method_label %>
+Soti nan: <%= @source_label %>
+Ale nan: <%= @destination_label %>
+<% if @transaction.blockchain_tx_hash.present? %>
+TX Blockchain: <%= @transaction.blockchain_tx_hash %>
+<% end %>
+<% if @transaction.sell? && @transaction.moncash_transaction_id.present? %>
+MonCash Peman TX: <%= @transaction.moncash_transaction_id %>
+<% end %>
+<% if @transaction_url.present? %>
+Wè Tranzaksyon: <%= @transaction_url %>
+<% end %>
+<% if @basescan_url.present? %>
+Wè sou Basescan: <%= @basescan_url %>
+<% end %>
+
+Mèsi pou konfyans ou nan Priotelus!

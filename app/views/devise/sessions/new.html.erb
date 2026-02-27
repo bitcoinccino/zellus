@@ -1,0 +1,190 @@
+<%
+  # 1. Fetch live rates from your RateService at the top
+  begin
+    hero_buy_rate = RateService.buy_rate
+    hero_sell_rate = RateService.sell_rate
+    hero_rates_updated_at = RateService.usd_htg_rate_updated_at
+  rescue StandardError
+    # Safety fallback if the service fails
+    hero_buy_rate = 135.50
+    hero_rates_updated_at = Time.current
+  end
+%>
+
+<style>
+  /* Removed negative margin to prevent touching the navbar */
+  .bon-landing {
+    margin-top: 0; 
+  }
+  
+  .bon-hero {
+    background: var(--haiti-charcoal);
+    color: white;
+    border: 2px solid var(--haiti-charcoal);
+    border-radius: 22px;
+    box-shadow: 12px 12px 0px rgba(46, 46, 56, 0.35);
+    overflow: hidden;
+    position: relative;
+  }
+  
+  .bon-hero::before,
+  .bon-hero::after {
+    content: "";
+    position: absolute;
+    border-radius: 999px;
+    background: rgba(197, 160, 89, 0.12);
+    filter: blur(1px);
+  }
+  .bon-hero::before { width: 220px; height: 220px; top: -70px; right: -40px; }
+  .bon-hero::after { width: 180px; height: 180px; bottom: -60px; left: -30px; }
+
+  .bon-pill {
+    border: 1px solid rgba(197, 160, 89, 0.35);
+    background: rgba(247, 244, 227, 0.06);
+    color: #fff;
+    border-radius: 999px;
+    padding: 6px 12px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  
+  .bon-product-strip {
+    background: #fff;
+    border: 2px solid var(--haiti-gold);
+    border-radius: 18px;
+    padding: 12px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+    justify-content: space-between;
+  }
+  
+  .bon-chip {
+    background: rgba(255,255,255,0.1);
+    color: white;
+    border: 1px solid rgba(197, 160, 89, 0.3);
+    border-radius: 999px;
+    padding: 6px 14px;
+    font-size: 12px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  
+  .bon-signin-card {
+    background: linear-gradient(180deg, var(--haiti-cream) 0%, #f4f0dc 100%);
+    border: 2px solid var(--haiti-olive);
+    border-radius: 18px;
+    box-shadow: 10px 10px 0px var(--haiti-charcoal);
+  }
+
+  @media (max-width: 768px) {
+    .bon-product-strip {
+      flex-direction: column;
+      align-items: stretch;
+      text-align: center;
+    }
+    .bon-product-strip .border-end {
+      border-end: none !important;
+      border-bottom: 2px solid var(--haiti-mint);
+      padding-bottom: 10px;
+    }
+  }
+</style>
+
+<div class="bon-landing">
+  <section class="bon-hero p-4 p-md-5 mb-5">
+    <div class="row align-items-center g-4 position-relative" style="z-index: 1;">
+      
+      <%# LEFT COLUMN: VALUE PROPOSITION %>
+      <div class="col-lg-7">
+        <div class="bon-pill mb-3">
+          <i class="ri-shield-check-line" style="color: var(--haiti-gold);"></i> 
+          BANK SOUVEREN AYITI A
+        </div>
+        
+        <h1 class="display-6 mb-3" style="letter-spacing: -1px; line-height: 1.05;">
+          <span class="d-block fw-black">Fè Lajan'w Travay ak <span style="color: var(--haiti-gold);">Priotelus</span></span>
+        </h1>
+
+        <p class="mb-4" style="color: rgba(255,255,255,0.85); max-width: 550px; font-size: 1.1rem; line-height: 1.5;">
+          Sèvi ak <strong>PrioLink</strong> pou chanje MonCash ou an USDC rapid, epi antre nan yon <strong>PrioSòl</strong> pou bati kredi'w pandan w'ap fè ekonomi ak kominote'w.
+        </p>
+
+        <%# PRODUCT INFO STRIP %>
+        <div class="bon-product-strip mb-4 shadow-sm">
+          <div class="d-flex align-items-center gap-3">
+            <div class="text-center px-3 border-end border-2" style="border-color: var(--haiti-mint) !important;">
+              <div class="text-uppercase fw-bold" style="font-size: 10px; letter-spacing: 0.5px; color: var(--haiti-olive);">To PrioLink an Dirèk</div>
+              <div class="fw-black text-dark" style="font-size: 1.15rem;">1 USDC = <%= hero_buy_rate %> HTG</div>
+              <% if hero_rates_updated_at %>
+                <div style="font-size: 9px; color: var(--haiti-olive);"><i class="ri-time-line"></i> Mizajou <%= time_ago_in_words(hero_rates_updated_at) %> de sa</div>
+              <% end %>
+            </div>
+            <div>
+              <div class="fw-bold text-dark mb-0" style="font-size: 0.9rem;">
+                <i class="ri-flashlight-line text-warning"></i> Bati Kredi PrioSòl
+              </div>
+              <div style="font-size: 11px; color: var(--haiti-olive);">Ap bati estati 700+ Folkon</div>
+            </div>
+          </div>
+          <%= link_to new_user_registration_path, class: "btn btn-prestige btn-sm px-4 rounded-pill shadow-sm" do %>
+            Kòmanse Kounye a
+          <% end %>
+        </div>
+
+        <div class="d-flex flex-wrap gap-2">
+          <span class="bon-chip"><i class="ri-repeat-line" style="color: var(--haiti-gold);"></i> MonCash a USDC</span>
+          <span class="bon-chip"><i class="ri-group-fill" style="color: var(--haiti-gold);"></i> Sòl Dijital</span>
+          <span class="bon-chip"><i class="ri-line-chart-line" style="color: var(--haiti-gold);"></i> Kwasans Kredi</span>
+        </div>
+      </div>
+
+      <%# RIGHT COLUMN: LOGIN CARD %>
+      <div class="col-lg-5">
+        <div class="bon-signin-card p-4">
+          <div class="text-center mb-4">
+            <div class="d-inline-flex align-items-center justify-content-center mb-2"
+                 style="width: 55px; height: 55px; background-color: var(--haiti-charcoal); border-radius: 15px; transform: rotate(-4deg); box-shadow: 4px 4px 0px var(--haiti-gold);">
+              <i class="ri-user-follow-line text-white" style="font-size: 1.5rem; transform: rotate(4deg);"></i>
+            </div>
+            <h2 class="h5 fw-black mb-0 text-uppercase" style="color: var(--haiti-charcoal); letter-spacing: 1px;">Konekte Kont Ou</h2>
+          </div>
+
+          <%= form_for(resource, as: resource_name, url: session_path(resource_name)) do |f| %>
+            <div class="mb-3">
+              <label class="small fw-bold text-uppercase mb-1" style="color: var(--haiti-olive); font-size: 10px;">Email Adrès</label>
+              <div class="input-group border rounded-2" style="overflow: hidden;">
+                <span class="input-group-text border-0" style="background: #fff;"><i class="ri-mail-fill" style="color: var(--haiti-gold);"></i></span>
+                <%= f.email_field :email, autofocus: true, class: "form-control border-0 ps-0 shadow-none", placeholder: "non@egzanp.com" %>
+              </div>
+            </div>
+
+            <div class="mb-4">
+              <label class="small fw-bold text-uppercase mb-1" style="color: var(--haiti-olive); font-size: 10px;">Modpas</label>
+              <div class="input-group border rounded-2" style="overflow: hidden;">
+                <span class="input-group-text border-0" style="background: #fff;"><i class="ri-lock-2-fill" style="color: var(--haiti-gold);"></i></span>
+                <%= f.password_field :password, class: "form-control border-0 ps-0 shadow-none", placeholder: "••••••••" %>
+              </div>
+            </div>
+
+            <%= f.submit "KONEKTE", class: "btn btn-prestige w-100 py-2 mb-3" %>
+          <% end %>
+
+          <div class="text-center">
+             <span class="small" style="color: var(--haiti-olive);">Pa gen kont?</span>
+             <%= link_to "Kreyé yonn la", new_user_registration_path, class: "small fw-bold text-decoration-none", style: "color: var(--haiti-olive);" %>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+</div>

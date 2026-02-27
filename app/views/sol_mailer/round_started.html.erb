@@ -1,0 +1,19 @@
+<h2 style="margin:0 0 8px; color:#2E2E38; font-size:22px;">Nouvo Wonn Lanse</h2>
+<p style="margin:0 0 16px; color:#5D6345; font-size:14px;">Wonn <strong><%= @round.round_number %></strong> nan Sol <strong><%= @circle.name %></strong> kòmanse. Ou dwe peye kontribisyon ou.</p>
+
+<div style="background:#fff; border:1px solid #d9d6c4; border-radius:14px; padding:14px 16px; margin-bottom:14px;">
+  <div style="font-size:11px; text-transform:uppercase; letter-spacing:1px; color:#5D6345; font-weight:700; margin-bottom:8px;">Detay Peman</div>
+  <div style="font-size:14px; margin-bottom:6px; color:#2E2E38;"><strong>Montan:</strong> <%= number_to_currency(@payment_request.amount, unit: @payment_request.htg? ? "HTG " : "USDC ") %></div>
+  <div style="font-size:13px; color:#2E2E38;"><strong>Dat limit:</strong> <%= @payment_request.expires_at&.strftime("%d %b %Y %H:%M") %></div>
+  <div style="font-size:13px; color:#2E2E38;"><strong>Resevwa wonn sa a:</strong> <%= @round.payout_user.email.split('@').first %></div>
+</div>
+
+<div style="background:#fefce8; border:1px solid #fde047; border-radius:14px; padding:14px 16px; margin-bottom:14px;">
+  <div style="font-size:13px; color:#854d0e; font-weight:700;">Ou gen 48 èdtan pou peye. Peman an reta = -25 pwen kredi.</div>
+</div>
+
+<p style="margin:0;">
+  <a href="<%= sol_circle_url(@circle.token) %>" style="color:#2E2E38; background:#C5A059; text-decoration:none; padding:10px 16px; border-radius:10px; font-weight:700; display:inline-block;">Peye Kounye a</a>
+</p>
+
+<p style="margin:16px 0 0; color:#5D6345; font-size:13px;">Avèk respè,<br><strong>Priotelus</strong></p>

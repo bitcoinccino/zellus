@@ -1,0 +1,45 @@
+<div style="margin-bottom:20px;">
+  <div style="font-size:15px; font-weight:800; color:#2E2E38; margin-bottom:6px;">Tranzaksyon Resevwa</div>
+  <div style="font-size:13px; color:#5D6345;">TX #<%= @transaction.id %> — <%= @transaction.created_at.strftime("%b %d, %Y %l:%M %p").strip %></div>
+</div>
+
+<div style="background:#E8EDE0; border:2px solid #5D6345; border-radius:14px; padding:16px; margin-bottom:16px;">
+  <table width="100%" cellspacing="0" cellpadding="0">
+    <tr>
+      <td style="color:#5D6345; font-size:12px; font-weight:600; padding-bottom:8px;">Tip</td>
+      <td style="color:#2E2E38; font-weight:800; text-align:right; padding-bottom:8px;"><%= @transaction.transaction_type.upcase %></td>
+    </tr>
+    <tr>
+      <td style="color:#5D6345; font-size:12px; font-weight:600; padding-bottom:8px;">Montan</td>
+      <td style="color:#2E2E38; font-weight:800; text-align:right; padding-bottom:8px;"><%= @amount_line %></td>
+    </tr>
+    <tr>
+      <td style="color:#5D6345; font-size:12px; font-weight:600; padding-bottom:8px;">Frè</td>
+      <td style="color:#D8000C; font-weight:700; text-align:right; padding-bottom:8px;">- <%= number_to_currency(@transaction.fee_amount, unit: "HTG ", precision: 2) %></td>
+    </tr>
+    <tr>
+      <td colspan="2" style="border-top:1px dashed #5D6345; padding-top:10px;"></td>
+    </tr>
+    <tr>
+      <td style="color:#5D6345; font-size:12px; font-weight:600;">Estati</td>
+      <td style="color:#C5A059; font-weight:900; text-align:right;"><%= @transaction.status.upcase %></td>
+    </tr>
+  </table>
+</div>
+
+<div style="background:#fff; border:1px solid #d9d6c4; border-radius:12px; padding:12px; margin-bottom:16px;">
+  <div style="color:#5D6345; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-bottom:6px;">Detay</div>
+  <div style="color:#2E2E38; font-size:13px; margin-bottom:4px;"><strong>Metòd Peman:</strong> <%= @payment_method_label %></div>
+  <div style="color:#2E2E38; font-size:13px; margin-bottom:4px;"><strong>Soti nan:</strong> <%= @source_label %></div>
+  <div style="color:#2E2E38; font-size:13px; word-break:break-word;"><strong>Ale nan:</strong> <%= @destination_label %></div>
+</div>
+
+<% if @transaction_url.present? %>
+  <div style="margin-bottom:16px; text-align:center;">
+    <a href="<%= @transaction_url %>" style="color:#2E2E38; background:#C5A059; text-decoration:none; padding:10px 20px; border-radius:12px; font-weight:700; font-size:13px; display:inline-block;">Wè Tranzaksyon</a>
+  </div>
+<% end %>
+
+<div style="font-size:13px; color:#5D6345; line-height:1.6;">
+  N ap trete tranzaksyon ou kounye a. Ou ap resevwa yon lòt imèl lè li fini. Mèsi pou konfyans ou nan Priotelus!
+</div>

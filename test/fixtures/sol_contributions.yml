@@ -1,0 +1,13 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  user: one
+  sol_round: one
+  bank_transaction: one
+  status: 1
+
+two:
+  user: two
+  sol_round: two
+  bank_transaction: two
+  status: 1

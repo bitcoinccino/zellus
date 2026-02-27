@@ -1,0 +1,45 @@
+<div style="margin-bottom:20px;">
+  <div style="font-size:15px; font-weight:800; color:#991b1b; margin-bottom:6px;">Tranzaksyon Echwe</div>
+  <div style="font-size:13px; color:#5D6345;">TX #<%= @transaction.id %> — <%= @transaction.updated_at.strftime("%b %d, %Y") %></div>
+</div>
+
+<div style="background:#fee2e2; border:2px solid #991b1b; border-radius:14px; padding:16px; margin-bottom:16px;">
+  <table width="100%" cellspacing="0" cellpadding="0">
+    <tr>
+      <td style="color:#991b1b; font-size:12px; font-weight:600; padding-bottom:8px;">Tip</td>
+      <td style="color:#2E2E38; font-weight:800; text-align:right; padding-bottom:8px;"><%= @transaction.transaction_type.upcase %></td>
+    </tr>
+    <tr>
+      <td style="color:#991b1b; font-size:12px; font-weight:600; padding-bottom:8px;">Montan</td>
+      <td style="color:#2E2E38; font-weight:800; text-align:right; padding-bottom:8px;"><%= @amount_line %></td>
+    </tr>
+    <tr>
+      <td style="color:#991b1b; font-size:12px; font-weight:600;">Estati</td>
+      <td style="color:#991b1b; font-weight:900; text-align:right;">ECHWE</td>
+    </tr>
+  </table>
+</div>
+
+<div style="background:#fff; border:1px solid #d9d6c4; border-radius:12px; padding:12px; margin-bottom:16px;">
+  <div style="color:#5D6345; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-bottom:6px;">Detay</div>
+  <div style="color:#2E2E38; font-size:13px; margin-bottom:4px;"><strong>Metòd Peman:</strong> <%= @payment_method_label %></div>
+  <div style="color:#2E2E38; font-size:13px; margin-bottom:4px;"><strong>Soti nan:</strong> <%= @source_label %></div>
+  <div style="color:#2E2E38; font-size:13px; word-break:break-word;"><strong>Ale nan:</strong> <%= @destination_label %></div>
+</div>
+
+<% if @transaction.failure_reason.present? %>
+  <div style="background:#fff; border-left:3px solid #991b1b; border-radius:8px; padding:12px; margin-bottom:16px;">
+    <div style="color:#991b1b; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">Rezon Echèk</div>
+    <div style="color:#2E2E38; font-size:13px;"><%= @customer_failure_message %></div>
+  </div>
+<% end %>
+
+<% if @transaction_url.present? %>
+  <div style="margin-bottom:16px; text-align:center;">
+    <a href="<%= @transaction_url %>" style="color:#fff; background:#991b1b; text-decoration:none; padding:10px 20px; border-radius:12px; font-weight:700; font-size:13px; display:inline-block;">Wè Tranzaksyon</a>
+  </div>
+<% end %>
+
+<div style="font-size:13px; color:#5D6345; line-height:1.6;">
+  Malrezman, tranzaksyon ou a pa t kapab konplete. Si lajan te debite nan kont ou, n ap ranbouse ou otomatikman. Kontakte sipò si ou gen kesyon.
+</div>

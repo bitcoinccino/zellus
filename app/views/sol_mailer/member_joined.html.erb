@@ -1,0 +1,18 @@
+<h2 style="margin:0 0 8px; color:#2E2E38; font-size:22px;">Nouvo Manm</h2>
+<p style="margin:0 0 16px; color:#5D6345; font-size:14px;"><strong><%= @new_member.email.split('@').first %></strong> rantre nan Sol <strong><%= @circle.name %></strong>.</p>
+
+<div style="background:#fff; border:1px solid #d9d6c4; border-radius:14px; padding:14px 16px; margin-bottom:14px;">
+  <div style="font-size:11px; text-transform:uppercase; letter-spacing:1px; color:#5D6345; font-weight:700; margin-bottom:8px;">Pwogrè</div>
+  <div style="font-size:14px; color:#2E2E38;"><strong><%= @circle.sol_memberships.count %></strong> / <strong><%= @circle.target_members %></strong> manm enskri</div>
+  <% if @circle.full? %>
+    <div style="font-size:13px; color:#166534; font-weight:700; margin-top:6px;">Sol la plen! Li pral kòmanse talè!</div>
+  <% else %>
+    <div style="font-size:13px; color:#5D6345; margin-top:6px;">Rete <strong><%= @circle.target_members - @circle.sol_memberships.count %></strong> manm anvan Sol la kòmanse.</div>
+  <% end %>
+</div>
+
+<p style="margin:0;">
+  <a href="<%= sol_circle_url(@circle.token) %>" style="color:#2E2E38; background:#C5A059; text-decoration:none; padding:10px 16px; border-radius:10px; font-weight:700; display:inline-block;">Wè Sol La</a>
+</p>
+
+<p style="margin:16px 0 0; color:#5D6345; font-size:13px;">Avèk respè,<br><strong>Priotelus</strong></p>

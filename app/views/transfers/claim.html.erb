@@ -1,0 +1,114 @@
+<div class="container py-4" style="max-width: 480px;">
+  <%# ── Priotelus Brand ── %>
+  <div class="text-center mb-4">
+    <h3 class="fw-bold" style="color: var(--haiti-charcoal);">
+      <i class="ri-flashlight-line me-2" style="color: var(--haiti-gold);"></i>Priotelus Zèllus
+    </h3>
+  </div>
+
+  <% sender_name = @transfer.user&.email&.split("@")&.first&.capitalize || "Yon moun" %>
+
+  <% if flash[:notice].present? %>
+    <div class="alert rounded-3 mb-3" style="background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534;">
+      <i class="ri-checkbox-circle-line me-1"></i><%= flash[:notice] %>
+    </div>
+  <% end %>
+  <% if flash[:alert].present? %>
+    <div class="alert rounded-3 mb-3" style="background: #fef2f2; border: 1px solid #fecaca; color: #991b1b;">
+      <i class="ri-error-warning-line me-1"></i><%= flash[:alert] %>
+    </div>
+  <% end %>
+
+  <% if @transfer.completed? %>
+    <%# ── Already Completed ── %>
+    <div class="card border-0 shadow-sm" style="border-radius: 16px;">
+      <div class="card-body p-4 text-center">
+        <i class="ri-checkbox-circle-fill" style="font-size: 3rem; color: #166534;"></i>
+        <h5 class="fw-bold mt-3" style="color: var(--haiti-charcoal);">Transfè Konplete!</h5>
+        <p style="color: var(--haiti-olive);">
+          <%= sender_name %> te voye <strong><%= number_to_currency(@transfer.net_amount, unit: "HTG ", precision: 0) %></strong> ba ou.
+          Lajan an deja nan MonCash ou.
+        </p>
+      </div>
+    </div>
+
+  <% elsif @transfer.expired? %>
+    <%# ── Expired ── %>
+    <div class="card border-0 shadow-sm" style="border-radius: 16px;">
+      <div class="card-body p-4 text-center">
+        <i class="ri-timer-line" style="font-size: 3rem; color: #991b1b;"></i>
+        <h5 class="fw-bold mt-3" style="color: var(--haiti-charcoal);">Transfè Ekspire</h5>
+        <p style="color: var(--haiti-olive);">
+          Malerezman, transfè sa a ekspire paske li pa t reklame atan.
+          Lajan an ap retounen bay moun ki te voye a.
+        </p>
+      </div>
+    </div>
+
+  <% elsif @transfer.claimed? || @transfer.sent? %>
+    <%# ── Being Processed ── %>
+    <div class="card border-0 shadow-sm" style="border-radius: 16px;">
+      <div class="card-body p-4 text-center">
+        <i class="ri-loader-4-line ri-spin" style="font-size: 3rem; color: var(--haiti-gold);"></i>
+        <h5 class="fw-bold mt-3" style="color: var(--haiti-charcoal);">N Ap Trete...</h5>
+        <p style="color: var(--haiti-olive);">
+          Nou resevwa demann ou. N ap voye <strong><%= number_to_currency(@transfer.net_amount, unit: "HTG ", precision: 0) %></strong>
+          nan MonCash ou nan kèk minit.
+        </p>
+      </div>
+    </div>
+
+  <% elsif @transfer.funded? && @transfer.can_claim? %>
+    <%# ── Claim Form ── %>
+    <div class="card border-0 shadow-sm" style="border-radius: 16px;">
+      <div class="card-body p-4">
+        <div class="text-center mb-4">
+          <i class="ri-hand-coin-fill" style="font-size: 3rem; color: var(--haiti-gold);"></i>
+          <h4 class="fw-bold mt-2" style="color: var(--haiti-charcoal);">
+            <%= sender_name %> voye lajan ba ou!
+          </h4>
+          <div class="fs-3 fw-bold" style="color: var(--haiti-gold);">
+            <%= number_to_currency(@transfer.net_amount, unit: "HTG ", precision: 0) %>
+          </div>
+          <% if @transfer.note.present? %>
+            <div class="mt-2 p-2 rounded-3" style="background: var(--haiti-cream); color: var(--haiti-charcoal); font-size: 13px;">
+              "<%= @transfer.note %>"
+            </div>
+          <% end %>
+        </div>
+
+        <%= form_with(url: confirm_claim_transfer_path(@transfer.token), method: :post, local: true) do |f| %>
+          <div class="mb-3">
+            <label class="form-label fw-bold small" style="color: var(--haiti-charcoal);">
+              <i class="ri-phone-line me-1" style="color: var(--haiti-gold);"></i>Nimewo MonCash Ou
+            </label>
+            <%= f.telephone_field :receiver_phone, class: "form-control rounded-pill", placeholder: "50912345678", maxlength: 11, required: true, style: "border-color: var(--haiti-mint); padding: 10px 16px;" %>
+            <div class="form-text" style="color: var(--haiti-olive); font-size: 11px;">
+              Antre nimewo MonCash ou pou resevwa lajan an dirèkteman.
+            </div>
+          </div>
+
+          <%= f.submit "Resevwa Lajan", class: "btn btn-prestige w-100 rounded-pill py-2 fw-bold" %>
+        <% end %>
+
+        <% if @transfer.expires_at.present? %>
+          <div class="text-center mt-3 small" style="color: var(--haiti-olive);">
+            <i class="ri-timer-line me-1"></i>Lyen sa a ekspire: <%= @transfer.expires_at.strftime("%d %b %Y %H:%M") %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+  <% else %>
+    <%# ── Fallback: Not available ── %>
+    <div class="card border-0 shadow-sm" style="border-radius: 16px;">
+      <div class="card-body p-4 text-center">
+        <i class="ri-information-line" style="font-size: 3rem; color: var(--haiti-olive);"></i>
+        <h5 class="fw-bold mt-3" style="color: var(--haiti-charcoal);">Transfè Pa Disponib</h5>
+        <p style="color: var(--haiti-olive);">
+          Transfè sa a pa disponib kounye a. Tanpri kontakte moun ki te voye a.
+        </p>
+      </div>
+    </div>
+  <% end %>
+</div>

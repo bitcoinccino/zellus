@@ -1,0 +1,47 @@
+<div style="margin-bottom:20px;">
+  <div style="font-size:15px; font-weight:800; color:#C5A059; margin-bottom:6px;">Ou Gen Lajan!</div>
+  <div style="font-size:13px; color:#5D6345;"><%= @sender_name %> voye lajan ba ou ak Priotelus Zèllus.</div>
+</div>
+
+<div style="background:#E8EDE0; border:2px solid #5D6345; border-radius:14px; padding:16px; margin-bottom:16px; text-align:center;">
+  <div style="color:#5D6345; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">Montan Pou Ou</div>
+  <div style="color:#C5A059; font-size:28px; font-weight:900; letter-spacing:-1px;">
+    <% if @transfer.crypto_transfer? && @transfer.crypto_amount.present? %>
+      <%= @transfer.crypto_amount %> <%= @transfer.asset_label %>
+    <% else %>
+      HTG <%= format('%.0f', @transfer.net_amount.to_f) %>
+    <% end %>
+  </div>
+  <div style="margin-top:4px;">
+    <span style="display:inline-block; background:#2E2E38; color:#C5A059; font-size:10px; font-weight:800; padding:3px 10px; border-radius:10px; letter-spacing:0.5px;">
+      <%= @transfer.htg_transfer? ? "MONCASH" : "REZO BASE · #{@transfer.asset_label}" %>
+    </span>
+  </div>
+</div>
+
+<% if @transfer.note.present? %>
+  <div style="background:#fff; border:1px solid #d9d6c4; border-radius:12px; padding:12px; margin-bottom:16px;">
+    <div style="color:#5D6345; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">Nòt</div>
+    <div style="color:#2E2E38; font-size:13px;"><%= @transfer.note %></div>
+  </div>
+<% end %>
+
+<% if @claim_url.present? %>
+  <div style="margin-bottom:16px; text-align:center;">
+    <a href="<%= @claim_url %>" style="display:inline-block; background:#2E2E38; color:#C5A059; font-size:14px; font-weight:700; padding:14px 32px; border-radius:14px; text-decoration:none;">
+      Reklame Lajan Ou
+    </a>
+  </div>
+  <div style="background:#fcfcf9; border:1px dashed #5D6345; border-radius:12px; padding:12px; margin-bottom:16px;">
+    <div style="color:#5D6345; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-bottom:6px;">Lyen Reklame</div>
+    <div style="color:#2E2E38; font-size:11px; word-break:break-all;"><%= @claim_url %></div>
+  </div>
+<% end %>
+
+<div style="font-size:13px; color:#5D6345; line-height:1.6;">
+  <% if @transfer.htg_transfer? %>
+    Lajan an ap voye nan MonCash ou otomatikman.
+  <% else %>
+    Lajan an ap voye nan pòtfèy ou sou rezo Base.
+  <% end %>
+</div>

@@ -1,0 +1,18 @@
+<h2 style="margin:0 0 8px; color:#2E2E38; font-size:22px;">Sol Fini!</h2>
+<p style="margin:0 0 16px; color:#5D6345; font-size:14px;">Felisitasyon! Sol <strong><%= @circle.name %></strong> fini avèk siksè. Tout manm resevwa peman yo.</p>
+
+<div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:14px; padding:14px 16px; margin-bottom:14px;">
+  <div style="font-size:11px; text-transform:uppercase; letter-spacing:1px; color:#166534; font-weight:700; margin-bottom:8px;">Bravo!</div>
+  <div style="font-size:14px; color:#166534; font-weight:700;">+50 pwen kredi bonus pou fini Sol la!</div>
+  <div style="font-size:13px; color:#166534; margin-top:6px;">Nivo ou kounye a: <strong><%= @user.credit_tier %></strong> <%= @user.tier_icon %></div>
+</div>
+
+<div style="background:#fcfcf9; border:1px solid #e8e3cf; border-radius:14px; padding:14px 16px; margin-bottom:14px;">
+  <div style="font-size:13px; color:#2E2E38;">Kreye oswa rantre nan yon nouvo Sol pou kontinye monte nivo ou!</div>
+</div>
+
+<p style="margin:0;">
+  <a href="<%= new_sol_circle_url %>" style="color:#2E2E38; background:#C5A059; text-decoration:none; padding:10px 16px; border-radius:10px; font-weight:700; display:inline-block;">Kreye Nouvo Sol</a>
+</p>
+
+<p style="margin:16px 0 0; color:#5D6345; font-size:13px;">Avèk respè,<br><strong>Priotelus</strong></p>

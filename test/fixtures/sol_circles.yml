@@ -1,0 +1,17 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  name: MyString
+  amount: 9.99
+  frequency: 1
+  status: 1
+  start_date: 2026-02-26 13:43:20
+  token: MyString
+
+two:
+  name: MyString
+  amount: 9.99
+  frequency: 1
+  status: 1
+  start_date: 2026-02-26 13:43:20
+  token: MyString

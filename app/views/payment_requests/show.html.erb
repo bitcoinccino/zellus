@@ -1,0 +1,197 @@
+<div class="container d-flex justify-content-center" style="min-height: 80vh; padding-top: 16px;">
+  <div class="w-100" style="max-width: 480px;">
+
+    <%# ── Close / Back ── %>
+    <%= link_to payment_requests_path, class: "text-decoration-none", style: "color: var(--haiti-charcoal); font-size: 22px;" do %>
+      <i class="ri-close-line"></i>
+    <% end %>
+
+    <% if flash[:notice].present? %>
+      <div class="alert rounded-3 mt-3 mb-0" style="background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; font-size: 12px;">
+        <i class="ri-checkbox-circle-line me-1"></i><%= flash[:notice] %>
+      </div>
+    <% end %>
+
+    <%# ══════════════════════════════════════ %>
+    <%# ── PAYEE HERO                       ── %>
+    <%# ══════════════════════════════════════ %>
+    <div class="text-center mt-4 mb-3">
+      <%# ── Avatar / Initials ── %>
+      <% initials = (@payment_request.payer_name.presence || "?").split.map { |w| w[0] }.join.upcase.first(2) %>
+      <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3"
+           style="width: 72px; height: 72px; background: var(--haiti-charcoal); border: 3px solid rgba(93,99,69,0.15);">
+        <span class="fw-black" style="color: var(--haiti-gold); font-size: 26px; letter-spacing: -1px;"><%= initials %></span>
+      </div>
+
+      <%# ── Payee Name ── %>
+      <div class="fw-black mb-1" style="color: var(--haiti-charcoal); font-size: 28px; letter-spacing: -0.5px;">
+        <%= @payment_request.payer_name.presence || "Nenpòt moun" %>
+      </div>
+
+      <%# ── Date + Note ── %>
+      <div style="color: var(--haiti-olive); font-size: 13px;">
+        <%= @payment_request.created_at.strftime("%b %d · %l:%M %p").strip %>
+      </div>
+      <% if @payment_request.note.present? %>
+        <div class="mt-1" style="color: var(--haiti-olive); font-size: 13px;">
+          <%= @payment_request.note %>
+        </div>
+      <% end %>
+    </div>
+
+    <%# ══════════════════════════════════════ %>
+    <%# ── AMOUNT                           ── %>
+    <%# ══════════════════════════════════════ %>
+    <div class="text-center mb-4">
+      <% is_dead = @payment_request.expired? || @payment_request.canceled? %>
+      <div class="fw-black" style="font-size: 48px; letter-spacing: -2px; line-height: 1;
+           color: <%= is_dead ? 'rgba(46,46,56,0.25)' : 'var(--haiti-charcoal)' %>;
+           <%= 'text-decoration: line-through;' if is_dead %>">
+        + <%= number_to_currency(@payment_request.amount, unit: "", precision: 2) %>
+      </div>
+      <div class="mt-1 fw-bold" style="color: var(--haiti-olive); font-size: 14px;">
+        <%= @payment_request.asset.upcase %>
+      </div>
+    </div>
+
+    <%# ── Divider ── %>
+    <hr style="border-color: rgba(93,99,69,0.12); margin: 24px 0;">
+
+    <%# ══════════════════════════════════════ %>
+    <%# ── TRANSACTION DETAILS              ── %>
+    <%# ══════════════════════════════════════ %>
+    <div class="mb-4">
+      <div class="fw-bold mb-3" style="color: var(--haiti-charcoal); font-size: 18px;">Detay Tranzaksyon</div>
+
+      <%# ── Status Row ── %>
+      <% status_cfg = case @payment_request.status
+        when "active"
+          { icon: "ri-flashlight-line", color: "#166534", bg: "#f0fdf4", label: "Aktif", desc: "Ap tann peman" }
+        when "paid"
+          { icon: "ri-checkbox-circle-fill", color: "#166534", bg: "#f0fdf4", label: "Peye", desc: "Peman resevwa" }
+        when "expired"
+          { icon: "ri-forbid-line", color: "#991b1b", bg: "#fef2f2", label: "Echwe", desc: "Demann ekspire" }
+        when "canceled"
+          { icon: "ri-close-circle-line", color: "#991b1b", bg: "#fef2f2", label: "Anile", desc: "Demann anile" }
+        end %>
+      <div class="d-flex align-items-center gap-3 mb-3">
+        <div class="d-inline-flex align-items-center justify-content-center rounded-circle"
+             style="width: 40px; height: 40px; flex-shrink: 0; background: <%= status_cfg[:bg] %>;">
+          <i class="<%= status_cfg[:icon] %>" style="color: <%= status_cfg[:color] %>; font-size: 18px;"></i>
+        </div>
+        <div>
+          <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 14px;"><%= status_cfg[:label] %></div>
+          <div style="color: var(--haiti-olive); font-size: 12px;"><%= status_cfg[:desc] %></div>
+        </div>
+      </div>
+
+      <%# ── Transaction Number Row ── %>
+      <div class="d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center gap-3">
+          <div class="d-inline-flex align-items-center justify-content-center rounded-circle"
+               style="width: 40px; height: 40px; flex-shrink: 0; background: var(--haiti-cream);">
+            <i class="ri-hashtag" style="color: var(--haiti-olive); font-size: 18px;"></i>
+          </div>
+          <div>
+            <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 14px;">Nimewo Tranzaksyon</div>
+            <div style="color: var(--haiti-olive); font-size: 12px;" id="pr-token-text">#<%= @payment_request.token.upcase %></div>
+          </div>
+        </div>
+        <button type="button" onclick="copyToken()" class="btn p-1 border-0" style="color: var(--haiti-olive);">
+          <i class="ri-file-copy-line" style="font-size: 18px;" id="pr-copy-icon"></i>
+        </button>
+      </div>
+    </div>
+
+    <%# ── Divider ── %>
+    <hr style="border-color: rgba(93,99,69,0.12); margin: 24px 0;">
+
+    <%# ══════════════════════════════════════ %>
+    <%# ── ACTIONS                          ── %>
+    <%# ══════════════════════════════════════ %>
+    <div class="mb-4">
+      <div class="fw-bold mb-3" style="color: var(--haiti-charcoal); font-size: 18px;">Aksyon</div>
+
+      <% if @payment_request.active? %>
+        <%# ── Share / Open Public Page ── %>
+        <%= link_to public_payment_request_path(@payment_request.token), target: "_blank",
+            class: "d-flex align-items-center justify-content-between p-3 rounded-3 mb-2 text-decoration-none",
+            style: "background: var(--haiti-cream); border: 1px solid rgba(93,99,69,0.1);" do %>
+          <div class="d-flex align-items-center gap-3">
+            <i class="ri-share-forward-line" style="color: var(--haiti-gold); font-size: 18px;"></i>
+            <span class="fw-bold" style="color: var(--haiti-charcoal); font-size: 14px;">Pataje Demann</span>
+          </div>
+          <i class="ri-arrow-right-s-line" style="color: var(--haiti-olive); font-size: 18px;"></i>
+        <% end %>
+
+        <%# ── Mark as Paid ── %>
+        <%= button_to payment_request_path(@payment_request), method: :patch, params: { mark_paid: true },
+            class: "d-flex align-items-center justify-content-between p-3 rounded-3 mb-2 w-100 text-start",
+            style: "background: var(--haiti-cream); border: 1px solid rgba(93,99,69,0.1);" do %>
+          <div class="d-flex align-items-center gap-3">
+            <i class="ri-checkbox-circle-line" style="color: #166534; font-size: 18px;"></i>
+            <span class="fw-bold" style="color: var(--haiti-charcoal); font-size: 14px;">Make kòm Peye</span>
+          </div>
+          <i class="ri-arrow-right-s-line" style="color: var(--haiti-olive); font-size: 18px;"></i>
+        <% end %>
+
+        <%# ── Cancel Request ── %>
+        <%= button_to payment_request_path(@payment_request), method: :patch, params: { cancel: true },
+            class: "d-flex align-items-center justify-content-between p-3 rounded-3 mb-2 w-100 text-start",
+            style: "background: var(--haiti-cream); border: 1px solid rgba(93,99,69,0.1);" do %>
+          <div class="d-flex align-items-center gap-3">
+            <i class="ri-close-circle-line" style="color: #991b1b; font-size: 18px;"></i>
+            <span class="fw-bold" style="color: var(--haiti-charcoal); font-size: 14px;">Anile Demann</span>
+          </div>
+          <i class="ri-arrow-right-s-line" style="color: var(--haiti-olive); font-size: 18px;"></i>
+        <% end %>
+      <% end %>
+
+      <%# ── Delete ── %>
+      <%= button_to payment_request_path(@payment_request), method: :delete, data: { turbo_confirm: "Efase demann sa a?" },
+          class: "d-flex align-items-center justify-content-between p-3 rounded-3 mb-2 w-100 text-start",
+          style: "background: var(--haiti-cream); border: 1px solid rgba(93,99,69,0.1);" do %>
+        <div class="d-flex align-items-center gap-3">
+          <i class="ri-delete-bin-line" style="color: #991b1b; font-size: 18px;"></i>
+          <span class="fw-bold" style="color: var(--haiti-charcoal); font-size: 14px;">Efase Demann</span>
+        </div>
+        <i class="ri-arrow-right-s-line" style="color: var(--haiti-olive); font-size: 18px;"></i>
+      <% end %>
+    </div>
+
+  </div>
+</div>
+
+<script>
+function copyToken() {
+  var text = document.getElementById('pr-token-text').textContent;
+  copyToClipboard(text, 'pr-copy-icon');
+}
+
+function copyToClipboard(text, iconId) {
+  var icon = document.getElementById(iconId);
+  function onSuccess() {
+    if (!icon) return;
+    icon.className = 'ri-check-line';
+    icon.style.color = '#166534';
+    setTimeout(function() {
+      icon.className = 'ri-file-copy-line';
+      icon.style.color = '';
+    }, 1200);
+  }
+
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text).then(onSuccess).catch(function(){});
+    return;
+  }
+
+  var ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.left = '-9999px';
+  document.body.appendChild(ta);
+  ta.select();
+  try { document.execCommand('copy'); onSuccess(); } catch(e) {}
+  document.body.removeChild(ta);
+}
+</script>

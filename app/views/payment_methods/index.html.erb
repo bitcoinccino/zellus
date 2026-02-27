@@ -1,0 +1,122 @@
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-end mb-4">
+    <div>
+      <h1 class="h3 fw-bold mb-1">Metòd Peman</h1>
+      <p class="small fw-bold text-uppercase opacity-75" style="color: var(--haiti-olive); letter-spacing: 1px;">Anrejistre pòtfèy mobil ak kripto pou peman pi rapid</p>
+    </div>
+    <%= link_to new_transaction_path, class: "btn btn-prestige rounded-pill px-4" do %>
+      <i class="ri-arrow-left-line me-1"></i> Retounen nan Echanj
+    <% end %>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-lg-5">
+      <div class="card-base p-4">
+        <h2 class="h6 fw-black mb-3" style="color: var(--haiti-charcoal);">
+          <i class="ri-add-circle-line me-1" style="color: var(--haiti-gold);"></i> Ajoute Metòd Peman
+        </h2>
+
+        <% if @payment_method.errors.any? %>
+          <div class="p-3 mb-3 rounded-3" style="background-color: #fdf2f2; border: 1px solid #fca5a5;">
+            <div class="small fw-bold mb-1" style="color: #991b1b;">Pa kapab anrejistre metòd peman an</div>
+            <div class="small" style="color: #991b1b;"><%= @payment_method.errors.full_messages.to_sentence %></div>
+          </div>
+        <% end %>
+
+        <%= form_with model: @payment_method, url: payment_methods_path, local: true, class: "row g-3", id: "new-payment-method-form" do |f| %>
+          <%= f.hidden_field :active, value: true %>
+
+          <div class="col-12">
+            <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Kategori</label>
+            <%= f.select :category,
+                  options_for_select([["Pòtfèy Mobil (MonCash)", "mobile_wallet"], ["Pòtfèy Kripto (Base)", "crypto_wallet"]], @payment_method.category || "mobile_wallet"),
+                  {},
+                  { class: "form-select fw-bold", id: "payment-method-category", style: "border: 2px solid var(--haiti-olive); background: var(--haiti-cream);", onchange: "togglePaymentMethodFields()" } %>
+          </div>
+
+          <div class="col-12">
+            <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Etikèt (Opsyonèl)</label>
+            <%= f.text_field :label, placeholder: "egz. MonCash Mwen oswa Pòtfèy Coinbase", class: "form-control fw-bold", style: "border: 2px solid var(--haiti-olive); background: var(--haiti-cream);" %>
+          </div>
+
+          <div id="mobile-wallet-fields" class="col-12">
+            <%= f.hidden_field :provider, value: (@payment_method.provider || "moncash"), id: "payment-method-provider" %>
+            <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Nimewo MonCash</label>
+            <%= f.text_field :account_number, placeholder: "50937007294 or 37007294", class: "form-control fw-bold", style: "border: 2px solid var(--haiti-olive); background: var(--haiti-cream);", id: "payment-method-account-number" %>
+            <div class="small mt-1" style="color: var(--haiti-olive); font-size: 10px;">
+              <i class="ri-information-line me-1"></i>Nou nòmalize nan fòma Ayiti (509 + 8 chif).
+            </div>
+          </div>
+
+          <div id="crypto-wallet-fields" class="col-12" style="display:none;">
+            <div class="row g-2">
+              <div class="col-md-6">
+                <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Rezo</label>
+                <%= f.select :network, options_for_select([["Base", "base"]], @payment_method.network || "base"), {}, class: "form-select fw-bold", style: "border: 2px solid var(--haiti-olive); background: var(--haiti-cream);", id: "payment-method-network" %>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Aktif</label>
+                <%= f.select :asset, options_for_select([["USDC", "usdc"], ["ETH", "eth"]], @payment_method.asset || "usdc"), {}, class: "form-select fw-bold", style: "border: 2px solid var(--haiti-olive); background: var(--haiti-cream);", id: "payment-method-asset" %>
+              </div>
+            </div>
+            <div class="mt-2">
+              <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Adrès Pòtfèy</label>
+              <%= f.text_field :wallet_address, placeholder: "0x...", class: "form-control fw-bold", style: "border: 2px solid var(--haiti-olive); background: var(--haiti-cream);", id: "payment-method-wallet-address" %>
+              <div class="small mt-1" style="color: var(--haiti-olive); font-size: 10px;">
+                <i class="ri-information-line me-1"></i>Itilize yon adrès EVM konpatib ak Base.
+              </div>
+            </div>
+          </div>
+
+          <div class="col-12">
+            <%= f.button class: "btn w-100 py-2 fw-bold rounded-4 border-0", style: "background-color: var(--haiti-charcoal); color: var(--haiti-gold);" do %>
+              <i class="ri-save-3-line me-1"></i> Anrejistre Metòd Peman
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="col-lg-7">
+      <div class="card-base p-4 mb-4">
+        <h2 class="h6 fw-black mb-3" style="color: var(--haiti-charcoal);">
+          <i class="ri-smartphone-line me-1" style="color: var(--haiti-gold);"></i> Pòtfèy Mobil (MonCash)
+        </h2>
+        <%= render partial: "payment_method_list", locals: { methods: @mobile_wallet_methods, kind: :mobile } %>
+      </div>
+
+      <div class="card-base p-4">
+        <h2 class="h6 fw-black mb-3" style="color: var(--haiti-charcoal);">
+          <i class="ri-wallet-3-line me-1" style="color: var(--haiti-gold);"></i> Pòtfèy Kripto (Base)
+        </h2>
+        <%= render partial: "payment_method_list", locals: { methods: @crypto_wallet_methods, kind: :crypto } %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function togglePaymentMethodFields() {
+  const category = document.getElementById('payment-method-category');
+  const mobile = document.getElementById('mobile-wallet-fields');
+  const crypto = document.getElementById('crypto-wallet-fields');
+  const provider = document.getElementById('payment-method-provider');
+  const account = document.getElementById('payment-method-account-number');
+  const wallet = document.getElementById('payment-method-wallet-address');
+  const network = document.getElementById('payment-method-network');
+  const asset = document.getElementById('payment-method-asset');
+  if (!category || !mobile || !crypto) return;
+
+  const isCrypto = category.value === 'crypto_wallet';
+  mobile.style.display = isCrypto ? 'none' : '';
+  crypto.style.display = isCrypto ? '' : 'none';
+
+  if (provider) provider.value = isCrypto ? 'base' : 'moncash';
+  if (account) account.required = !isCrypto;
+  if (wallet) wallet.required = isCrypto;
+  if (network) network.disabled = !isCrypto;
+  if (asset) asset.disabled = !isCrypto;
+}
+
+document.addEventListener('DOMContentLoaded', togglePaymentMethodFields);
+</script>

@@ -1,0 +1,30 @@
+<div style="margin-bottom:20px;">
+  <div style="font-size:15px; font-weight:800; color:#991b1b; margin-bottom:6px;">Transfè Echwe</div>
+  <div style="font-size:13px; color:#5D6345;">Transfè #<%= @transfer.id %> — <%= @transfer.updated_at.strftime("%b %d, %Y") %></div>
+</div>
+
+<div style="background:#fee2e2; border:2px solid #991b1b; border-radius:14px; padding:16px; margin-bottom:16px;">
+  <table width="100%" cellspacing="0" cellpadding="0">
+    <tr>
+      <td style="color:#991b1b; font-size:12px; font-weight:600; padding-bottom:8px;">Montan</td>
+      <td style="color:#2E2E38; font-weight:800; text-align:right; padding-bottom:8px;">HTG <%= format('%.0f', @transfer.amount.to_f) %></td>
+    </tr>
+    <tr>
+      <td style="color:#991b1b; font-size:12px; font-weight:600;">Resevè</td>
+      <td style="color:#2E2E38; font-weight:600; text-align:right;">
+        <%= @transfer.receiver_name.presence || @transfer.receiver_phone.presence || @transfer.receiver_email.presence || "—" %>
+      </td>
+    </tr>
+  </table>
+</div>
+
+<% if @transfer.failure_reason.present? %>
+  <div style="background:#fff; border-left:3px solid #991b1b; border-radius:8px; padding:12px; margin-bottom:16px;">
+    <div style="color:#991b1b; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">Rezon Echèk</div>
+    <div style="color:#2E2E38; font-size:13px;"><%= @transfer.failure_reason %></div>
+  </div>
+<% end %>
+
+<div style="font-size:13px; color:#5D6345; line-height:1.6;">
+  Malrezman, transfè ou a pa t kapab konplete. Si lajan te debite nan kont ou, n ap ranbouse ou otomatikman. Kontakte sipò si ou gen kesyon.
+</div>

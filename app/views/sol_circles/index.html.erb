@@ -1,0 +1,57 @@
+<div class="container py-4" style="max-width: 600px;">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 fw-black text-uppercase" style="color: var(--haiti-charcoal);">Sèk Sol Mwen</h1>
+    <div class="d-flex align-items-center gap-2">
+      <span class="badge rounded-pill px-3" style="background-color: var(--haiti-gold); color: var(--haiti-charcoal);"><%= @circles.count %> Sol</span>
+      <%= link_to new_sol_circle_path, class: "btn btn-sm fw-bold rounded-3", style: "background: var(--haiti-charcoal); color: var(--haiti-gold);" do %>
+        <i class="ri-add-circle-line me-1"></i>Kreye Sol
+      <% end %>
+    </div>
+  </div>
+
+  <% if @circles.any? %>
+    <% @circles.each do |circle| %>
+      <%= link_to sol_circle_path(circle.token), class: "text-decoration-none" do %>
+        <div class="card-base p-4 mb-3 hover-shadow transition-all" style="border-left: 5px solid var(--haiti-gold);">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <div class="mb-1 d-flex gap-1">
+                <span class="badge rounded-pill" style="background-color: var(--haiti-gold); color: var(--haiti-charcoal); font-size: 9px; font-weight: 800;">
+                  <i class="<%= circle.category_icon %> me-1"></i><%= circle.category_label %>
+                </span>
+                <span class="badge rounded-pill" style="background-color: <%= circle.status_bg %>; color: <%= circle.status_color %>; border: 1px solid <%= circle.status_border %>; font-size: 9px; font-weight: 800;">
+                  <i class="<%= circle.status_icon %> me-1"></i><%= circle.status_label %>
+                </span>
+              </div>
+              <h3 class="h5 fw-bold mb-1" style="color: var(--haiti-charcoal);"><%= circle.name %></h3>
+              <p class="small mb-0" style="color: var(--haiti-olive);">
+                <% if circle.htg? %>
+                  <%= number_to_currency(circle.amount, unit: "HTG ") %>
+                <% else %>
+                  <%= number_with_precision(circle.amount, precision: 2) %> USDC
+                <% end %>
+                &middot; <%= circle.duration_months %> Mwa
+                &middot; <%= circle.sol_memberships.count %>/<%= circle.target_members %> manm
+              </p>
+            </div>
+            <div class="text-end">
+              <div class="fs-4"><%= current_user.tier_icon %></div>
+              <div class="small fw-bold text-uppercase" style="color: var(--haiti-gold); font-size: 10px;">
+                <%= current_user.credit_tier %>
+              </div>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    <% end %>
+  <% else %>
+    <div class="card-base p-5 text-center" style="background-color: #fcfcf9; border: 1px dashed #cbbf9a;">
+      <i class="ri-loop-right-line ri-2x d-block mb-2" style="color: var(--haiti-gold);"></i>
+      <div class="fw-bold" style="color: var(--haiti-charcoal);">Ou poko nan okenn sèk Sol</div>
+      <div class="small mb-3" style="color: var(--haiti-olive);">Kreye premye PrioSol ou oswa jwenn yon envitasyon.</div>
+      <%= link_to new_sol_circle_path, class: "btn btn-prestige mt-2" do %>
+        <i class="ri-add-circle-line me-1"></i> Kòmanse yon Sol
+      <% end %>
+    </div>
+  <% end %>
+</div>

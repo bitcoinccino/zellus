@@ -1,0 +1,125 @@
+<div class="container d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+  <div class="card-base p-4 w-100" style="max-width: 420px;">
+
+    <div class="text-center mb-4">
+      <div class="d-inline-flex align-items-center justify-content-center mb-3" style="width: 70px; height: 70px; background-color: var(--haiti-gold); border-radius: 20px; transform: rotate(-5deg); box-shadow: 4px 4px 0px var(--haiti-charcoal);">
+        <i class="ri-settings-3-line ri-2x" style="color: var(--haiti-charcoal); transform: rotate(5deg);"></i>
+      </div>
+      <h1 class="h4 fw-black mb-1 text-uppercase" style="color: var(--haiti-charcoal); letter-spacing: -0.5px;">Modifye Kont</h1>
+    </div>
+
+    <%= render "devise/shared/error_messages", resource: resource %>
+
+    <%= form_for(resource, as: resource_name, url: registration_path(resource_name), html: { method: :put }) do |f| %>
+
+      <div class="mb-3">
+        <%= f.label :email, class: "form-label small fw-bold text-uppercase", style: "color: var(--haiti-olive); font-size: 11px; letter-spacing: 0.5px;" %>
+        <div class="input-group">
+          <span class="input-group-text" style="background-color: var(--haiti-mint); border: 2px solid var(--haiti-olive); border-right: none;">
+            <i class="ri-mail-line" style="color: var(--haiti-olive);"></i>
+          </span>
+          <%= f.email_field :email, autofocus: true, autocomplete: "email",
+              class: "form-control shadow-none",
+              style: "border: 2px solid var(--haiti-olive); border-left: none; background-color: var(--haiti-cream); color: var(--haiti-charcoal);" %>
+        </div>
+      </div>
+
+      <% if devise_mapping.confirmable? && resource.pending_reconfirmation? %>
+        <div class="p-3 mb-3 rounded-3" style="background-color: #fef3c7; border: 1px solid #f59e0b;">
+          <div class="small fw-bold" style="color: #92400e;">
+            <i class="ri-information-line me-1"></i> Ap tann konfimasyon pou: <%= resource.unconfirmed_email %>
+          </div>
+        </div>
+      <% end %>
+
+      <!-- PrioSol Payout Preference -->
+      <div class="mb-3">
+        <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 11px; letter-spacing: 0.5px;">
+          <i class="ri-exchange-funds-line me-1"></i>Preferans Peman Sol
+        </label>
+        <div class="input-group">
+          <span class="input-group-text" style="background-color: var(--haiti-mint); border: 2px solid var(--haiti-olive); border-right: none;">
+            <i class="ri-wallet-3-line" style="color: var(--haiti-olive);"></i>
+          </span>
+          <%= f.select :payout_preference,
+                options_for_select([
+                  ["Otomatik (itilize sa ki disponib)", "auto"],
+                  ["Toujou HTG (MonCash)", "htg"],
+                  ["Toujou USDC (Base Wallet)", "usdc"]
+                ], resource.payout_preference),
+                {},
+                { class: "form-select shadow-none",
+                  style: "border: 2px solid var(--haiti-olive); border-left: none; background-color: var(--haiti-cream); color: var(--haiti-charcoal);" } %>
+        </div>
+        <div class="small mt-1" style="color: var(--haiti-olive); font-size: 10px;">
+          <i class="ri-information-line me-1"></i>Kijan ou vle resevwa peman Sol ou
+        </div>
+      </div>
+
+      <hr style="border-color: var(--haiti-olive); opacity: 0.2;" class="my-3">
+
+      <div class="mb-3">
+        <%= f.label :password, class: "form-label small fw-bold text-uppercase", style: "color: var(--haiti-olive); font-size: 11px; letter-spacing: 0.5px;" %>
+        <span class="small" style="color: var(--haiti-olive); font-size: 10px;">(kite vid si ou pa vle chanje li)</span>
+        <% if @minimum_password_length %>
+          <span class="ms-1 small" style="color: var(--haiti-olive); font-size: 10px;">(<%= @minimum_password_length %> karaktè minimòm)</span>
+        <% end %>
+        <div class="input-group">
+          <span class="input-group-text" style="background-color: var(--haiti-mint); border: 2px solid var(--haiti-olive); border-right: none;">
+            <i class="ri-lock-line" style="color: var(--haiti-olive);"></i>
+          </span>
+          <%= f.password_field :password, autocomplete: "new-password",
+              class: "form-control shadow-none",
+              style: "border: 2px solid var(--haiti-olive); border-left: none; background-color: var(--haiti-cream); color: var(--haiti-charcoal);" %>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <%= f.label :password_confirmation, class: "form-label small fw-bold text-uppercase", style: "color: var(--haiti-olive); font-size: 11px; letter-spacing: 0.5px;" %>
+        <div class="input-group">
+          <span class="input-group-text" style="background-color: var(--haiti-mint); border: 2px solid var(--haiti-olive); border-right: none;">
+            <i class="ri-lock-2-line" style="color: var(--haiti-olive);"></i>
+          </span>
+          <%= f.password_field :password_confirmation, autocomplete: "new-password",
+              class: "form-control shadow-none",
+              style: "border: 2px solid var(--haiti-olive); border-left: none; background-color: var(--haiti-cream); color: var(--haiti-charcoal);" %>
+        </div>
+      </div>
+
+      <div class="mb-4">
+        <%= f.label :current_password, class: "form-label small fw-bold text-uppercase", style: "color: var(--haiti-olive); font-size: 11px; letter-spacing: 0.5px;" %>
+        <span class="small" style="color: var(--haiti-olive); font-size: 10px;">(nou bezwen modpas aktyèl ou pou konfime chanjman yo)</span>
+        <div class="input-group">
+          <span class="input-group-text" style="background-color: var(--haiti-mint); border: 2px solid var(--haiti-olive); border-right: none;">
+            <i class="ri-shield-keyhole-line" style="color: var(--haiti-olive);"></i>
+          </span>
+          <%= f.password_field :current_password, autocomplete: "current-password",
+              class: "form-control shadow-none",
+              style: "border: 2px solid var(--haiti-olive); border-left: none; background-color: var(--haiti-cream); color: var(--haiti-charcoal);" %>
+        </div>
+      </div>
+
+      <div class="d-grid">
+        <%= f.submit "Mizajou Kont", class: "btn py-3 fw-black text-uppercase",
+            style: "background-color: var(--haiti-charcoal); color: var(--haiti-gold); border: 2px solid var(--haiti-charcoal); letter-spacing: 1px;" %>
+      </div>
+
+    <% end %>
+
+    <div class="mt-4 pt-3" style="border-top: 1px dashed var(--haiti-olive);">
+      <div class="p-3 rounded-3" style="background-color: #fdf2f2; border: 1px solid #fca5a5;">
+        <div class="small fw-bold mb-2" style="color: #991b1b;">
+          <i class="ri-error-warning-line me-1"></i> Anile Kont
+        </div>
+        <%= button_to "Anile kont mwen", registration_path(resource_name),
+            data: { confirm: "Èske ou sèten?", turbo_confirm: "Èske ou sèten?" },
+            method: :delete,
+            class: "btn btn-sm fw-bold rounded-3",
+            style: "background: #991b1b; color: #fff;" %>
+      </div>
+    </div>
+
+    <%= render "devise/shared/links" %>
+
+  </div>
+</div>

@@ -1,0 +1,69 @@
+<div class="container d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+  <div class="card-base p-4 w-100 shadow-lg" style="max-width: 450px;">
+    
+    <!-- Rank Header -->
+    <div class="text-center mb-4">
+      <div class="d-inline-flex align-items-center justify-content-center mb-3 rounded-circle"
+        style="width: 70px; height: 70px; background-color: var(--haiti-charcoal); border: 3px solid var(--haiti-gold);">
+        <span style="font-size: 2.5rem;"><%= current_user.tier_icon %></span>
+      </div>
+      <h1 class="h4 fw-black mb-1" style="color: var(--haiti-charcoal);">Demann Prè Pionye</h1>
+      <p class="small text-uppercase fw-bold" style="color: var(--haiti-gold); letter-spacing: 1px;">
+        Estati: <%= current_user.credit_tier %> Verifye
+      </p>
+    </div>
+
+    <div class="p-3 mb-4 rounded-4 text-center" style="background-color: var(--haiti-mint); border: 2px dashed var(--haiti-olive);">
+      <div class="small fw-bold text-uppercase" style="font-size: 10px; color: var(--haiti-olive);">Liy Kredi Disponib</div>
+      <div class="display-6 fw-black" style="color: var(--haiti-charcoal);">
+        <%= number_to_currency(current_user.loan_limit, unit: "HTG ") %>
+      </div>
+    </div>
+
+    <%= form_with(url: "#", method: :post, local: true, class: "row g-3") do |f| %>
+      
+      <!-- Amount Input -->
+      <div class="col-12">
+        <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px;">Konbyen ou bezwen?</label>
+        <div class="input-group">
+          <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);">
+            <i class="ri-money-dollar-circle-line"></i>
+          </span>
+          <%= f.number_field :amount, placeholder: "Antre montan",
+              class: "form-control border-0 fw-bold shadow-none p-3 bb-dark-field",
+              style: "background-color: var(--haiti-charcoal); color: white;",
+              max: current_user.loan_limit, required: true %>
+        </div>
+      </div>
+
+      <!-- Purpose -->
+      <div class="col-12">
+        <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px;">Objektif Prè a</label>
+        <%= f.select :purpose,
+            ["Elaji Biznis", "Achte Envantè", "Ekipman Ijans", "Pwovizyon Agrikòl"], 
+            {}, 
+            { class: "form-select border-0 fw-bold shadow-none p-3 bb-dark-select", style: "background-color: var(--haiti-charcoal); color: white;" } %>
+      </div>
+
+      <!-- Terms Info -->
+      <div class="col-12">
+        <div class="small p-3 rounded-3" style="background-color: rgba(93, 99, 69, 0.05); border: 1px solid rgba(93, 99, 69, 0.2);">
+          <ul class="list-unstyled mb-0" style="font-size: 11px; color: var(--haiti-olive);">
+            <li><i class="ri-check-line"></i> To Enterè: <strong>3% Pa Mwa</strong></li>
+            <li><i class="ri-check-line"></i> Ranbousman: <strong>Otomatik ak Sol</strong></li>
+            <li><i class="ri-check-line"></i> Apwobasyon: <strong>Imedyat pou <%= current_user.credit_tier %></strong></li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Submit -->
+      <div class="col-12 mt-4">
+        <%= f.submit "Aplike pou Kredi Pionye", class: "btn btn-prestige w-100 py-3" %>
+      </div>
+    <% end %>
+
+    <p class="text-center mt-3 mb-0" style="font-size: 10px; color: var(--haiti-olive);">
+      <i class="ri-shield-check-line"></i> Garanti pa Istwa Kredi Priotelus ou
+    </p>
+  </div>
+</div>

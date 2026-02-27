@@ -1,0 +1,64 @@
+<div class="container d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+  <div class="card-base p-4 w-100" style="max-width: 420px;">
+
+    <div class="text-center mb-4">
+      <div class="d-inline-flex align-items-center justify-content-center mb-3" style="width: 70px; height: 70px; background-color: var(--haiti-gold); border-radius: 20px; transform: rotate(-5deg); box-shadow: 4px 4px 0px var(--haiti-charcoal);">
+        <i class="ri-user-add-line ri-2x" style="color: var(--haiti-charcoal); transform: rotate(5deg);"></i>
+      </div>
+      <h1 class="h4 fw-black mb-1 text-uppercase" style="color: var(--haiti-charcoal); letter-spacing: -0.5px;">Kreye Kont</h1>
+    </div>
+
+    <%= render "devise/shared/error_messages", resource: resource %>
+
+    <%= form_for(resource, as: resource_name, url: registration_path(resource_name)) do |f| %>
+
+      <div class="mb-3">
+        <%= f.label :email, class: "form-label small fw-bold text-uppercase", style: "color: var(--haiti-olive); font-size: 11px; letter-spacing: 0.5px;" %>
+        <div class="input-group">
+          <span class="input-group-text" style="background-color: var(--haiti-mint); border: 2px solid var(--haiti-olive); border-right: none;">
+            <i class="ri-mail-line" style="color: var(--haiti-olive);"></i>
+          </span>
+          <%= f.email_field :email, autofocus: true, autocomplete: "email",
+              class: "form-control shadow-none",
+              style: "border: 2px solid var(--haiti-olive); border-left: none; background-color: var(--haiti-cream); color: var(--haiti-charcoal);" %>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <%= f.label :password, class: "form-label small fw-bold text-uppercase", style: "color: var(--haiti-olive); font-size: 11px; letter-spacing: 0.5px;" %>
+        <% if @minimum_password_length %>
+          <span class="ms-2 small" style="color: var(--haiti-olive); font-size: 10px;">(<%= @minimum_password_length %> chars min)</span>
+        <% end %>
+        <div class="input-group">
+          <span class="input-group-text" style="background-color: var(--haiti-mint); border: 2px solid var(--haiti-olive); border-right: none;">
+            <i class="ri-lock-line" style="color: var(--haiti-olive);"></i>
+          </span>
+          <%= f.password_field :password, autocomplete: "new-password",
+              class: "form-control shadow-none",
+              style: "border: 2px solid var(--haiti-olive); border-left: none; background-color: var(--haiti-cream); color: var(--haiti-charcoal);" %>
+        </div>
+      </div>
+
+      <div class="mb-4">
+        <%= f.label :password_confirmation, class: "form-label small fw-bold text-uppercase", style: "color: var(--haiti-olive); font-size: 11px; letter-spacing: 0.5px;" %>
+        <div class="input-group">
+          <span class="input-group-text" style="background-color: var(--haiti-mint); border: 2px solid var(--haiti-olive); border-right: none;">
+            <i class="ri-lock-2-line" style="color: var(--haiti-olive);"></i>
+          </span>
+          <%= f.password_field :password_confirmation, autocomplete: "new-password",
+              class: "form-control shadow-none",
+              style: "border: 2px solid var(--haiti-olive); border-left: none; background-color: var(--haiti-cream); color: var(--haiti-charcoal);" %>
+        </div>
+      </div>
+
+      <div class="d-grid">
+        <%= f.submit "Kreye Kont", class: "btn py-3 fw-black text-uppercase",
+            style: "background-color: var(--haiti-charcoal); color: var(--haiti-gold); border: 2px solid var(--haiti-charcoal); letter-spacing: 1px;" %>
+      </div>
+
+    <% end %>
+
+    <%= render "devise/shared/links" %>
+
+  </div>
+</div>

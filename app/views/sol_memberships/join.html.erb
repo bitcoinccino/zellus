@@ -1,0 +1,137 @@
+<div class="container d-flex justify-content-center align-items-center" style="min-height: 85vh;">
+  <div class="card-base p-4 w-100 shadow-lg" style="max-width: 440px;">
+
+    <div class="text-center mb-4">
+      <div class="d-inline-flex align-items-center justify-content-center mb-3 rounded-circle"
+           style="width: 70px; height: 70px; background-color: var(--haiti-charcoal); border: 3px solid var(--haiti-gold);">
+        <span style="font-size: 2.5rem;"><%= current_user.tier_icon %></span>
+      </div>
+      <h1 class="h4 fw-black mb-1 text-uppercase" style="color: var(--haiti-charcoal);">Sol Envitasyon</h1>
+      <p class="small mb-0" style="color: var(--haiti-olive);">Ou envite pou rantre nan yon sèk Sol</p>
+    </div>
+
+    <!-- Circle Details -->
+    <div class="p-4 mb-3 rounded-4" style="background-color: var(--haiti-mint); border: 2px solid var(--haiti-olive);">
+      <div class="d-flex gap-2 mb-2">
+        <span class="badge rounded-pill" style="background-color: var(--haiti-gold); color: var(--haiti-charcoal); font-size: 10px; font-weight: 800;">
+          <i class="<%= @circle.category_icon %> me-1"></i><%= @circle.category_label %>
+        </span>
+        <span class="badge rounded-pill" style="background-color: <%= @circle.status_bg %>; color: <%= @circle.status_color %>; border: 1px solid <%= @circle.status_border %>; font-size: 10px; font-weight: 800;">
+          <i class="<%= @circle.status_icon %> me-1"></i><%= @circle.status_label %>
+        </span>
+      </div>
+      <h2 class="h5 fw-black mb-2" style="color: var(--haiti-charcoal);"><%= @circle.name %></h2>
+      <div class="d-flex flex-wrap gap-3">
+        <div>
+          <div class="small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Kontribisyon</div>
+          <div class="fw-black" style="color: var(--haiti-charcoal);"><%= number_to_currency(@circle.amount, unit: @circle.htg? ? "HTG " : "USDC ") %></div>
+        </div>
+        <div>
+          <div class="small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Dire</div>
+          <div class="fw-bold" style="color: var(--haiti-charcoal);"><%= @circle.duration_months %> Mwa</div>
+        </div>
+        <div>
+          <div class="small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Manm</div>
+          <div class="fw-bold" style="color: var(--haiti-charcoal);"><%= @circle.sol_memberships.count %> / <%= @circle.target_members %></div>
+        </div>
+      </div>
+      <div class="mt-2 pt-2" style="border-top: 1px dashed var(--haiti-olive);">
+        <div class="small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Peryòd</div>
+        <% if @circle.start_date %>
+          <div class="fw-bold small" style="color: var(--haiti-charcoal);">
+            <%= @circle.start_date.strftime("%d %b %Y") %>
+            <i class="ri-arrow-right-s-line" style="vertical-align: middle;"></i>
+            <%= @circle.end_date.strftime("%d %b %Y") %>
+          </div>
+        <% else %>
+          <div class="fw-bold small" style="color: var(--haiti-olive);">
+            <%= Date.today.strftime("%d %b %Y") %>
+            <i class="ri-arrow-right-s-line" style="vertical-align: middle;"></i>
+            <%= (Date.today + @circle.duration_months.months).strftime("%d %b %Y") %>
+          </div>
+          <div style="font-size: 9px; color: var(--haiti-gold);">
+            <i class="ri-hourglass-line me-1"></i>Estimasyon — ap tann manm
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+    <!-- How It Works -->
+    <div class="p-3 mb-3 rounded-4" style="background-color: var(--haiti-cream); border: 2px solid var(--haiti-gold);">
+      <div class="small fw-bold text-uppercase mb-2" style="color: var(--haiti-charcoal); font-size: 10px; letter-spacing: 1px;">
+        <i class="ri-lightbulb-line me-1"></i> Kijan Sol la Fonksyone
+      </div>
+      <ul class="small mb-0 ps-3" style="color: var(--haiti-charcoal); line-height: 1.9; font-size: 12px;">
+        <li>Chak manm kontribye <strong><%= number_to_currency(@circle.amount, unit: @circle.htg? ? "HTG " : "USDC ") %></strong> chak wonn</li>
+        <li>Yon manm resevwa tout kès la chak wonn (wotasyon)</li>
+        <li>Peman total: <strong><%= number_to_currency(@circle.payout_amount, unit: @circle.htg? ? "HTG " : "USDC ") %></strong> pa wonn</li>
+        <% if @circle.total_fee_percent > 0 %>
+          <li>Frè: <%= @circle.total_fee_percent %>% (platfòm + kreyatè)</li>
+        <% end %>
+        <li>Ou ka peye via <strong>MonCash</strong> oswa <strong>USDC</strong></li>
+        <li>Peye a lè = monte nivo kredi ou!</li>
+      </ul>
+    </div>
+
+    <!-- What to Expect -->
+    <div class="p-3 mb-3 rounded-4" style="background: #fff; border: 1px solid #d9d6c4;">
+      <div class="small fw-bold text-uppercase mb-2" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">
+        <i class="ri-calendar-check-line me-1"></i> Kisa Pou Atann
+      </div>
+      <div class="d-flex flex-column gap-2">
+        <div class="d-flex align-items-start gap-2">
+          <i class="ri-number-1 mt-1" style="color: var(--haiti-gold); font-size: 14px;"></i>
+          <span class="small" style="color: var(--haiti-charcoal);">Sol la kòmanse lè <strong><%= @circle.target_members %></strong> manm enskri</span>
+        </div>
+        <div class="d-flex align-items-start gap-2">
+          <i class="ri-number-2 mt-1" style="color: var(--haiti-gold); font-size: 14px;"></i>
+          <span class="small" style="color: var(--haiti-charcoal);">Ou gen <strong>48 èdtan</strong> pou peye chak wonn</span>
+        </div>
+        <div class="d-flex align-items-start gap-2">
+          <i class="ri-number-3 mt-1" style="color: var(--haiti-gold); font-size: 14px;"></i>
+          <span class="small" style="color: var(--haiti-charcoal);">Peman an reta = <strong>-25 pwen kredi</strong></span>
+        </div>
+        <div class="d-flex align-items-start gap-2">
+          <i class="ri-number-4 mt-1" style="color: var(--haiti-gold); font-size: 14px;"></i>
+          <span class="small" style="color: var(--haiti-charcoal);">Fini Sol la = <strong>+50 pwen kredi</strong> bonus!</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Members Preview -->
+    <div class="p-3 mb-3 rounded-4" style="background: #fff; border: 1px solid #d9d6c4;">
+      <div class="small fw-bold text-uppercase mb-2" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">
+        <i class="ri-group-line me-1"></i> Kiyès ki la deja
+      </div>
+      <div class="d-grid gap-2">
+        <% @circle.users.each do |user| %>
+          <div class="d-flex align-items-center gap-2 p-2 rounded-3" style="background: var(--haiti-cream);">
+            <span style="font-size: 1.3rem;"><%= user.tier_icon %></span>
+            <span class="small fw-bold" style="color: var(--haiti-charcoal);"><%= user.email.split('@').first %></span>
+            <span class="small" style="color: var(--haiti-olive);">(<%= user.credit_tier %>)</span>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="d-grid gap-2">
+      <%= button_to confirm_join_sol_circle_path(@circle.token),
+                    method: :post,
+                    class: "btn w-100 py-3 fw-bold rounded-4 shadow-sm border-0",
+                    style: "background-color: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 14px; letter-spacing: 0.5px;",
+                    data: { turbo: false } do %>
+        <i class="ri-user-add-line me-1"></i> M'ap Patisipe
+      <% end %>
+      <%= link_to root_path, class: "btn btn-link text-decoration-underline small fw-bold",
+          style: "color: var(--haiti-olive); font-size: 12px;" do %>
+        Non mèsi
+      <% end %>
+    </div>
+
+    <p class="text-center mt-3 mb-0" style="font-size: 10px; color: var(--haiti-olive);">
+      <i class="ri-shield-check-line me-1"></i>
+      Lè ou rantre nan Sol sa a, ou angaje'w pou peye a lè pou'w ka moute nan nivo <strong>Malfini</strong>.
+    </p>
+  </div>
+</div>
