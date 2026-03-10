@@ -1,12 +1,6 @@
 class DashboardsController < ApplicationController
   before_action :authenticate_user!
 
-  def priolink
-    @transactions = current_user.transactions.order(created_at: :desc).limit(5)
-    @usdc_balance = current_user.transactions.where(status: :completed, transaction_type: :buy)
-                                .sum(:crypto_amount)
-  end
-
   def priosol
     @my_circles = current_user.sol_circles.includes(:sol_memberships).order(created_at: :desc).limit(5)
     @active_circles = current_user.sol_circles.where(status: :active)
@@ -24,7 +18,6 @@ class DashboardsController < ApplicationController
   end
 
   def zellus
-    @wallet = current_user.ensure_wallet!
-    @ledger_entries = @wallet.wallet_ledger_entries.recent_first.limit(30)
+    redirect_to wallet_path
   end
 end

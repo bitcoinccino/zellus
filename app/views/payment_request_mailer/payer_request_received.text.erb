@@ -1,0 +1,18 @@
+Zèllus — Demann Peman Resevwa
+
+Bonjou <%= @payer.display_name %>,
+
+<%= @creator_name %> mande ou lajan ak Zèllus.
+
+Detay Demann:
+- Montan: <%= @amount_display %>
+- Lajan: <%= @payment_request.asset.upcase %>
+<% if @payment_request.note.present? %>- Nòt: <%= @payment_request.note %><% end %>
+<% if @payment_request.expires_at.present? %>- Ekspirasyon: <%= @payment_request.expires_at.strftime("%b %d, %Y %l:%M %p").strip %><% end %>
+
+<% if @share_url.present? %>
+Klike la a pou peye:
+<%= @share_url %>
+<% end %>
+
+Mèsi paske w itilize Zèllus!

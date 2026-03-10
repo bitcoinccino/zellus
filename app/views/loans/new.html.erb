@@ -1,69 +1,201 @@
+<style>
+  .bb-dark-field {
+    color: #fff !important;
+  }
+  .bb-dark-field::placeholder {
+    color: rgba(255, 255, 255, 0.5) !important;
+    opacity: 1;
+    font-weight: 400 !important;
+  }
+  .bb-dark-select {
+    color: #fff !important;
+  }
+  .bb-dark-select option {
+    background: #fff;
+    color: #111827;
+  }
+</style>
+
 <div class="container d-flex justify-content-center align-items-center" style="min-height: 80vh;">
-  <div class="card-base p-4 w-100 shadow-lg" style="max-width: 450px;">
-    
-    <!-- Rank Header -->
+  <div class="card-base p-4 w-100 shadow-lg" style="max-width: 480px;">
+
+    <%# ── Rank Header ── %>
     <div class="text-center mb-4">
       <div class="d-inline-flex align-items-center justify-content-center mb-3 rounded-circle"
-        style="width: 70px; height: 70px; background-color: var(--haiti-charcoal); border: 3px solid var(--haiti-gold);">
-        <span style="font-size: 2.5rem;"><%= current_user.tier_icon %></span>
+        style="width: 70px; height: 70px; background-color: var(--haiti-charcoal); border: 3px solid var(--haiti-gold); overflow: hidden;">
+        <% if current_user.avatar.attached? %>
+          <%= image_tag current_user.avatar, style: "width: 100%; height: 100%; object-fit: cover;", alt: "" %>
+        <% else %>
+          <span style="font-size: 2.5rem;"><%= current_user.tier_icon %></span>
+        <% end %>
       </div>
       <h1 class="h4 fw-black mb-1" style="color: var(--haiti-charcoal);">Demann Prè Pionye</h1>
-      <p class="small text-uppercase fw-bold" style="color: var(--haiti-gold); letter-spacing: 1px;">
+      <p class="small text-uppercase fw-bold mb-0" style="color: var(--haiti-gold); letter-spacing: 1px;">
         Estati: <%= current_user.credit_tier %> Verifye
       </p>
     </div>
 
+    <%# ── Credit Limit Badge ── %>
     <div class="p-3 mb-4 rounded-4 text-center" style="background-color: var(--haiti-mint); border: 2px dashed var(--haiti-olive);">
       <div class="small fw-bold text-uppercase" style="font-size: 10px; color: var(--haiti-olive);">Liy Kredi Disponib</div>
       <div class="display-6 fw-black" style="color: var(--haiti-charcoal);">
-        <%= number_to_currency(current_user.loan_limit, unit: "HTG ") %>
+        <%= number_to_currency(current_user.loan_limit, unit: "HTG ", precision: 0) %>
       </div>
     </div>
 
-    <%= form_with(url: "#", method: :post, local: true, class: "row g-3") do |f| %>
-      
-      <!-- Amount Input -->
-      <div class="col-12">
-        <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px;">Konbyen ou bezwen?</label>
+    <%= form_with(url: loans_path, method: :post, local: true, class: "d-grid gap-3") do |f| %>
+
+      <%# ── Amount ── %>
+      <div>
+        <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">
+          Konbyen ou bezwen?
+        </label>
+        <div class="input-group">
+          <span class="input-group-text border-0 fw-bold" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);">
+            HTG
+          </span>
+          <input type="number" name="amount" placeholder="Antre montan"
+                 class="form-control border-0 fw-bold shadow-none p-3 bb-dark-field"
+                 style="background-color: var(--haiti-charcoal); color: white;"
+                 min="500" max="<%= current_user.loan_limit %>" step="100" required
+                 id="loan-amount" oninput="updateLoanSummary()">
+        </div>
+        <div class="small mt-1" style="color: var(--haiti-olive); font-size: 10px;">
+          <i class="ri-information-line me-1"></i>Minimòm 500 HTG · Maksimòm <%= number_to_currency(current_user.loan_limit, unit: "HTG ", precision: 0) %>
+        </div>
+      </div>
+
+      <%# ── Purpose ── %>
+      <div>
+        <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">
+          Objektif Prè a
+        </label>
+        <%= f.select :loan_purpose,
+            Transaction::LOAN_PURPOSES.map { |k, v| [v, k] },
+            {},
+            { class: "form-select border-0 fw-bold shadow-none p-3 bb-dark-select",
+              style: "background-color: var(--haiti-charcoal); color: white;",
+              required: true } %>
+      </div>
+
+      <%# ── Repayment Term ── %>
+      <div>
+        <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">
+          Tèm Ranbousman
+        </label>
+        <%= f.select :repayment_term_weeks,
+            Transaction::REPAYMENT_TERMS.map { |k, v| [v, k] },
+            {},
+            { class: "form-select border-0 fw-bold shadow-none p-3 bb-dark-select",
+              style: "background-color: var(--haiti-charcoal); color: white;",
+              required: true, id: "loan-term", onchange: "updateLoanSummary()" } %>
+      </div>
+
+      <%# ── Collateral (optional) ── %>
+      <div>
+        <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">
+          Kolateral <span class="text-lowercase fw-normal">(opsyonèl)</span>
+        </label>
         <div class="input-group">
           <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);">
-            <i class="ri-money-dollar-circle-line"></i>
+            <i class="ri-shield-keyhole-line"></i>
           </span>
-          <%= f.number_field :amount, placeholder: "Antre montan",
-              class: "form-control border-0 fw-bold shadow-none p-3 bb-dark-field",
-              style: "background-color: var(--haiti-charcoal); color: white;",
-              max: current_user.loan_limit, required: true %>
+          <input type="text" name="collateral_description"
+                 placeholder="egz. Moto siklèt, ekipman biznis"
+                 maxlength="500"
+                 class="form-control border-0 fw-bold shadow-none p-3 bb-dark-field"
+                 style="background-color: var(--haiti-charcoal); color: white;">
+        </div>
+        <div class="small mt-1" style="color: var(--haiti-olive); font-size: 10px;">
+          <i class="ri-information-line me-1"></i>Dekri nenpòt byen ou ofri kòm garanti. Pa obligatwa pou mikro-prè.
         </div>
       </div>
 
-      <!-- Purpose -->
-      <div class="col-12">
-        <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px;">Objektif Prè a</label>
-        <%= f.select :purpose,
-            ["Elaji Biznis", "Achte Envantè", "Ekipman Ijans", "Pwovizyon Agrikòl"], 
-            {}, 
-            { class: "form-select border-0 fw-bold shadow-none p-3 bb-dark-select", style: "background-color: var(--haiti-charcoal); color: white;" } %>
-      </div>
-
-      <!-- Terms Info -->
-      <div class="col-12">
-        <div class="small p-3 rounded-3" style="background-color: rgba(93, 99, 69, 0.05); border: 1px solid rgba(93, 99, 69, 0.2);">
-          <ul class="list-unstyled mb-0" style="font-size: 11px; color: var(--haiti-olive);">
-            <li><i class="ri-check-line"></i> To Enterè: <strong>3% Pa Mwa</strong></li>
-            <li><i class="ri-check-line"></i> Ranbousman: <strong>Otomatik ak Sol</strong></li>
-            <li><i class="ri-check-line"></i> Apwobasyon: <strong>Imedyat pou <%= current_user.credit_tier %></strong></li>
-          </ul>
+      <%# ── Loan Summary (dynamic) ── %>
+      <div id="loan-summary" class="p-3 rounded-4" style="background-color: var(--haiti-mint); border: 2px solid var(--haiti-olive); display: none;">
+        <div class="small fw-bold text-uppercase mb-2" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">
+          <i class="ri-calculator-line me-1"></i>Rezime Prè
+        </div>
+        <div class="d-flex justify-content-between mb-1">
+          <span class="small" style="color: var(--haiti-olive);">Montan Prè</span>
+          <span class="small fw-bold" style="color: var(--haiti-charcoal);" id="summary-amount">—</span>
+        </div>
+        <div class="d-flex justify-content-between mb-1">
+          <span class="small" style="color: var(--haiti-olive);">To Enterè</span>
+          <span class="small fw-bold" style="color: var(--haiti-charcoal);" id="summary-rate">—</span>
+        </div>
+        <div class="d-flex justify-content-between mb-1">
+          <span class="small" style="color: var(--haiti-olive);">Enterè</span>
+          <span class="small fw-bold" style="color: #D8000C;" id="summary-interest">—</span>
+        </div>
+        <hr style="border-color: var(--haiti-olive); opacity: 0.2;" class="my-2">
+        <div class="d-flex justify-content-between">
+          <span class="fw-bold" style="color: var(--haiti-charcoal);">Total Ranbousman</span>
+          <span class="fw-black" style="color: var(--haiti-charcoal);" id="summary-total">—</span>
+        </div>
+        <div class="d-flex justify-content-between mt-1">
+          <span class="small" style="color: var(--haiti-olive);">Dat Limit</span>
+          <span class="small fw-bold" style="color: var(--haiti-charcoal);" id="summary-due">—</span>
         </div>
       </div>
 
-      <!-- Submit -->
-      <div class="col-12 mt-4">
-        <%= f.submit "Aplike pou Kredi Pionye", class: "btn btn-prestige w-100 py-3" %>
+      <%# ── Terms Info ── %>
+      <div class="small p-3 rounded-3" style="background-color: rgba(93, 99, 69, 0.05); border: 1px solid rgba(93, 99, 69, 0.2);">
+        <ul class="list-unstyled mb-0" style="font-size: 11px; color: var(--haiti-olive);">
+          <li class="mb-1"><i class="ri-check-line me-1" style="color: var(--haiti-gold);"></i>To Enterè: <strong>0.75% pa semèn (~3% pa mwa)</strong></li>
+          <li class="mb-1"><i class="ri-check-line me-1" style="color: var(--haiti-gold);"></i>Ranbousman: <strong>MonCash oswa USD</strong></li>
+          <li class="mb-1"><i class="ri-check-line me-1" style="color: var(--haiti-gold);"></i>Apwobasyon: <strong>Admin revize pou <%= current_user.credit_tier %></strong></li>
+          <li><i class="ri-check-line me-1" style="color: var(--haiti-gold);"></i>Kolateral: <strong>Pa obligatwa pou mikro-prè</strong></li>
+        </ul>
+      </div>
+
+      <%# ── Submit ── %>
+      <div class="mt-1">
+        <button type="submit" class="btn w-100 py-3 fw-bold rounded-4 shadow-sm border-0 d-flex align-items-center justify-content-center gap-2"
+                style="background-color: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 14px; letter-spacing: 0.5px;">
+          <i class="ri-hand-coin-line"></i> Aplike pou Prè Pionye
+        </button>
       </div>
     <% end %>
 
     <p class="text-center mt-3 mb-0" style="font-size: 10px; color: var(--haiti-olive);">
-      <i class="ri-shield-check-line"></i> Garanti pa Istwa Kredi Priotelus ou
+      <i class="ri-shield-check-line me-1"></i>Garanti pa Istwa Kredi Zèllus ou
     </p>
+
+    <%# ── Back Link ── %>
+    <div class="text-center mt-3">
+      <%= link_to prionet_path, class: "small text-decoration-none fw-bold", style: "color: var(--haiti-olive);" do %>
+        <i class="ri-arrow-left-line me-1"></i>Retounen nan PrioNet
+      <% end %>
+    </div>
+
   </div>
 </div>
+
+<script>
+var RATE_PER_WEEK = 0.0075; // 0.75% per week
+
+function updateLoanSummary() {
+  var amount = parseFloat(document.getElementById('loan-amount').value) || 0;
+  var termEl = document.getElementById('loan-term');
+  var weeks = parseInt(termEl.value) || 0;
+  var summary = document.getElementById('loan-summary');
+
+  if (amount > 0 && weeks > 0) {
+    var totalRate = RATE_PER_WEEK * weeks;
+    var interest = amount * totalRate;
+    var total = amount + interest;
+    var dueDate = new Date();
+    dueDate.setDate(dueDate.getDate() + (weeks * 7));
+
+    document.getElementById('summary-amount').textContent = 'HTG ' + amount.toLocaleString('en', {minimumFractionDigits: 0});
+    document.getElementById('summary-rate').textContent = (totalRate * 100).toFixed(1) + '% (' + weeks + ' semèn)';
+    document.getElementById('summary-interest').textContent = '+ HTG ' + interest.toLocaleString('en', {minimumFractionDigits: 0, maximumFractionDigits: 0});
+    document.getElementById('summary-total').textContent = 'HTG ' + total.toLocaleString('en', {minimumFractionDigits: 0, maximumFractionDigits: 0});
+    document.getElementById('summary-due').textContent = dueDate.toLocaleDateString('fr-HT', {day: 'numeric', month: 'short', year: 'numeric'});
+    summary.style.display = '';
+  } else {
+    summary.style.display = 'none';
+  }
+}
+</script>

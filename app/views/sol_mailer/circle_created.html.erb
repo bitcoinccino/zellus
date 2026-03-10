@@ -1,11 +1,11 @@
 <h2 style="margin:0 0 8px; color:#2E2E38; font-size:22px;">PrioSol Kreye</h2>
-<p style="margin:0 0 16px; color:#5D6345; font-size:14px;">Bonjou <%= @user.email.split('@').first %>, Sol ou a kreye avèk siksè!</p>
+<p style="margin:0 0 16px; color:#5D6345; font-size:14px;">Bonjou <%= @user.display_name %>, Sol ou a kreye avèk siksè!</p>
 
 <div style="background:#fff; border:1px solid #d9d6c4; border-radius:14px; padding:14px 16px; margin-bottom:14px;">
   <div style="font-size:11px; text-transform:uppercase; letter-spacing:1px; color:#5D6345; font-weight:700; margin-bottom:8px;">Detay Sèk</div>
   <div style="font-size:14px; margin-bottom:6px;"><strong><%= @circle.name %></strong></div>
   <div style="font-size:13px; color:#2E2E38;"><strong>Kalite:</strong> <%= @circle.category_label %></div>
-  <div style="font-size:13px; color:#2E2E38;"><strong>Kontribisyon:</strong> <%= number_to_currency(@circle.amount, unit: @circle.htg? ? "HTG " : "USDC ") %></div>
+  <div style="font-size:13px; color:#2E2E38;"><strong>Kontribisyon:</strong> <%= number_to_currency(@circle.amount, unit: @circle.htg? ? "HTG " : "$ ") %></div>
   <div style="font-size:13px; color:#2E2E38;"><strong>Dire:</strong> <%= @circle.duration_months %> Mwa</div>
   <div style="font-size:13px; color:#2E2E38;"><strong>Manm bezwen:</strong> <%= @circle.target_members %></div>
 </div>
@@ -19,4 +19,4 @@
   <a href="<%= sol_circle_url(@circle.token) %>" style="color:#2E2E38; background:#C5A059; text-decoration:none; padding:10px 16px; border-radius:10px; font-weight:700; display:inline-block;">Wè Sol La</a>
 </p>
 
-<p style="margin:16px 0 0; color:#5D6345; font-size:13px;">Avèk respè,<br><strong>Priotelus</strong></p>
+<p style="margin:16px 0 0; color:#5D6345; font-size:13px;">Avèk respè,<br><strong>Zèllus</strong></p>

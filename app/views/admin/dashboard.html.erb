@@ -2,9 +2,12 @@
   <div class="d-flex justify-content-between align-items-end mb-5">
     <div>
       <h1 class="h2 fw-bold mb-1" style="color: var(--haiti-charcoal);"><i class="ri-dashboard-3-line me-2" style="color: var(--haiti-olive);"></i>Sant Machan Admin</h1>
-      <p class="small" style="color: var(--haiti-olive);">Siveyans likidite ak koleksyon frè Priotelus</p>
+      <p class="small" style="color: var(--haiti-olive);">Siveyans likidite ak koleksyon frè Zèllus</p>
     </div>
-    <div class="text-end">
+    <div class="text-end d-flex align-items-center gap-2">
+      <%= link_to admin_invite_codes_path, class: "btn btn-sm fw-bold rounded-pill px-3", style: "background: var(--haiti-gold); color: var(--haiti-charcoal);" do %>
+        <i class="ri-key-2-line me-1"></i>Kòd Envitasyon
+      <% end %>
       <% if CryptoTransferWorker::CHAIN_ID == 8453 %>
         <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 py-2 px-3 rounded-pill">
           <i class="ri-radar-line me-1"></i> BASE MAINNET ACTIVE
@@ -42,8 +45,8 @@
 
     <div class="col-md-4">
       <div class="card-base p-4">
-        <span class="small text-uppercase fw-bold" style="color: var(--haiti-olive); letter-spacing: 1px;"><i class="ri-coin-line me-1"></i>Trezò USDC</span>
-        <h2 class="h2 fw-black mt-2" style="color: var(--haiti-charcoal);"><%= number_with_precision(@usdc_balance, precision: 2) %> <span class="small" style="color: var(--haiti-olive);">USDC</span></h2>
+        <span class="small text-uppercase fw-bold" style="color: var(--haiti-olive); letter-spacing: 1px;"><i class="ri-coin-line me-1"></i>Trezò USD</span>
+        <h2 class="h2 fw-black mt-2" style="color: var(--haiti-charcoal);"><%= number_with_precision(truncated_balance(@usdc_balance), precision: 2) %> <span class="small" style="color: var(--haiti-olive);">USD</span></h2>
       </div>
     </div>
 
@@ -76,6 +79,229 @@
     </div>
   </div>
 
+  <%# ── Credit Wallet ── %>
+  <div class="card-base p-4 mb-5">
+    <h3 class="h6 fw-black mb-3" style="color: var(--haiti-charcoal);">
+      <i class="ri-add-circle-line me-2" style="color: var(--haiti-gold);"></i>Kredite Pòtfèy
+    </h3>
+    <%= form_tag admin_credit_wallet_path, method: :post, id: "admin-credit-form" do %>
+
+      <%# ── User Lookup ── %>
+      <div class="mb-3">
+        <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">
+          IMÈL OSWA $ZELLUSTAG
+        </label>
+        <div class="input-group">
+          <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);">
+            <i class="ri-search-line" id="admin-lookup-icon"></i>
+          </span>
+          <input type="text" id="admin-lookup-input"
+                 placeholder="Chèche $cashtag oswa imèl..."
+                 class="form-control border-0 fw-bold shadow-none p-3"
+                 style="background-color: var(--haiti-charcoal); color: white;"
+                 autocomplete="off" oninput="handleAdminLookup()">
+        </div>
+        <div id="admin-lookup-result" class="mt-2" style="display: none;"></div>
+        <input type="hidden" name="email" id="admin-credit-email">
+      </div>
+
+      <div class="row g-3 mb-3">
+        <div class="col-6">
+          <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">MONTAN</label>
+          <div class="input-group">
+            <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);">
+              <i class="ri-money-dollar-circle-line"></i>
+            </span>
+            <input type="number" name="amount" required min="0.01" step="0.01" placeholder="5.00"
+                   class="form-control border-0 fw-bold shadow-none p-3"
+                   style="background-color: var(--haiti-charcoal); color: white;">
+          </div>
+        </div>
+        <div class="col-6">
+          <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">AKTIF</label>
+          <select name="asset" class="form-select border-0 fw-bold shadow-none p-3"
+                  style="background-color: var(--haiti-charcoal); color: white;">
+            <option value="usdc">USD</option>
+            <option value="htg">HTG</option>
+          </select>
+        </div>
+      </div>
+
+      <button type="submit" id="admin-credit-btn" class="btn fw-bold w-100 p-3 rounded-pill border-0" disabled
+              style="background: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 13px; opacity: 0.5;">
+        <i class="ri-add-line me-1"></i>Kredite Kont
+      </button>
+    <% end %>
+  </div>
+
+  <script>
+    var _adminLookupTimer = null;
+    var _adminLastQuery = '';
+
+    function handleAdminLookup() {
+      var input = document.getElementById("admin-lookup-input");
+      var resultDiv = document.getElementById("admin-lookup-result");
+      var icon = document.getElementById("admin-lookup-icon");
+      var hiddenEmail = document.getElementById("admin-credit-email");
+      var btn = document.getElementById("admin-credit-btn");
+      var q = (input ? input.value : "").trim();
+
+      // Reset
+      hiddenEmail.value = "";
+      btn.disabled = true;
+      btn.style.opacity = "0.5";
+
+      if (_adminLookupTimer) { clearTimeout(_adminLookupTimer); _adminLookupTimer = null; }
+
+      if (!q || q.length < 2) {
+        resultDiv.style.display = 'none';
+        resultDiv.innerHTML = '';
+        icon.className = 'ri-search-line';
+        _adminLastQuery = '';
+        return;
+      }
+
+      if (q === _adminLastQuery) return;
+
+      icon.className = 'ri-loader-4-line ri-spin';
+
+      _adminLookupTimer = setTimeout(function() {
+        _adminLastQuery = q;
+        var csrfToken = document.querySelector('meta[name="csrf-token"]');
+
+        fetch('<%= user_lookup_path %>' + '?q=' + encodeURIComponent(q), {
+          headers: {
+            'Accept': 'application/json',
+            'X-CSRF-Token': csrfToken ? csrfToken.content : ''
+          }
+        })
+        .then(function(r) {
+          if (!r.ok) throw new Error('HTTP ' + r.status);
+          return r.json();
+        })
+        .then(function(data) {
+          icon.className = 'ri-search-line';
+          resultDiv.style.display = 'block';
+
+          if (data.found) {
+            resultDiv.innerHTML = '<div class="d-flex align-items-center justify-content-between p-2 rounded-3" style="background: rgba(22,101,52,0.08);">' +
+              '<div><div class="fw-bold" style="color: #166534; font-size: 12px;"><i class="ri-user-line me-1"></i>' + data.display_name + '</div>' +
+              '<div style="color: var(--haiti-olive); font-size: 10px;">$' + data.cashtag + (data.has_moncash ? ' · MonCash' : '') + '</div></div>' +
+              '<button type="button" class="btn btn-sm fw-bold rounded-pill" style="background: #166534; color: #fff; font-size: 10px;" ' +
+              'onclick="selectAdminUser(\'' + data.cashtag + '\', \'' + data.display_name.replace(/'/g, "\\'") + '\')"><i class="ri-check-line me-1"></i>Chwazi</button></div>';
+          } else {
+            resultDiv.innerHTML = '<div class="small fw-bold" style="color: #991b1b; font-size: 11px;"><i class="ri-close-circle-line me-1"></i>' + data.message + '</div>';
+          }
+        })
+        .catch(function(err) {
+          icon.className = 'ri-search-line';
+          resultDiv.style.display = 'block';
+          resultDiv.innerHTML = '<div class="small fw-bold" style="color: #991b1b; font-size: 11px;"><i class="ri-close-circle-line me-1"></i>Erè: ' + err.message + '</div>';
+          console.error('Admin lookup error:', err);
+        });
+      }, 300);
+    }
+
+    function selectAdminUser(cashtag, name) {
+      var input = document.getElementById("admin-lookup-input");
+      var resultDiv = document.getElementById("admin-lookup-result");
+      var hiddenEmail = document.getElementById("admin-credit-email");
+      var btn = document.getElementById("admin-credit-btn");
+
+      hiddenEmail.value = '$' + cashtag;
+      input.value = '$' + cashtag;
+      btn.disabled = false;
+      btn.style.opacity = "1";
+      resultDiv.innerHTML = '<div class="small fw-bold" style="color: #166534; font-size: 11px;"><i class="ri-check-line me-1"></i>' + name + ' · $' + cashtag + '</div>';
+    }
+  </script>
+
+  <%# ── Bank Withdrawals (Pending / Processing) ── %>
+  <div class="card-base p-0 overflow-hidden mb-5">
+    <div class="px-4 py-3" style="border-bottom: 2px solid var(--haiti-olive);">
+      <h3 class="h6 mb-0 fw-bold" style="color: var(--haiti-charcoal);">
+        <i class="ri-bank-line me-2" style="color: var(--haiti-gold);"></i>Retrè Bank
+        <% if @pending_bank_withdrawals.any? %>
+          <span class="badge rounded-pill ms-2" style="background: #fef3c7; color: #92400e; font-size: 10px;">
+            <%= @pending_bank_withdrawals.count %> an atant
+          </span>
+        <% end %>
+      </h3>
+    </div>
+
+    <% if @pending_bank_withdrawals.any? %>
+      <div class="table-responsive">
+        <table class="table table-hover mb-0 align-middle" style="background-color: var(--haiti-cream);">
+          <thead style="font-size: 11px; letter-spacing: 1px; color: var(--haiti-olive); border-bottom: 2px solid var(--haiti-olive);">
+            <tr>
+              <th class="ps-4">ITILIZATÈ</th>
+              <th>MONTAN</th>
+              <th>KONT BANK</th>
+              <th>ESTATI</th>
+              <th>DAT</th>
+              <th class="pe-4 text-end">AKSYON</th>
+            </tr>
+          </thead>
+          <tbody class="small">
+            <% @pending_bank_withdrawals.each do |bw| %>
+              <tr style="border-color: rgba(93,99,69,0.2);">
+                <td class="ps-4">
+                  <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 12px;"><%= bw.user.display_name %></div>
+                  <div style="color: var(--haiti-olive); font-size: 10px;">$<%= bw.user.cashtag %></div>
+                </td>
+                <td class="fw-black" style="color: var(--haiti-charcoal);"><%= number_to_currency(bw.amount, unit: "", precision: 0) %> HTG</td>
+                <td>
+                  <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 12px;"><%= bw.bank_name %></div>
+                  <div style="color: var(--haiti-olive); font-size: 10px; font-family: monospace;"><%= bw.masked_account %></div>
+                  <% if bw.account_holder_name.present? %>
+                    <div style="color: var(--haiti-olive); font-size: 10px;"><%= bw.account_holder_name.truncate(25) %></div>
+                  <% end %>
+                </td>
+                <td>
+                  <% if bw.pending? %>
+                    <span class="badge rounded-pill bg-warning bg-opacity-10 text-warning">An Atant</span>
+                  <% elsif bw.processing? %>
+                    <span class="badge rounded-pill bg-info bg-opacity-10 text-info">Ap Trete</span>
+                  <% end %>
+                </td>
+                <td style="color: var(--haiti-olive); font-size: 11px;"><%= bw.created_at.strftime("%b %d, %H:%M") %></td>
+                <td class="pe-4 text-end">
+                  <% if bw.pending? %>
+                    <%= button_to admin_process_bank_withdrawal_path(bw), method: :post, class: "btn btn-sm border-0 rounded-pill p-1 px-2", style: "background: #dbeafe; color: #1d4ed8; font-size: 11px;" do %>
+                      <i class="ri-play-circle-line me-1"></i>Kòmanse
+                    <% end %>
+                  <% end %>
+
+                  <% if bw.processing? %>
+                    <%# Complete with reference number form %>
+                    <%= form_with(url: admin_complete_bank_withdrawal_path(bw), method: :post, local: true, class: "d-inline-flex align-items-center gap-1") do %>
+                      <input type="text" name="reference_number" placeholder="Ref #" class="form-control form-control-sm border-0 rounded-pill"
+                             style="width: 90px; font-size: 10px; background: #f3f4f6; padding: 4px 10px;">
+                      <button type="submit" class="btn btn-sm border-0 rounded-pill p-1 px-2" style="background: #dcfce7; color: #166534; font-size: 11px;">
+                        <i class="ri-check-line me-1"></i>Fini
+                      </button>
+                    <% end %>
+                  <% end %>
+
+                  <%# Fail / cancel button (for both pending and processing) %>
+                  <%= button_to admin_fail_bank_withdrawal_path(bw), method: :post, class: "btn btn-sm border-0 rounded-pill p-1 px-2 ms-1", style: "background: #fef2f2; color: #991b1b; font-size: 11px;",
+                      data: { turbo_confirm: "Anile retrè bank #{bw.amount.to_i} HTG pou #{bw.user.display_name}? Lajan ap ranbouse otomatikman." } do %>
+                    <i class="ri-close-circle-line me-1"></i>Anile
+                  <% end %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    <% else %>
+      <div class="text-center py-4" style="color: var(--haiti-olive);">
+        <i class="ri-bank-line ri-2x mb-2 d-block" style="opacity: 0.3;"></i>
+        <div class="small">Pa gen retrè bank an atant.</div>
+      </div>
+    <% end %>
+  </div>
+
   <!-- Aktivite Global Resan -->
   <div class="card-base p-0 overflow-hidden">
     <div class="px-4 py-3" style="border-bottom: 2px solid var(--haiti-olive);">
@@ -87,7 +313,7 @@
           <tr>
             <th class="ps-4">ITILIZATÈ</th>
             <th>HTG PEYE</th>
-            <th>USDC (BASE)</th>
+            <th>USD (BASE)</th>
             <th>ESTATI</th>
             <th class="pe-4 text-end">AKSYON</th>
           </tr>

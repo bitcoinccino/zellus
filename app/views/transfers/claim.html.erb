@@ -1,23 +1,12 @@
 <div class="container py-4" style="max-width: 480px;">
-  <%# ── Priotelus Brand ── %>
+  <%# ── Zèllus Brand ── %>
   <div class="text-center mb-4">
     <h3 class="fw-bold" style="color: var(--haiti-charcoal);">
-      <i class="ri-flashlight-line me-2" style="color: var(--haiti-gold);"></i>Priotelus Zèllus
+      <i class="ri-flashlight-line me-2" style="color: var(--haiti-gold);"></i>Zèllus
     </h3>
   </div>
 
   <% sender_name = @transfer.user&.email&.split("@")&.first&.capitalize || "Yon moun" %>
-
-  <% if flash[:notice].present? %>
-    <div class="alert rounded-3 mb-3" style="background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534;">
-      <i class="ri-checkbox-circle-line me-1"></i><%= flash[:notice] %>
-    </div>
-  <% end %>
-  <% if flash[:alert].present? %>
-    <div class="alert rounded-3 mb-3" style="background: #fef2f2; border: 1px solid #fecaca; color: #991b1b;">
-      <i class="ri-error-warning-line me-1"></i><%= flash[:alert] %>
-    </div>
-  <% end %>
 
   <% if @transfer.completed? %>
     <%# ── Already Completed ── %>

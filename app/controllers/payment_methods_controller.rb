@@ -45,6 +45,7 @@ class PaymentMethodsController < ApplicationController
     @payment_methods = current_user.payment_methods.order(active: :desc, created_at: :desc)
     @mobile_wallet_methods = @payment_methods.select(&:mobile_wallet?)
     @crypto_wallet_methods = @payment_methods.select(&:crypto_wallet?)
+    @bank_account_methods  = @payment_methods.select(&:bank_account?)
   end
 
   def build_new_payment_method
@@ -52,6 +53,6 @@ class PaymentMethodsController < ApplicationController
   end
 
   def payment_method_params
-    params.require(:payment_method).permit(:category, :provider, :network, :asset, :account_number, :wallet_address, :label, :active)
+    params.require(:payment_method).permit(:category, :provider, :network, :asset, :account_number, :wallet_address, :label, :active, :bank_account_number, :account_holder_name)
   end
 end

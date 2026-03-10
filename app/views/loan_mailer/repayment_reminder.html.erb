@@ -1,0 +1,54 @@
+<div style="margin-bottom:20px;">
+  <% if @days_left > 0 %>
+    <div style="font-size:15px; font-weight:800; color:#854d0e; margin-bottom:6px;">⏰ Rapèl Ranbousman — <%= @days_left %> jou rete</div>
+  <% elsif @days_left == 0 %>
+    <div style="font-size:15px; font-weight:800; color:#991b1b; margin-bottom:6px;">🚨 Dat Limit Jodi a!</div>
+  <% else %>
+    <div style="font-size:15px; font-weight:800; color:#991b1b; margin-bottom:6px;">🔴 Prè An Reta — <%= @days_left.abs %> jou!</div>
+  <% end %>
+  <div style="font-size:13px; color:#5D6345;">Prè #<%= @loan.id %> — Dat limit: <%= @loan.loan_due_date&.strftime("%d %b %Y") %></div>
+</div>
+
+<div style="background:#E8EDE0; border:2px solid #5D6345; border-radius:14px; padding:16px; margin-bottom:16px;">
+  <table width="100%" cellspacing="0" cellpadding="0">
+    <tr>
+      <td style="color:#5D6345; font-size:12px; font-weight:600; padding-bottom:8px;">Montan Prè</td>
+      <td style="color:#2E2E38; font-weight:800; text-align:right; padding-bottom:8px;">HTG <%= format('%.0f', @loan.fiat_amount.to_f) %></td>
+    </tr>
+    <tr>
+      <td style="color:#5D6345; font-size:12px; font-weight:600; padding-bottom:8px;">Enterè</td>
+      <td style="color:#D8000C; font-weight:700; text-align:right; padding-bottom:8px;">+ HTG <%= format('%.0f', @loan.loan_interest_amount.to_f) %></td>
+    </tr>
+    <tr>
+      <td colspan="2" style="border-top:1px dashed #5D6345; padding-top:10px;"></td>
+    </tr>
+    <tr>
+      <td style="color:#2E2E38; font-size:13px; font-weight:900; text-transform:uppercase;">Dwe Peye</td>
+      <td style="color:#C5A059; font-size:18px; font-weight:900; text-align:right;">HTG <%= format('%.0f', @loan.loan_total_repayable.to_f) %></td>
+    </tr>
+  </table>
+</div>
+
+<% if @days_left < 0 %>
+  <div style="background:#fdf2f2; border:1px solid #fca5a5; border-radius:12px; padding:12px; margin-bottom:16px;">
+    <div style="color:#991b1b; font-size:12px; font-weight:700;">
+      ⚠️ Prè ou an reta! Chak jou an reta = -15 pwen PrioNet. Peye kounye a pou evite bès nivo.
+    </div>
+  </div>
+<% elsif @days_left == 0 %>
+  <div style="background:#fefce8; border:1px solid #fde68a; border-radius:12px; padding:12px; margin-bottom:16px;">
+    <div style="color:#854d0e; font-size:12px; font-weight:700;">
+      ⏳ Jodi a se dènye jou! Peye anvan minui pou evite penalite -100 pwen PrioNet.
+    </div>
+  </div>
+<% else %>
+  <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:12px; padding:12px; margin-bottom:16px;">
+    <div style="color:#166534; font-size:12px; font-weight:700;">
+      ✅ Peye alè = +50 bònis pwen PrioNet! Ranbouse nan app Zèllus ou a.
+    </div>
+  </div>
+<% end %>
+
+<div style="font-size:13px; color:#5D6345; line-height:1.6;">
+  Peye via MonCash oswa USD dirèkteman nan app Zèllus ou a.
+</div>

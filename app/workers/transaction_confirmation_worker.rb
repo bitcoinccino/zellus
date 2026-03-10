@@ -15,7 +15,7 @@ class TransactionConfirmationWorker
     return unless transaction.crypto_sent?
     return unless transaction.blockchain_tx_hash.present?
 
-    rpc_url = ENV['BASE_RPC_URL'].presence || "https://sepolia.base.org"
+    rpc_url = ENV['BASE_RPC_URL'].presence || "https://mainnet.base.org"
     receipt  = fetch_receipt(rpc_url, transaction.blockchain_tx_hash)
 
     if receipt.nil?
@@ -26,9 +26,10 @@ class TransactionConfirmationWorker
           failure_reason: "Blockchain confirmation timed out after #{MAX_ATTEMPTS} attempts. TX: #{transaction.blockchain_tx_hash}"
         )
         notify_transaction_email(:failed, transaction)
-        Rails.logger.warn "Priotelus: TX ##{transaction_id} confirmation timed out (#{MAX_ATTEMPTS} attempts)"
+        NotificationService.transaction_failed(transaction)
+        Rails.logger.warn "Zèllus: TX ##{transaction_id} confirmation timed out (#{MAX_ATTEMPTS} attempts)"
       else
-        Rails.logger.info "Priotelus: TX ##{transaction_id} still pending (attempt #{attempt}/#{MAX_ATTEMPTS}), retrying in 15s"
+        Rails.logger.info "Zèllus: TX ##{transaction_id} still pending (attempt #{attempt}/#{MAX_ATTEMPTS}), retrying in 15s"
         TransactionConfirmationWorker.perform_in(15.seconds, transaction_id, attempt + 1)
       end
 
@@ -36,7 +37,8 @@ class TransactionConfirmationWorker
       # Confirmed successfully
       transaction.completed!
       notify_transaction_email(:completed, transaction)
-      Rails.logger.info "Priotelus: TX ##{transaction_id} confirmed on-chain! Hash: #{transaction.blockchain_tx_hash}"
+      NotificationService.transaction_completed(transaction)
+      Rails.logger.info "Zèllus: TX ##{transaction_id} confirmed on-chain! Hash: #{transaction.blockchain_tx_hash}"
 
     else
       # Receipt exists but status = 0x0 means the tx was reverted on-chain
@@ -45,11 +47,12 @@ class TransactionConfirmationWorker
         failure_reason: "Blockchain transaction reverted on-chain. TX: #{transaction.blockchain_tx_hash}"
       )
       notify_transaction_email(:failed, transaction)
-      Rails.logger.error "Priotelus: TX ##{transaction_id} reverted on-chain. Hash: #{transaction.blockchain_tx_hash}"
+      NotificationService.transaction_failed(transaction)
+      Rails.logger.error "Zèllus: TX ##{transaction_id} reverted on-chain. Hash: #{transaction.blockchain_tx_hash}"
     end
 
   rescue => e
-    Rails.logger.error "Priotelus ConfirmationWorker error [tx=#{transaction_id}]: #{e.message}"
+    Rails.logger.error "Zèllus ConfirmationWorker error [tx=#{transaction_id}]: #{e.message}"
     # Don't raise — we don't want Sidekiq to retry with its own backoff,
     # we manage our own retry schedule above
   end
@@ -71,7 +74,7 @@ class TransactionConfirmationWorker
     body = JSON.parse(response.body)
     body["result"]  # nil if pending, hash with "status" if confirmed
   rescue => e
-    Rails.logger.error "Priotelus: eth_getTransactionReceipt failed: #{e.message}"
+    Rails.logger.error "Zèllus: eth_getTransactionReceipt failed: #{e.message}"
     nil
   end
 

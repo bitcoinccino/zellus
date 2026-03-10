@@ -1,0 +1,812 @@
+<style>
+  /* ── Robinhood flickering decimals ── */
+  @keyframes flashGreen { 0% { color: #22c55e; } 100% { color: inherit; } }
+  @keyframes flashRed   { 0% { color: #ef4444; } 100% { color: inherit; } }
+  .tick-up   { animation: flashGreen 0.8s ease; }
+  .tick-down { animation: flashRed 0.8s ease; }
+  .tick-arrow { font-size: 10px; font-weight: 800; margin-left: 3px; transition: opacity 0.3s ease; }
+  .tick-arrow.up   { color: #22c55e; }
+  .tick-arrow.down { color: #ef4444; }
+
+  /* ── LIVE badge pulse ── */
+  @keyframes livePulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+  .live-badge { animation: livePulse 1.5s ease-in-out infinite; }
+
+  /* ── Rate row ── */
+  .mkt-row { transition: all 0.15s ease; border-radius: 12px; padding: 10px 12px; margin: 0 -12px; cursor: pointer; border-left: 3px solid transparent; }
+  .mkt-row:hover { background: rgba(255,255,255,0.04); }
+  .mkt-row.active { background: rgba(197,160,89,0.08); border-left-color: var(--haiti-gold); }
+
+  /* ── Detail panel transitions ── */
+  .detail-panel { transition: all 0.25s ease; }
+  .detail-stat { background: var(--haiti-cream); border-radius: 14px; padding: 14px; }
+
+  /* ── Time period tabs (Robinhood style) ── */
+  .chart-period-tabs { display: flex; gap: 4px; justify-content: center; padding: 8px 0 2px; }
+  .chart-period-tab {
+    font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.35);
+    background: transparent; border: none; padding: 5px 12px; border-radius: 16px;
+    cursor: pointer; transition: all 0.2s ease; letter-spacing: 0.3px;
+  }
+  .chart-period-tab:hover { color: rgba(255,255,255,0.6); }
+  .chart-period-tab.active { background: rgba(197,160,89,0.25); color: var(--haiti-gold); }
+
+  /* ── Chart dot pulse ── */
+  @keyframes dotPulse { 0%, 100% { r: 3; opacity: 1; } 50% { r: 5; opacity: 0.6; } }
+  .chart-dot { animation: dotPulse 2s ease-in-out infinite; }
+</style>
+
+<% usdc_htg = @sell_rate || 135.50 %>
+<% btc_usd  = @btc_usd_rate || 95000.0 %>
+<% eth_usd  = @eth_usd_rate || 3500.0 %>
+
+<% stock_tickers = {
+     "tslax"  => { name: "TSLA", full: "Tesla",    logo: "tslax_logo",  color: "#CC0000", spark_color: "204,0,0" },
+     "nvdax"  => { name: "NVDA", full: "Nvidia",   logo: "nvdax_logo",  color: "#76B900", spark_color: "118,185,0" },
+     "aaplx"  => { name: "AAPL", full: "Apple",    logo: "aaplx_logo",  color: "#999",    spark_color: "153,153,153" },
+     "coinx"  => { name: "COIN", full: "Coinbase", logo: "coinx_logo",  color: "#0052FF", spark_color: "0,82,255" },
+     "googlx" => { name: "GOOG", full: "Alphabet", logo: "googlx_logo", color: "#4285F4", spark_color: "66,133,244" }
+   } %>
+
+<div class="container" style="padding-top: 24px; padding-bottom: 40px;">
+
+  <%# ── Page Header ── %>
+  <div class="d-flex align-items-center justify-content-between mb-4">
+    <div class="d-flex align-items-center gap-2">
+      <h1 class="h5 fw-black mb-0" style="color: var(--haiti-charcoal);">
+        <i class="ri-line-chart-line me-1" style="color: var(--haiti-gold);"></i>Mache Dechanj
+      </h1>
+      <span class="live-badge d-inline-flex align-items-center gap-1 rounded-pill px-2" style="background: rgba(34,197,94,0.15); font-size: 8px; font-weight: 700; color: #22c55e;">
+        <span style="width: 5px; height: 5px; border-radius: 50%; background: #22c55e; display: inline-block;"></span> LIVE
+      </span>
+    </div>
+    <%= link_to wallet_path, class: "small text-decoration-none fw-bold", style: "color: var(--haiti-olive);" do %>
+      <i class="ri-arrow-left-line me-1"></i>Pòtfèy
+    <% end %>
+  </div>
+
+  <div class="row g-4">
+
+    <%# ══════════════════════════════════════════ %>
+    <%# ── LEFT COLUMN: Combined Rates Card    ── %>
+    <%# ══════════════════════════════════════════ %>
+    <div class="col-lg-5">
+      <div class="p-4 rounded-4" style="background: var(--haiti-charcoal);">
+
+        <%# ── Kripto Header ── %>
+        <div class="mb-2" style="color: rgba(255,255,255,0.3); font-size: 9px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase;">
+          <i class="ri-coin-line" style="font-size: 10px;"></i> Kripto
+        </div>
+
+        <%# USDC/HTG %>
+        <div class="mkt-row active d-flex align-items-center justify-content-between mb-1" onclick="selectAsset('usdc')" id="mkt-row-usdc">
+          <div class="d-flex align-items-center gap-2" style="color: rgba(255,255,255,0.6); font-size: 11px; font-weight: 600;">
+            <%= usd_logo(size: 18) %> USD/HTG
+            <span id="rate-usdc-arrow" class="tick-arrow" style="opacity: 0;"></span>
+          </div>
+          <div class="d-flex align-items-center gap-3">
+            <svg id="spark-usdc" width="80" height="28" style="overflow: visible;">
+              <defs><linearGradient id="sg-usdc" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="rgba(197,160,89,0.3)"/><stop offset="100%" stop-color="rgba(197,160,89,0)"/></linearGradient></defs>
+              <path id="spark-usdc-area" fill="url(#sg-usdc)"/><path id="spark-usdc-line" fill="none" stroke="#C5A059" stroke-width="1.5"/>
+            </svg>
+            <div class="fw-black" style="color: #fff; font-size: 20px;">
+              <span id="rate-usdc-whole"><%= usdc_htg.floor.to_i %></span>.<span id="rate-usdc-dec" class="tick-decimals"><%= "%02d" % ((usdc_htg * 100).floor % 100) %></span>
+              <span style="color: rgba(255,255,255,0.4); font-size: 10px;">HTG</span>
+            </div>
+          </div>
+        </div>
+
+        <%# BTC/USD, ETH/USD, and Aksyon Tokenize hidden (HTG + USD only mode) %>
+
+      </div>
+    </div>
+
+    <%# ══════════════════════════════════════════ %>
+    <%# ── RIGHT COLUMN: Asset Detail Panel    ── %>
+    <%# ══════════════════════════════════════════ %>
+    <div class="col-lg-7">
+      <div class="detail-panel p-4 rounded-4" style="background: white; border: 1.5px solid rgba(93,99,69,0.15);">
+
+        <%# ── Asset Header ── %>
+        <div class="d-flex align-items-center justify-content-between mb-3">
+          <div class="d-flex align-items-center gap-3">
+            <div id="detail-logo" style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center;">
+              <%= usd_logo(size: 48) %>
+            </div>
+            <div>
+              <div class="fw-black" id="detail-name" style="color: var(--haiti-charcoal); font-size: 20px;">USD</div>
+              <div id="detail-pair" style="color: var(--haiti-olive); font-size: 12px; font-weight: 600;">USD/HTG</div>
+            </div>
+          </div>
+          <div class="text-end">
+            <div class="fw-black" id="detail-price" style="color: var(--haiti-charcoal); font-size: 28px;">
+              <span id="detail-price-prefix"></span><span id="detail-price-whole"><%= usdc_htg.floor.to_i %></span>.<span id="detail-price-dec" class="tick-decimals"><%= "%02d" % ((usdc_htg * 100).floor % 100) %></span>
+              <span id="detail-price-unit" style="color: var(--haiti-olive); font-size: 13px;">HTG</span>
+            </div>
+            <div id="detail-change" class="d-inline-flex align-items-center gap-1 rounded-pill px-2 py-1" style="background: rgba(34,197,94,0.1); font-size: 11px; font-weight: 700; color: #22c55e;">
+              <i class="ri-arrow-up-line" id="detail-change-icon" style="font-size: 12px;"></i>
+              <span id="detail-change-val">+0.42%</span>
+            </div>
+          </div>
+        </div>
+
+        <%# ── Robinhood-style Price Chart ── %>
+        <div class="rounded-3 p-3 mb-3" style="background: var(--haiti-charcoal);">
+          <%# ── Chart area ── %>
+          <svg id="detail-spark" width="100%" height="150" viewBox="0 0 500 165" preserveAspectRatio="none" style="overflow: visible;">
+            <defs>
+              <linearGradient id="sg-detail" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" id="detail-grad-start" stop-color="rgba(197,160,89,0.15)"/>
+                <stop offset="100%" id="detail-grad-end" stop-color="rgba(197,160,89,0)"/>
+              </linearGradient>
+            </defs>
+            <%# ── Reference dotted line (opening price) ── %>
+            <line id="chart-ref-line" x1="0" y1="60" x2="500" y2="60" stroke="rgba(255,255,255,0.12)" stroke-width="1" stroke-dasharray="3,4"/>
+            <path id="detail-spark-area" fill="url(#sg-detail)"/>
+            <path id="detail-spark-line" fill="none" stroke="#C5A059" stroke-width="1.5"/>
+            <%# ── Current price dot ── %>
+            <circle id="chart-end-dot" class="chart-dot" cx="500" cy="60" r="3" fill="#C5A059"/>
+            <%# ── Time labels on x-axis ── %>
+            <g id="chart-month-labels" style="font-size: 9px; fill: rgba(255,255,255,0.25); font-weight: 600;">
+            </g>
+          </svg>
+
+          <%# ── Period tabs ── %>
+          <div class="chart-period-tabs">
+            <button class="chart-period-tab" onclick="switchPeriod('live')">
+              <span style="width: 5px; height: 5px; border-radius: 50%; background: #22c55e; display: inline-block; margin-right: 3px;"></span>LIVE
+            </button>
+            <button class="chart-period-tab" onclick="switchPeriod('1d')">1J</button>
+            <button class="chart-period-tab" onclick="switchPeriod('1w')">1S</button>
+            <button class="chart-period-tab" onclick="switchPeriod('1m')">1M</button>
+            <button class="chart-period-tab" onclick="switchPeriod('3m')">3M</button>
+            <button class="chart-period-tab active" onclick="switchPeriod('1y')">1A</button>
+          </div>
+        </div>
+
+        <%# ── Your Holdings ── %>
+        <div class="pt-3 mb-3" style="border-top: 1px solid rgba(93,99,69,0.08);">
+          <div style="color: var(--haiti-olive); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px;">
+            <i class="ri-briefcase-4-line me-1" style="color: var(--haiti-gold);"></i>Pòtfèy Mwen
+          </div>
+          <div class="row g-3">
+            <div class="col-6">
+              <div class="detail-stat text-center" style="padding: 20px;">
+                <div style="color: var(--haiti-olive); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">
+                  <i class="ri-wallet-3-line me-1" style="color: var(--haiti-gold);"></i>Balans Ou
+                </div>
+                <div class="fw-black" id="stat-balance" style="color: var(--haiti-charcoal); font-size: 18px;"><%= number_with_precision(@wallet.balance_for('usdc'), precision: 2) %></div>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="detail-stat text-center" style="padding: 20px;">
+                <div style="color: var(--haiti-olive); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">
+                  <i class="ri-exchange-dollar-line me-1" style="color: var(--haiti-gold);"></i>Valè
+                </div>
+                <div class="fw-black" id="stat-value" style="color: var(--haiti-charcoal); font-size: 18px;"><%= number_to_currency(@wallet.balance_for('usdc').to_f * usdc_htg, unit: "", precision: 0) %> HTG</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <%# ── Market Stats (from CoinMarketCap) ── %>
+        <div class="pt-3 mb-3" style="border-top: 1px solid rgba(93,99,69,0.08);">
+          <div style="color: var(--haiti-olive); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px;">
+            <i class="ri-bar-chart-box-line me-1" style="color: var(--haiti-gold);"></i>Estatistik Mache
+          </div>
+          <div class="row g-3">
+            <div class="col-4">
+              <div class="detail-stat text-center" style="padding: 16px;">
+                <div style="color: var(--haiti-olive); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 5px;">Market Cap</div>
+                <div class="fw-black" id="stat-market-cap" style="color: var(--haiti-charcoal); font-size: 15px;">$0</div>
+              </div>
+            </div>
+            <div class="col-4">
+              <div class="detail-stat text-center" style="padding: 16px;">
+                <div style="color: var(--haiti-olive); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 5px;">Volim 24è</div>
+                <div class="fw-black" id="stat-volume-24h" style="color: var(--haiti-charcoal); font-size: 15px;">$0</div>
+              </div>
+            </div>
+            <div class="col-4">
+              <div class="detail-stat text-center" style="padding: 16px;">
+                <div style="color: var(--haiti-olive); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 5px;">Vol/Mkt Cap</div>
+                <div class="fw-black" id="stat-vol-mkt-ratio" style="color: var(--haiti-charcoal); font-size: 15px;">0%</div>
+              </div>
+            </div>
+            <div class="col-4">
+              <div class="detail-stat text-center" style="padding: 16px;">
+                <div style="color: var(--haiti-olive); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 5px;">FDV</div>
+                <div class="fw-black" id="stat-fdv" style="color: var(--haiti-charcoal); font-size: 15px;">$0</div>
+              </div>
+            </div>
+            <div class="col-4">
+              <div class="detail-stat text-center" style="padding: 16px;">
+                <div style="color: var(--haiti-olive); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 5px;">Sikilasyon</div>
+                <div class="fw-black" id="stat-circulating" style="color: var(--haiti-charcoal); font-size: 15px;">0</div>
+              </div>
+            </div>
+            <div class="col-4">
+              <div class="detail-stat text-center" style="padding: 16px;">
+                <div style="color: var(--haiti-olive); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 5px;">Maks. Sipòt</div>
+                <div class="fw-black" id="stat-max-supply" style="color: var(--haiti-charcoal); font-size: 15px;">--</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <%# ── Description + Advantage ── %>
+        <div class="pt-3 mb-4" style="border-top: 1px solid rgba(93,99,69,0.08);">
+          <div class="p-3 rounded-3" style="background: rgba(93,99,69,0.05); border: 1px solid rgba(93,99,69,0.1);">
+            <div class="mb-2">
+              <div style="color: var(--haiti-olive); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">
+                <i class="ri-information-line me-1" style="color: var(--haiti-gold);"></i>Kisa li ye?
+              </div>
+              <div id="detail-desc" style="color: var(--haiti-charcoal); font-size: 13px; line-height: 1.5; font-weight: 500;">
+                USD se dola ameriken dijital ki toujou vo 1 dola. Li pèmèt ou voye ak resevwa lajan san fwontyè, san ou pa bezwen yon kont labank tradisyonèl.
+              </div>
+            </div>
+            <hr class="my-2" style="border-color: rgba(93,99,69,0.1);">
+            <div>
+              <div style="color: var(--haiti-olive); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">
+                <i class="ri-star-line me-1" style="color: var(--haiti-gold);"></i>Avantaj
+              </div>
+              <div id="detail-advantage" style="color: var(--haiti-charcoal); font-size: 13px; line-height: 1.5; font-weight: 500;">
+                Estab tankou dola, tranzaksyon rapid sou blockchain Base, frè ba, epi ou ka konvèti l an HTG nenpòt lè.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <%# ── Action Button ── %>
+        <%= link_to wallet_path, class: "btn w-100 fw-bold rounded-pill border-0 d-flex align-items-center justify-content-center gap-2",
+            style: "background: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 15px; padding: 14px 24px; letter-spacing: 0.3px;" do %>
+          <i class="ri-swap-line" style="font-size: 18px;"></i>Konvèti
+        <% end %>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════
+// ── ASSET DATA MAP                  ──
+// ══════════════════════════════════════
+var ASSETS = {
+  usdc: {
+    name: 'USD', pair: 'USD/HTG', unit: 'HTG', prefix: '', rateKey: 'usdc_htg', color: '#C5A059', sparkColor: '197,160,89', balKey: 'usdc', prec: 2,
+    desc: 'USD se dola ameriken dijital ki toujou vo 1 dola. Li p\u00e8m\u00e8t ou voye ak resevwa lajan san fwonty\u00e8, san ou pa bezwen yon kont labank tradisyon\u00e8l.',
+    advantage: 'Estab tankou dola, tranzaksyon rapid sou blockchain Base, fr\u00e8 ba, epi ou ka konv\u00e8ti l an HTG n\u00e8np\u00f2t l\u00e8.'
+  },
+  btc: {
+    name: 'Bitcoin', pair: 'BTC/USD', unit: '$', prefix: '$', rateKey: 'btc_usd', color: '#f7931a', sparkColor: '247,147,26', balKey: 'wbtc', prec: 8,
+    desc: 'Bitcoin se premye kriptomon\u00e8 nan mond lan. Li se yon sistèm lajan dijital desantralize kote okenn gouvènman oswa bank pa kontwole l.',
+    advantage: 'Rezèv val\u00e8 tankou l\u00f2, kantite limite a 21 milyon, akseptasyon mondyal, epi li pwoteje kont enflasyon.'
+  },
+  eth: {
+    name: 'Ethereum', pair: 'ETH/USD', unit: '$', prefix: '$', rateKey: 'eth_usd', color: '#627eea', sparkColor: '98,126,234', balKey: 'eth', prec: 6,
+    desc: 'Ethereum se yon platf\u00f2m blockchain ki p\u00e8m\u00e8t devlop\u00e8 yo kreye aplikasyon desantralize (dApps) ak kontra entèlijan.',
+    advantage: 'Teknoloji dèyè DeFi, NFT, ak milye aplikasyon. Tranzaksyon rapid sou rezo Base, epi li gen dezy\u00e8m pi gwo val\u00e8 mache nan kriptomon\u00e8.'
+  },
+  tslax: {
+    name: 'Tesla', pair: 'TSLA/USD', unit: '$', prefix: '$', rateKey: 'tslax_usd', color: '#CC0000', sparkColor: '204,0,0', balKey: 'tslax', prec: 6,
+    desc: 'Tesla se yon konpayi ki fabrike machin elektrik, batri, ak panno sol\u00e8. Elon Musk dirije l, epi li se youn nan pi gwo konpayi nan mond lan.',
+    advantage: 'Lid\u00e8 nan machin elektrik ak entelij\u00e8ns atifisy\u00e8l, kwasans rapid, epi ou ka achte fraksyon aksyon ak token sou blockchain.'
+  },
+  nvdax: {
+    name: 'Nvidia', pair: 'NVDA/USD', unit: '$', prefix: '$', rateKey: 'nvdax_usd', color: '#76B900', sparkColor: '118,185,0', balKey: 'nvdax', prec: 6,
+    desc: 'Nvidia fabrike chip grafik (GPU) ki esansy\u00e8l pou entelij\u00e8ns atifisy\u00e8l, jwèt videyo, ak sant done yo.',
+    advantage: 'Dominasyon nan mache GPU pou AI, demann eksplozif pou chip AI, epi pozisyon estratejik pou revolisyon AI a.'
+  },
+  aaplx: {
+    name: 'Apple', pair: 'AAPL/USD', unit: '$', prefix: '$', rateKey: 'aaplx_usd', color: '#999', sparkColor: '153,153,153', balKey: 'aaplx', prec: 6,
+    desc: 'Apple se konpayi teknoloji ki kreye iPhone, Mac, iPad, ak Apple Watch. Li gen youn nan pi gwo ekosist\u00e8m teknolojik nan mond lan.',
+    advantage: 'Mak ki pi gen val\u00e8 nan mond lan, revni estab, dividann regilye, epi yon baz kliyan ki ekstr\u00e8mman fidèl.'
+  },
+  coinx: {
+    name: 'Coinbase', pair: 'COIN/USD', unit: '$', prefix: '$', rateKey: 'coinx_usd', color: '#0052FF', sparkColor: '0,82,255', balKey: 'coinx', prec: 6,
+    desc: 'Coinbase se pi gwo platf\u00f2m echanj kriptomon\u00e8 nan Etazini. Li p\u00e8m\u00e8t moun achte, vann, ak estoke Bitcoin, Ethereum, ak plis ank\u00f2.',
+    advantage: 'Konpayi piblk ak r\u00e8glmantasyon, benefisye dirèkteman de kwasans mache kripto a, epi li se kr\u00e9yat\u00e8 rezo Base la.'
+  },
+  googlx: {
+    name: 'Alphabet', pair: 'GOOG/USD', unit: '$', prefix: '$', rateKey: 'googlx_usd', color: '#4285F4', sparkColor: '66,133,244', balKey: 'googlx', prec: 6,
+    desc: 'Alphabet se konpayi paran Google. Li gen\u00e8n Google Search, YouTube, Android, Google Cloud, ak Waymo (machin otonòm).',
+    advantage: 'Dominasyon nan rech\u00e8ch ak piblisite sou ent\u00e8n\u00e8t, lid\u00e8 nan AI ak cloud, epi sous revni divèsifye.'
+  }
+};
+
+var RATES = {
+  usdc_htg: <%= usdc_htg.to_f.round(4) %>,
+  btc_usd:  <%= btc_usd.to_f.round(4) %>,
+  eth_usd:  <%= eth_usd.to_f.round(4) %>,
+  tslax_usd: <%= (@stock_usd_rates["tslax"] || 0).to_f.round(4) %>,
+  nvdax_usd: <%= (@stock_usd_rates["nvdax"] || 0).to_f.round(4) %>,
+  aaplx_usd: <%= (@stock_usd_rates["aaplx"] || 0).to_f.round(4) %>,
+  coinx_usd: <%= (@stock_usd_rates["coinx"] || 0).to_f.round(4) %>,
+  googlx_usd: <%= (@stock_usd_rates["googlx"] || 0).to_f.round(4) %>
+};
+
+var BALS = {
+  htg:    <%= @wallet.balance_for('htg').to_f %>,
+  usdc:   <%= @wallet.balance_for('usdc').to_f %>,
+  wbtc:   <%= @wallet.balance_for('wbtc').to_f %>,
+  eth:    <%= @wallet.balance_for('eth').to_f %>,
+  tslax:  <%= @wallet.balance_for('tslax').to_f %>,
+  nvdax:  <%= @wallet.balance_for('nvdax').to_f %>,
+  aaplx:  <%= @wallet.balance_for('aaplx').to_f %>,
+  coinx:  <%= @wallet.balance_for('coinx').to_f %>,
+  googlx: <%= @wallet.balance_for('googlx').to_f %>
+};
+
+// Logo SVGs (inline for JS rendering)
+var LOGOS = {
+  usdc:   '<%= j usd_logo(size: 48) %>',
+  btc:    '<%= j wbtc_base_logo_svg(size: 48) %>',
+  eth:    '<%= j eth_base_logo_svg(size: 48) %>',
+  tslax:  '<%= j tslax_logo(size: 48) %>',
+  nvdax:  '<%= j nvdax_logo(size: 48) %>',
+  aaplx:  '<%= j aaplx_logo(size: 48) %>',
+  coinx:  '<%= j coinx_logo(size: 48) %>',
+  googlx: '<%= j googlx_logo(size: 48) %>'
+};
+
+// Market data from CoinMarketCap
+var MARKET_DATA = {
+<% %w[usdc btc eth tslax nvdax aaplx coinx googlx].each do |key| %>
+<% md = @market_data[key] || {} %>
+  <%= key %>: {
+    market_cap: <%= md[:market_cap] || 0 %>,
+    volume_24h: <%= md[:volume_24h] || 0 %>,
+    percent_change_24h: <%= md[:percent_change_24h] || 0 %>,
+    fdv: <%= md[:fdv] || 0 %>,
+    circulating_supply: <%= md[:circulating_supply] || 0 %>,
+    total_supply: <%= md[:total_supply] || 0 %>,
+    max_supply: <%= md[:max_supply] || 0 %>,
+    symbol: '<%= (md[:symbol] || key.upcase.gsub("X","")) %>'
+  },
+<% end %>
+};
+
+var currentAsset = 'usdc';
+var changePercents = {};
+
+// Initialize 24h change from real CMC data (fallback to simulated)
+Object.keys(ASSETS).forEach(function(k) {
+  var md = MARKET_DATA[k];
+  if (md && md.percent_change_24h !== 0) {
+    changePercents[k] = md.percent_change_24h.toFixed(2);
+  } else {
+    changePercents[k] = (Math.random() * 2 - 0.5).toFixed(2);
+  }
+});
+
+// ══════════════════════════════════════
+// ── SELECT ASSET                    ──
+// ══════════════════════════════════════
+function selectAsset(key) {
+  // Deactivate old row
+  var oldRow = document.getElementById('mkt-row-' + currentAsset);
+  if (oldRow) oldRow.classList.remove('active');
+
+  // Activate new row
+  currentAsset = key;
+  var newRow = document.getElementById('mkt-row-' + key);
+  if (newRow) newRow.classList.add('active');
+
+  var asset = ASSETS[key];
+  var rate = RATES[asset.rateKey];
+  var bal = BALS[asset.balKey] || 0;
+  var change = parseFloat(changePercents[key]);
+  var isUp = change >= 0;
+
+  // Update header
+  document.getElementById('detail-logo').innerHTML = LOGOS[key];
+  document.getElementById('detail-name').textContent = asset.name;
+  document.getElementById('detail-pair').textContent = asset.pair;
+
+  // Update price
+  document.getElementById('detail-price-prefix').textContent = asset.prefix;
+  document.getElementById('detail-price-whole').textContent = numberWithDelimiter(Math.floor(rate));
+  document.getElementById('detail-price-dec').textContent = ('0' + Math.floor((rate * 100) % 100)).slice(-2);
+  document.getElementById('detail-price-unit').textContent = asset.unit === 'HTG' ? ' HTG' : '';
+
+  // Update 24h change badge
+  var changeBadge = document.getElementById('detail-change');
+  var changeIcon = document.getElementById('detail-change-icon');
+  document.getElementById('detail-change-val').textContent = (isUp ? '+' : '') + change + '%';
+  changeBadge.style.background = isUp ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)';
+  changeBadge.style.color = isUp ? '#22c55e' : '#ef4444';
+  changeIcon.className = isUp ? 'ri-arrow-up-line' : 'ri-arrow-down-line';
+
+  // Build detail chart (colors set by up/down in buildDetailChart)
+  buildDetailChart(key);
+
+  // Update description + advantage
+  document.getElementById('detail-desc').textContent = asset.desc;
+  document.getElementById('detail-advantage').textContent = asset.advantage;
+
+  // Update holdings stats
+  var balText = bal.toFixed(asset.prec > 2 ? 6 : 2);
+  if (asset.prec > 2) balText = parseFloat(balText).toString();
+  document.getElementById('stat-balance').textContent = balText + ' ' + key.toUpperCase().replace('X','');
+
+  var value;
+  if (key === 'usdc') {
+    value = bal * rate;
+    document.getElementById('stat-value').textContent = numberWithDelimiter(value.toFixed(0)) + ' HTG';
+  } else {
+    value = bal * rate;
+    document.getElementById('stat-value').textContent = '$' + numberWithDelimiter(value.toFixed(2));
+  }
+
+  // Update market stats from CMC
+  updateMarketStats(key);
+
+  // Rebuild chart for new asset
+  buildDetailChart(key);
+}
+
+function numberWithDelimiter(n) {
+  return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+// Format large numbers: T/B/M/K
+function formatLargeNumber(n, prefix) {
+  prefix = prefix || '$';
+  if (!n || n === 0) return '--';
+  var abs = Math.abs(n);
+  if (abs >= 1e12) return prefix + (n / 1e12).toFixed(2) + 'T';
+  if (abs >= 1e9)  return prefix + (n / 1e9).toFixed(2) + 'B';
+  if (abs >= 1e6)  return prefix + (n / 1e6).toFixed(2) + 'M';
+  if (abs >= 1e3)  return prefix + (n / 1e3).toFixed(2) + 'K';
+  return prefix + n.toFixed(2);
+}
+
+function formatSupply(n, symbol) {
+  if (!n || n === 0) return '--';
+  var abs = Math.abs(n);
+  var formatted;
+  if (abs >= 1e9)  formatted = (n / 1e9).toFixed(2) + 'B';
+  else if (abs >= 1e6)  formatted = (n / 1e6).toFixed(2) + 'M';
+  else if (abs >= 1e3)  formatted = numberWithDelimiter(Math.round(n));
+  else formatted = n.toFixed(2);
+  return formatted + (symbol ? ' ' + symbol : '');
+}
+
+function updateMarketStats(key) {
+  var md = MARKET_DATA[key] || {};
+  var sym = md.symbol || key.toUpperCase().replace('X','');
+
+  document.getElementById('stat-market-cap').textContent = formatLargeNumber(md.market_cap);
+  document.getElementById('stat-volume-24h').textContent = formatLargeNumber(md.volume_24h);
+
+  // Vol/Mkt Cap ratio
+  var ratio = (md.market_cap > 0) ? ((md.volume_24h / md.market_cap) * 100).toFixed(2) : '0.00';
+  document.getElementById('stat-vol-mkt-ratio').textContent = ratio + '%';
+
+  document.getElementById('stat-fdv').textContent = formatLargeNumber(md.fdv);
+  document.getElementById('stat-circulating').textContent = formatSupply(md.circulating_supply, sym);
+  document.getElementById('stat-max-supply').textContent = md.max_supply > 0 ? formatSupply(md.max_supply, sym) : '∞';
+}
+
+// ══════════════════════════════════════
+// ── LIVE TICKER                     ──
+// ══════════════════════════════════════
+var interval = 600;
+
+function microTick() {
+  var keys = ['usdc','btc','eth','tslax','nvdax','aaplx','coinx','googlx'];
+  keys.forEach(function(k) { tickRate(k); });
+
+  // Update detail panel price if it matches current asset
+  var asset = ASSETS[currentAsset];
+  var rate = RATES[asset.rateKey];
+  document.getElementById('detail-price-whole').textContent = numberWithDelimiter(Math.floor(rate));
+  document.getElementById('detail-price-dec').textContent = ('0' + Math.floor((rate * 100) % 100)).slice(-2);
+
+  // Update value stat
+  var bal = BALS[asset.balKey] || 0;
+  if (currentAsset === 'usdc') {
+    document.getElementById('stat-value').textContent = numberWithDelimiter((bal * rate).toFixed(0)) + ' HTG';
+  } else {
+    document.getElementById('stat-value').textContent = '$' + numberWithDelimiter((bal * rate).toFixed(2));
+  }
+}
+
+function tickRate(key) {
+  var decEl   = document.getElementById('rate-' + key + '-dec');
+  var arrowEl = document.getElementById('rate-' + key + '-arrow');
+  if (!decEl) return;
+
+  var rateMap = {
+    usdc: 'usdc_htg', btc: 'btc_usd', eth: 'eth_usd',
+    tslax: 'tslax_usd', nvdax: 'nvdax_usd', aaplx: 'aaplx_usd',
+    coinx: 'coinx_usd', googlx: 'googlx_usd'
+  };
+
+  var oldDec = parseInt(decEl.textContent);
+  var centDelta = Math.floor(Math.random() * 3 + 1) * (Math.random() < 0.5 ? -1 : 1);
+  var targetDec = Math.max(0, Math.min(99, oldDec + centDelta));
+  var up = targetDec > oldDec;
+
+  if (arrowEl) {
+    arrowEl.style.opacity = '1';
+    arrowEl.className = 'tick-arrow ' + (up ? 'up' : 'down');
+    arrowEl.innerHTML = up ? '&#9650;' : '&#9660;';
+    setTimeout(function() { arrowEl.style.opacity = '0'; }, 2200);
+  }
+
+  var current = oldDec;
+  var step = up ? 1 : -1;
+  var steps = Math.abs(targetDec - oldDec);
+  if (steps === 0) return;
+
+  var counter = 0;
+  var timer = setInterval(function() {
+    current += step;
+    decEl.textContent = ('0' + current).slice(-2);
+    decEl.className = 'tick-decimals ' + (up ? 'tick-up' : 'tick-down');
+    counter++;
+    if (counter >= steps) {
+      clearInterval(timer);
+      setTimeout(function() { decEl.className = 'tick-decimals'; }, 800);
+    }
+  }, interval);
+
+  if (rateMap[key]) {
+    var whole = Math.floor(RATES[rateMap[key]]);
+    RATES[rateMap[key]] = whole + targetDec / 100;
+  }
+}
+
+// ══════════════════════════════════════
+// ── SPARKLINE ENGINE (Robinhood)    ──
+// ══════════════════════════════════════
+var SPARK_W = 80, SPARK_H = 28, SPARK_MAX = 30;
+var DETAIL_W = 500, DETAIL_H = 135;
+var sparkData = {};
+var chartDataCache = {};  // { key: { live:[], '1d':[], '1w':[], '1m':[], '3m':[], '1y':[] } }
+var currentPeriod = '1y';
+var sparkKeys = ['usdc','btc','eth','tslax','nvdax','aaplx','coinx','googlx'];
+var sparkRateKeys = {
+  usdc: 'usdc_htg', btc: 'btc_usd', eth: 'eth_usd',
+  tslax: 'tslax_usd', nvdax: 'nvdax_usd', aaplx: 'aaplx_usd',
+  coinx: 'coinx_usd', googlx: 'googlx_usd'
+};
+
+// Month/time label abbreviations
+var MONTHS = ['Jan','Fev','Mas','Avr','Me','Jen','Jiy','Out','Sep','Okt','Nov','Des'];
+
+// Volatility per asset
+var VOLATILITY = {
+  usdc: 0.0008, btc: 0.025, eth: 0.03,
+  tslax: 0.02, nvdax: 0.025, aaplx: 0.015,
+  coinx: 0.03, googlx: 0.015
+};
+
+// ── Generate jagged price data (Robinhood-style: many data points, no smoothing) ──
+function generatePriceData(base, count, vol, isStable) {
+  var pts = [];
+  if (isStable) {
+    for (var i = 0; i < count; i++) pts.push(base * (1 + (Math.random() - 0.5) * 0.003));
+    return pts;
+  }
+  // Random walk with mean reversion toward current price
+  var startFactor = { 365: 0.65, 90: 0.8, 30: 0.88, 7: 0.95, 288: 0.98, 60: 0.995 };
+  var sf = startFactor[count] || 0.8;
+  var price = base * (sf + Math.random() * (1 - sf));
+  for (var i = 0; i < count; i++) {
+    var progress = i / (count - 1);
+    var target = price + (base - price) * 0.015;
+    var noise = (Math.random() - 0.5) * vol * price * 2;
+    price = target + noise;
+    if (price < base * 0.15) price = base * 0.2;
+    pts.push(price);
+  }
+  // Last point = current price
+  pts[count - 1] = base;
+  return pts;
+}
+
+// Data point counts per period
+var PERIOD_POINTS = { live: 60, '1d': 288, '1w': 168, '1m': 30, '3m': 90, '1y': 365 };
+
+// Labels config per period
+var PERIOD_LABELS = {
+  live:  { count: 5, gen: function() { var labels = []; var d = new Date(); for (var i = 4; i >= 0; i--) { var m = d.getMinutes() - i * 12; var h = d.getHours(); if (m < 0) { m += 60; h--; } labels.push(('0'+h).slice(-2)+':'+('0'+(m<0?0:m)).slice(-2)); } return labels; } },
+  '1d':  { count: 6, gen: function() { return ['9:30','11:00','12:30','14:00','15:30','16:00']; } },
+  '1w':  { count: 5, gen: function() { var labels = []; var days = ['Dim','Len','Mad','Mèk','Jed','Van','Sam']; var d = new Date(); for (var i = 6; i >= 0; i -= 2) { var dd = new Date(d); dd.setDate(d.getDate() - i); labels.push(days[dd.getDay()]); } return labels; } },
+  '1m':  { count: 5, gen: function() { var labels = []; var d = new Date(); for (var i = 4; i >= 0; i--) { var dd = new Date(d); dd.setDate(d.getDate() - i * 7); labels.push(dd.getDate() + ' ' + MONTHS[dd.getMonth()].substring(0,3)); } return labels; } },
+  '3m':  { count: 4, gen: function() { var labels = []; var d = new Date(); for (var i = 3; i >= 0; i--) { var dd = new Date(d); dd.setMonth(d.getMonth() - i); labels.push(MONTHS[dd.getMonth()]); } return labels; } },
+  '1y':  { count: 12, gen: function() { var labels = []; var d = new Date(); for (var i = 11; i >= 0; i--) { var dd = new Date(d); dd.setMonth(d.getMonth() - i); labels.push(MONTHS[dd.getMonth()]); } return labels; } }
+};
+
+// Initialize all chart data for all assets & periods
+sparkKeys.forEach(function(k) {
+  var base = RATES[sparkRateKeys[k]];
+  var isStable = k === 'usdc';
+  var vol = VOLATILITY[k] || 0.02;
+
+  // Small sparkline for left list
+  var pts = [];
+  for (var i = 0; i < 15; i++) pts.push(base * (1 + (Math.random() - 0.5) * 0.004));
+  sparkData[k] = pts;
+
+  // Detail chart data per period
+  chartDataCache[k] = {};
+  Object.keys(PERIOD_POINTS).forEach(function(p) {
+    chartDataCache[k][p] = generatePriceData(base, PERIOD_POINTS[p], vol, isStable);
+  });
+});
+
+// ── Build small sparkline (left column rows) ──
+function buildSparkPath(key) {
+  var pts = sparkData[key];
+  if (!pts || pts.length < 2) return;
+  var lineEl = document.getElementById('spark-' + key + '-line');
+  var areaEl = document.getElementById('spark-' + key + '-area');
+  if (!lineEl) return;
+
+  var min = Math.min.apply(null, pts);
+  var max = Math.max.apply(null, pts);
+  var range = max - min || 1;
+  var stepX = SPARK_W / (pts.length - 1);
+
+  var lineParts = [];
+  var areaParts = ['M0,' + SPARK_H];
+  for (var i = 0; i < pts.length; i++) {
+    var x = (i * stepX).toFixed(1);
+    var y = (SPARK_H - ((pts[i] - min) / range) * (SPARK_H - 2) - 1).toFixed(1);
+    lineParts.push((i === 0 ? 'M' : 'L') + x + ',' + y);
+    areaParts.push('L' + x + ',' + y);
+  }
+  areaParts.push('L' + SPARK_W + ',' + SPARK_H + 'Z');
+
+  lineEl.setAttribute('d', lineParts.join(''));
+  areaEl.setAttribute('d', areaParts.join(''));
+}
+
+// ── Build detail chart (Robinhood style) ──
+function buildDetailChart(key) {
+  var data = chartDataCache[key];
+  if (!data) return;
+  var pts = data[currentPeriod];
+  if (!pts || pts.length < 2) return;
+
+  var lineEl = document.getElementById('detail-spark-line');
+  var areaEl = document.getElementById('detail-spark-area');
+  var refLine = document.getElementById('chart-ref-line');
+  var endDot  = document.getElementById('chart-end-dot');
+  if (!lineEl) return;
+
+  var chartH = DETAIL_H;
+  var min = Math.min.apply(null, pts);
+  var max = Math.max.apply(null, pts);
+  var range = max - min || 1;
+  // Add 5% padding
+  min = min - range * 0.05;
+  max = max + range * 0.05;
+  range = max - min;
+  if (range === 0) range = 1;
+  var stepX = DETAIL_W / (pts.length - 1);
+
+  // Determine if price went up or down over period
+  var openPrice = pts[0];
+  var closePrice = pts[pts.length - 1];
+  var isUp = closePrice >= openPrice;
+  var lineColor = isUp ? '#22c55e' : '#ef4444';
+  var gradAlpha = isUp ? '34,197,94' : '239,68,68';
+
+  // Set line + gradient color
+  lineEl.setAttribute('stroke', lineColor);
+  document.getElementById('detail-grad-start').setAttribute('stop-color', 'rgba(' + gradAlpha + ',0.12)');
+  document.getElementById('detail-grad-end').setAttribute('stop-color', 'rgba(' + gradAlpha + ',0)');
+
+  // Build path
+  var lineParts = [];
+  var areaParts = ['M0,' + chartH];
+  var lastX, lastY;
+  for (var i = 0; i < pts.length; i++) {
+    var x = (i * stepX).toFixed(1);
+    var y = (chartH - ((pts[i] - min) / range) * (chartH - 8) - 4).toFixed(1);
+    lineParts.push((i === 0 ? 'M' : 'L') + x + ',' + y);
+    areaParts.push('L' + x + ',' + y);
+    lastX = x; lastY = y;
+  }
+  areaParts.push('L' + DETAIL_W + ',' + chartH + 'Z');
+
+  lineEl.setAttribute('d', lineParts.join(''));
+  areaEl.setAttribute('d', areaParts.join(''));
+
+  // Reference dotted line at opening price
+  if (refLine) {
+    var refY = (chartH - ((openPrice - min) / range) * (chartH - 8) - 4).toFixed(1);
+    refLine.setAttribute('y1', refY);
+    refLine.setAttribute('y2', refY);
+  }
+
+  // End dot at last price
+  if (endDot) {
+    endDot.setAttribute('cx', lastX);
+    endDot.setAttribute('cy', lastY);
+    endDot.setAttribute('fill', lineColor);
+  }
+
+  // Draw time labels on x-axis
+  var labelsG = document.getElementById('chart-month-labels');
+  if (labelsG) {
+    labelsG.innerHTML = '';
+    var labelCfg = PERIOD_LABELS[currentPeriod];
+    if (labelCfg) {
+      var labels = labelCfg.gen();
+      for (var m = 0; m < labels.length; m++) {
+        var xPos = (m / (labels.length - 1)) * DETAIL_W;
+        var text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        text.setAttribute('x', xPos.toFixed(0));
+        text.setAttribute('y', (chartH + 18).toString());
+        text.setAttribute('text-anchor', m === 0 ? 'start' : (m === labels.length - 1 ? 'end' : 'middle'));
+        text.textContent = labels[m];
+        labelsG.appendChild(text);
+      }
+    }
+  }
+}
+
+// ── Switch time period ──
+function switchPeriod(period) {
+  currentPeriod = period;
+  // Update active tab
+  var tabs = document.querySelectorAll('.chart-period-tab');
+  tabs.forEach(function(tab) { tab.classList.remove('active'); });
+  var labels = { live: 'LIVE', '1d': '1J', '1w': '1S', '1m': '1M', '3m': '3M', '1y': '1A' };
+  tabs.forEach(function(tab) {
+    if (tab.textContent.trim().replace(/\s/g,'').indexOf(labels[period]) >= 0 ||
+        (period === 'live' && tab.textContent.indexOf('LIVE') >= 0)) {
+      tab.classList.add('active');
+    }
+  });
+  buildDetailChart(currentAsset);
+}
+
+function sparkTick() {
+  sparkKeys.forEach(function(k) {
+    var val = RATES[sparkRateKeys[k]];
+    sparkData[k].push(val);
+    if (sparkData[k].length > SPARK_MAX) sparkData[k].shift();
+    buildSparkPath(k);
+
+    // Push live price into live data
+    if (chartDataCache[k] && chartDataCache[k].live) {
+      chartDataCache[k].live.push(val);
+      if (chartDataCache[k].live.length > 120) chartDataCache[k].live.shift();
+    }
+  });
+  if (currentPeriod === 'live') buildDetailChart(currentAsset);
+}
+
+// ── Initialize ──
+sparkKeys.forEach(function(k) { buildSparkPath(k); });
+buildDetailChart('usdc');
+updateMarketStats('usdc');
+
+// Tick every 4 seconds
+setInterval(function() { microTick(); sparkTick(); }, 4000);
+setTimeout(function() { microTick(); sparkTick(); }, 2000);
+
+// Slowly drift 24h change percentages (micro drift around real CMC value)
+setInterval(function() {
+  Object.keys(changePercents).forEach(function(k) {
+    var old = parseFloat(changePercents[k]);
+    changePercents[k] = (old + (Math.random() * 0.04 - 0.02)).toFixed(2);
+  });
+  // Update current detail panel change badge
+  var c = parseFloat(changePercents[currentAsset]);
+  var isUp = c >= 0;
+  document.getElementById('detail-change-val').textContent = (isUp ? '+' : '') + c + '%';
+  var badge = document.getElementById('detail-change');
+  badge.style.background = isUp ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)';
+  badge.style.color = isUp ? '#22c55e' : '#ef4444';
+  document.getElementById('detail-change-icon').className = isUp ? 'ri-arrow-up-line' : 'ri-arrow-down-line';
+}, 8000);
+</script>

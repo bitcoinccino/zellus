@@ -1,0 +1,41 @@
+<div style="margin-bottom:20px;">
+  <div style="font-size:15px; font-weight:800; color:#2E2E38; margin-bottom:6px;">Demann Prè Anrejistre ✓</div>
+  <div style="font-size:13px; color:#5D6345;">Prè #<%= @loan.id %> — <%= @loan.created_at.strftime("%b %d, %Y") %></div>
+</div>
+
+<div style="background:#E8EDE0; border:2px solid #5D6345; border-radius:14px; padding:16px; margin-bottom:16px;">
+  <table width="100%" cellspacing="0" cellpadding="0">
+    <tr>
+      <td style="color:#5D6345; font-size:12px; font-weight:600; padding-bottom:8px;">Montan Prè</td>
+      <td style="color:#2E2E38; font-weight:800; text-align:right; padding-bottom:8px;">HTG <%= format('%.0f', @loan.fiat_amount.to_f) %></td>
+    </tr>
+    <tr>
+      <td style="color:#5D6345; font-size:12px; font-weight:600; padding-bottom:8px;">Objektif</td>
+      <td style="color:#2E2E38; font-weight:800; text-align:right; padding-bottom:8px;"><%= @loan.loan_purpose_label %></td>
+    </tr>
+    <tr>
+      <td style="color:#5D6345; font-size:12px; font-weight:600; padding-bottom:8px;">Tèm</td>
+      <td style="color:#2E2E38; font-weight:800; text-align:right; padding-bottom:8px;"><%= @loan.repayment_term_label %></td>
+    </tr>
+    <% if @loan.loan_total_repayable.present? %>
+      <tr>
+        <td colspan="2" style="border-top:1px dashed #5D6345; padding-top:10px;"></td>
+      </tr>
+      <tr>
+        <td style="color:#2E2E38; font-size:13px; font-weight:900; text-transform:uppercase;">Total Ranbousman</td>
+        <td style="color:#C5A059; font-size:18px; font-weight:900; text-align:right;">HTG <%= format('%.0f', @loan.loan_total_repayable.to_f) %></td>
+      </tr>
+    <% end %>
+  </table>
+</div>
+
+<% if @loan.collateral_description.present? %>
+  <div style="background:#fff; border:1px solid #d9d6c4; border-radius:12px; padding:12px; margin-bottom:16px;">
+    <div style="color:#5D6345; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-bottom:6px;">Kolateral</div>
+    <div style="color:#2E2E38; font-size:13px; font-weight:600;"><%= @loan.collateral_description %></div>
+  </div>
+<% end %>
+
+<div style="font-size:13px; color:#5D6345; line-height:1.6;">
+  Demann prè ou anrejistre! Yon admin ap revize li nan 24-48 èdtan. Ou ap resevwa yon imèl lè desizyon an pran.
+</div>

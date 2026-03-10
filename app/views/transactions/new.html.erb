@@ -3,8 +3,14 @@
     <div class="card-base p-8 max-w-sm w-full text-center animate-bounce-in" style="background: var(--haiti-cream); border: 3px solid var(--haiti-gold);">
       
       <!-- The Bird Icon -->
-      <div class="mb-4 text-7xl">
-        <%= current_user.tier_icon %>
+      <div class="mb-4 d-flex justify-content-center">
+        <div style="width: 80px; height: 80px; border-radius: 50%; overflow: hidden; background: var(--haiti-charcoal); border: 3px solid var(--haiti-gold); display: flex; align-items: center; justify-content: center;">
+          <% if current_user.avatar.attached? %>
+            <%= image_tag current_user.avatar, style: "width: 100%; height: 100%; object-fit: cover;", alt: "" %>
+          <% else %>
+            <span style="font-size: 3rem;"><%= current_user.tier_icon %></span>
+          <% end %>
+        </div>
       </div>
 
       <h2 id="rank-modal-title" class="h3 fw-black text-uppercase mb-2" style="color: var(--haiti-charcoal);">Felisitasyon!</h2>
@@ -44,15 +50,79 @@
   }
   .bb-dark-select {
     color: #fff !important;
+    font-weight: 400 !important;
+  }
+  .bb-dark-select:invalid,
+  .bb-dark-select option[disabled] {
+    color: rgba(255, 255, 255, 0.72) !important;
+    font-weight: 400 !important;
   }
   .bb-dark-select option {
     background: #fff;
     color: #111827;
   }
+  .crypto-dropdown { position: relative; }
+  .crypto-dropdown-toggle {
+    background-color: var(--haiti-charcoal);
+    color: white;
+    font-weight: 700;
+    font-size: 13px;
+    border: none;
+    border-radius: 8px;
+    padding: 16px;
+    width: 100%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.15s ease;
+  }
+  .crypto-dropdown-toggle:hover { opacity: 0.9; }
+  .crypto-dropdown-toggle .arrow {
+    margin-left: auto;
+    color: var(--haiti-gold);
+    font-size: 18px;
+    transition: transform 0.2s ease;
+  }
+  .crypto-dropdown.open .arrow { transform: rotate(180deg); }
+  .crypto-dropdown-menu {
+    display: none;
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0; right: 0;
+    background: var(--haiti-charcoal);
+    border-radius: 8px;
+    overflow: hidden;
+    z-index: 10;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+  }
+  .crypto-dropdown.open .crypto-dropdown-menu { display: block; }
+  .crypto-dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    color: white;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.12s ease;
+    border: none;
+    background: transparent;
+    width: 100%;
+  }
+  .crypto-dropdown-item:hover { background: rgba(255,255,255,0.08); }
+  .crypto-dropdown-item.active { background: rgba(197,160,89,0.15); }
 </style>
 
-<div class="container d-flex justify-content-center align-items-center" style="min-height: 80vh;">
-  <div class="card-base p-4 w-100 shadow-lg" style="max-width: 420px;">
+<div class="container" style="min-height: 80vh; padding-top: 40px; padding-bottom: 40px;">
+  <div class="row justify-content-center align-items-start g-4">
+
+    <%# Left: Currency Guide hidden (HTG + USD only mode — only one crypto so guide unnecessary) %>
+
+    <%# ── Right: Buy Form ── %>
+    <div class="col-lg-5">
+    <div class="card-base p-4 w-100" style="max-width: 420px; margin: 0 auto;">
     <% if @request_prefill_context.present? %>
       <div class="p-3 mb-3 rounded-4" style="background-color: rgba(197,160,89,0.12); border: 1px solid rgba(197,160,89,0.55);">
         <div class="small fw-bold text-uppercase mb-1" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">
@@ -76,20 +146,6 @@
       </div>
     <% end %>
 
-    <!-- Buy / Sell Toggle -->
-    <div class="d-flex mb-4 p-1 rounded-4" style="background-color: #E8EDE0; border: 2px solid var(--haiti-olive);">
-      <button type="button" id="btn-buy" onclick="switchTab('buy')"
-        class="btn w-50 py-2 fw-bold rounded-3"
-        style="background-color: var(--haiti-charcoal); color: var(--haiti-gold); border: none; font-size: 13px; letter-spacing: 0.5px;">
-        <i class="ri-arrow-down-circle-line me-1"></i> ACHTE KRIPTO
-      </button>
-      <button type="button" id="btn-sell" onclick="switchTab('sell')"
-        class="btn w-50 py-2 fw-bold rounded-3"
-        style="background-color: transparent; color: var(--haiti-olive); border: none; font-size: 13px; letter-spacing: 0.5px;">
-        <i class="ri-arrow-up-circle-line me-1"></i> VANN KRIPTO
-      </button>
-    </div>
-
     <!-- ── BUY FORM ────────────────────────────────────────────────── -->
     <div id="tab-buy">
       <div class="text-center mb-4">
@@ -97,393 +153,478 @@
           style="width: 56px; height: 56px; background-color: var(--haiti-charcoal);">
           <i class="ri-arrow-down-circle-fill ri-xl" style="color: var(--haiti-gold);"></i>
         </div>
-        <h1 class="h5 fw-black mb-0" style="color: var(--haiti-charcoal);">Achte Kripto ak HTG</h1>
-        <p class="small mb-0" style="color: var(--haiti-olive);">Peye ak MonCash · Resevwa sou Base</p>
+        <h1 class="h5 fw-black mb-0" id="buy-header-title" style="color: var(--haiti-charcoal);">Achte USD ak HTG</h1>
+        <p class="small mb-0" id="buy-header-subtitle" style="color: var(--haiti-olive);">Peye ak MonCash · Resevwa sou Zèllus</p>
       </div>
 
-      <%= form_with(url: transactions_path, method: :post, local: true, class: "row g-3") do |f| %>
+      <%= form_with(url: transactions_path, method: :post, local: true, class: "row g-3", id: "buy-crypto-form") do |f| %>
         <input type="hidden" name="transaction_type" value="buy">
         <% if @request_prefill_context.present? %>
           <input type="hidden" name="request_token" value="<%= @request_prefill_context.token %>">
         <% end %>
 
-        <!-- Crypto selector -->
-        <div class="col-12">
-          <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Chwazi Kripto</label>
-          <div class="d-flex gap-2">
-            <label class="flex-fill text-center p-2 rounded-3 cursor-pointer" style="border: 2px solid var(--haiti-olive); background: var(--haiti-cream);" id="lbl-usdc">
-              <input type="radio" name="crypto_currency" value="usdc" checked class="d-none" id="radio-usdc" onchange="updateBuyRate()">
-              <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;"><i class="ri-copper-coin-line me-1"></i>USDC</div>
-              <div style="color: var(--haiti-olive); font-size: 10px;">USD Coin</div>
-            </label>
-            <label class="flex-fill text-center p-2 rounded-3 cursor-pointer" style="border: 2px solid #d9d6c4; background: var(--haiti-cream);" id="lbl-wbtc">
-              <input type="radio" name="crypto_currency" value="wbtc" class="d-none" id="radio-wbtc" onchange="updateBuyRate()">
-              <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;"><i class="ri-bit-coin-line me-1"></i>WBTC</div>
-              <div style="color: var(--haiti-olive); font-size: 10px;">Wrapped BTC</div>
-            </label>
-            <label class="flex-fill text-center p-2 rounded-3 cursor-pointer" style="border: 2px solid #d9d6c4; background: var(--haiti-cream);" id="lbl-eth">
-              <input type="radio" name="crypto_currency" value="eth" class="d-none" id="radio-eth" onchange="updateBuyRate()">
-              <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;"><i class="ri-ethereum-line me-1"></i>ETH</div>
-              <div style="color: var(--haiti-olive); font-size: 10px;">Ethereum</div>
-            </label>
-          </div>
-        </div>
-
-        <!-- Amount Input -->
-        <div class="col-12">
-          <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Montan an Goud (HTG)</label>
-          <div class="input-group">
-            <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);">
-              <i class="ri-money-dollar-circle-line"></i>
-            </span>
-            <%= f.number_field :fiat_amount, 
-                name: "fiat_amount", 
-                placeholder: "e.g. 5000",
-                value: @prefill_fiat_amount,
-                class: "form-control border-0 fw-bold shadow-none p-3 bb-dark-field",
-                style: "background-color: var(--haiti-charcoal); color: white;",
-                required: true, 
-                min: @buy_min_htg, 
-                max: @buy_max_htg, 
-                step: 1 %>
-          </div>
-          <div class="small mt-1" style="color: var(--haiti-olive); font-size: 10px;">
-            <i class="ri-information-line me-1"></i>
-            Limit: <%= number_with_precision(@buy_min_htg, precision: 0) %> - <%= number_with_precision(@buy_max_htg, precision: 0) %> HTG
-          </div>
-        </div>
-
-        <!-- Wallet Address -->
-        <div class="col-12">
-          <% if @buy_wallet_methods.present? %>
-            <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Pòtfèy Kripto Anrejistre</label>
-            <select name="crypto_payment_method_id" id="buy-wallet-method-select"
-                class="form-select border-0 fw-bold shadow-none p-3 mb-2 bb-dark-select"
-                style="background-color: var(--haiti-charcoal); color: white;"
-                onchange="fillBuyWalletFromSaved()">
-              <option value="">Itilize adrès pòtfèy manyèl</option>
-              <% @buy_wallet_methods.each do |pm| %>
-                <option value="<%= pm.id %>"><%= "#{pm.display_label} (#{pm.masked_wallet_address})" %></option>
-              <% end %>
-            </select>
-            <div class="small mb-2" style="color: var(--haiti-olive); font-size: 10px;">
-              <i class="ri-wallet-3-line me-1"></i>
-              <%= link_to "Jere metòd peman", payment_methods_path, style: "color: var(--haiti-olive);" %>
+        <!-- ── Step 1: Form fields ── -->
+        <div id="buy-form-fields">
+          <!-- Crypto selector (dropdown) -->
+          <div class="col-12">
+            <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Chwazi Lajan</label>
+            <div class="crypto-dropdown" id="buy-crypto-dropdown">
+              <button type="button" class="crypto-dropdown-toggle" onclick="toggleBuyCryptoDD()">
+                <span id="buy-crypto-logo"><%= usd_logo(size: 22) %></span>
+                <span id="buy-crypto-label">USD</span>
+                <span style="color: rgba(255,255,255,0.5); font-size: 11px; font-weight: 400;" id="buy-crypto-sub">Dola Ameriken</span>
+                <i class="ri-arrow-down-s-line arrow"></i>
+              </button>
+              <div class="crypto-dropdown-menu">
+                <button type="button" class="crypto-dropdown-item active" data-value="usdc" onclick="selectBuyCrypto('usdc', this)">
+                  <span class="d-inline-flex align-items-center"><%= usd_logo(size: 20) %></span> USD
+                  <span style="color: rgba(255,255,255,0.5); font-size: 11px; font-weight: 400;">Dola Ameriken</span>
+                </button>
+                <%# wBTC, ETH, and stock dropdown items hidden (HTG + USD only mode) %>
+              </div>
             </div>
-          <% end %>
-          <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Pòtfèy Resevè (Rezo Base)</label>
-          <div class="input-group">
-            <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);">
-              <i class="ri-wallet-3-line"></i>
-            </span>
-            <%= f.text_field :destination_address, 
-                name: "destination_address", 
-                placeholder: "0x...",
-                id: "buy-destination-address",
-                value: @prefill_destination_address,
-                class: "form-control border-0 fw-bold shadow-none p-3 bb-dark-field",
-                style: "background-color: var(--haiti-charcoal); color: white;",
-                required: true %>
+            <input type="hidden" name="crypto_currency" id="buy-crypto-hidden" value="usdc">
           </div>
-        </div>
 
-        <!-- Rate Widget -->
-        <div class="col-12">
-          <div class="p-3 rounded-4 d-flex align-items-center justify-content-between"
-            style="background-color: rgba(93,99,69,0.08); border: 1px dashed var(--haiti-olive);">
-            <span class="small fw-bold" style="color: var(--haiti-olive);">To Aktyèl</span>
-            <span id="rate-display" class="fw-black" style="color: var(--haiti-charcoal);">1 USDC = <%= number_with_precision(@buy_exchange_rate || 135.5, precision: 2) %> HTG</span>
+          <!-- Amount Input -->
+          <div class="col-12 mt-3">
+            <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Montan an Goud (HTG)</label>
+            <div class="input-group">
+              <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);">
+                <i class="ri-money-dollar-circle-line"></i>
+              </span>
+              <%= f.number_field :fiat_amount,
+                  name: "fiat_amount",
+                  placeholder: "e.g. 5000",
+                  value: @prefill_fiat_amount,
+                  class: "form-control border-0 shadow-none p-3 bb-dark-field",
+                  style: "background-color: var(--haiti-charcoal); color: white;",
+                  required: true,
+                  min: @buy_min_htg,
+                  max: @buy_max_htg,
+                  step: 1 %>
+            </div>
+            <div class="small mt-1" style="color: var(--haiti-olive); font-size: 10px;">
+              <i class="ri-information-line me-1"></i>
+              Limit: <%= number_with_precision(@buy_min_htg, precision: 0) %> - <%= number_with_precision(@buy_max_htg, precision: 0) %> HTG
+            </div>
           </div>
-          <div class="small mt-1" style="color: var(--haiti-olive); font-size: 10px;">
-            <i class="ri-time-line me-1"></i>
-            <% if @rates_updated_at.present? %>
-              Mizajou <%= time_ago_in_words(@rates_updated_at) %> de sa
+
+          <!-- MonCash Phone -->
+          <div class="col-12 mt-3">
+            <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">
+              <img src="<%= asset_path('moncash.svg') %>" width="16" height="16" class="me-1" style="vertical-align: -2px;"> Nimewo MonCash
+            </label>
+            <% if @buy_moncash_methods.present? %>
+              <select name="moncash_phone" id="buy-moncash-phone"
+                  class="form-select border-0 shadow-none p-3 bb-dark-select"
+                  style="background-color: var(--haiti-charcoal); color: white; font-weight: 400;">
+                <% @buy_moncash_methods.each do |pm| %>
+                  <option value="<%= pm.account_number %>" data-masked="<%= pm.masked_account_number %>"><%= pm.display_label %></option>
+                <% end %>
+                <option value="manual">Lòt nimewo...</option>
+              </select>
+              <div id="buy-moncash-manual-wrapper" style="display: none;">
+                <input type="tel" id="buy-moncash-manual" class="form-control border-0 shadow-none p-3 mt-2 bb-dark-field"
+                       style="background-color: var(--haiti-charcoal); color: white;"
+                       placeholder="(509) XXXX XXXX">
+              </div>
             <% else %>
-              Mizajou dènyèman
+              <input type="tel" name="moncash_phone" id="buy-moncash-phone"
+                     class="form-control border-0 shadow-none p-3 bb-dark-field"
+                     style="background-color: var(--haiti-charcoal); color: white;"
+                     placeholder="(509) XXXX XXXX" required>
             <% end %>
           </div>
-        </div>
 
-        <!-- Submit -->
-        <div class="col-12 mt-2">
-          <%= f.button class: "btn w-100 py-3 fw-bold rounded-4 shadow-sm border-0 d-flex align-items-center justify-content-center gap-2",
-              style: "background-color: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 14px; letter-spacing: 0.5px;" do %>
-            <i class="ri-flashlight-fill"></i> Kontinye pou Revize
-          <% end %>
-        </div>
-      <% end %>
-    </div>
-
-    <!-- ── SELL FORM ───────────────────────────────────────────────── -->
-    <div id="tab-sell" style="display:none;">
-      <div class="text-center mb-4">
-        <div class="d-inline-flex align-items-center justify-content-center mb-3 rounded-3"
-          style="width: 56px; height: 56px; background-color: var(--haiti-charcoal);">
-          <i class="ri-arrow-up-circle-fill ri-xl" style="color: var(--haiti-gold);"></i>
-        </div>
-        <h1 class="h5 fw-black mb-0" style="color: var(--haiti-charcoal);">Vann Kripto pou HTG</h1>
-        <p class="small mb-0" style="color: var(--haiti-olive);">Voye Kripto · Resevwa HTG ak MonCash</p>
-      </div>
-
-      <%= form_with(url: transactions_path, method: :post, local: true, class: "row g-3") do |f| %>
-        <input type="hidden" name="transaction_type" value="sell">
-        <% if @request_prefill_context.present? %>
-          <input type="hidden" name="request_token" value="<%= @request_prefill_context.token %>">
-        <% end %>
-
-        <!-- Sell Crypto Selector -->
-        <div class="col-12">
-          <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Chwazi Kripto pou Vann</label>
-          <div class="d-flex gap-2">
-            <label class="flex-fill text-center p-2 rounded-3 cursor-pointer" style="border: 2px solid var(--haiti-olive); background: var(--haiti-cream);" id="lbl-sell-usdc">
-              <input type="radio" name="sell_crypto_currency" value="usdc" checked class="d-none" id="radio-sell-usdc" onchange="updateSellCrypto()">
-              <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;"><i class="ri-copper-coin-line me-1"></i>USDC</div>
-              <div style="color: var(--haiti-olive); font-size: 10px;">USD Coin</div>
-            </label>
-            <label class="flex-fill text-center p-2 rounded-3 cursor-pointer" style="border: 2px solid #d9d6c4; background: var(--haiti-cream);" id="lbl-sell-wbtc">
-              <input type="radio" name="sell_crypto_currency" value="wbtc" class="d-none" id="radio-sell-wbtc" onchange="updateSellCrypto()">
-              <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;"><i class="ri-bit-coin-line me-1"></i>WBTC</div>
-              <div style="color: var(--haiti-olive); font-size: 10px;">Wrapped BTC</div>
-            </label>
-            <label class="flex-fill text-center p-2 rounded-3 cursor-pointer" style="border: 2px solid #d9d6c4; background: var(--haiti-cream);" id="lbl-sell-eth">
-              <input type="radio" name="sell_crypto_currency" value="eth" class="d-none" id="radio-sell-eth" onchange="updateSellCrypto()">
-              <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;"><i class="ri-ethereum-line me-1"></i>ETH</div>
-              <div style="color: var(--haiti-olive); font-size: 10px;">Ethereum</div>
-            </label>
-          </div>
-        </div>
-
-        <!-- Crypto Amount -->
-        <div class="col-12">
-          <label class="form-label small fw-bold text-uppercase" id="sell-amount-label" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Montan USDC pou Vann</label>
-          <div class="input-group">
-            <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);">
-              <i class="ri-copper-coin-line" id="sell-amount-icon"></i>
-            </span>
-            <%= f.number_field :crypto_amount_sell,
-                name: "crypto_amount_sell",
-                placeholder: "e.g. 10",
-                value: @prefill_crypto_amount_sell,
-                id: "sell-crypto-amount",
-                class: "form-control border-0 fw-bold shadow-none p-3 bb-dark-field",
-                style: "background-color: var(--haiti-charcoal); color: white;",
-                required: true,
-                min: @sell_min_usdc,
-                max: @sell_max_usdc,
-                step: "0.000001" %>
-          </div>
-          <div class="small mt-1" id="sell-limit-info" style="color: var(--haiti-olive); font-size: 10px;">
-            <i class="ri-information-line me-1"></i>
-            Limit: <%= number_with_precision(@sell_min_usdc, precision: 2) %> USDC - <%= number_with_precision(@sell_max_usdc, precision: 2) %> USDC
-          </div>
-        </div>
-
-        <!-- MonCash Phone -->
-        <div class="col-12">
-          <% if @sell_payment_methods.present? %>
-            <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Metòd Peman Anrejistre</label>
-            <select name="payment_method_id" id="sell-payment-method-select"
-                class="form-select border-0 fw-bold shadow-none p-3 mb-2 bb-dark-select"
-                style="background-color: var(--haiti-charcoal); color: white;"
-                onchange="fillMoncashFromSaved()">
-              <option value="">Itilize nimewo MonCash manyèl</option>
-              <% @sell_payment_methods.each do |pm| %>
-                <option value="<%= pm.id %>"><%= "#{pm.display_label} (#{pm.masked_account_number})" %></option>
-              <% end %>
-            </select>
-            <div class="small mb-2" style="color: var(--haiti-olive); font-size: 10px;">
-              <i class="ri-bank-card-line me-1"></i>
-              <%= link_to "Jere metòd peman", payment_methods_path, style: "color: var(--haiti-olive);" %>
-            </div>
-          <% end %>
-          <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Nimewo MonCash Ou</label>
-          <div class="input-group">
-            <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);">
-              <i class="ri-smartphone-line"></i>
-            </span>
-            <%= f.text_field :moncash_phone,
-                name: "moncash_phone",
-                placeholder: "e.g. 50937000000",
-                id: "sell-moncash-phone",
-                value: @prefill_moncash_phone,
-                class: "form-control border-0 fw-bold shadow-none p-3 bb-dark-field",
-                style: "background-color: var(--haiti-charcoal); color: white;",
-                required: true %>
-          </div>
-          <div class="small mt-1" style="color: var(--haiti-olive); font-size: 10px;">
-            <i class="ri-information-line me-1"></i>HTG ap voye nan nimewo MonCash sa a
-          </div>
-        </div>
-
-        <!-- Treasury wallet to send to -->
-        <div class="col-12">
-          <div class="p-3 rounded-4" style="background-color: rgba(93,99,69,0.08); border: 1px dashed var(--haiti-olive);">
-            <div class="small fw-bold text-uppercase mb-1" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">
-              <i class="ri-wallet-3-line me-1"></i> <span id="sell-treasury-label">Voye USDC nan adrès sa a</span>
-            </div>
-            <code style="color: var(--haiti-charcoal); font-size: 11px; word-break: break-all; font-weight: 700;">
-              <%= ENV['TREASURY_ADDRESS'] || "0x9BAC1AC641d7c08caE0f524cC62a81C6abe73dEa" %>
-            </code>
-            <div class="small mt-1" style="color: #dc3545; font-size: 10px;" id="sell-treasury-warning">
-              <i class="ri-error-warning-line me-1"></i>Voye USDC sou rezo Base sèlman. Lòt jeton ap pèdi.
-            </div>
-          </div>
-        </div>
-
-        <!-- Rate Widget -->
-        <div class="col-12">
-          <div class="p-3 rounded-4 d-flex align-items-center justify-content-between"
-            style="background-color: rgba(93,99,69,0.08); border: 1px dashed var(--haiti-olive);">
-            <span class="small fw-bold" style="color: var(--haiti-olive);">To Lavant</span>
-            <span id="sell-rate-display" class="fw-black" style="color: var(--haiti-charcoal);">1 USDC = <%= number_with_precision(@sell_exchange_rate || 135.5, precision: 2) %> HTG</span>
-          </div>
-          <div class="small mt-1" style="color: var(--haiti-olive); font-size: 10px;">
-            <i class="ri-time-line me-1"></i>
-            <% if @rates_updated_at.present? %>
-              Mizajou <%= time_ago_in_words(@rates_updated_at) %> de sa
-            <% else %>
-              Mizajou dènyèman
+          <!-- Wallet Address -->
+          <div class="col-12 mt-3">
+            <% if @buy_wallet_methods.present? %>
+              <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Pòtfèy USD Anrejistre</label>
+              <select name="crypto_payment_method_id" id="buy-wallet-method-select"
+                  class="form-select border-0 shadow-none p-3 mb-2 bb-dark-select"
+                  style="background-color: var(--haiti-charcoal); color: white; font-weight: 400;"
+                  onchange="fillBuyWalletFromSaved()">
+                <option value="" disabled selected>Chwazi yon pòtfèy</option>
+                <% @buy_wallet_methods.each do |pm| %>
+                  <option value="<%= pm.id %>"><%= "#{pm.display_label} (#{pm.masked_wallet_address})" %></option>
+                <% end %>
+                <option value="manual">Yon lòt</option>
+              </select>
+              <div class="small mb-2" style="color: var(--haiti-olive); font-size: 10px;">
+                <i class="ri-wallet-3-line me-1"></i>
+                <%= link_to "Jere peman", payment_methods_path, style: "color: var(--haiti-olive); font-weight: 400;" %>
+              </div>
             <% end %>
+            <div id="buy-manual-wallet-wrapper" style="display: none;">
+              <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Pòtfèy Resevè (Rezo Base)</label>
+              <div class="input-group">
+                <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);">
+                  <i class="ri-wallet-3-line"></i>
+                </span>
+                <%= f.text_field :destination_address,
+                    name: "destination_address",
+                    placeholder: "0x...",
+                    id: "buy-destination-address",
+                    value: @prefill_destination_address,
+                    class: "form-control border-0 shadow-none p-3 bb-dark-field",
+                    style: "background-color: var(--haiti-charcoal); color: white;" %>
+              </div>
+            </div>
+          </div>
+
+          <!-- Rate Widget -->
+          <div class="col-12 mt-3">
+            <div class="p-3 rounded-4 d-flex align-items-center justify-content-between"
+              style="background-color: rgba(93,99,69,0.08); border: 1px dashed var(--haiti-olive);">
+              <span class="small fw-bold" style="color: var(--haiti-olive);">To Aktyèl</span>
+              <span id="rate-display" class="fw-black" style="color: var(--haiti-charcoal);">1 USD = <%= number_with_precision(@buy_exchange_rate || 135.5, precision: 2) %> HTG</span>
+            </div>
+            <div class="small mt-1" style="color: var(--haiti-olive); font-size: 10px;">
+              <i class="ri-time-line me-1"></i>
+              <% if @rates_updated_at.present? %>
+                Mizajou <%= time_ago_in_words(@rates_updated_at) %> de sa
+              <% else %>
+                Mizajou dènyèman
+              <% end %>
+            </div>
+          </div>
+
+          <!-- Achte Button -->
+          <div class="col-12 mt-3">
+            <button type="button" onclick="handleBuyClick()"
+                class="btn w-100 py-3 fw-bold rounded-4 shadow-sm border-0 d-flex align-items-center justify-content-center gap-2"
+                style="background-color: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 14px; letter-spacing: 0.5px;">
+              <i class="ri-arrow-down-circle-line"></i> Achte
+            </button>
           </div>
         </div>
 
-        <!-- Submit -->
-        <div class="col-12 mt-2">
-          <%= f.button class: "btn w-100 py-3 fw-bold rounded-4 shadow-sm border-0 d-flex align-items-center justify-content-center gap-2",
-              style: "background-color: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 14px; letter-spacing: 0.5px;" do %>
-            <i class="ri-arrow-up-circle-line"></i> Kreye Lòd Lavant
+        <!-- ── Step 2: Summary (hidden until "Achte" is clicked) ── -->
+        <div id="buy-summary-section" style="display: none;">
+          <!-- Rate badge (outside card) -->
+          <div class="text-center mb-2">
+            <span class="small fw-bold" id="buy-summary-rate" style="color: var(--haiti-olive); font-size: 11px;">—</span>
+          </div>
+
+          <!-- Order Summary -->
+          <div class="p-3 rounded-4 mb-3" style="background-color: var(--haiti-charcoal);">
+            <div class="small fw-bold text-uppercase mb-2" style="color: var(--haiti-gold); font-size: 10px; letter-spacing: 1px;">
+              <i class="ri-file-list-3-line me-1"></i> Rezime Lòd
+            </div>
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="small" style="color: rgba(255,255,255,0.6); font-size: 11px;">Ou peye</span>
+              <span class="fw-bold" id="buy-summary-pay" style="color: #fff; font-size: 13px;">—</span>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="small" style="color: rgba(255,255,255,0.6); font-size: 11px;"><img src="<%= asset_path('moncash.svg') %>" width="14" height="14" style="vertical-align: -2px; margin-right: 3px;">Ak MonCash Ou</span>
+              <span class="fw-bold" id="buy-summary-moncash" style="color: rgba(255,255,255,0.8); font-size: 11px;">—</span>
+            </div>
+            <hr style="border-color: rgba(255,255,255,0.15); margin: 8px 0;">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="small" style="color: rgba(255,255,255,0.6); font-size: 11px;">Pou resevwa</span>
+              <span class="fw-black" id="buy-summary-receive" style="color: var(--haiti-gold); font-size: 16px;">—</span>
+            </div>
+            <div class="d-flex justify-content-between align-items-start">
+              <span class="small" style="color: rgba(255,255,255,0.6); font-size: 11px;"><i class="ri-wallet-3-line me-1"></i>Sou Pòtfèy</span>
+              <span class="fw-bold text-end" id="buy-summary-dest" style="color: rgba(255,255,255,0.8); font-size: 10px; max-width: 200px; word-break: break-all;">—</span>
+            </div>
+          </div>
+
+          <!-- MonCash info -->
+          <div class="p-2 rounded-3 mb-3 text-center" style="background: rgba(93,99,69,0.08);">
+            <span class="small" style="color: var(--haiti-olive); font-size: 11px;">
+              <i class="ri-smartphone-line me-1"></i>Apre konfime, ou ap resevwa yon demann peman MonCash.
+            </span>
+          </div>
+
+          <!-- Kontinye button -->
+          <button type="button" onclick="buyShowPin()"
+              class="btn w-100 py-3 fw-bold rounded-4 shadow-sm border-0 d-flex align-items-center justify-content-center gap-2"
+              style="background-color: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 14px; letter-spacing: 0.5px;">
+            <i class="ri-arrow-right-line"></i> Kontinye
+          </button>
+
+          <!-- Back link -->
+          <div class="text-center mt-3">
+            <a href="#" onclick="buyGoBack(); return false;" class="small fw-bold" style="color: var(--haiti-olive); text-decoration: none;">
+              <i class="ri-arrow-left-line me-1"></i>Retounen
+            </a>
+          </div>
+        </div>
+
+        <!-- ── Step 3: PIN (hidden until "Kontinye" is clicked) ── -->
+        <div id="buy-pin-section" style="display: none;">
+          <% if current_user.transfer_pin_set? %>
+            <div class="p-4 rounded-4 mb-3 text-center" style="background-color: var(--haiti-charcoal);">
+              <i class="ri-lock-password-line d-block mb-2" style="color: var(--haiti-gold); font-size: 28px;"></i>
+              <div class="small fw-bold text-uppercase mb-3" style="color: var(--haiti-gold); font-size: 10px; letter-spacing: 1px;">
+                Antre Kòd PIN
+              </div>
+              <input type="password" name="transfer_pin" id="buy-pin-input"
+                     class="form-control border-0 fw-bold shadow-none p-3 bb-dark-field rounded-3 mx-auto"
+                     placeholder="• • • •" maxlength="4" pattern="\d{4}" required inputmode="numeric" disabled
+                     style="background-color: rgba(255,255,255,0.1); color: white; letter-spacing: 12px; text-align: center; font-size: 24px; max-width: 200px;">
+            </div>
+
+            <button type="button"
+                class="btn w-100 py-3 fw-bold rounded-4 shadow-sm border-0 d-flex align-items-center justify-content-center gap-2"
+                style="background-color: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 14px; letter-spacing: 0.5px;"
+                onclick="ZellusLoader.start('buy-loader', document.getElementById('buy-crypto-form'));">
+              <i class="ri-flashlight-fill"></i> Konfime Achte
+            </button>
+
+            <%= render "shared/step_loader", id: "buy-loader", steps: [
+              "N'ap verifye balans ou...",
+              "N'ap bloke to a pou ou...",
+              "N'ap trete tranzaksyon an...",
+              "Acha USD fèt ak siksè ✓"
+            ] %>
+          <% else %>
+            <div class="p-4 rounded-4 mb-3 text-center" style="background: rgba(197,160,89,0.12); border: 1px solid rgba(197,160,89,0.55);">
+              <i class="ri-lock-line d-block mb-2" style="color: var(--haiti-gold); font-size: 28px;"></i>
+              <span class="small" style="color: var(--haiti-charcoal); font-size: 11px;">
+                Ou dwe <%= link_to "kreye yon PIN", new_transfer_path, style: "color: var(--haiti-gold); font-weight: 700;" %> anvan ou ka achte.
+              </span>
+            </div>
           <% end %>
+
+          <div class="text-center mt-3">
+            <a href="#" onclick="buyPinGoBack(); return false;" class="small fw-bold" style="color: var(--haiti-olive); text-decoration: none;">
+              <i class="ri-arrow-left-line me-1"></i>Retounen
+            </a>
+          </div>
         </div>
       <% end %>
     </div>
 
   </div>
-</div>
+  </div><%# col-lg-5 %>
+
+  </div><%# row %>
+</div><%# container %>
 
 <script>
 const BUY_USDC_RATE_HTG  = <%= (@buy_exchange_rate || 135.5).to_f.round(2) %>;
 const BUY_WBTC_RATE_HTG  = <%= (@wbtc_htg_buy_rate || 12_872_500).to_f.round(2) %>;
 const BUY_ETH_RATE_HTG   = <%= (@eth_htg_buy_rate || 390_000).to_f.round(2) %>;
-const SELL_USDC_RATE_HTG = <%= (@sell_exchange_rate || 135.5).to_f.round(2) %>;
-const SELL_WBTC_RATE_HTG = <%= (@wbtc_htg_sell_rate || 12_872_500).to_f.round(2) %>;
-const SELL_ETH_RATE_HTG  = <%= (@eth_htg_sell_rate || 390_000).to_f.round(2) %>;
-const SELL_MIN_USDC = <%= (@sell_min_usdc || 1).to_f %>;
-const SELL_MAX_USDC = <%= (@sell_max_usdc || 1000).to_f %>;
-const SELL_MIN_WBTC = <%= (@sell_min_wbtc || 0.0001).to_f %>;
-const SELL_MAX_WBTC = <%= (@sell_max_wbtc || 1).to_f %>;
-const SELL_MIN_ETH  = <%= (@sell_min_eth || 0.005).to_f %>;
-const SELL_MAX_ETH  = <%= (@sell_max_eth || 10).to_f %>;
-const INITIAL_EXCHANGE_TAB = <%= (@initial_exchange_tab || "buy").to_json.html_safe %>;
+const STOCK_BUY_RATES = {
+  tslax:  <%= (@stock_rates&.dig("tslax", :htg_buy) || 0).to_f.round(2) %>,
+  nvdax:  <%= (@stock_rates&.dig("nvdax", :htg_buy) || 0).to_f.round(2) %>,
+  aaplx:  <%= (@stock_rates&.dig("aaplx", :htg_buy) || 0).to_f.round(2) %>,
+  coinx:  <%= (@stock_rates&.dig("coinx", :htg_buy) || 0).to_f.round(2) %>,
+  googlx: <%= (@stock_rates&.dig("googlx", :htg_buy) || 0).to_f.round(2) %>
+};
 const SAVED_CRYPTO_WALLETS = <%= (@buy_wallet_methods || []).map { |pm| [pm.id.to_s, pm.wallet_address] }.to_h.to_json.html_safe %>;
-const SAVED_MONCASH_METHODS = <%= (@sell_payment_methods || []).map { |pm| [pm.id.to_s, pm.account_number] }.to_h.to_json.html_safe %>;
 
-function switchTab(tab) {
-  document.getElementById('tab-buy').style.display  = tab === 'buy'  ? '' : 'none';
-  document.getElementById('tab-sell').style.display = tab === 'sell' ? '' : 'none';
+function highlightCryptoGuide(sel) {
+  document.querySelectorAll('.crypto-guide-card').forEach(function(card) {
+    if (card.getAttribute('data-guide') === sel) {
+      card.style.opacity = '1';
+      card.style.transform = 'scale(1.02)';
+      card.style.transition = 'all 0.2s ease';
+    } else {
+      card.style.opacity = '0.45';
+      card.style.transform = 'scale(1)';
+      card.style.transition = 'all 0.2s ease';
+    }
+  });
+}
 
-  const active   = { backgroundColor: 'var(--haiti-charcoal)', color: 'var(--haiti-gold)' };
-  const inactive = { backgroundColor: 'transparent', color: 'var(--haiti-olive)' };
+// ── Buy crypto dropdown ──
+var CRYPTO_META = {
+  usdc:   { label: 'USD',    sub: 'Dola Ameriken' },
+  wbtc:   { label: 'wBTC',   sub: 'Bitcoin' },
+  eth:    { label: 'ETH',    sub: 'Ethereum' },
+  tslax:  { label: 'TSLAX',  sub: 'Tesla' },
+  nvdax:  { label: 'NVDAX',  sub: 'Nvidia' },
+  aaplx:  { label: 'AAPLX',  sub: 'Apple' },
+  coinx:  { label: 'COINX',  sub: 'Coinbase' },
+  googlx: { label: 'GOOGLX', sub: 'Alphabet' }
+};
 
-  Object.assign(document.getElementById('btn-buy').style,  tab === 'buy'  ? active : inactive);
-  Object.assign(document.getElementById('btn-sell').style, tab === 'sell' ? active : inactive);
+function toggleBuyCryptoDD() {
+  var dd = document.getElementById('buy-crypto-dropdown');
+  dd.classList.toggle('open');
+}
+
+function selectBuyCrypto(value, btn) {
+  // Update hidden input
+  document.getElementById('buy-crypto-hidden').value = value;
+
+  // Update toggle display
+  var logoSpan = btn.querySelector('span');
+  if (logoSpan) document.getElementById('buy-crypto-logo').innerHTML = logoSpan.innerHTML;
+  document.getElementById('buy-crypto-label').textContent = CRYPTO_META[value].label;
+  document.getElementById('buy-crypto-sub').textContent = CRYPTO_META[value].sub;
+
+  // Highlight active item
+  document.querySelectorAll('#buy-crypto-dropdown .crypto-dropdown-item').forEach(function(el) {
+    el.classList.toggle('active', el.getAttribute('data-value') === value);
+  });
+
+  // Close dropdown
+  document.getElementById('buy-crypto-dropdown').classList.remove('open');
+
+  // Update rate + guide
+  updateBuyRate();
+}
+
+// Close dropdowns on outside click
+document.addEventListener('click', function(e) {
+  var buyDD = document.getElementById('buy-crypto-dropdown');
+  if (buyDD && !buyDD.contains(e.target)) buyDD.classList.remove('open');
+});
+
+function getBuyRate(ticker) {
+  if (ticker === 'wbtc') return BUY_WBTC_RATE_HTG;
+  if (ticker === 'eth')  return BUY_ETH_RATE_HTG;
+  if (ticker === 'usdc') return BUY_USDC_RATE_HTG;
+  return STOCK_BUY_RATES[ticker] || 0;
 }
 
 function updateBuyRate() {
-  const isEth  = document.getElementById('radio-eth').checked;
-  const isWbtc = document.getElementById('radio-wbtc').checked;
-  const displayEl = document.getElementById('rate-display');
+  var sel = document.getElementById('buy-crypto-hidden').value;
+  var displayEl = document.getElementById('rate-display');
+  var rate = getBuyRate(sel);
+  var label = (CRYPTO_META[sel] || {}).label || sel.toUpperCase();
 
-  let displayText;
-  if (isWbtc) {
-    displayText = `1 WBTC = ${BUY_WBTC_RATE_HTG.toLocaleString()} HTG`;
-  } else if (isEth) {
-    displayText = `1 ETH = ${BUY_ETH_RATE_HTG.toLocaleString()} HTG`;
-  } else {
-    displayText = `1 USDC = ${BUY_USDC_RATE_HTG.toFixed(2)} HTG`;
-  }
-  displayEl.textContent = displayText;
+  displayEl.textContent = '1 ' + label + ' = ' + rate.toLocaleString() + ' HTG';
 
-  // Highlight selected card
-  const sel = isWbtc ? 'wbtc' : isEth ? 'eth' : 'usdc';
-  document.getElementById('lbl-usdc').style.borderColor = sel === 'usdc' ? 'var(--haiti-olive)' : '#d9d6c4';
-  document.getElementById('lbl-wbtc').style.borderColor = sel === 'wbtc' ? 'var(--haiti-olive)' : '#d9d6c4';
-  document.getElementById('lbl-eth').style.borderColor  = sel === 'eth'  ? 'var(--haiti-olive)' : '#d9d6c4';
+  // Reset to step 1 when crypto changes
+  buyGoBack();
+
+  // Highlight desktop guide card
+  highlightCryptoGuide(sel);
 }
 
-function updateSellCrypto() {
-  const isWbtc = document.getElementById('radio-sell-wbtc').checked;
-  const isEth  = document.getElementById('radio-sell-eth').checked;
-  const amountInput = document.getElementById('sell-crypto-amount');
-  const label = document.getElementById('sell-amount-label');
-  const icon  = document.getElementById('sell-amount-icon');
-  const limitInfo = document.getElementById('sell-limit-info');
-  const rateDisplay = document.getElementById('sell-rate-display');
-  const treasuryLabel = document.getElementById('sell-treasury-label');
-  const treasuryWarning = document.getElementById('sell-treasury-warning');
-
-  if (isWbtc) {
-    label.textContent = 'MONTAN WBTC POU VANN';
-    icon.className = 'ri-bit-coin-line';
-    amountInput.min = SELL_MIN_WBTC;
-    amountInput.max = SELL_MAX_WBTC;
-    amountInput.step = '0.00000001';
-    amountInput.placeholder = 'e.g. 0.001';
-    limitInfo.innerHTML = '<i class="ri-information-line me-1"></i>Limit: ' + SELL_MIN_WBTC + ' WBTC - ' + SELL_MAX_WBTC + ' WBTC';
-    rateDisplay.textContent = '1 WBTC = ' + SELL_WBTC_RATE_HTG.toLocaleString() + ' HTG';
-    treasuryLabel.textContent = 'Voye WBTC nan adrès sa a';
-    treasuryWarning.innerHTML = '<i class="ri-error-warning-line me-1"></i>Voye WBTC sou rezo Base sèlman.';
-  } else if (isEth) {
-    label.textContent = 'MONTAN ETH POU VANN';
-    icon.className = 'ri-ethereum-line';
-    amountInput.min = SELL_MIN_ETH;
-    amountInput.max = SELL_MAX_ETH;
-    amountInput.step = '0.000001';
-    amountInput.placeholder = 'e.g. 0.05';
-    limitInfo.innerHTML = '<i class="ri-information-line me-1"></i>Limit: ' + SELL_MIN_ETH + ' ETH - ' + SELL_MAX_ETH + ' ETH';
-    rateDisplay.textContent = '1 ETH = ' + SELL_ETH_RATE_HTG.toLocaleString() + ' HTG';
-    treasuryLabel.textContent = 'Voye ETH nan adrès sa a';
-    treasuryWarning.innerHTML = '<i class="ri-error-warning-line me-1"></i>Voye ETH sou rezo Base sèlman. Lòt jeton ap pèdi.';
-  } else {
-    label.textContent = 'MONTAN USDC POU VANN';
-    icon.className = 'ri-copper-coin-line';
-    amountInput.min = SELL_MIN_USDC;
-    amountInput.max = SELL_MAX_USDC;
-    amountInput.step = '0.000001';
-    amountInput.placeholder = 'e.g. 10';
-    limitInfo.innerHTML = '<i class="ri-information-line me-1"></i>Limit: ' + SELL_MIN_USDC.toFixed(2) + ' USDC - ' + SELL_MAX_USDC.toFixed(2) + ' USDC';
-    rateDisplay.textContent = '1 USDC = ' + SELL_USDC_RATE_HTG.toFixed(2) + ' HTG';
-    treasuryLabel.textContent = 'Voye USDC nan adrès sa a';
-    treasuryWarning.innerHTML = '<i class="ri-error-warning-line me-1"></i>Voye USDC sou rezo Base sèlman. Lòt jeton ap pèdi.';
+function handleBuyClick() {
+  const form = document.getElementById('tab-buy').querySelector('form');
+  if (form && !form.checkValidity()) {
+    form.reportValidity();
+    return;
   }
 
-  // Highlight selected card
-  const sel = isWbtc ? 'wbtc' : isEth ? 'eth' : 'usdc';
-  document.getElementById('lbl-sell-usdc').style.borderColor = sel === 'usdc' ? 'var(--haiti-olive)' : '#d9d6c4';
-  document.getElementById('lbl-sell-wbtc').style.borderColor = sel === 'wbtc' ? 'var(--haiti-olive)' : '#d9d6c4';
-  document.getElementById('lbl-sell-eth').style.borderColor  = sel === 'eth'  ? 'var(--haiti-olive)' : '#d9d6c4';
+  // Calculate summary values
+  var buySel = document.getElementById('buy-crypto-hidden').value;
+  const htgAmount = parseFloat(document.querySelector('#tab-buy [name="fiat_amount"]').value) || 0;
+  const rate = getBuyRate(buySel);
+  const crypto = (CRYPTO_META[buySel] || {}).label || buySel.toUpperCase();
+  const cryptoAmount = rate > 0 ? htgAmount / rate : 0;
+
+  document.getElementById('buy-summary-pay').textContent = htgAmount.toLocaleString() + ' HTG';
+  document.getElementById('buy-summary-rate').textContent = '1 ' + crypto + ' = ' + rate.toLocaleString() + ' HTG';
+  document.getElementById('buy-summary-receive').textContent = '≈ ' + cryptoAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 }) + ' ' + crypto;
+
+  // Populate MonCash phone
+  var moncashEl = document.getElementById('buy-summary-moncash');
+  var moncashField = document.getElementById('buy-moncash-phone');
+  if (moncashEl && moncashField) {
+    if (moncashField.tagName === 'SELECT') {
+      if (moncashField.value === 'manual') {
+        var manualInput = document.getElementById('buy-moncash-manual');
+        var raw = manualInput ? manualInput.value.replace(/\D/g, '') : '';
+        moncashEl.textContent = raw.length >= 8 ? '(509) •••• ' + raw.slice(-4) : manualInput.value;
+      } else {
+        var sel = moncashField.options[moncashField.selectedIndex];
+        moncashEl.textContent = (sel && sel.dataset.masked) ? sel.dataset.masked : sel.text;
+      }
+    } else {
+      var raw = moncashField.value.replace(/\D/g, '');
+      moncashEl.textContent = raw.length >= 8 ? '(509) •••• ' + raw.slice(-4) : moncashField.value;
+    }
+  }
+
+  // Populate wallet destination
+  var destEl = document.getElementById('buy-summary-dest');
+  var walletSelect = document.getElementById('buy-wallet-method-select');
+  var walletInput = document.getElementById('buy-destination-address');
+  if (walletSelect && walletSelect.value && walletSelect.value !== 'manual' && walletSelect.value !== '') {
+    destEl.textContent = (SAVED_CRYPTO_WALLETS[walletSelect.value] || walletSelect.options[walletSelect.selectedIndex].text) + ' Ou';
+  } else if (walletInput && walletInput.value) {
+    destEl.textContent = walletInput.value;
+  } else {
+    destEl.textContent = '$<%= current_user.cashtag %> Ou';
+  }
+
+  // Update header to review mode
+  document.getElementById('buy-header-title').textContent = 'Revize Lòd Ou';
+  document.getElementById('buy-header-subtitle').textContent = htgAmount.toLocaleString() + ' HTG → ' + cryptoAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 }) + ' ' + crypto;
+
+  // Hide form fields, show summary step
+  document.getElementById('buy-form-fields').style.display = 'none';
+  document.getElementById('buy-summary-section').style.display = '';
+  document.getElementById('tab-buy').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
-function fillMoncashFromSaved() {
-  const select = document.getElementById('sell-payment-method-select');
-  const input  = document.getElementById('sell-moncash-phone');
-  if (!select || !input) return;
+function buyShowPin() {
+  var buyPin = document.getElementById('buy-pin-input');
+  if (buyPin) buyPin.disabled = false;
+  document.getElementById('buy-summary-section').style.display = 'none';
+  document.getElementById('buy-pin-section').style.display = '';
+  document.getElementById('tab-buy').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
 
-  const selected = SAVED_MONCASH_METHODS[select.value];
-  input.value = selected || '';
+function buyGoBack() {
+  document.getElementById('buy-pin-section').style.display = 'none';
+  var buyPin = document.getElementById('buy-pin-input');
+  if (buyPin) { buyPin.disabled = true; buyPin.value = ''; }
+
+  // Restore header
+  document.getElementById('buy-header-title').textContent = 'Achte USD ak HTG';
+  document.getElementById('buy-header-subtitle').textContent = 'Peye ak MonCash · Resevwa sou Zèllus';
+
+  document.getElementById('buy-summary-section').style.display = 'none';
+  document.getElementById('buy-form-fields').style.display = '';
+}
+
+function buyPinGoBack() {
+  var buyPin = document.getElementById('buy-pin-input');
+  if (buyPin) { buyPin.disabled = true; buyPin.value = ''; }
+  document.getElementById('buy-pin-section').style.display = 'none';
+  document.getElementById('buy-summary-section').style.display = '';
 }
 
 function fillBuyWalletFromSaved() {
   const select = document.getElementById('buy-wallet-method-select');
   const input  = document.getElementById('buy-destination-address');
+  const wrapper = document.getElementById('buy-manual-wallet-wrapper');
   if (!select || !input) return;
 
-  const selected = SAVED_CRYPTO_WALLETS[select.value];
-  input.value = selected || '';
+  if (select.value === 'manual') {
+    if (wrapper) wrapper.style.display = '';
+    input.value = '';
+    input.required = true;
+    input.focus();
+  } else {
+    if (wrapper) wrapper.style.display = 'none';
+    input.value = SAVED_CRYPTO_WALLETS[select.value] || '';
+    input.required = false;
+  }
+}
+
+function fillBuyMoncashFromSaved() {
+  var select = document.getElementById('buy-moncash-phone');
+  var wrapper = document.getElementById('buy-moncash-manual-wrapper');
+  if (!select || select.tagName !== 'SELECT' || !wrapper) return;
+  if (select.value === 'manual') {
+    wrapper.style.display = '';
+    var manualInput = document.getElementById('buy-moncash-manual');
+    if (manualInput) { manualInput.name = 'moncash_phone'; manualInput.required = true; manualInput.focus(); }
+    select.removeAttribute('name');
+  } else {
+    wrapper.style.display = 'none';
+    select.name = 'moncash_phone';
+    var manualInput = document.getElementById('buy-moncash-manual');
+    if (manualInput) { manualInput.removeAttribute('name'); manualInput.required = false; }
+  }
 }
 
 document.addEventListener('DOMContentLoaded', function () {
-  switchTab(INITIAL_EXCHANGE_TAB === 'sell' ? 'sell' : 'buy');
   updateBuyRate();
-  updateSellCrypto();
+  var moncashSelect = document.getElementById('buy-moncash-phone');
+  if (moncashSelect && moncashSelect.tagName === 'SELECT') {
+    moncashSelect.addEventListener('change', fillBuyMoncashFromSaved);
+  }
 });
 </script>

@@ -1,22 +1,30 @@
 class Transfer < ApplicationRecord
+  def to_param
+    token
+  end
+
   belongs_to :user
+  belongs_to :business, optional: true
+  has_many :business_line_items, dependent: :destroy
 
   # String-backed enums
   enum :status, {
-    pending:   "pending",
-    funded:    "funded",
-    sent:      "sent",
-    claimed:   "claimed",
-    completed: "completed",
-    expired:   "expired",
-    refunded:  "refunded",
-    failed:    "failed"
+    pending:            "pending",
+    awaiting_consent:   "awaiting_consent",
+    funded:             "funded",
+    sent:               "sent",
+    claimed:            "claimed",
+    completed:          "completed",
+    expired:            "expired",
+    refunded:           "refunded",
+    failed:             "failed"
   }
 
-  enum :asset, { htg: "htg", usdc: "usdc", eth: "eth", wbtc: "wbtc" }
+  has_one :bonid_consent_request, dependent: :destroy
 
-  # ── Platform fee ──
-  FEE_RATE = BigDecimal("0.01") # 1%
+  enum :asset, { htg: "htg", usdc: "usdc", eth: "eth", wbtc: "wbtc", tslax: "tslax", nvdax: "nvdax", aaplx: "aaplx", coinx: "coinx", googlx: "googlx" }
+
+  # ── Platform fee (centralized in FeeService) ──
 
   # ── Callbacks ──
   before_validation :ensure_token
@@ -43,6 +51,10 @@ class Transfer < ApplicationRecord
             format: { with: /\A0x[a-fA-F0-9]{40}\z/, message: "dwe yon adrès Base valid" },
             allow_blank: true
 
+  validates :receiver_cashtag,
+            format: { with: /\A[a-zA-Z0-9]{5,20}\z/, message: "dwe yon Zellustag valid" },
+            allow_blank: true
+
   validate :receiver_destination_present
 
   # ── Scopes ──
@@ -60,7 +72,15 @@ class Transfer < ApplicationRecord
   end
 
   def crypto_transfer?
-    usdc? || eth? || wbtc?
+    usdc? || eth? || wbtc? || tslax? || nvdax? || aaplx? || coinx? || googlx?
+  end
+
+  def stock_transfer?
+    tslax? || nvdax? || aaplx? || coinx? || googlx?
+  end
+
+  def bank_transfer?
+    htg? && receiver_bank_account.present?
   end
 
   def asset_label
@@ -76,7 +96,11 @@ class Transfer < ApplicationRecord
   end
 
   def receiver_display
-    if receiver_phone.present?
+    if receiver_cashtag.present?
+      "$#{receiver_cashtag}"
+    elsif receiver_bank_account.present?
+      "#{receiver_bank_name || 'UNIBANK'} ••••#{receiver_bank_account.last(4)}"
+    elsif receiver_phone.present?
       receiver_phone
     elsif receiver_wallet_address.present?
       "#{receiver_wallet_address.first(6)}...#{receiver_wallet_address.last(4)}"
@@ -85,6 +109,18 @@ class Transfer < ApplicationRecord
     else
       "—"
     end
+  end
+
+  def usdc_wallet_transfer?
+    usdc? && receiver_cashtag.present? && receiver_wallet_address.blank?
+  end
+
+  def usdc_address_transfer?
+    usdc? && receiver_wallet_address.present? && receiver_cashtag.blank?
+  end
+
+  def stock_wallet_transfer?
+    stock_transfer? && receiver_cashtag.present?
   end
 
   def awaiting_claim?
@@ -116,20 +152,20 @@ class Transfer < ApplicationRecord
   end
 
   def calculate_fee
-    self.fee        = (amount * FEE_RATE).round(2)
+    rate = FeeService.transfer_fee_rate(self)
+    self.fee        = (amount * rate).round(2)
     self.net_amount = (amount - fee).round(2)
   end
 
   def receiver_destination_present
     if htg?
-      # HTG: need MonCash number or email (for claim link)
-      if receiver_phone.blank? && receiver_email.blank?
-        errors.add(:base, "Ou dwe bay yon nimewo MonCash oswa yon imèl.")
+      if receiver_phone.blank? && receiver_email.blank? && receiver_cashtag.blank? && receiver_bank_account.blank?
+        errors.add(:base, "Ou dwe bay yon $zellustag, nimewo MonCash, kont bank, oswa yon imèl.")
       end
     else
-      # Crypto: need wallet address
-      if receiver_wallet_address.blank?
-        errors.add(:receiver_wallet_address, "obligatwa pou transfè kripto")
+      # Crypto: allow either wallet address OR $zellustag for wallet-to-wallet
+      if receiver_wallet_address.blank? && receiver_cashtag.blank?
+        errors.add(:base, "Ou dwe bay yon adrès Base oswa yon $zellustag.")
       end
     end
   end

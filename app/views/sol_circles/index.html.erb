@@ -28,14 +28,20 @@
                 <% if circle.htg? %>
                   <%= number_to_currency(circle.amount, unit: "HTG ") %>
                 <% else %>
-                  <%= number_with_precision(circle.amount, precision: 2) %> USDC
+                  <%= number_with_precision(circle.amount, precision: 2) %> USD
                 <% end %>
-                &middot; <%= circle.duration_months %> Mwa
+                &middot; <%= circle.frequency_label %>
                 &middot; <%= circle.sol_memberships.count %>/<%= circle.target_members %> manm
               </p>
             </div>
             <div class="text-end">
-              <div class="fs-4"><%= current_user.tier_icon %></div>
+              <div style="width: 36px; height: 36px; border-radius: 50%; overflow: hidden; background: var(--haiti-charcoal); border: 1.5px solid var(--haiti-gold); display: flex; align-items: center; justify-content: center; margin-left: auto;">
+                <% if current_user.avatar.attached? %>
+                  <%= image_tag current_user.avatar, style: "width: 100%; height: 100%; object-fit: cover;", alt: "" %>
+                <% else %>
+                  <span style="font-size: 1.2rem;"><%= current_user.tier_icon %></span>
+                <% end %>
+              </div>
               <div class="small fw-bold text-uppercase" style="color: var(--haiti-gold); font-size: 10px;">
                 <%= current_user.credit_tier %>
               </div>

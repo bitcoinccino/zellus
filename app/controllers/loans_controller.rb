@@ -8,32 +8,72 @@ class LoansController < ApplicationController
 
   def create
     amount = params[:amount].to_f
-    
+
     # 1. Safety Check: Ensure they aren't over their rank limit
     if amount > current_user.loan_limit || amount <= 0
       return redirect_to new_loan_path, alert: "Montan sa a depase limit ou."
     end
 
-    # 2. Create the Loan Transaction
+    # 2. Validate repayment term
+    term = params[:repayment_term_weeks].to_i
+    unless Transaction::REPAYMENT_TERMS.key?(term)
+      return redirect_to new_loan_path, alert: "Tanpri chwazi yon tèm ranbousman valid."
+    end
+
+    # 3. Create the Loan Transaction with all fields
     @loan = current_user.transactions.create!(
       transaction_type: "loan_request",
-      status: :pending, # Admin must approve this in the dashboard
+      status: :pending,
       fiat_amount: amount,
+      loan_purpose: params[:loan_purpose],
+      repayment_term_weeks: term,
+      collateral_description: params[:collateral_description].presence,
       moncash_phone: params[:moncash_phone] || current_user.payment_methods.moncash.first&.account_number,
       failure_reason: "Pionye Loan Request"
     )
 
-    redirect_to transactions_path, notice: "Prè ou a soumèt! Yon admin ap verifye sa kounye a."
+    # Send confirmation email
+    LoanMailer.with(loan_id: @loan.id).request_submitted.deliver_later
+
+    redirect_to transaction_path(@loan), notice: "Demann prè ou anrejistre! Yon admin ap revize li."
+  end
+
+  # Repay from Wallet (instant debit)
+  def repay_wallet
+    @loan = current_user.transactions.loan_request.find_by!(token: params[:id])
+    wallet = current_user.wallet
+
+    unless wallet.present? && wallet.htg_balance >= @loan.loan_total_repayable
+      return redirect_to transaction_path(@loan), alert: "Balans pòtfèy ou pa sifi pou ranbousman."
+    end
+
+    WalletService.new(wallet).withdraw!(
+      amount: @loan.loan_total_repayable,
+      instant: false
+    )
+
+    @loan.update!(status: :completed)
+
+    # Award on-time bonus or skip if late
+    unless @loan.loan_overdue?
+      current_score = current_user.credit_score || 0
+      new_score = [current_score + LoanReminderWorker::ON_TIME_BONUS, User::MAX_CREDIT_SCORE].min
+      current_user.update!(credit_score: new_score)
+    end
+
+    LoanMailer.with(loan_id: @loan.id).repayment_confirmed.deliver_later
+    redirect_to transaction_path(@loan), notice: "Ranbousman konplete! Mèsi."
+  rescue WalletService::InsufficientFundsError
+    redirect_to transaction_path(@loan), alert: "Balans pòtfèy ou pa sifi."
   end
 
   # Repayment Logic (MonCash or USDC)
   def repay
-    @loan = current_user.transactions.loan_request.find(params[:id])
+    @loan = current_user.transactions.loan_request.find_by!(token: params[:id])
     asset = params[:asset] || "htg"
-    
-    # 3% Service Fee
-    fee_htg = @loan.fiat_amount * 0.03
-    total_htg = @loan.fiat_amount + fee_htg
+
+    # Use loan_total_repayable (includes interest) instead of flat 3% fee
+    total_htg = @loan.loan_total_repayable || (@loan.fiat_amount * 1.03)
 
     if asset == "htg"
       # MonCash Path

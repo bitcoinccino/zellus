@@ -1,16 +1,30 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Priotelus | Your Financial Freedom Starts Here</title>
+    <title>ZÈLLUS | Libète Finansyè Ou Kòmanse Isit La</title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
+    <%= action_cable_meta_tag %>
+    <link rel="icon" type="image/svg+xml" href="<%= asset_path('zellus_square.svg') %>">
+    <link rel="apple-touch-icon" href="<%= asset_path('zellus_square.svg') %>">
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.5.0/fonts/remixicon.css" rel="stylesheet">
+    <%# ── Preconnect hints ── %>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <%# ── CSS ── %>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.5.0/fonts/remixicon.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+
+    <%# ── Cloudflare Turnstile (bot protection) ── %>
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+
+    <%# ── Turbo Drive disabled: app uses inline scripts that need full page loads ── %>
+
+    <%# ── ActionCable JS removed: using direct WebSocket in footer ── %>
 
     <style>
       :root {
@@ -40,7 +54,7 @@
       }
 
       .navbar {
-        margin-bottom: 3.5rem !important;
+        margin-bottom: 0 !important;
         z-index: 1030;
       }
 
@@ -59,8 +73,12 @@
 
       .dropdown-menu {
         background-color: var(--haiti-cream);
-        border: 2px solid var(--haiti-gold);
+        border: none;
         box-shadow: 8px 8px 0px var(--haiti-charcoal);
+      }
+      .dropdown-item {
+        font-size: 13px;
+        font-weight: 500 !important;
       }
       .dropdown-item:hover {
         background-color: var(--haiti-mint);
@@ -70,7 +88,6 @@
         background-color: var(--haiti-cream);
         border-radius: 28px;
         border: none;
-        box-shadow: 20px 20px 60px #d9d6c4, -20px -20px 60px #ffffff;
       }
 
       .badge-soon {
@@ -90,199 +107,200 @@
           border-top: 1px solid rgba(255,255,255,0.1);
           padding-top: 1rem;
         }
+        .navbar .dropdown-menu {
+          min-width: auto !important;
+          width: 100% !important;
+          box-shadow: none !important;
+          border-radius: 12px !important;
+        }
       }
+
+      @media (max-width: 576px) {
+        .card-base { padding: 1rem !important; }
+        .display-5 { font-size: 1.6rem !important; }
+        h1.h5, .h5.fw-black { font-size: 1rem !important; }
+      }
+
+      /* ── Turbo progress bar ── */
+      #turbo-progress {
+        position: fixed; top: 0; left: 0; height: 3px; z-index: 9999;
+        background: var(--haiti-gold);
+        width: 0; opacity: 0;
+        transition: width 0.3s ease, opacity 0.2s ease;
+        pointer-events: none;
+        box-shadow: 0 0 8px rgba(197,160,89,0.6);
+      }
+      #turbo-progress.active { opacity: 1; }
+
+      /* ── Loading overlay (form submissions) ── */
+      #loading-overlay {
+        position: fixed; inset: 0; z-index: 9998;
+        background: rgba(46,46,56,0.5); backdrop-filter: blur(2px);
+        display: none; align-items: center; justify-content: center;
+        flex-direction: column; gap: 12px;
+      }
+      #loading-overlay.active { display: flex; }
+      #loading-overlay .spinner {
+        width: 36px; height: 36px; border: 3px solid rgba(197,160,89,0.25);
+        border-top-color: var(--haiti-gold); border-radius: 50%;
+        animation: spin 0.7s linear infinite;
+      }
+      @keyframes spin { to { transform: rotate(360deg); } }
     </style>
   </head>
 
   <body>
+    <%# ── Turbo progress bar + loading overlay ── %>
+    <div id="turbo-progress"></div>
+    <div id="loading-overlay"><div class="spinner"></div><div style="color: var(--haiti-gold); font-size: 13px; font-weight: 700;">Chajman...</div></div>
+
     <nav class="navbar navbar-expand-lg py-3 shadow-sm" style="background-color: var(--haiti-charcoal); border-bottom: 3px solid var(--haiti-gold);">
       <div class="container">
-        <%= link_to root_path, class: "navbar-brand d-flex align-items-center gap-2 text-white fw-bold me-4" do %>
-          <i class="ri-shield-user-fill" style="color: var(--haiti-gold); font-size: 1.5rem;"></i>
-          <span style="letter-spacing: 1px;">Priotelus</span>
+        <%= link_to root_path, class: "navbar-brand d-flex align-items-center me-4" do %>
+          <%= image_tag "zellus_square.svg", size: "40x40", alt: "Zèllus", style: "border-radius: 10px;" %>
         <% end %>
 
-        <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#priotelusNavbarContent">
+        <button class="navbar-toggler border-0 shadow-none py-2 px-3" type="button" data-bs-toggle="collapse" data-bs-target="#zellusNavbarContent">
           <i class="ri-menu-3-line text-white" style="font-size: 1.5rem;"></i>
         </button>
 
-        <div class="collapse navbar-collapse" id="priotelusNavbarContent">
+        <div class="collapse navbar-collapse" id="zellusNavbarContent">
 
           <% if user_signed_in? %>
             <%# ── LOGGED-IN NAV ─────────────────────────────── %>
             <ul class="navbar-nav ms-auto mb-2 mb-lg-0 gap-1 align-items-lg-center">
 
-              <%# ── PrioLink ── %>
-              <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle text-white fw-bold small" href="#" role="button" data-bs-toggle="dropdown">
-                  <i class="ri-exchange-funds-line me-1" style="color: var(--haiti-gold);"></i> PrioLink
-                </a>
-                <ul class="dropdown-menu shadow-lg p-2" style="min-width: 300px;">
-                  <li class="px-3 pt-2 pb-1">
-                    <div style="color: var(--haiti-olive); font-size: 11px;">Achte oswa Vann USDC pou konbat enflasyon.</div>
-                  </li>
-                  <li><hr class="dropdown-divider my-1"></li>
-                  <li>
-                    <%= link_to priolink_path, class: "dropdown-item rounded p-3" do %>
-                      <div class="fw-bold" style="color: var(--haiti-charcoal);"><i class="ri-dashboard-line me-2" style="color: var(--haiti-gold);"></i>Tablo PrioLink</div>
-                    <% end %>
-                  </li>
-                  <li>
-                    <%= link_to new_transaction_path, class: "dropdown-item rounded p-3" do %>
-                      <div class="fw-bold" style="color: var(--haiti-charcoal);"><i class="ri-exchange-funds-line me-2" style="color: var(--haiti-gold);"></i>Achte / Vann USDC</div>
-                    <% end %>
-                  </li>
-                  <li>
-                    <%= link_to transactions_path, class: "dropdown-item rounded p-3" do %>
-                      <div class="fw-bold" style="color: var(--haiti-charcoal);"><i class="ri-history-line me-2" style="color: var(--haiti-gold);"></i>Istwa Tranzaksyon</div>
-                    <% end %>
-                  </li>
-                </ul>
+              <%# ── Mobile-only nav items (matches wallet page actions) ── %>
+              <li class="nav-item d-lg-none">
+                <%= link_to wallet_path, class: "nav-link text-white fw-bold py-2 px-3", style: "font-size: 14px;" do %>
+                  <i class="ri-wallet-3-line me-2" style="color: var(--haiti-gold);"></i> Pòtfèy
+                <% end %>
               </li>
-
-              <%# ── PrioSòl ── %>
-              <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle text-white fw-bold small" href="#" role="button" data-bs-toggle="dropdown">
-                  <i class="ri-loop-right-line me-1" style="color: var(--haiti-gold);"></i> PrioSòl
-                </a>
-                <ul class="dropdown-menu shadow-lg p-2" style="min-width: 300px;">
-                  <li class="px-3 pt-2 pb-1">
-                    <div style="color: var(--haiti-olive); font-size: 11px;">Kreye Sòl pou fè ekonomi.</div>
-                  </li>
-                  <li><hr class="dropdown-divider my-1"></li>
-                  <li>
-                    <%= link_to priosol_path, class: "dropdown-item rounded p-3" do %>
-                      <div class="fw-bold" style="color: var(--haiti-charcoal);"><i class="ri-dashboard-line me-2" style="color: var(--haiti-gold);"></i>Tablo PrioSòl</div>
-                    <% end %>
-                  </li>
-                  <li>
-                    <%= link_to sol_circles_path, class: "dropdown-item rounded p-3" do %>
-                      <div class="fw-bold" style="color: var(--haiti-charcoal);"><i class="ri-group-line me-2" style="color: var(--haiti-gold);"></i>Sèk Sol Mwen</div>
-                    <% end %>
-                  </li>
-                  <li>
-                    <%= link_to new_sol_circle_path, class: "dropdown-item rounded p-3" do %>
-                      <div class="fw-bold" style="color: var(--haiti-charcoal);"><i class="ri-add-circle-line me-2" style="color: var(--haiti-gold);"></i>Kreye yon Sol</div>
-                    <% end %>
-                  </li>
-                </ul>
+              <li class="nav-item d-lg-none">
+                <%= link_to new_transfer_path, class: "nav-link text-white fw-bold py-2 px-3", style: "font-size: 14px;" do %>
+                  <i class="ri-send-plane-fill me-2" style="color: var(--haiti-gold);"></i> Peye
+                <% end %>
               </li>
-
-              <%# ── PrioBousad ── %>
-              <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle text-white fw-bold small" href="#" role="button" data-bs-toggle="dropdown">
-                  <i class="ri-hand-coin-line me-1" style="color: var(--haiti-gold);"></i> PrioBousad
-                </a>
-                <ul class="dropdown-menu shadow-lg p-2" style="min-width: 300px;">
-                  <li class="px-3 pt-2 pb-1">
-                    <div style="color: var(--haiti-olive); font-size: 11px;">Prète pou ede biznis ou dekole.</div>
-                  </li>
-                  <li><hr class="dropdown-divider my-1"></li>
-                  <li>
-                    <%= link_to priobousad_path, class: "dropdown-item rounded p-3" do %>
-                      <div class="fw-bold" style="color: var(--haiti-charcoal);"><i class="ri-dashboard-line me-2" style="color: var(--haiti-gold);"></i>Tablo PrioBousad</div>
-                    <% end %>
-                  </li>
-                  <li>
-                    <%= link_to new_loan_path, class: "dropdown-item rounded p-3" do %>
-                      <div class="fw-bold" style="color: var(--haiti-charcoal);"><i class="ri-hand-coin-line me-2" style="color: var(--haiti-gold);"></i>Mande yon Prè</div>
-                    <% end %>
-                  </li>
-                </ul>
+              <li class="nav-item d-lg-none">
+                <%= link_to new_payment_request_path, class: "nav-link text-white fw-bold py-2 px-3", style: "font-size: 14px;" do %>
+                  <i class="ri-hand-coin-fill me-2" style="color: var(--haiti-gold);"></i> Mande
+                <% end %>
               </li>
-
-              <%# ── PriOnèt ── %>
-              <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle text-white fw-bold small" href="#" role="button" data-bs-toggle="dropdown">
-                  <i class="ri-medal-line me-1" style="color: var(--haiti-gold);"></i> PriOnèt
-                </a>
-                <ul class="dropdown-menu shadow-lg p-2" style="min-width: 300px;">
-                  <li class="px-3 pt-2 pb-1">
-                    <div style="color: var(--haiti-olive); font-size: 11px;">Bati repitasyon'w pou debloke gwo kredi.</div>
-                  </li>
-                  <li><hr class="dropdown-divider my-1"></li>
-                  <li>
-                    <%= link_to prionet_path, class: "dropdown-item rounded p-3" do %>
-                      <div class="d-flex align-items-center gap-2">
-                        <span style="font-size: 1.4rem;"><%= current_user.tier_icon %></span>
-                        <div>
-                          <div class="fw-bold" style="color: var(--haiti-charcoal);"><%= current_user.credit_tier %> &middot; <%= current_user.credit_score || 0 %> pwen</div>
-                          <div style="color: var(--haiti-olive); font-size: 11px;">Wè tablo kredi'w</div>
-                        </div>
-                      </div>
-                      <div class="mt-2" style="height: 6px; background: #e5e7eb; border-radius: 3px; overflow: hidden;">
-                        <div style="width: <%= ((current_user.credit_score || 0) * 100.0 / User::MAX_CREDIT_SCORE).round %>%; height: 100%; background: var(--haiti-gold); border-radius: 3px;"></div>
-                      </div>
-                    <% end %>
-                  </li>
-                </ul>
+              <li class="nav-item d-lg-none">
+                <%= link_to new_transaction_path, class: "nav-link text-white fw-bold py-2 px-3", style: "font-size: 14px;" do %>
+                  <i class="ri-shopping-cart-line me-2" style="color: var(--haiti-gold);"></i> Achte
+                <% end %>
               </li>
-
-              <%# ── Zèllus ── %>
-              <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle text-white fw-bold small" href="#" role="button" data-bs-toggle="dropdown">
-                  <i class="ri-flashlight-line me-1" style="color: var(--haiti-gold);"></i> Zèllus
-                </a>
-                <ul class="dropdown-menu shadow-lg p-2" style="min-width: 300px;">
-                  <li class="px-3 pt-2 pb-1">
-                    <div style="color: var(--haiti-olive); font-size: 11px;">Voye lajan bay nenpòt moun imedyatman ak yon senp nimewo telefòn oswa email.</div>
-                  </li>
-                  <li><hr class="dropdown-divider my-1"></li>
-                  <li>
-                    <%= link_to wallet_path, class: "dropdown-item rounded p-3" do %>
-                      <div class="fw-bold" style="color: var(--haiti-charcoal);"><i class="ri-wallet-3-line me-2" style="color: var(--haiti-gold);"></i>Balans Zèllus</div>
-                      <div style="color: var(--haiti-olive); font-size: 11px;"><%= number_to_currency(current_user.wallet_balance, unit: "HTG ", precision: 0) %></div>
-                    <% end %>
-                  </li>
-                  <li>
-                    <%= link_to new_transfer_path, class: "dropdown-item rounded p-3" do %>
-                      <div class="fw-bold" style="color: var(--haiti-charcoal);"><i class="ri-send-plane-fill me-2" style="color: var(--haiti-gold);"></i>Voye Lajan</div>
-                    <% end %>
-                  </li>
-                  <li>
-                    <%= link_to payment_requests_path, class: "dropdown-item rounded p-3" do %>
-                      <div class="fw-bold" style="color: var(--haiti-charcoal);"><i class="ri-links-line me-2" style="color: var(--haiti-gold);"></i>Demann</div>
-                    <% end %>
-                  </li>
-                </ul>
+              <li class="nav-item d-lg-none">
+                <%= link_to wallet_path(action_panel: "deposit"), class: "nav-link text-white fw-bold py-2 px-3", style: "font-size: 14px;" do %>
+                  <i class="ri-download-line me-2" style="color: var(--haiti-gold);"></i> Depoze
+                <% end %>
               </li>
+              <li class="nav-item d-lg-none">
+                <%= link_to wallet_path(action_panel: "withdraw"), class: "nav-link text-white fw-bold py-2 px-3", style: "font-size: 14px;" do %>
+                  <i class="ri-logout-box-line me-2" style="color: var(--haiti-gold);"></i> Retire
+                <% end %>
+              </li>
+              <li class="nav-item d-lg-none"><hr class="my-2" style="border-color: rgba(255,255,255,0.15);"></li>
 
-              <%# ── Plis (Metòd Peman, Admin) ── %>
-              <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle text-white fw-bold small" href="#" role="button" data-bs-toggle="dropdown">
-                  <i class="ri-more-line me-1" style="color: var(--haiti-gold);"></i>
+              <%# ── Notification Bell ── %>
+              <li class="nav-item dropdown ms-lg-2">
+                <a href="#" role="button" data-bs-toggle="dropdown"
+                   class="nav-link p-0 d-flex align-items-center justify-content-center position-relative"
+                   style="width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,0.08); border: 1px solid rgba(197,160,89,0.3);">
+                  <i class="ri-notification-3-line" style="color: var(--haiti-gold); font-size: 18px;"></i>
+                  <span id="notif-bell-badge" class="position-absolute" style="top: -2px; right: -2px; background: #dc2626; color: #fff; font-size: 9px; font-weight: 800; min-width: 18px; height: 18px; line-height: 18px; text-align: center; border-radius: 50%; border: 2px solid var(--haiti-charcoal); <%= 'display: none;' if unread_notification_count == 0 %>">
+                    <%= unread_notification_count %>
+                  </span>
                 </a>
-                <ul class="dropdown-menu dropdown-menu-end shadow-lg p-2" style="min-width: 260px;">
+                <ul class="dropdown-menu dropdown-menu-end shadow-lg p-2 mt-2" style="min-width: 340px; max-height: 420px; overflow-y: auto; border: none; border-radius: 16px;">
                   <li>
-                    <%= link_to payment_methods_path, class: "dropdown-item rounded p-3" do %>
-                      <div class="fw-bold" style="color: var(--haiti-charcoal);"><i class="ri-bank-card-line me-2" style="color: var(--haiti-gold);"></i>Metòd Peman</div>
-                      <div style="color: var(--haiti-olive); font-size: 11px; white-space: normal;">Jere MonCash ak pòtfèy kripto ou yo.</div>
-                    <% end %>
-                  </li>
-                  <% if current_user.email == ENV['ADMIN_EMAIL'].to_s.strip %>
-                    <li><hr class="dropdown-divider"></li>
-                    <li>
-                      <%= link_to admin_dashboard_path, class: "dropdown-item rounded p-3" do %>
-                        <div class="fw-bold" style="color: var(--haiti-charcoal);"><i class="ri-dashboard-3-line me-2" style="color: var(--haiti-gold);"></i>Tablo Admin</div>
-                        <div style="color: var(--haiti-olive); font-size: 11px; white-space: normal;">Trezò, tranzaksyon ak zouti machand.</div>
+                    <div class="px-3 py-2 d-flex align-items-center justify-content-between">
+                      <span class="fw-bold small" style="color: var(--haiti-charcoal);">Notifikasyon</span>
+                      <% if unread_notification_count > 0 %>
+                        <span id="notif-dropdown-count" class="badge rounded-pill" style="background: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 9px;"><%= unread_notification_count %></span>
                       <% end %>
+                    </div>
+                  </li>
+                  <li><hr class="dropdown-divider my-1"></li>
+                  <% if recent_notifications_for_dropdown.any? %>
+                    <% recent_notifications_for_dropdown.each do |notif| %>
+                      <li>
+                        <%= link_to mark_read_notification_path(notif), class: "dropdown-item rounded-3 p-2 mb-1", style: "#{'background: rgba(197,160,89,0.06);' if notif.unread?}" do %>
+                          <div class="d-flex align-items-center gap-2">
+                            <div style="width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; <%= notif.icon_color_style %>">
+                              <i class="<%= notif.icon_class %>" style="font-size: 14px;"></i>
+                            </div>
+                            <div class="flex-grow-1" style="min-width: 0;">
+                              <div class="<%= notif.unread? ? 'fw-bold' : '' %>" style="color: var(--haiti-charcoal); font-size: 12px; line-height: 1.3;">
+                                <%= notif.title %>
+                              </div>
+                              <div style="color: var(--haiti-olive); font-size: 10px;">
+                                <%= time_ago_in_words(notif.created_at) %> de sa
+                              </div>
+                            </div>
+                            <% if notif.unread? %>
+                              <div style="width: 8px; height: 8px; border-radius: 50%; background: var(--haiti-gold); flex-shrink: 0;"></div>
+                            <% end %>
+                          </div>
+                        <% end %>
+                      </li>
+                    <% end %>
+                    <li><hr class="dropdown-divider my-1"></li>
+                    <li>
+                      <div class="text-center py-2">
+                        <%= link_to notifications_path, class: "small fw-bold text-decoration-none", style: "color: var(--haiti-gold);" do %>
+                          W&egrave; Tout <i class="ri-arrow-right-s-line"></i>
+                        <% end %>
+                      </div>
+                    </li>
+                  <% else %>
+                    <li>
+                      <div class="px-3 py-4 text-center">
+                        <i class="ri-notification-off-line" style="font-size: 24px; color: var(--haiti-olive); opacity: 0.4;"></i>
+                        <div class="small mt-1" style="color: var(--haiti-olive);">Pa gen notifikasyon</div>
+                      </div>
                     </li>
                   <% end %>
                 </ul>
               </li>
 
-              <%# ── User Profile Pill ── %>
+              <%# ── Market Link ── %>
+              <li class="nav-item ms-lg-2">
+                <%= link_to rates_wallet_path, class: "nav-link d-flex align-items-center gap-1 px-3 py-2 rounded-pill",
+                    style: "background: rgba(255,255,255,0.08); border: 1px solid rgba(197,160,89,0.3); color: white; font-size: 12px; font-weight: 700;" do %>
+                  <i class="ri-line-chart-line" style="color: var(--haiti-gold); font-size: 15px;"></i>
+                  <span>Mache Dechanj</span>
+                <% end %>
+              </li>
+
+              <%# ── User Profile Pill (always visible) ── %>
               <li class="nav-item dropdown ms-lg-2">
-                <a class="nav-link dropdown-toggle d-flex align-items-center gap-2 px-3 py-1 rounded-pill"
+                <a class="nav-link dropdown-toggle d-flex align-items-center gap-2 px-3 py-2 rounded-pill"
                    href="#" role="button" data-bs-toggle="dropdown"
                    style="background: rgba(255,255,255,0.08); border: 1px solid var(--haiti-gold); color: white;">
-                  <span style="font-size: 1.2rem;"><%= current_user.tier_icon %></span>
-                  <span class="small fw-bold"><%= current_user.email.split('@').first.capitalize %></span>
+                  <% if current_user.avatar.attached? %>
+                    <%= image_tag current_user.avatar, style: "width: 26px; height: 26px; border-radius: 50%; object-fit: cover; border: 1.5px solid var(--haiti-gold);", alt: "" %>
+                  <% else %>
+                    <span style="font-size: 1.2rem;"><%= current_user.tier_icon %></span>
+                  <% end %>
+                  <span class="small fw-bold"><%= current_user.bonid_verified? && current_user.bonid_full_name.present? ? current_user.bonid_first_name : current_user.display_name %></span>
                 </a>
-                <ul class="dropdown-menu dropdown-menu-end mt-2" style="min-width: 220px;">
+                <ul class="dropdown-menu dropdown-menu-end shadow-lg p-2 mt-2" style="min-width: 240px;">
                   <li>
                     <div class="px-3 py-2">
-                      <div class="small fw-bold" style="color: var(--haiti-charcoal);"><%= current_user.email %></div>
+                      <% if current_user.bonid_verified? && current_user.bonid_full_name.present? %>
+                        <div class="fw-bold" style="color: var(--haiti-charcoal);"><%= current_user.bonid_full_name %></div>
+                        <div class="small" style="color: var(--haiti-olive);"><%= current_user.email %></div>
+                        <% if current_user.bonid_blood_type.present? %>
+                          <div class="d-flex align-items-center gap-1 mt-1">
+                            <i class="ri-heart-pulse-line" style="color: #dc2626; font-size: 13px;"></i>
+                            <span class="badge rounded-pill" style="background: #fef2f2; color: #991b1b; font-size: 10px; font-weight: 700;"><%= current_user.bonid_blood_type %></span>
+                          </div>
+                        <% end %>
+                      <% else %>
+                        <div class="small fw-bold" style="color: var(--haiti-charcoal);"><%= current_user.email %></div>
+                      <% end %>
                       <div class="d-flex align-items-center gap-2 mt-1">
                         <span class="badge rounded-pill" style="background-color: var(--haiti-gold); color: var(--haiti-charcoal); font-size: 9px; font-weight: 800;">
                           <%= current_user.credit_tier %>
@@ -291,16 +309,44 @@
                       </div>
                     </div>
                   </li>
-                  <li><hr class="dropdown-divider"></li>
+                  <li><hr class="dropdown-divider my-1"></li>
                   <li>
-                    <%= link_to edit_user_registration_path, class: "dropdown-item fw-bold small" do %>
-                      <i class="ri-settings-3-line me-2" style="color: var(--haiti-olive);"></i> Paramèt Kont
+                    <%= link_to payment_methods_path, class: "dropdown-item rounded p-3" do %>
+                      <div class="fw-bold" style="color: var(--haiti-charcoal);"><i class="ri-bank-card-line me-2" style="color: var(--haiti-gold);"></i>Metòd Peman</div>
                     <% end %>
                   </li>
-                  <li><hr class="dropdown-divider"></li>
                   <li>
-                    <%= button_to destroy_user_session_path, method: :delete, class: "dropdown-item fw-bold small", style: "color: #991b1b;" do %>
-                      <i class="ri-logout-box-r-line me-2"></i> Dekonekte
+                    <%= link_to bonid_verification_path, class: "dropdown-item rounded p-3" do %>
+                      <div class="fw-bold" style="color: var(--haiti-charcoal);">
+                        <i class="ri-shield-check-line me-2" style="color: var(--haiti-gold);"></i>Verifye ak BonID
+                        <% if current_user.bonid_verified? %>
+                          <span class="badge rounded-pill ms-1" style="background: #f0fdf4; color: #166534; font-size: 8px;">Verifye</span>
+                        <% end %>
+                      </div>
+                      <div style="color: var(--haiti-olive); font-size: 11px;">
+                        <% if current_user.bonid_verified? %>
+                          <%= current_user.bonid.gsub(/(.{4}).*(.{3})/, '\1••••••\2') %>
+                        <% else %>
+                          Verifye idantite'w pou debloke pi gwo limit kredi.
+                        <% end %>
+                      </div>
+                    <% end %>
+                  </li>
+                  <li>
+                    <%= link_to edit_user_registration_path, class: "dropdown-item rounded p-3" do %>
+                      <div class="fw-bold" style="color: var(--haiti-charcoal);"><i class="ri-settings-3-line me-2" style="color: var(--haiti-olive);"></i>Paramèt Kont</div>
+                    <% end %>
+                  </li>
+                  <% if current_user.email == ENV['ADMIN_EMAIL'].to_s.strip %>
+                    <li>
+                      <%= link_to admin_dashboard_path, class: "dropdown-item rounded p-3" do %>
+                        <div class="fw-bold" style="color: var(--haiti-charcoal);"><i class="ri-dashboard-3-line me-2" style="color: var(--haiti-gold);"></i>Tablo Admin</div>
+                      <% end %>
+                    </li>
+                  <% end %>
+                  <li>
+                    <%= button_to destroy_user_session_path, method: :delete, class: "dropdown-item rounded p-3 w-100 text-start border-0 bg-transparent", data: { turbo: false } do %>
+                      <div class="fw-bold" style="color: #991b1b;"><i class="ri-logout-box-r-line me-2"></i>Dekonekte</div>
                     <% end %>
                   </li>
                 </ul>
@@ -309,63 +355,629 @@
 
           <% else %>
             <%# ── LOGGED-OUT NAV ────────────────────────────── %>
-            <ul class="navbar-nav me-auto mb-2 mb-lg-0 gap-1">
+            <ul class="navbar-nav ms-auto mb-2 mb-lg-0 gap-1 align-items-lg-center">
               <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle text-white fw-bold small" href="#" role="button" data-bs-toggle="dropdown">
                   Pwodui
                 </a>
                 <ul class="dropdown-menu shadow-lg p-2" style="min-width: 320px;">
                   <li>
-                    <%= link_to "#", class: "dropdown-item rounded p-3" do %>
-                      <div class="fw-bold" style="color: var(--haiti-charcoal);"><i class="ri-exchange-funds-line me-2" style="color: var(--haiti-gold);"></i>PrioLink</div>
-                      <div style="color: var(--haiti-olive); font-size: 11px; white-space: normal;">Chanje MonCash ou an USDC rapid pou pwoteje lajan'w kont enflasyon.</div>
+                    <%= link_to zellus_info_path, class: "dropdown-item rounded p-3" do %>
+                      <div class="fw-bold" style="color: var(--haiti-charcoal);"><i class="ri-user-line me-2" style="color: var(--haiti-gold);"></i>Zellus pou Endividyèl</div>
+                      <div style="color: var(--haiti-olive); font-size: 11px; white-space: normal;">Voye ak resevwa lajan gratis.</div>
                     <% end %>
                   </li>
                   <li>
-                    <%= link_to sol_circles_path, class: "dropdown-item rounded p-3" do %>
-                      <div class="fw-bold" style="color: var(--haiti-charcoal);"><i class="ri-loop-right-line me-2" style="color: var(--haiti-gold);"></i>PrioSòl</div>
-                      <div style="color: var(--haiti-olive); font-size: 11px; white-space: normal;">Sistèm mityèl dijital pou fè ekonomi ak kominote'w nan yon fason modèn.</div>
+                    <%= link_to zellus_info_path, class: "dropdown-item rounded p-3" do %>
+                      <div class="fw-bold" style="color: var(--haiti-charcoal);"><i class="ri-store-2-line me-2" style="color: var(--haiti-gold);"></i>Zellus pou Biznis</div>
+                      <div style="color: var(--haiti-olive); font-size: 11px; white-space: normal;">Aksepte peman Zèllus, voye peman dirèk, eskane kòd QR pèsonalize ou.</div>
                     <% end %>
                   </li>
                   <li>
-                    <%= link_to "#", class: "dropdown-item rounded p-3" do %>
-                      <div class="fw-bold" style="color: var(--haiti-charcoal);"><i class="ri-hand-coin-line me-2" style="color: var(--haiti-gold);"></i>PrioBousad</div>
-                      <div style="color: var(--haiti-olive); font-size: 11px; white-space: normal;">Prè rapid pou ede biznis ou dekole epi jwenn kapital ou bezwen.</div>
-                    <% end %>
-                  </li>
-                  <li>
-                    <%= link_to "#", class: "dropdown-item rounded p-3" do %>
-                      <div class="fw-bold" style="color: var(--haiti-charcoal);"><i class="ri-medal-line me-2" style="color: var(--haiti-gold);"></i>PriOnèt</div>
-                      <div style="color: var(--haiti-olive); font-size: 11px; white-space: normal;">Bati repitasyon finansye'w pou debloke pi gwo nivo kredi nan bank lan.</div>
+                    <%= link_to priosol_info_path, class: "dropdown-item rounded p-3" do %>
+                      <div class="fw-bold" style="color: var(--haiti-charcoal);"><i class="ri-loop-right-line me-2" style="color: var(--haiti-gold);"></i>Zellus Sòl</div>
+                      <div style="color: var(--haiti-olive); font-size: 11px; white-space: normal;">Kreye Sòl ak zanmi, fanmi'w oswa kominote'w pou w ka ekonomize.</div>
                     <% end %>
                   </li>
                   <li><hr class="dropdown-divider"></li>
                   <li>
-                    <%= link_to "#", class: "dropdown-item rounded p-3" do %>
-                      <div class="fw-bold" style="color: var(--haiti-charcoal);"><i class="ri-flashlight-line me-2" style="color: var(--haiti-gold);"></i>Zèllus <span class="badge-soon">Byento</span></div>
-                      <div style="color: var(--haiti-olive); font-size: 11px; white-space: normal;">Voye lajan bay nenpòt moun imedyatman ak yon senp nimewo telefòn oswa email.</div>
+                    <%= link_to priobousad_info_path, class: "dropdown-item rounded p-3" do %>
+                      <div class="fw-bold" style="color: var(--haiti-charcoal);"><i class="ri-hand-coin-line me-2" style="color: var(--haiti-gold);"></i>Zellus Bousad</div>
+                      <div style="color: var(--haiti-olive); font-size: 11px; white-space: normal;">Aplike pou yon prè pou bay biznis ou bousad.</div>
+                    <% end %>
+                  </li>
+                  <li>
+                    <%= link_to prionet_info_path, class: "dropdown-item rounded p-3" do %>
+                      <div class="fw-bold" style="color: var(--haiti-charcoal);"><i class="ri-medal-line me-2" style="color: var(--haiti-gold);"></i>Zellus Onèt</div>
+                      <div style="color: var(--haiti-olive); font-size: 11px; white-space: normal;">Bati kredi ou ak biznis ou pou debloke plis kapital.</div>
                     <% end %>
                   </li>
                 </ul>
               </li>
-              <li class="nav-item"><%= link_to "Sou Nou", "#", class: "nav-link text-white fw-bold small" %></li>
-              <li class="nav-item"><%= link_to "Kijan Li Mache", "#", class: "nav-link text-white fw-bold small" %></li>
+              <li class="nav-item"><%= link_to "Kijan Sa Mache?", "#", class: "nav-link text-white fw-bold small" %></li>
+              <li class="nav-item"><%= link_to "Apwopo", "#", class: "nav-link text-white fw-bold small" %></li>
+              <li class="nav-item ms-lg-2">
+                <%= link_to "Konekte", new_user_session_path, class: "nav-link text-white fw-bold small" %>
+              </li>
+              <li class="nav-item">
+                <%= link_to "Kòmanse", new_user_registration_path, class: "btn btn-prestige btn-sm px-4 rounded-pill shadow-sm", style: "text-transform: none; font-weight: 700; letter-spacing: 0.3px;" %>
+              </li>
             </ul>
-
-            <div class="ms-auto d-flex flex-column flex-lg-row align-items-lg-center gap-3">
-              <%= link_to "Konekte", new_user_session_path, class: "nav-link text-white fw-bold small" %>
-              <%= link_to "Kòmanse", new_user_registration_path, class: "btn btn-prestige btn-sm px-4 rounded-pill shadow-sm", style: "text-transform: none; font-weight: 700; letter-spacing: 0.3px;" %>
-            </div>
           <% end %>
 
         </div>
       </div>
     </nav>
 
-    <main class="container">
-      <%= yield %>
-    </main>
+    <%# ── Global auto-dismiss flash toast ── %>
+    <% if flash[:notice].present? %>
+      <div id="flash-toast" style="
+        position: fixed; top: 80px; left: 50%; transform: translateX(-50%);
+        z-index: 9999; background: var(--haiti-charcoal); color: var(--haiti-gold);
+        padding: 10px 20px; border-radius: 50px; font-size: 12px; font-weight: 600;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.2); opacity: 1;
+        transition: opacity 0.6s ease, transform 0.6s ease;
+        pointer-events: none; max-width: 92vw; text-align: center;">
+        <i class="ri-checkbox-circle-fill me-1"></i><%= flash[:notice] %>
+      </div>
+      <script>
+        setTimeout(function() {
+          var toast = document.getElementById('flash-toast');
+          if (toast) {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateX(-50%) translateY(-10px)';
+            setTimeout(function() { toast.remove(); }, 600);
+          }
+        }, 2500);
+      </script>
+    <% end %>
+
+    <%# ── Global alert toast (tap to dismiss) ── %>
+    <% if flash[:alert].present? %>
+      <div id="flash-alert-toast" onclick="this.style.opacity='0'; this.style.transform='translateY(-10px)'; setTimeout(function(){ document.getElementById('flash-alert-toast')?.remove(); }, 600);" style="
+        position: fixed; top: 80px; left: 16px; right: 16px;
+        margin-left: auto; margin-right: auto; max-width: 500px;
+        z-index: 9999; background: #7f1d1d; color: #fecaca;
+        padding: 14px 20px; border-radius: 14px; font-size: 13px; font-weight: 600;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.3); opacity: 1;
+        transition: opacity 0.6s ease, transform 0.6s ease;
+        cursor: pointer; text-align: center; line-height: 1.5;">
+        <i class="ri-error-warning-fill me-1"></i><%= flash[:alert] %>
+        <div style="font-size: 10px; opacity: 0.6; margin-top: 4px;">Tape pou fèmen</div>
+      </div>
+      <script>
+        setTimeout(function() {
+          var toast = document.getElementById('flash-alert-toast');
+          if (toast) {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateY(-10px)';
+            setTimeout(function() { toast.remove(); }, 600);
+          }
+        }, 10000);
+      </script>
+    <% end %>
+
+    <% if user_signed_in? %>
+      <div class="d-flex" style="min-height: calc(100vh - 70px);">
+        <%# ── App Sidebar (desktop only) ── %>
+        <nav class="d-none d-lg-block flex-shrink-0" style="width: 240px; background: var(--haiti-cream); border-right: 1px solid rgba(93,99,69,0.12); padding: 24px 16px; overflow-y: auto;">
+
+          <%# ── LAKAY ── %>
+          <div class="mb-1" style="font-size: 11px; font-weight: 700; color: var(--haiti-olive); letter-spacing: 1.5px; text-transform: uppercase; padding-left: 8px;">LAKAY</div>
+          <%= link_to root_path, class: "d-flex align-items-center gap-3 px-2 py-2 rounded-3 text-decoration-none mb-1", style: "color: var(--haiti-charcoal);" do %>
+            <i class="ri-home-5-fill" style="font-size: 20px; color: var(--haiti-gold);"></i>
+            <div>
+              <div class="fw-bold" style="font-size: 13px;">Lakay</div>
+              <div style="font-size: 11px; color: var(--haiti-olive);">Wè balans ak tranzaksyon ou</div>
+            </div>
+          <% end %>
+
+          <%# ── BIZNIS ── %>
+          <div class="mt-3 mb-1" style="font-size: 11px; font-weight: 700; color: var(--haiti-olive); letter-spacing: 1.5px; text-transform: uppercase; padding-left: 8px;">BIZNIS</div>
+          <%= link_to dashboard_business_path, class: "d-flex align-items-center gap-3 px-2 py-2 rounded-3 text-decoration-none mb-1", style: "color: var(--haiti-charcoal);" do %>
+            <i class="ri-layout-grid-line" style="font-size: 20px; color: var(--haiti-gold);"></i>
+            <div>
+              <div class="fw-bold" style="font-size: 13px;">Tablo Biznis</div>
+              <div style="font-size: 11px; color: var(--haiti-olive);">Wè peman ak estatistik</div>
+            </div>
+          <% end %>
+          <%= link_to business_path, class: "d-flex align-items-center gap-3 px-2 py-2 rounded-3 text-decoration-none mb-1", style: "color: var(--haiti-charcoal);" do %>
+            <i class="ri-store-2-line" style="font-size: 20px; color: var(--haiti-gold);"></i>
+            <div class="fw-bold" style="font-size: 13px;">Pwofil Biznis</div>
+          <% end %>
+          <% if current_user.business.present? %>
+            <%= link_to public_business_path(current_user.business.slug), class: "d-flex align-items-center gap-3 px-2 py-2 rounded-3 text-decoration-none mb-1", style: "color: var(--haiti-charcoal);" do %>
+              <i class="ri-pages-line" style="font-size: 20px; color: var(--haiti-gold);"></i>
+              <div class="fw-bold" style="font-size: 13px;">Paj Piblik</div>
+            <% end %>
+          <% end %>
+
+          <%# ── SÒL ── %>
+          <div class="mt-3 mb-1" style="font-size: 11px; font-weight: 700; color: var(--haiti-olive); letter-spacing: 1.5px; text-transform: uppercase; padding-left: 8px;">SÒL</div>
+          <%= link_to priosol_path, class: "d-flex align-items-center gap-3 px-2 py-2 rounded-3 text-decoration-none mb-1", style: "color: var(--haiti-charcoal);" do %>
+            <i class="ri-layout-grid-line" style="font-size: 20px; color: var(--haiti-gold);"></i>
+            <div>
+              <div class="fw-bold" style="font-size: 13px;">Tablo Sòl</div>
+              <div style="font-size: 11px; color: var(--haiti-olive);">Rezime sèk ak kontribisyon</div>
+            </div>
+          <% end %>
+          <%= link_to new_sol_circle_path, class: "d-flex align-items-center gap-3 px-2 py-2 rounded-3 text-decoration-none mb-1", style: "color: var(--haiti-charcoal);" do %>
+            <i class="ri-add-circle-line" style="font-size: 20px; color: var(--haiti-gold);"></i>
+            <div class="fw-bold" style="font-size: 13px;">Kreye Yon Sol</div>
+          <% end %>
+          <%= link_to sol_circles_path, class: "d-flex align-items-center gap-3 px-2 py-2 rounded-3 text-decoration-none mb-1", style: "color: var(--haiti-charcoal);" do %>
+            <i class="ri-history-line" style="font-size: 20px; color: var(--haiti-gold);"></i>
+            <div class="fw-bold" style="font-size: 13px;">Aktivite</div>
+          <% end %>
+
+          <%# ── BOUSAD ── %>
+          <div class="mt-3 mb-1" style="font-size: 11px; font-weight: 700; color: var(--haiti-olive); letter-spacing: 1.5px; text-transform: uppercase; padding-left: 8px;">BOUSAD</div>
+          <%= link_to priobousad_path, class: "d-flex align-items-center gap-3 px-2 py-2 rounded-3 text-decoration-none mb-1", style: "color: var(--haiti-charcoal);" do %>
+            <i class="ri-layout-grid-line" style="font-size: 20px; color: var(--haiti-gold);"></i>
+            <div>
+              <div class="fw-bold" style="font-size: 13px;">Tablo Bousad</div>
+              <div style="font-size: 11px; color: var(--haiti-olive);">Rezime prè ak peman</div>
+            </div>
+          <% end %>
+          <%= link_to new_loan_path, class: "d-flex align-items-center gap-3 px-2 py-2 rounded-3 text-decoration-none mb-1", style: "color: var(--haiti-charcoal);" do %>
+            <i class="ri-add-circle-line" style="font-size: 20px; color: var(--haiti-gold);"></i>
+            <div class="fw-bold" style="font-size: 13px;">Mande Yon Bousad</div>
+          <% end %>
+          <%= link_to priobousad_path, class: "d-flex align-items-center gap-3 px-2 py-2 rounded-3 text-decoration-none mb-1", style: "color: var(--haiti-charcoal);" do %>
+            <i class="ri-history-line" style="font-size: 20px; color: var(--haiti-gold);"></i>
+            <div class="fw-bold" style="font-size: 13px;">Aktivite</div>
+          <% end %>
+
+        </nav>
+
+        <%# ── Main Content ── %>
+        <main class="flex-grow-1 <%= content_for?(:full_width) ? '' : 'container' %>">
+          <%= yield %>
+        </main>
+      </div>
+    <% else %>
+      <main class="<%= content_for?(:full_width) ? '' : 'container' %>">
+        <%= yield %>
+      </main>
+    <% end %>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <%# ── Turbo Drive: progress bar + loading overlay + button disable ── %>
+    <script>
+    (function() {
+      var bar = document.getElementById('turbo-progress');
+      var overlay = document.getElementById('loading-overlay');
+      var animFrame, barWidth;
+
+      function startBar() {
+        barWidth = 0;
+        bar.style.width = '0%';
+        bar.classList.add('active');
+        (function grow() {
+          barWidth += (90 - barWidth) * 0.03;
+          bar.style.width = barWidth + '%';
+          if (barWidth < 89) animFrame = requestAnimationFrame(grow);
+        })();
+      }
+
+      function finishBar() {
+        cancelAnimationFrame(animFrame);
+        bar.style.width = '100%';
+        setTimeout(function() {
+          bar.classList.remove('active');
+          bar.style.width = '0%';
+        }, 250);
+      }
+
+      // Turbo navigation (link clicks)
+      document.addEventListener('turbo:before-fetch-request', function(e) {
+        // Only show progress bar for navigation, not form submissions
+        if (!e.target.closest('form')) startBar();
+      });
+      document.addEventListener('turbo:before-fetch-response', finishBar);
+      document.addEventListener('turbo:load', finishBar);
+
+      // Turbo form submissions → show overlay + disable button
+      document.addEventListener('turbo:submit-start', function(e) {
+        overlay.classList.add('active');
+        var btn = e.target.querySelector('[type="submit"], button:not([type="button"])');
+        if (btn && !btn.dataset.turboDisabled) {
+          btn.dataset.turboDisabled = 'true';
+          btn.dataset.originalHtml = btn.innerHTML;
+          btn.disabled = true;
+          btn.innerHTML = '<i class="ri-loader-4-line me-1" style="animation: spin 0.7s linear infinite; display: inline-block;"></i>Chajman...';
+        }
+      });
+
+      document.addEventListener('turbo:submit-end', function(e) {
+        overlay.classList.remove('active');
+        var btn = e.target.querySelector('[data-turbo-disabled]');
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = btn.dataset.originalHtml;
+          delete btn.dataset.turboDisabled;
+          delete btn.dataset.originalHtml;
+        }
+      });
+
+      // Fallback: also handle non-Turbo form submissions
+      document.addEventListener('submit', function(e) {
+        var form = e.target;
+        if (form.dataset.turbo === 'false' || form.closest('[data-turbo="false"]')) {
+          startBar();
+          overlay.classList.add('active');
+        }
+      });
+    })();
+    </script>
+
+    <%# ── Re-initialize Bootstrap components after Turbo navigation ── %>
+    <script>
+    document.addEventListener('turbo:load', function() {
+      // Re-init all Bootstrap dropdowns
+      document.querySelectorAll('[data-bs-toggle="dropdown"]').forEach(function(el) {
+        new bootstrap.Dropdown(el);
+      });
+      // Re-init all Bootstrap tooltips (if any)
+      document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function(el) {
+        new bootstrap.Tooltip(el);
+      });
+    });
+    </script>
+
+    <%# ── Real-time notifications: direct WebSocket (no CDN needed) ── %>
+    <% if user_signed_in? %>
+    <script>
+    (function() {
+      // ── 1. Audio setup: Web Audio API (works reliably on Safari + Chrome) ──
+      var audioCtx = null;
+      var audioBuffer = null;
+      var audioUnlocked = false;
+      var mp3Url = '<%= asset_path("zellus-noti.mp3") %>';
+
+      // Pre-create AudioContext (Safari needs webkitAudioContext)
+      try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
+
+      // Fetch and decode MP3 into AudioBuffer for reliable playback
+      if (audioCtx) {
+        fetch(mp3Url).then(function(r) { return r.arrayBuffer(); }).then(function(buf) {
+          return audioCtx.decodeAudioData(buf);
+        }).then(function(decoded) {
+          audioBuffer = decoded;
+          console.log('[Zèllus] MP3 decoded into AudioBuffer ✓');
+        }).catch(function(e) {
+          console.warn('[Zèllus] MP3 decode failed — will use synth fallback:', e.message);
+        });
+      }
+
+      // Also keep HTML5 Audio as secondary fallback
+      var chimeAudio = new Audio(mp3Url);
+      chimeAudio.volume = 0.6;
+      chimeAudio.preload = 'auto';
+
+      function unlockAudio() {
+        if (audioUnlocked) return;
+
+        // Resume AudioContext (REQUIRED by Safari on every user gesture until running)
+        if (audioCtx && audioCtx.state === 'suspended') {
+          audioCtx.resume().then(function() {
+            console.log('[Zèllus] AudioContext resumed ✓');
+          }).catch(function() {});
+        }
+
+        // Also prime HTML5 Audio (Safari needs audible play from gesture)
+        chimeAudio.volume = 0.01;
+        var p = chimeAudio.play();
+        if (p && p.then) {
+          p.then(function() {
+            chimeAudio.pause();
+            chimeAudio.currentTime = 0;
+            chimeAudio.volume = 0.6;
+            audioUnlocked = true;
+            console.log('[Zèllus] Audio unlocked ✓');
+          }).catch(function() {
+            // HTML5 Audio failed but AudioContext may work
+            if (audioCtx && audioCtx.state === 'running') {
+              audioUnlocked = true;
+              console.log('[Zèllus] Audio unlocked (AudioContext only) ✓');
+            }
+          });
+        }
+      }
+
+      // Listen on multiple events — Safari needs touchstart specifically
+      ['click', 'touchstart', 'touchend', 'keydown', 'scroll'].forEach(function(evt) {
+        document.addEventListener(evt, unlockAudio, { once: false, passive: true });
+      });
+
+      // Also try to resume AudioContext on visibility change (tab switch back)
+      document.addEventListener('visibilitychange', function() {
+        if (!document.hidden && audioCtx && audioCtx.state === 'suspended') {
+          audioCtx.resume().catch(function() {});
+        }
+      });
+
+      // ── 2. Web Audio API synth fallback (two-tone: C5 + E5) ──
+      function playSynthChime() {
+        try {
+          var ctx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+          if (ctx.state === 'suspended') ctx.resume();
+          [523.25, 659.25].forEach(function(freq, i) {
+            var osc = ctx.createOscillator();
+            var gain = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.value = freq;
+            gain.gain.setValueAtTime(0.3, ctx.currentTime + i * 0.15);
+            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + i * 0.15 + 0.4);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(ctx.currentTime + i * 0.15);
+            osc.stop(ctx.currentTime + i * 0.15 + 0.4);
+          });
+          console.log('[Zèllus] Synth chime played ✓');
+        } catch(e) {
+          console.warn('[Zèllus] Synth chime error:', e.message);
+        }
+      }
+
+      // ── 3. Play chime: AudioBuffer → HTML5 Audio → Synth fallback ──
+      function playBufferChime() {
+        if (!audioBuffer || !audioCtx) return false;
+        try {
+          var source = audioCtx.createBufferSource();
+          var gainNode = audioCtx.createGain();
+          source.buffer = audioBuffer;
+          gainNode.gain.value = 0.6;
+          source.connect(gainNode);
+          gainNode.connect(audioCtx.destination);
+          source.start(0);
+          console.log('[Zèllus] AudioBuffer chime played ✓');
+          return true;
+        } catch(e) {
+          console.warn('[Zèllus] AudioBuffer play failed:', e.message);
+          return false;
+        }
+      }
+
+      function playDepositChime() {
+        console.log('[Zèllus] Playing chime... (buffer=' + !!audioBuffer + ', ctx=' + (audioCtx ? audioCtx.state : 'none') + ', unlocked=' + audioUnlocked + ')');
+
+        // If AudioContext is suspended, resume it first then play
+        if (audioCtx && audioCtx.state === 'suspended') {
+          audioCtx.resume().then(function() {
+            console.log('[Zèllus] AudioContext resumed for chime ✓');
+            if (!playBufferChime()) {
+              playSynthChime();
+            }
+          }).catch(function() {
+            playSynthChime();
+          });
+          return;
+        }
+
+        // Method 1: AudioBuffer via Web Audio API (most reliable)
+        if (playBufferChime()) return;
+
+        // Method 2: HTML5 Audio element
+        try {
+          chimeAudio.currentTime = 0;
+          chimeAudio.volume = 0.6;
+          var p = chimeAudio.play();
+          if (p && p.then) {
+            p.then(function() { console.log('[Zèllus] HTML5 Audio chime played ✓'); })
+             .catch(function(e) {
+              console.warn('[Zèllus] HTML5 Audio failed, trying synth:', e.message);
+              playSynthChime();
+            });
+          }
+        } catch(e) {
+          console.warn('[Zèllus] HTML5 Audio error, trying synth:', e.message);
+          playSynthChime();
+        }
+      }
+
+      // ── 4. Notification badge bump ──
+      function bumpNotificationBadge(serverCount) {
+        var badge = document.querySelector('#notif-bell-badge');
+        if (badge) {
+          var c = serverCount || (parseInt(badge.textContent || '0', 10) + 1);
+          badge.textContent = c;
+          badge.style.display = c > 0 ? 'inline-block' : 'none';
+          console.log('[Zèllus] Badge updated to', c);
+        }
+        // Also update dropdown header badge
+        var dropBadge = document.getElementById('notif-dropdown-count');
+        if (dropBadge) {
+          dropBadge.textContent = c || serverCount;
+        }
+      }
+
+      // ── 4c. Toast notification popup ──
+      function showNotifToast(title, type) {
+        // Remove existing toast if any
+        var old = document.getElementById('zellus-notif-toast');
+        if (old) old.remove();
+
+        var colors = {
+          transfer_received: { bg: '#f0fdf4', border: '#bbf7d0', icon: 'ri-arrow-down-circle-line', color: '#166534' },
+          transfer_completed: { bg: '#f0fdf4', border: '#bbf7d0', icon: 'ri-checkbox-circle-line', color: '#166534' },
+          transfer_failed: { bg: '#fef2f2', border: '#fca5a5', icon: 'ri-close-circle-line', color: '#991b1b' },
+          payment_request_received: { bg: '#FFF8E7', border: '#C5A059', icon: 'ri-money-dollar-circle-line', color: '#92400e' },
+          payment_request_paid: { bg: '#f0fdf4', border: '#bbf7d0', icon: 'ri-checkbox-circle-line', color: '#166534' }
+        };
+        var c = colors[type] || { bg: '#FFF8E7', border: '#C5A059', icon: 'ri-notification-3-line', color: '#2E2E38' };
+
+        var toast = document.createElement('div');
+        toast.id = 'zellus-notif-toast';
+        toast.style.cssText = 'position:fixed;top:20px;right:20px;z-index:9999;background:' + c.bg + ';border:1px solid ' + c.border + ';border-radius:14px;padding:14px 18px;max-width:340px;box-shadow:0 8px 24px rgba(0,0,0,0.15);display:flex;align-items:center;gap:10px;animation:slideInRight 0.3s ease;cursor:pointer;';
+        toast.innerHTML = '<i class="' + c.icon + '" style="font-size:20px;color:' + c.color + ';flex-shrink:0;"></i>' +
+          '<div style="font-size:13px;font-weight:600;color:#2E2E38;line-height:1.4;">' + title + '</div>';
+        toast.onclick = function() { toast.remove(); window.location.href = '/notifications'; };
+        document.body.appendChild(toast);
+
+        // Auto-dismiss after 6 seconds
+        setTimeout(function() {
+          if (toast.parentNode) {
+            toast.style.opacity = '0';
+            toast.style.transition = 'opacity 0.3s';
+            setTimeout(function() { if (toast.parentNode) toast.remove(); }, 300);
+          }
+        }, 6000);
+      }
+
+      // ── 4b. Live balance update ──
+      function updateBalances(msg) {
+        var b = msg.balances;
+        if (!b) return;
+        console.log('[Zèllus] 💰 Balance update:', b);
+
+        // Read exchange rates from hero section data attributes
+        var hero = document.getElementById('section-hero');
+        if (!hero) return; // not on wallet page
+
+        var usdcHtg = parseFloat(hero.dataset.usdcHtg) || 135.50;
+        var btcUsd  = parseFloat(hero.dataset.btcUsd)  || 95000;
+        var ethUsd  = parseFloat(hero.dataset.ethUsd)  || 3500;
+
+        // Compute totals
+        var totalHtg = b.htg + (b.usdc * usdcHtg) + (b.wbtc * btcUsd * usdcHtg) + (b.eth * ethUsd * usdcHtg);
+        var totalUsd = b.usdc + (b.wbtc * btcUsd) + (b.eth * ethUsd) + (b.htg / usdcHtg);
+
+        // Helper: update element text + flash green
+        function setEl(id, text) {
+          var el = document.getElementById(id);
+          if (!el) return;
+          el.textContent = text;
+          el.classList.remove('tick-up');
+          void el.offsetWidth; // force reflow to restart animation
+          el.classList.add('tick-up');
+        }
+
+        // Helper: format number with commas
+        function fmt(n) {
+          return Math.floor(n).toLocaleString('en-US');
+        }
+
+        // Hero totals
+        setEl('hero-htg-whole', fmt(totalHtg));
+        setEl('hero-htg-dec', ('0' + (Math.floor(totalHtg * 100) % 100)).slice(-2));
+        setEl('hero-usd-whole', fmt(totalUsd));
+        setEl('hero-usd-dec', ('0' + (Math.floor(totalUsd * 100) % 100)).slice(-2));
+
+        // Mini breakdown
+        setEl('mini-htg-bal', fmt(b.htg));
+        setEl('mini-usdc-bal', b.usdc.toFixed(2));
+        setEl('mini-eth-bal', b.eth.toFixed(4));
+        setEl('mini-wbtc-bal', b.wbtc.toFixed(6));
+
+        // Asset card balances
+        setEl('asset-htg-bal', b.htg.toFixed(2));
+        setEl('asset-usdc-bal', b.usdc.toFixed(2));
+        setEl('asset-wbtc-bal', b.wbtc > 0 ? b.wbtc.toFixed(8).replace(/0+$/, '').replace(/\.$/, '.0') : '0');
+        setEl('asset-eth-bal', b.eth > 0 ? b.eth.toFixed(6).replace(/0+$/, '').replace(/\.$/, '.0') : '0');
+
+        // Asset card equivalents
+        setEl('asset-htg-usd', (b.htg / usdcHtg).toFixed(2));
+        setEl('asset-usdc-htg', (b.usdc * usdcHtg).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}));
+        setEl('asset-wbtc-usd', (b.wbtc * btcUsd).toFixed(2));
+        setEl('asset-eth-usd', (b.eth * ethUsd).toFixed(2));
+      }
+
+      // ── 5. Direct WebSocket to ActionCable (no CDN dependency) ──
+      var ws = null;
+      var wsRetries = 0;
+      var channelId = JSON.stringify({ channel: "NotificationChannel" });
+
+      function connectCable() {
+        var proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+        var url = proto + '//' + location.host + '/cable';
+        console.log('[Zèllus] Connecting to', url);
+
+        try {
+          ws = new WebSocket(url);
+        } catch(e) {
+          console.error('[Zèllus] WebSocket create failed:', e);
+          retryConnect();
+          return;
+        }
+
+        ws.onopen = function() {
+          console.log('[Zèllus] WebSocket connected');
+          wsRetries = 0;
+          ws.send(JSON.stringify({
+            command: 'subscribe',
+            identifier: channelId
+          }));
+        };
+
+        ws.onmessage = function(event) {
+          var data;
+          try { data = JSON.parse(event.data); } catch(e) { return; }
+
+          if (data.type === 'welcome') {
+            console.log('[Zèllus] ActionCable welcome received');
+            return;
+          }
+          if (data.type === 'confirm_subscription') {
+            console.log('[Zèllus] NotificationChannel subscribed ✓');
+            return;
+          }
+          if (data.type === 'ping') return;
+
+          // Actual notification message
+          if (data.identifier === channelId && data.message) {
+            console.log('[Zèllus] 🔔 Notification received:', JSON.stringify(data.message));
+            if (data.message.play_sound) playDepositChime();
+            if (data.message.type === 'balance_update') {
+              updateBalances(data.message);
+            } else {
+              bumpNotificationBadge(data.message.unread_count);
+              if (data.message.title) showNotifToast(data.message.title, data.message.type);
+            }
+          }
+        };
+
+        ws.onclose = function(event) {
+          console.log('[Zèllus] WebSocket closed (code ' + event.code + ')');
+          ws = null;
+          retryConnect();
+        };
+
+        ws.onerror = function() {
+          console.error('[Zèllus] WebSocket error');
+        };
+      }
+
+      function retryConnect() {
+        wsRetries++;
+        if (wsRetries > 10) {
+          console.warn('[Zèllus] Giving up after 10 retries');
+          return;
+        }
+        var delay = Math.min(1000 * Math.pow(2, wsRetries - 1), 30000);
+        console.log('[Zèllus] Reconnecting in ' + (delay/1000) + 's...');
+        setTimeout(connectCable, delay);
+      }
+
+      // ── 6. Test helpers (run in browser console) ──
+      // _testSound()     → play chime directly (tests audio only)
+      // _testBroadcast() → hit test_sound endpoint via AJAX (tests full chain)
+      window._testSound = function() {
+        console.log('[Zèllus] Manual sound test...');
+        playDepositChime();
+      };
+      window._testBroadcast = function() {
+        console.log('[Zèllus] Triggering server broadcast via AJAX...');
+        fetch('/wallet/test_sound', { credentials: 'same-origin' })
+          .then(function(r) { return r.text(); })
+          .then(function(t) { console.log('[Zèllus] Server:', t); })
+          .catch(function(e) { console.error('[Zèllus] Fetch error:', e); });
+      };
+
+      connectCable();
+    })();
+    </script>
+    <% end %>
   </body>
 </html>

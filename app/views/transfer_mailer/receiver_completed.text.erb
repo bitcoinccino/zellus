@@ -2,11 +2,20 @@
 
 Bonjou <%= @transfer.receiver_name %>,
 
-Ou resevwa <%= format_htg(@transfer.net_amount) %> nan MonCash ou!
+Ou resevwa <%= @net_display %>!
 
 Voye pa: <%= @sender_name %>
 <% if @transfer.note.present? %>Mesaj: "<%= @transfer.note %>"<% end %>
+<% if @basescan_url.present? %>Basescan: <%= @basescan_url %><% end %>
 
+<% if @is_usdc_wallet %>
+Tcheke pòtfèy Zèllus ou pou konfime.
+<% elsif @transfer.wallet_payout? %>
+Tcheke pòtfèy Zèllus ou pou konfime.
+<% elsif @transfer.htg_transfer? %>
 Tcheke MonCash ou pou konfime.
+<% else %>
+Tcheke pòtfèy Base ou pou konfime.
+<% end %>
 
-Mèsi paske w itilize Priotelus!
+Mèsi paske w itilize Zèllus!

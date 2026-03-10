@@ -11,12 +11,6 @@
       <p class="small mb-0" style="color: var(--haiti-olive);">Tout demann peman ou kreye</p>
     </div>
 
-    <% if flash[:notice].present? %>
-      <div class="alert rounded-3 mb-3" style="background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; font-size: 12px;">
-        <i class="ri-checkbox-circle-line me-1"></i><%= flash[:notice] %>
-      </div>
-    <% end %>
-
     <%# ── Create Button ── %>
     <div class="mb-4">
       <%= link_to new_payment_request_path,
@@ -56,7 +50,7 @@
                       <% if request.htg? %>
                         <%= number_to_currency(request.amount, unit: "HTG ", precision: 2) %>
                       <% else %>
-                        <%= number_with_precision(request.amount, precision: 2) %> USDC
+                        <%= number_with_precision(request.amount, precision: 2) %> USD
                       <% end %>
                     </span>
                     <span class="badge rounded-pill" style="<%= status_pill %> font-size: 9px; font-weight: 800; letter-spacing: 0.4px;">

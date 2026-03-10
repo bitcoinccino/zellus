@@ -1,4 +1,121 @@
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+
 <style>
+  /* ── QR Scanner Overlay ── */
+  .qr-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.95);
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    animation: qrFadeIn 0.25s ease;
+  }
+  @keyframes qrFadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+  .qr-overlay-header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 2;
+  }
+  .qr-close-btn {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.15);
+    border: none;
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s ease;
+  }
+  .qr-close-btn:hover { background: rgba(255,255,255,0.25); }
+
+  .qr-viewfinder {
+    width: 280px;
+    height: 280px;
+    border-radius: 20px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 0 0 4000px rgba(0,0,0,0.5);
+  }
+  .qr-viewfinder video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .qr-corners {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+  .qr-corners::before,
+  .qr-corners::after,
+  .qr-corner-bl::before,
+  .qr-corner-br::before {
+    content: '';
+    position: absolute;
+    width: 28px;
+    height: 28px;
+    border-color: var(--haiti-gold, #C5A059);
+    border-style: solid;
+    border-width: 0;
+  }
+  .qr-corners::before { top: 0; left: 0; border-top-width: 3px; border-left-width: 3px; border-top-left-radius: 12px; }
+  .qr-corners::after  { top: 0; right: 0; border-top-width: 3px; border-right-width: 3px; border-top-right-radius: 12px; }
+  .qr-corner-bl::before { bottom: 0; left: 0; border-bottom-width: 3px; border-left-width: 3px; border-bottom-left-radius: 12px; }
+  .qr-corner-br::before { bottom: 0; right: 0; border-bottom-width: 3px; border-right-width: 3px; border-bottom-right-radius: 12px; }
+
+  .qr-scan-line {
+    position: absolute;
+    left: 10%;
+    right: 10%;
+    height: 2px;
+    background: var(--haiti-gold, #C5A059);
+    box-shadow: 0 0 8px rgba(197,160,89,0.6);
+    animation: qrScanLine 2.5s ease-in-out infinite;
+  }
+  @keyframes qrScanLine { 0%, 100% { top: 15%; } 50% { top: 85%; } }
+
+  .qr-status {
+    margin-top: 28px;
+    text-align: center;
+    color: white;
+  }
+  .qr-status-title {
+    font-size: 16px;
+    font-weight: 800;
+    margin-bottom: 6px;
+  }
+  .qr-status-hint {
+    font-size: 12px;
+    color: rgba(255,255,255,0.55);
+    font-weight: 600;
+  }
+
+  .qr-success-flash {
+    position: absolute;
+    inset: 0;
+    background: rgba(22,101,52,0.4);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: qrFlash 0.5s ease;
+  }
+  @keyframes qrFlash { from { opacity: 0; } to { opacity: 1; } }
+
   .bb-dark-field {
     color: #fff !important;
   }
@@ -14,29 +131,86 @@
     background: #fff;
     color: #111827;
   }
+  .currency-dropdown { position: relative; }
+  .currency-dropdown-toggle {
+    background-color: var(--haiti-charcoal);
+    color: white;
+    font-weight: 700;
+    font-size: 13px;
+    border: none;
+    border-radius: 8px;
+    padding: 16px;
+    width: 100%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.15s ease;
+  }
+  .currency-dropdown-toggle:hover { opacity: 0.9; }
+  .currency-dropdown-toggle .arrow {
+    margin-left: auto;
+    color: var(--haiti-gold);
+    font-size: 18px;
+    transition: transform 0.2s ease;
+  }
+  .currency-dropdown.open .arrow { transform: rotate(180deg); }
+  .currency-dropdown-menu {
+    display: none;
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0; right: 0;
+    background: var(--haiti-charcoal);
+    border-radius: 8px;
+    overflow: hidden;
+    z-index: 10;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+    max-height: 360px;
+    overflow-y: auto;
+  }
+  .currency-dropdown.open .currency-dropdown-menu { display: block; }
+  .currency-dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    color: white;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.12s ease;
+    border: none;
+    background: transparent;
+    width: 100%;
+  }
+  .currency-dropdown-item:hover { background: rgba(255,255,255,0.08); }
+  .currency-dropdown-item.active { background: rgba(197,160,89,0.15); }
+  .currency-dropdown-header {
+    padding: 8px 16px 4px;
+    color: rgba(255,255,255,0.4);
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    pointer-events: none;
+  }
+  .currency-dropdown-header:not(:first-child) {
+    border-top: 1px solid rgba(255,255,255,0.08);
+    margin-top: 2px;
+    padding-top: 10px;
+  }
 </style>
 
-<div class="container d-flex justify-content-center align-items-center" style="min-height: 80vh;">
-  <div class="card-base p-4 w-100 shadow-lg" style="max-width: 420px;">
+<div class="container" style="min-height: 80vh; padding-top: 40px; padding-bottom: 40px;">
+  <div class="row justify-content-center align-items-start g-4">
 
-    <% if flash[:alert].present? %>
-      <div class="alert alert-warning rounded-3 mb-3" style="background: #fefce8; border: 1px solid #fde68a; color: #854d0e;">
-        <i class="ri-error-warning-line me-1"></i><%= flash[:alert] %>
-      </div>
-    <% end %>
-    <% if flash[:notice].present? %>
-      <div class="alert rounded-3 mb-3" style="background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534;">
-        <i class="ri-checkbox-circle-line me-1"></i><%= flash[:notice] %>
-      </div>
-    <% end %>
+    <%# ── Send Form ── %>
+    <div class="col-lg-5 col-md-8">
+    <div class="card-base p-4 w-100" style="max-width: 420px; margin: 0 auto;">
 
     <% if @transfer.errors.any? %>
-      <div class="alert alert-danger rounded-3 mb-3">
-        <ul class="mb-0">
-          <% @transfer.errors.full_messages.each do |msg| %>
-            <li><%= msg %></li>
-          <% end %>
-        </ul>
+      <div class="rounded-3 mb-3 d-flex align-items-center" style="background: #fdf2f2; border: 1px solid #fca5a5; color: #991b1b; font-size: 12px; font-weight: 600; padding: 12px 16px;">
+        <i class="ri-error-warning-fill me-2" style="font-size: 16px;"></i><%= @transfer.errors.full_messages.to_sentence %>
       </div>
     <% end %>
 
@@ -67,123 +241,359 @@
       </div>
     <% end %>
 
+    <%# ── Business Payment Banner ── %>
+    <% if params[:biz].present? %>
+      <% @paying_business = Business.find_by(slug: params[:biz]) %>
+      <% if @paying_business %>
+        <div class="p-3 mb-3 rounded-4 d-flex align-items-center gap-3" style="background: rgba(197,160,89,0.12); border: 1px solid rgba(197,160,89,0.35);">
+          <div class="d-flex align-items-center justify-content-center rounded-circle flex-shrink-0"
+               style="width: 40px; height: 40px; background: var(--haiti-charcoal);">
+            <i class="<%= @paying_business.category_icon %>" style="color: var(--haiti-gold); font-size: 20px;"></i>
+          </div>
+          <div>
+            <div class="fw-black" style="font-size: 14px; color: var(--haiti-charcoal);">Ou ap peye <%= @paying_business.name %></div>
+            <div class="small" style="color: var(--haiti-olive); font-size: 11px;">
+              <i class="<%= @paying_business.category_icon %> me-1"></i><%= @paying_business.category_label %>
+              <% if @paying_business.commune.present? %>
+                &middot; <%= @paying_business.commune %>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    <% end %>
+
+    <%# ── Cart Receipt (business payments with items) ── %>
+    <% if params[:cart_items].present? %>
+      <% begin %>
+        <% cart_data = JSON.parse(params[:cart_items]) rescue [] %>
+        <% if cart_data.any? %>
+          <% cart_subtotal = cart_data.sum { |i| (i["quantity"].to_i) * (i["unit_price"].to_f) } %>
+          <% biz_tax_rate = @paying_business&.tax_rate.to_f || 0 %>
+          <% cart_tax = (cart_subtotal * biz_tax_rate).round(2) %>
+          <% cart_total = cart_subtotal + cart_tax %>
+          <div class="p-3 mb-3 rounded-4" style="background: rgba(93,99,69,0.08); border: 1px dashed var(--haiti-olive);">
+            <div class="fw-black text-uppercase mb-2" style="font-size: 11px; color: var(--haiti-charcoal); letter-spacing: 0.5px;">
+              <i class="ri-file-list-3-fill me-1" style="color: var(--haiti-gold);"></i>Resi Kòmand
+            </div>
+            <% cart_data.each do |item| %>
+              <div class="d-flex justify-content-between py-1" style="border-bottom: 1px solid rgba(0,0,0,0.04); font-size: 12px;">
+                <div>
+                  <span class="fw-bold" style="color: var(--haiti-charcoal);"><%= item["name"] %></span>
+                  <span class="fw-bold" style="color: var(--haiti-olive);"> x<%= item["quantity"] %></span>
+                </div>
+                <span class="fw-bold" style="color: var(--haiti-charcoal);">
+                  <%= number_to_currency(item["quantity"].to_i * item["unit_price"].to_f, unit: "", precision: 0) %> HTG
+                </span>
+              </div>
+            <% end %>
+            <div class="mt-2 pt-2" style="border-top: 1px dashed var(--haiti-olive);">
+              <div class="d-flex justify-content-between mb-1" style="font-size: 12px;">
+                <span class="fw-bold" style="color: var(--haiti-olive);">Sou-total</span>
+                <span class="fw-bold"><%= number_to_currency(cart_subtotal, unit: "", precision: 0) %> HTG</span>
+              </div>
+              <% if cart_tax > 0 %>
+                <div class="d-flex justify-content-between mb-1" style="font-size: 12px;">
+                  <span class="fw-bold" style="color: var(--haiti-olive);">Taks (<%= @paying_business&.tax_percentage %>%)</span>
+                  <span class="fw-bold" style="color: #92400e;"><%= number_to_currency(cart_tax, unit: "", precision: 0) %> HTG</span>
+                </div>
+              <% end %>
+              <div class="d-flex justify-content-between mt-1 pt-1" style="border-top: 1px solid rgba(0,0,0,0.06);">
+                <span class="fw-black" style="font-size: 14px;">TOTAL</span>
+                <span class="fw-black" style="font-size: 14px; color: var(--haiti-charcoal);"><%= number_to_currency(cart_total, unit: "", precision: 0) %> HTG</span>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      <% rescue %>
+      <% end %>
+    <% end %>
+
     <%# ── Main Send Form ── %>
     <div style="<%= current_user.transfer_pin_set? ? '' : 'opacity: 0.4; pointer-events: none;' %>">
 
-      <div class="text-center mb-4">
-        <div class="d-inline-flex align-items-center justify-content-center mb-3 rounded-3"
-          style="width: 56px; height: 56px; background-color: var(--haiti-charcoal);">
-          <i class="ri-send-plane-fill ri-xl" style="color: var(--haiti-gold);"></i>
+      <% user_wallet = current_user.wallet %>
+      <% total_htg = (user_wallet&.htg_balance || 0) + ((user_wallet&.usdc_balance || 0) * (@usdc_htg_rate || 135.50)) + ((user_wallet&.eth_balance || 0) * (@eth_htg_rate || 390000)) + ((user_wallet&.wbtc_balance || 0) * (@wbtc_htg_rate || 12872500)) + %w[tslax nvdax aaplx coinx googlx].sum { |t| (user_wallet&.send(:"#{t}_balance") || 0) * (@stock_htg_rates&.fetch(t, 0) || 0) } %>
+      <div class="mb-2">
+        <%= link_to wallet_path, class: "small text-decoration-none fw-bold", style: "color: var(--haiti-olive);" do %>
+          <i class="ri-arrow-left-line me-1"></i>Retounen nan Pòtfèy
+        <% end %>
+      </div>
+      <div class="d-flex align-items-start justify-content-between gap-3 mb-3">
+        <div>
+          <h1 class="h5 fw-black mb-0" style="color: var(--haiti-charcoal);">Peye oswa Voye Lajan</h1>
+          <p class="mb-0 mt-1" style="font-size: 12px; color: var(--haiti-olive); line-height: 1.4;">Peye oswa voye lajan bay nenp&ograve;t moun sou Z&egrave;llus rapid e ak sekirite.</p>
         </div>
-        <h1 class="h5 fw-black mb-0" style="color: var(--haiti-charcoal);">Voye Lajan</h1>
-        <p class="small mb-0" style="color: var(--haiti-olive);">Voye HTG, USDC oswa ETH bay nenpòt moun</p>
+        <button type="button" onclick="openQrScanner()"
+                class="btn btn-sm d-flex align-items-center gap-1 rounded-pill px-3 py-2 border-0 fw-bold"
+                style="background: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 12px;">
+          <i class="ri-qr-scan-2-line" style="font-size: 15px;"></i> Eskane
+        </button>
       </div>
 
-      <%# ── Daily Limit Widget ── %>
-      <div class="p-3 rounded-4 d-flex align-items-center justify-content-between mb-3"
-        style="background-color: rgba(93,99,69,0.08); border: 1px dashed var(--haiti-olive);">
-        <span class="small fw-bold" style="color: var(--haiti-olive);">
-          <i class="ri-shield-check-line me-1"></i>Limit Jounalye
-        </span>
-        <span class="fw-black" style="color: <%= @daily_remaining.to_f > 0 ? 'var(--haiti-charcoal)' : '#991b1b' %>;">
-          <%= number_with_delimiter(@daily_remaining.to_i) %> / <%= number_with_delimiter(User::DAILY_TRANSFER_LIMIT_HTG.to_i) %> HTG
-        </span>
-      </div>
+      <%= form_with(model: @transfer, url: transfers_path, method: :post, local: true, class: "row g-2", id: "transfer-form") do |f| %>
+        <% if params[:biz].present? %>
+          <%= hidden_field_tag :biz, params[:biz] %>
+        <% end %>
+        <% if params[:cart_items].present? %>
+          <%= hidden_field_tag :cart_items, params[:cart_items] %>
+        <% end %>
 
-      <%= form_with(model: @transfer, url: transfers_path, method: :post, local: true, class: "row g-3") do |f| %>
-
-        <%# ── Asset Selector ── %>
+        <%# ── Destinasyon (custom dropdown with logos) ── %>
         <div class="col-12">
-          <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Ki Sa W Ap Voye</label>
-          <div class="d-flex gap-2">
-            <label class="flex-fill text-center p-2 rounded-3 cursor-pointer" style="border: 2px solid var(--haiti-olive); background: var(--haiti-cream);" id="lbl-htg">
-              <input type="radio" name="asset" value="htg" checked class="d-none" id="radio-htg" onchange="switchAsset('htg')">
-              <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;"><i class="ri-money-dollar-circle-line me-1"></i>HTG</div>
-              <div style="color: var(--haiti-olive); font-size: 10px;">MonCash</div>
-            </label>
-            <label class="flex-fill text-center p-2 rounded-3 cursor-pointer" style="border: 2px solid #d9d6c4; background: var(--haiti-cream);" id="lbl-usdc">
-              <input type="radio" name="asset" value="usdc" class="d-none" id="radio-usdc" onchange="switchAsset('usdc')">
-              <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;"><i class="ri-copper-coin-line me-1"></i>USDC</div>
-              <div style="color: var(--haiti-olive); font-size: 10px;">Base</div>
-            </label>
-            <label class="flex-fill text-center p-2 rounded-3 cursor-pointer" style="border: 2px solid #d9d6c4; background: var(--haiti-cream);" id="lbl-eth">
-              <input type="radio" name="asset" value="eth" class="d-none" id="radio-eth" onchange="switchAsset('eth')">
-              <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;"><i class="ri-ethereum-line me-1"></i>ETH</div>
-              <div style="color: var(--haiti-olive); font-size: 10px;">Base</div>
-            </label>
+          <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Map peye ak</label>
+          <div class="position-relative" id="dest-dropdown">
+            <button type="button" onclick="toggleDestDropdown()" class="d-flex align-items-center gap-2 w-100 p-3 rounded-3 border-0 fw-bold"
+                    style="background-color: var(--haiti-charcoal); color: white; font-size: 13px; cursor: pointer;">
+              <span id="dest-selected-logo" class="d-inline-flex align-items-center"><%= htg_logo_svg(size: 22) %></span>
+              <span id="dest-selected-label" class="flex-grow-1 text-start">HTG</span>
+              <i class="ri-arrow-down-s-line" style="color: var(--haiti-olive);"></i>
+            </button>
+            <div id="dest-dropdown-menu" class="position-absolute w-100 rounded-3 shadow-lg overflow-auto"
+                 style="display: none; top: 100%; left: 0; z-index: 10; margin-top: 4px; background: var(--haiti-charcoal); border: 1px solid rgba(255,255,255,0.1); max-height: 320px;">
+              <% htg_bal = number_with_precision(user_wallet&.htg_balance || 0, precision: 2, strip_insignificant_zeros: true) %>
+              <% usdc_bal = number_with_precision(truncated_balance(user_wallet&.usdc_balance || 0), precision: 2) %>
+              <% eth_bal = number_with_precision(truncated_balance(user_wallet&.eth_balance || 0, 6), precision: 6) %>
+              <% wbtc_bal = number_with_precision(truncated_balance(user_wallet&.wbtc_balance || 0, 6), precision: 6) %>
+              <% tslax_bal = number_with_precision(truncated_balance(user_wallet&.tslax_balance || 0, 6), precision: 6) %>
+              <% nvdax_bal = number_with_precision(truncated_balance(user_wallet&.nvdax_balance || 0, 6), precision: 6) %>
+              <% aaplx_bal = number_with_precision(truncated_balance(user_wallet&.aaplx_balance || 0, 6), precision: 6) %>
+              <% coinx_bal = number_with_precision(truncated_balance(user_wallet&.coinx_balance || 0, 6), precision: 6) %>
+              <% googlx_bal = number_with_precision(truncated_balance(user_wallet&.googlx_balance || 0, 6), precision: 6) %>
+              <%# ── Cash ── %>
+              <div class="px-3 pt-2 pb-1" style="color: var(--haiti-olive); font-size: 9px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;">Cash</div>
+              <button type="button" class="dest-item d-flex align-items-center gap-2 w-100 px-3 py-2 border-0"
+                      data-value="zellus-htg" onclick="selectDest('zellus-htg', this)"
+                      style="background: rgba(255,255,255,0.06); color: white; font-size: 13px; font-weight: 600; cursor: pointer;">
+                <span class="d-inline-flex align-items-center"><%= htg_logo_svg(size: 20) %></span> HTG
+                <span class="ms-auto" style="color: var(--haiti-gold); font-size: 11px; font-weight: 400;"><%= htg_bal %></span>
+              </button>
+              <%# ── Kripto Sou Base ── %>
+              <div class="px-3 pt-2 pb-1" style="color: var(--haiti-olive); font-size: 9px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; border-top: 1px solid rgba(255,255,255,0.06);">Kripto Sou Base</div>
+              <button type="button" class="dest-item d-flex align-items-center gap-2 w-100 px-3 py-2 border-0"
+                      data-value="zellus-usdc" onclick="selectDest('zellus-usdc', this)"
+                      style="background: transparent; color: white; font-size: 13px; font-weight: 600; cursor: pointer;">
+                <span class="d-inline-flex align-items-center"><%= usd_logo(size: 20) %></span> USD
+                <span class="ms-auto" style="color: var(--haiti-gold); font-size: 11px; font-weight: 400;"><%= usdc_bal %></span>
+              </button>
+              <%# wBTC, ETH, and stock dropdown items hidden (HTG + USD only mode) %>
+            </div>
           </div>
-          <div class="small mt-1" style="color: var(--haiti-olive); font-size: 10px;">
-            <i class="ri-information-line me-1"></i>WBTC ap vini byento.
+          <input type="hidden" name="asset" id="asset-hidden" value="htg">
+          <input type="hidden" name="receiver_mode" id="receiver-mode" value="wallet">
+
+          <%# ── Mobile contextual tip (hidden on desktop) ── %>
+          <div id="currency-tip" class="d-lg-none mt-2 p-2 rounded-3 d-flex align-items-center gap-2"
+               style="background: rgba(197,160,89,0.08); border-left: 3px solid var(--haiti-gold); font-size: 11px; color: var(--haiti-olive); line-height: 1.3;">
+            <i class="ri-shopping-cart-2-line flex-shrink-0" id="currency-tip-icon" style="color: var(--haiti-gold); font-size: 14px;"></i>
+            <span id="currency-tip-text"><strong>Depans chak jou.</strong> Peye machanndiz, fakti, ak sèvis lokal.</span>
           </div>
         </div>
 
-        <%# ── HTG Receiver (MonCash) ── %>
-        <div class="col-12" id="receiver-htg">
+        <%# ── Amount ── %>
+        <div class="col-12">
+          <label class="form-label small fw-bold text-uppercase" id="amount-label" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Map voye</label>
+          <div class="input-group">
+            <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);">
+              <i class="ri-money-dollar-circle-line" id="amount-icon"></i>
+            </span>
+            <%# Visible input: user types here (HTG or USDC depending on asset) %>
+            <input type="number" id="amount-visible-input"
+                   placeholder="e.g. 500" min="<%= Transfer::SEND_MIN_HTG %>" max="<%= Transfer::SEND_MAX_HTG %>" step="any"
+                   class="form-control border-0 fw-bold shadow-none p-3 bb-dark-field"
+                   style="background-color: var(--haiti-charcoal); color: white;"
+                   required
+                   oninput="handleAmountInput()">
+            <span class="input-group-text border-0 fw-bold" id="amount-unit-suffix"
+                  style="background-color: var(--haiti-charcoal); color: var(--haiti-olive); font-size: 11px;">HTG</span>
+            <%# Hidden field: always submits HTG to the backend %>
+            <%= f.hidden_field :amount, id: "transfer_amount" %>
+          </div>
+          <div class="small mt-1" id="amount-limits" style="color: var(--haiti-olive); font-size: 10px;">
+            <i class="ri-information-line me-1"></i>
+            Limit: <%= Transfer::SEND_MIN_HTG %> - <%= number_with_delimiter(Transfer::SEND_MAX_HTG) %> HTG
+          </div>
+          <div class="small mt-1" id="amount-htg-equivalent" style="color: var(--haiti-gold); font-size: 11px; display: none;"></div>
+          <div id="zero-bal-warning" class="d-flex align-items-center gap-2 mt-2 p-2 rounded-3" style="display: none; background: rgba(220,38,38,0.08); border-left: 3px solid #dc2626; font-size: 11px; color: #991b1b;">
+            <i class="ri-error-warning-line" style="font-size: 14px;"></i>
+            <span>Ou pa gen ase balans pou aktif sa a.</span>
+          </div>
+        </div>
+
+        <%# ── Receiver: Zèllus cashtag search (HTG + USDC) ── %>
+        <div class="col-12" id="section-zellus">
+          <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Bay itilizatè</label>
+          <div class="input-group">
+            <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);">
+              <i class="ri-search-line" id="htg-search-icon"></i>
+            </span>
+            <input type="text" name="receiver_lookup" id="receiver-lookup-input"
+                   placeholder="Chèche $cashtag oswa non biznis..."
+                   class="form-control border-0 fw-bold shadow-none p-3 bb-dark-field"
+                   style="background-color: var(--haiti-charcoal); color: white;"
+                   autocomplete="off">
+          </div>
+          <div id="receiver-lookup-result" class="mt-1" style="display: none;"></div>
+
+          <input type="hidden" name="transfer[receiver_cashtag]" id="receiver-cashtag-hidden">
+          <input type="hidden" name="transfer[receiver_phone]" id="receiver-phone-hidden">
+          <input type="hidden" name="transfer[receiver_email]" id="receiver-email-hidden">
           <% if @moncash_methods.any? %>
-            <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Nimewo MonCash Anrejistre</label>
-            <select name="moncash_method_id" id="moncash-select"
-                class="form-select border-0 fw-bold shadow-none p-3 mb-2 bb-dark-select"
-                style="background-color: var(--haiti-charcoal); color: white;"
-                onchange="toggleManualPhone()">
-              <% @moncash_methods.each do |pm| %>
-                <option value="<%= pm.id %>"><%= "#{pm.display_label} (#{pm.masked_account_number})" %></option>
-              <% end %>
-              <option value="other">Antre yon lòt nimewo...</option>
-            </select>
-            <div class="small mb-2" style="color: var(--haiti-olive); font-size: 10px;">
-              <i class="ri-bank-card-line me-1"></i>
-              <%= link_to "Jere metòd peman", payment_methods_path, style: "color: var(--haiti-olive);" %>
+            <input type="hidden" name="moncash_method_id" id="moncash-select" value="<%= @moncash_methods.first.id %>">
+          <% end %>
+        </div>
+
+        <%# ── Receiver: USDC $cashtag search ── %>
+        <div class="col-12" id="section-zellus-usdc" style="display: none;">
+          <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Bay itilizatè</label>
+          <div class="input-group">
+            <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);">
+              <i class="ri-search-line" id="usdc-search-icon"></i>
+            </span>
+            <input type="text" id="usdc-tag-input"
+                   placeholder="Chèche $cashtag..."
+                   class="form-control border-0 fw-bold shadow-none p-3 bb-dark-field"
+                   style="background-color: var(--haiti-charcoal); color: white;"
+                   autocomplete="off">
+          </div>
+          <div id="usdc-tag-result" class="mt-1" style="display: none;"></div>
+        </div>
+
+        <%# ── Note ── %>
+        <div class="col-12">
+          <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Pou Kisa</label>
+          <div class="input-group">
+            <span class="input-group-text border-0 align-items-start pt-3" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);">
+              <i class="ri-chat-1-line"></i>
+            </span>
+            <%= f.text_area :note, rows: 2, maxlength: 280, placeholder: "Pou kisa lajan sa a ye?",
+                class: "form-control border-0 fw-bold shadow-none p-3 bb-dark-field",
+                style: "background-color: var(--haiti-charcoal); color: white;" %>
+          </div>
+        </div>
+
+        <%# ── QR Scan: Confirmed Recipient Card (hidden by default) ── %>
+        <div class="col-12" id="qr-confirmed-recipient" style="display: none;">
+          <div class="p-3 rounded-3 d-flex align-items-center justify-content-between"
+               style="background: rgba(22,101,52,0.08); border: 1px solid rgba(22,101,52,0.2);">
+            <div class="d-flex align-items-center gap-2">
+              <div class="d-flex align-items-center justify-content-center rounded-circle"
+                   style="width: 36px; height: 36px; background: var(--haiti-charcoal); border: 1.5px solid var(--haiti-gold); flex-shrink: 0;">
+                <i class="ri-qr-scan-2-line" style="color: var(--haiti-gold); font-size: 16px;"></i>
+              </div>
+              <div>
+                <div class="fw-bold" style="color: #166534; font-size: 13px;" id="qr-confirmed-label">—</div>
+                <div class="small" style="color: var(--haiti-olive); font-size: 10px;" id="qr-confirmed-dest">—</div>
+              </div>
+            </div>
+            <button type="button" onclick="clearQrRecipient()"
+                    class="btn btn-sm rounded-pill px-3 border-0 fw-bold"
+                    style="background: rgba(153,27,27,0.1); color: #991b1b; font-size: 11px;">
+              <i class="ri-close-line me-1"></i>Chanje
+            </button>
+          </div>
+        </div>
+
+        <%# ── Receiver: Bank account ── %>
+        <div class="col-12" id="section-bank" style="display: none;">
+          <% if @bank_methods.any? %>
+            <div class="input-group mb-2">
+              <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);">
+                <i class="ri-bank-line"></i>
+              </span>
+              <select name="bank_method_id" id="bank-method-select"
+                      class="form-select border-0 fw-bold shadow-none p-3 bb-dark-select"
+                      style="background-color: var(--haiti-charcoal); color: white; font-size: 13px;"
+                      onchange="handleBankMethodSelect(this)">
+                <% @bank_methods.each do |bm| %>
+                  <option value="<%= bm.id %>"
+                          data-account="<%= bm.bank_account_number %>"
+                          data-holder="<%= bm.account_holder_name %>">
+                    <%= bm.display_label %> · ••••<%= bm.bank_account_number.to_s.last(4) %>
+                  </option>
+                <% end %>
+                <option value="other">Lòt kont...</option>
+              </select>
             </div>
           <% end %>
+          <div id="bank-manual-fields" style="<%= @bank_methods.any? ? 'display: none;' : '' %>">
+            <div class="input-group mb-2">
+              <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);">
+                <i class="ri-hashtag"></i>
+              </span>
+              <input type="text" name="transfer[receiver_bank_account]" id="bank-account-input"
+                     placeholder="Nimewo kont (ex: 175-1021-1750802)"
+                     class="form-control border-0 fw-bold shadow-none p-3 bb-dark-field"
+                     style="background-color: var(--haiti-charcoal); color: white; font-size: 13px;">
+            </div>
+            <div class="input-group mb-2">
+              <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);">
+                <i class="ri-user-line"></i>
+              </span>
+              <input type="text" name="transfer[receiver_account_holder]" id="bank-holder-input"
+                     placeholder="Non sou kont lan (opsyonèl)"
+                     class="form-control border-0 fw-bold shadow-none p-3 bb-dark-field"
+                     style="background-color: var(--haiti-charcoal); color: white; font-size: 13px;">
+            </div>
+          </div>
+          <input type="hidden" name="transfer[receiver_bank_name]" value="UNIBANK">
+          <div class="p-2 rounded-3" style="background: rgba(22,101,52,0.06);">
+            <div class="small" style="color: var(--haiti-olive); font-size: 10px;">
+              <i class="ri-information-line me-1" style="color: var(--haiti-gold);"></i>
+              Transfè bank trete nan <strong>1-2 jou ouvrab</strong>. Pa gen frè — <strong>gratis</strong>.
+            </div>
+          </div>
+        </div>
 
-          <div id="manual-phone-wrapper" style="<%= @moncash_methods.any? ? 'display:none;' : '' %>">
-            <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Nimewo MonCash</label>
+        <%# ── Receiver: MonCash phone ── %>
+        <div class="col-12" id="section-moncash" style="display: none;">
+          <% if @moncash_methods.any? %>
+            <select name="moncash_method_id" id="moncash-method-select"
+                class="form-select border-0 fw-bold shadow-none p-3 mb-2 bb-dark-select"
+                style="background-color: var(--haiti-charcoal); color: white; font-size: 13px; background-image: url(&quot;data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23C5A059' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e&quot;);"
+                onchange="handleMoncashMethodSelect(this)">
+              <% @moncash_methods.each do |pm| %>
+                <option value="<%= pm.id %>" data-phone="<%= pm.account_number %>">
+                  MonCash · (509) •••• <%= pm.account_number.to_s.last(4) %>
+                </option>
+              <% end %>
+              <option value="other">Yon Lòt MonCash</option>
+            </select>
+          <% end %>
+          <div id="moncash-manual-phone" style="<%= @moncash_methods.any? ? 'display: none;' : '' %>">
             <div class="input-group">
               <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);">
                 <i class="ri-phone-line"></i>
               </span>
-              <%= f.telephone_field :receiver_phone, placeholder: "50912345678", maxlength: 11,
-                  class: "form-control border-0 fw-bold shadow-none p-3 bb-dark-field",
-                  style: "background-color: var(--haiti-charcoal); color: white;" %>
+              <input type="tel" name="transfer[receiver_phone]" id="moncash-phone-input"
+                     placeholder="ex: 509 3456 7890"
+                     class="form-control border-0 fw-bold shadow-none p-3 bb-dark-field"
+                     style="background-color: var(--haiti-charcoal); color: white; font-size: 13px;"
+                     maxlength="14" inputmode="tel">
             </div>
           </div>
-
-          <div class="mt-2">
-            <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">
-              Imèl <span class="text-lowercase fw-normal">(opsyonèl — pou lyen reklame)</span>
-            </label>
-            <div class="input-group">
-              <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);">
-                <i class="ri-mail-line"></i>
-              </span>
-              <%= f.email_field :receiver_email, placeholder: "moun@egzanp.com",
-                  class: "form-control border-0 fw-bold shadow-none p-3 bb-dark-field",
-                  style: "background-color: var(--haiti-charcoal); color: white;" %>
+          <div class="p-2 rounded-3 mt-2" style="background: rgba(197,160,89,0.08);">
+            <div class="small" style="color: var(--haiti-olive); font-size: 10px;">
+              <i class="ri-information-line me-1" style="color: var(--haiti-gold);"></i>
+              Voye HTG dirèkteman nan nimewo MonCash. <strong>Enstantan</strong>.
             </div>
           </div>
         </div>
 
-        <%# ── Crypto Receiver (Base Wallet) ── %>
-        <div class="col-12" id="receiver-crypto" style="display: none;">
+        <%# ── Receiver: Crypto wallet address ── %>
+        <div class="col-12" id="section-crypto" style="display: none;">
           <% if @crypto_methods.any? %>
-            <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Pòtfèy Kripto Anrejistre</label>
             <select name="crypto_method_id" id="crypto-select"
                 class="form-select border-0 fw-bold shadow-none p-3 mb-2 bb-dark-select"
-                style="background-color: var(--haiti-charcoal); color: white;"
+                style="background-color: var(--haiti-charcoal); color: white; background-image: url(&quot;data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23C5A059' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e&quot;);"
                 onchange="toggleManualWallet()">
               <% @crypto_methods.each do |pm| %>
                 <option value="<%= pm.id %>"><%= "#{pm.display_label} (#{pm.masked_wallet_address})" %></option>
               <% end %>
               <option value="other">Antre yon lòt adrès...</option>
             </select>
-            <div class="small mb-2" style="color: var(--haiti-olive); font-size: 10px;">
-              <i class="ri-wallet-3-line me-1"></i>
-              <%= link_to "Jere metòd peman", payment_methods_path, style: "color: var(--haiti-olive);" %>
-            </div>
           <% end %>
-
           <div id="manual-wallet-wrapper" style="<%= @crypto_methods.any? ? 'display:none;' : '' %>">
-            <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Adrès Base (Pòtfèy Resevè)</label>
             <div class="input-group">
               <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);">
                 <i class="ri-wallet-3-line"></i>
@@ -195,98 +605,47 @@
           </div>
         </div>
 
-        <%# ── Receiver Name (optional) ── %>
-        <div class="col-12">
-          <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">
-            Non <span class="text-lowercase fw-normal">(opsyonèl)</span>
-          </label>
-          <div class="input-group">
-            <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);">
-              <i class="ri-user-line"></i>
-            </span>
-            <%= f.text_field :receiver_name, placeholder: "Jean Pierre",
-                class: "form-control border-0 fw-bold shadow-none p-3 bb-dark-field",
-                style: "background-color: var(--haiti-charcoal); color: white;" %>
-          </div>
-        </div>
-
-        <%# ── Amount (HTG) ── %>
-        <div class="col-12">
-          <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Montan an Goud (HTG)</label>
-          <div class="input-group">
-            <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);">
-              <i class="ri-money-dollar-circle-line"></i>
-            </span>
-            <%= f.number_field :amount, placeholder: "e.g. 500", min: Transfer::SEND_MIN_HTG, max: Transfer::SEND_MAX_HTG, step: 1,
-                id: "transfer_amount",
-                class: "form-control border-0 fw-bold shadow-none p-3 bb-dark-field",
-                style: "background-color: var(--haiti-charcoal); color: white;",
-                required: true %>
-          </div>
-          <div class="small mt-1" style="color: var(--haiti-olive); font-size: 10px;">
-            <i class="ri-information-line me-1"></i>
-            Limit: <%= Transfer::SEND_MIN_HTG %> - <%= number_with_delimiter(Transfer::SEND_MAX_HTG) %> HTG
-          </div>
-        </div>
-
-        <%# ── Fee + Crypto Preview Widget ── %>
-        <div class="col-12">
-          <div class="p-3 rounded-4" style="background-color: rgba(93,99,69,0.08); border: 1px dashed var(--haiti-olive);">
-            <div class="d-flex justify-content-between small">
-              <span class="fw-bold" style="color: var(--haiti-olive);">Frè (1%)</span>
-              <span class="fw-black" style="color: var(--haiti-charcoal);" id="fee-display">0 HTG</span>
-            </div>
-            <div class="d-flex justify-content-between small mt-1">
-              <span class="fw-bold" style="color: var(--haiti-olive);">Moun Nan Ap Resevwa</span>
-              <span class="fw-black" style="color: var(--haiti-gold);" id="net-display">0 HTG</span>
-            </div>
-            <div id="crypto-equiv" class="d-flex justify-content-between small mt-1" style="display: none;">
-              <span class="fw-bold" style="color: var(--haiti-olive);">Ekivalan Kripto</span>
-              <span class="fw-black" style="color: var(--haiti-charcoal);" id="crypto-display">—</span>
-            </div>
-          </div>
-        </div>
-
-        <%# ── Rate Widget (crypto only) ── %>
-        <div class="col-12" id="rate-widget" style="display: none;">
-          <div class="p-3 rounded-4 d-flex align-items-center justify-content-between"
-            style="background-color: rgba(93,99,69,0.08); border: 1px dashed var(--haiti-olive);">
-            <span class="small fw-bold" style="color: var(--haiti-olive);">To Aktyèl</span>
-            <span id="rate-display" class="fw-black" style="color: var(--haiti-charcoal);">—</span>
-          </div>
-        </div>
-
-        <%# ── Note ── %>
-        <div class="col-12">
-          <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">
-            Nòt <span class="text-lowercase fw-normal">(opsyonèl)</span>
-          </label>
-          <div class="input-group">
-            <span class="input-group-text border-0 align-items-start pt-3" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);">
-              <i class="ri-chat-1-line"></i>
-            </span>
-            <%= f.text_area :note, rows: 2, maxlength: 280, placeholder: "Pou kisa lajan sa a ye?",
-                class: "form-control border-0 fw-bold shadow-none p-3 bb-dark-field",
-                style: "background-color: var(--haiti-charcoal); color: white;" %>
-          </div>
-        </div>
-
         <%# ── Submit ── %>
         <div class="col-12 mt-2">
-          <%= f.button class: "btn w-100 py-3 fw-bold rounded-4 shadow-sm border-0 d-flex align-items-center justify-content-center gap-2",
-              style: "background-color: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 14px; letter-spacing: 0.5px;" do %>
-            <i class="ri-flashlight-fill"></i> Kontinye pou Revize
-          <% end %>
+          <button type="submit" id="transfer-submit-btn"
+              class="btn w-100 py-3 fw-bold rounded-4 shadow-sm border-0 d-flex align-items-center justify-content-center gap-2"
+              style="background-color: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 14px; letter-spacing: 0.5px;">
+            <i class="ri-flashlight-fill" id="submit-icon"></i> <span id="submit-text">Kontinye pou Revize</span>
+          </button>
         </div>
 
-        <div class="col-12 text-center">
-          <%= link_to zellus_path, class: "small text-decoration-none fw-bold", style: "color: var(--haiti-olive);" do %>
-            <i class="ri-arrow-left-line me-1"></i>Retounen nan Zèllus
-          <% end %>
-        </div>
       <% end %>
     </div>
 
+  </div>
+  </div><%# col-lg-5 %>
+
+  </div><%# row %>
+</div><%# container %>
+
+<%# ── QR Scanner Overlay ── %>
+<div id="qr-scanner-overlay" class="qr-overlay" style="display: none;">
+  <div class="qr-overlay-header">
+    <div style="font-size: 14px; font-weight: 800; color: var(--haiti-gold);">
+      <i class="ri-qr-scan-2-line me-1"></i> Eskane QR
+    </div>
+    <button type="button" class="qr-close-btn" onclick="closeQrScanner()">
+      <i class="ri-close-line"></i>
+    </button>
+  </div>
+
+  <div class="qr-viewfinder">
+    <div id="qr-reader"></div>
+    <div class="qr-corners">
+      <div class="qr-corner-bl"></div>
+      <div class="qr-corner-br"></div>
+    </div>
+    <div class="qr-scan-line"></div>
+  </div>
+
+  <div class="qr-status">
+    <div class="qr-status-title" id="qr-status-title">Eskane yon kòd QR</div>
+    <div class="qr-status-hint" id="qr-status-hint">Mete kòd QR la nan kad la</div>
   </div>
 </div>
 
@@ -294,41 +653,530 @@
 const USDC_HTG_RATE = <%= (@usdc_htg_rate || 135.50).to_f.round(2) %>;
 const ETH_HTG_RATE  = <%= (@eth_htg_rate || 390000).to_f.round(2) %>;
 const WBTC_HTG_RATE = <%= (@wbtc_htg_rate || 12872500).to_f.round(2) %>;
+const STOCK_HTG_RATES = {
+  tslax:  <%= (@stock_htg_rates&.dig("tslax") || 35000).to_f.round(2) %>,
+  nvdax:  <%= (@stock_htg_rates&.dig("nvdax") || 18000).to_f.round(2) %>,
+  aaplx:  <%= (@stock_htg_rates&.dig("aaplx") || 29000).to_f.round(2) %>,
+  coinx:  <%= (@stock_htg_rates&.dig("coinx") || 34000).to_f.round(2) %>,
+  googlx: <%= (@stock_htg_rates&.dig("googlx") || 24000).to_f.round(2) %>
+};
 const SAVED_MONCASH = <%= (@moncash_methods || []).map { |pm| [pm.id.to_s, pm.account_number] }.to_h.to_json.html_safe %>;
 const SAVED_WALLETS = <%= (@crypto_methods || []).map { |pm| [pm.id.to_s, pm.wallet_address] }.to_h.to_json.html_safe %>;
 
+const USER_HTG_BAL  = <%= (current_user.wallet&.htg_balance || 0).to_f %>;
+const USER_USDC_BAL = <%= (current_user.wallet&.usdc_balance || 0).to_f %>;
+const USER_ETH_BAL  = <%= (current_user.wallet&.eth_balance || 0).to_f %>;
+const USER_WBTC_BAL = <%= (current_user.wallet&.wbtc_balance || 0).to_f %>;
+const USER_TSLAX_BAL  = <%= (current_user.wallet&.tslax_balance || 0).to_f %>;
+const USER_NVDAX_BAL  = <%= (current_user.wallet&.nvdax_balance || 0).to_f %>;
+const USER_AAPLX_BAL  = <%= (current_user.wallet&.aaplx_balance || 0).to_f %>;
+const USER_COINX_BAL  = <%= (current_user.wallet&.coinx_balance || 0).to_f %>;
+const USER_GOOGLX_BAL = <%= (current_user.wallet&.googlx_balance || 0).to_f %>;
+const USER_TOTAL_HTG = USER_HTG_BAL + (USER_USDC_BAL * USDC_HTG_RATE) + (USER_ETH_BAL * ETH_HTG_RATE) + (USER_WBTC_BAL * WBTC_HTG_RATE);
+
 let currentAsset = "htg";
+let currentDest = "zellus-htg";
+let isZellusReceiver = false;
+let htgReceiverMode = "wallet";
+let qrRecipientActive = false;
 
-function switchAsset(asset) {
-  currentAsset = asset;
+// ── Destination config map ──
+var DEST_CONFIG = {
+  "zellus-htg":  { asset: "htg",  mode: "wallet",   section: "section-zellus",      amountUnit: "htg" },
+  "zellus-usdc": { asset: "usdc", mode: "wallet",   section: "section-zellus-usdc", amountUnit: "usdc" },
+  "zellus-eth":  { asset: "eth",  mode: "wallet",   section: "section-zellus",      amountUnit: "htg" },
+  "zellus-wbtc": { asset: "wbtc", mode: "wallet",   section: "section-zellus",      amountUnit: "htg" },
+  "moncash-htg": { asset: "htg",  mode: "moncash",  section: "section-moncash",     amountUnit: "htg" },
+  "bank-htg":    { asset: "htg",  mode: "bank",     section: "section-bank",        amountUnit: "htg" },
+  "bank-usd":    { asset: "usd",  mode: "bank",     section: "section-bank",        amountUnit: "usd" },
+  "zellus-tslax":  { asset: "tslax",  mode: "wallet", section: "section-zellus", amountUnit: "htg" },
+  "zellus-nvdax":  { asset: "nvdax",  mode: "wallet", section: "section-zellus", amountUnit: "htg" },
+  "zellus-aaplx":  { asset: "aaplx",  mode: "wallet", section: "section-zellus", amountUnit: "htg" },
+  "zellus-coinx":  { asset: "coinx",  mode: "wallet", section: "section-zellus", amountUnit: "htg" },
+  "zellus-googlx": { asset: "googlx", mode: "wallet", section: "section-zellus", amountUnit: "htg" }
+};
 
-  // Toggle receiver sections
-  document.getElementById("receiver-htg").style.display   = (asset === "htg") ? "" : "none";
-  document.getElementById("receiver-crypto").style.display = (asset !== "htg") ? "" : "none";
+// ── Currency guide tips ──
+var CURRENCY_TIPS = {
+  "htg":  { icon: "ri-shopping-cart-2-line", color: "var(--haiti-gold)", text: "<strong>Depans chak jou.</strong> Peye machanndiz, fakti, ak sèvis lokal.", border: "var(--haiti-gold)", bg: "rgba(197,160,89,0.08)" },
+  "usd":  { icon: "ri-bank-line",           color: "#166534",          text: "<strong>Transfè bank.</strong> Voye dola dirèkteman nan kont Unibank.", border: "#166534", bg: "rgba(22,101,52,0.06)" },
+  "usdc": { icon: "ri-shield-check-line",    color: "#0052FF",          text: "<strong>Ekonomize a kout tèm.</strong> Estab tankou dola — pa monte, pa desann.", border: "#0052FF", bg: "rgba(0,82,255,0.05)" },
+  "eth":  { icon: "ri-line-chart-line",      color: "#627eea",          text: "<strong>Envèstisman mwayen tèm.</strong> Teknoloji ki ka grandi — men pri a ka chanje.", border: "#627eea", bg: "rgba(98,126,234,0.05)" },
+  "wbtc":   { icon: "ri-safe-2-line",          color: "#f7931a",          text: "<strong>Ekonomize a long tèm.</strong> Pi gwo kriptomòne nan mond lan — pi ra pase lò.", border: "#f7931a", bg: "rgba(247,147,26,0.05)" },
+  "tslax":  { icon: "ri-stock-line",           color: "#CC0000",          text: "<strong>Tesla (TSLAX).</strong> Envèsti nan aksyon Tesla dirèkteman sou Base.", border: "#CC0000", bg: "rgba(204,0,0,0.05)" },
+  "nvdax":  { icon: "ri-stock-line",           color: "#76B900",          text: "<strong>Nvidia (NVDAX).</strong> Envèsti nan aksyon Nvidia dirèkteman sou Base.", border: "#76B900", bg: "rgba(118,185,0,0.05)" },
+  "aaplx":  { icon: "ri-stock-line",           color: "#555555",          text: "<strong>Apple (AAPLX).</strong> Envèsti nan aksyon Apple dirèkteman sou Base.", border: "#555555", bg: "rgba(85,85,85,0.05)" },
+  "coinx":  { icon: "ri-stock-line",           color: "#0052FF",          text: "<strong>Coinbase (COINX).</strong> Envèsti nan aksyon Coinbase dirèkteman sou Base.", border: "#0052FF", bg: "rgba(0,82,255,0.05)" },
+  "googlx": { icon: "ri-stock-line",           color: "#4285F4",          text: "<strong>Alphabet (GOOGLX).</strong> Envèsti nan aksyon Google dirèkteman sou Base.", border: "#4285F4", bg: "rgba(66,133,244,0.05)" }
+};
 
-  // Highlight selected asset card
-  ["htg", "usdc", "eth"].forEach(a => {
-    const lbl = document.getElementById("lbl-" + a);
-    lbl.style.borderColor = (a === asset) ? "var(--haiti-olive)" : "#d9d6c4";
+function updateCurrencyTip(asset) {
+  var tip = CURRENCY_TIPS[asset];
+  if (!tip) return;
+
+  // Mobile tip
+  var tipEl = document.getElementById("currency-tip");
+  var tipIcon = document.getElementById("currency-tip-icon");
+  var tipText = document.getElementById("currency-tip-text");
+  if (tipEl) {
+    tipEl.style.borderLeftColor = tip.border;
+    tipEl.style.background = tip.bg;
+    tipIcon.className = tip.icon + " flex-shrink-0";
+    tipIcon.style.color = tip.color;
+    tipText.innerHTML = tip.text;
+  }
+
+}
+
+// ── Check balance for a given asset ──
+function balanceForAsset(asset) {
+  if (asset === "usdc" || asset === "usd") return USER_USDC_BAL;
+  if (asset === "tslax") return USER_TSLAX_BAL;
+  if (asset === "nvdax") return USER_NVDAX_BAL;
+  if (asset === "aaplx") return USER_AAPLX_BAL;
+  if (asset === "coinx") return USER_COINX_BAL;
+  if (asset === "googlx") return USER_GOOGLX_BAL;
+  return USER_HTG_BAL; // htg, eth, wbtc all debit HTG
+}
+
+function switchDestination(dest) {
+  var cfg = DEST_CONFIG[dest];
+  if (!cfg) return;
+  currentDest = dest;
+  currentAsset = cfg.asset;
+  htgReceiverMode = cfg.mode;
+
+  // Update currency tip
+  updateCurrencyTip(cfg.asset);
+
+  // Update top balance display for selected currency
+  var topBalAmount = document.getElementById("top-bal-amount");
+  var topBalLabel = document.getElementById("top-bal-label");
+  if (topBalAmount && topBalLabel) {
+    var stockFmt = function(v) { return v.toLocaleString('fr', {minimumFractionDigits: 2, maximumFractionDigits: 6}); };
+    var balMap = {
+      "htg":    { val: USER_HTG_BAL,    label: "HTG",    fmt: function(v) { return v.toLocaleString('fr', {minimumFractionDigits: 0, maximumFractionDigits: 2}); } },
+      "usdc":   { val: USER_USDC_BAL,   label: "USD",    fmt: function(v) { return v.toLocaleString('fr', {minimumFractionDigits: 2, maximumFractionDigits: 2}); } },
+      "usd":    { val: USER_USDC_BAL,   label: "USD",    fmt: function(v) { return v.toLocaleString('fr', {minimumFractionDigits: 2, maximumFractionDigits: 2}); } },
+      "eth":    { val: USER_ETH_BAL,    label: "ETH",    fmt: function(v) { return v.toLocaleString('fr', {minimumFractionDigits: 2, maximumFractionDigits: 6}); } },
+      "wbtc":   { val: USER_WBTC_BAL,   label: "wBTC",   fmt: function(v) { return v.toLocaleString('fr', {minimumFractionDigits: 2, maximumFractionDigits: 6}); } },
+      "tslax":  { val: USER_TSLAX_BAL,  label: "TSLAX",  fmt: stockFmt },
+      "nvdax":  { val: USER_NVDAX_BAL,  label: "NVDAX",  fmt: stockFmt },
+      "aaplx":  { val: USER_AAPLX_BAL,  label: "AAPLX",  fmt: stockFmt },
+      "coinx":  { val: USER_COINX_BAL,  label: "COINX",  fmt: stockFmt },
+      "googlx": { val: USER_GOOGLX_BAL, label: "GOOGLX", fmt: stockFmt }
+    };
+    var info = balMap[cfg.asset];
+    var htgEquiv = document.getElementById("top-bal-htg-equiv");
+    if (info) {
+      topBalAmount.textContent = info.fmt(info.val);
+      topBalLabel.textContent = info.label;
+      // Show HTG equivalent for non-HTG currencies
+      if (htgEquiv) {
+        var htgRates = { "usdc": USDC_HTG_RATE, "usd": USDC_HTG_RATE, "eth": ETH_HTG_RATE, "wbtc": WBTC_HTG_RATE,
+          "tslax": STOCK_HTG_RATES.tslax, "nvdax": STOCK_HTG_RATES.nvdax, "aaplx": STOCK_HTG_RATES.aaplx, "coinx": STOCK_HTG_RATES.coinx, "googlx": STOCK_HTG_RATES.googlx };
+        var rate = htgRates[cfg.asset];
+        if (rate) {
+          var htgVal = (info.val * rate).toLocaleString('fr', {minimumFractionDigits: 0, maximumFractionDigits: 2});
+          htgEquiv.textContent = "≈ " + htgVal + " HTG";
+          htgEquiv.style.display = "";
+        } else {
+          htgEquiv.style.display = "none";
+        }
+      }
+    }
+  }
+
+  // Update hidden fields
+  document.getElementById("asset-hidden").value = cfg.asset;
+  document.getElementById("receiver-mode").value = cfg.mode;
+
+  // ── Zero-balance check: disable fields if balance is 0 ──
+  var bal = balanceForAsset(cfg.asset);
+  var isZero = bal <= 0;
+  var warning = document.getElementById("zero-bal-warning");
+  var amountInput = document.getElementById("amount-visible-input");
+  var submitBtn = document.querySelector("form button[type='submit'], form .btn");
+
+  if (warning) warning.style.display = isZero ? "flex" : "none";
+
+  // Disable/enable receiver sections
+  ["section-zellus", "section-zellus-usdc", "section-moncash", "section-bank", "section-crypto"].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) {
+      el.style.opacity = isZero ? "0.4" : "1";
+      el.style.pointerEvents = isZero ? "none" : "";
+      var inputs = el.querySelectorAll("input, select, button");
+      inputs.forEach(function(inp) { inp.disabled = isZero; });
+    }
   });
 
-  // Rate widget
-  const rateWidget = document.getElementById("rate-widget");
-  const rateDisplay = document.getElementById("rate-display");
-  if (asset !== "htg") {
-    rateWidget.style.display = "";
-    if (asset === "usdc") rateDisplay.textContent = "1 USDC = " + USDC_HTG_RATE.toFixed(2) + " HTG";
-    else if (asset === "eth") rateDisplay.textContent = "1 ETH = " + ETH_HTG_RATE.toLocaleString() + " HTG";
+  // Disable/enable amount field
+  amountInput.disabled = isZero;
+  amountInput.closest(".input-group").style.opacity = isZero ? "0.4" : "1";
+
+  // Show/hide receiver sections (skip if QR recipient is locked in)
+  if (!qrRecipientActive) {
+    ["section-zellus", "section-zellus-usdc", "section-moncash", "section-bank", "section-crypto"].forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) el.style.display = (id === cfg.section) ? "" : "none";
+    });
+
+    // Clear all receiver fields
+    document.getElementById("receiver-cashtag-hidden").value = "";
+    document.getElementById("receiver-phone-hidden").value = "";
+    document.getElementById("receiver-email-hidden").value = "";
+    document.getElementById("receiver-lookup-input").value = "";
+    document.getElementById("receiver-lookup-result").innerHTML = "";
+    document.getElementById("receiver-lookup-result").style.display = "none";
+  var usdcTagInput = document.getElementById("usdc-tag-input");
+  if (usdcTagInput) usdcTagInput.value = "";
+  var usdcTagResult = document.getElementById("usdc-tag-result");
+  if (usdcTagResult) { usdcTagResult.innerHTML = ""; usdcTagResult.style.display = "none"; }
+  var bankAcctInput = document.getElementById("bank-account-input");
+  var bankHolderInput = document.getElementById("bank-holder-input");
+  if (bankAcctInput) bankAcctInput.value = "";
+  if (bankHolderInput) bankHolderInput.value = "";
+  var walletInputs = document.querySelectorAll("input[name='transfer[receiver_wallet_address]']");
+  walletInputs.forEach(function(el) { el.value = ""; });
+  var moncashPhoneInput = document.getElementById("moncash-phone-input");
+  if (moncashPhoneInput) moncashPhoneInput.value = "";
+  isZellusReceiver = false;
+
+  // If MonCash selected, pre-set phone from saved method
+  if (dest === "moncash-htg") {
+    var moncashSelect = document.getElementById("moncash-method-select");
+    if (moncashSelect && moncashSelect.value !== "other") {
+      var opt = moncashSelect.options[moncashSelect.selectedIndex];
+      if (opt) document.getElementById("receiver-phone-hidden").value = opt.getAttribute("data-phone") || "";
+    }
+  }
+  } // end if (!qrRecipientActive)
+
+  // Amount field
+  var amountLabel = document.getElementById("amount-label");
+  amountInput = document.getElementById("amount-visible-input");
+  var amountSuffix = document.getElementById("amount-unit-suffix");
+  var amountLimits = document.getElementById("amount-limits");
+  var amountEquiv = document.getElementById("amount-htg-equivalent");
+
+  if (cfg.amountUnit === "usdc") {
+    amountLabel.textContent = "Map voye (USD)";
+    amountInput.placeholder = "e.g. 10";
+    amountInput.min = "1";
+    amountInput.max = "500";
+    amountInput.step = "0.01";
+    amountSuffix.textContent = "USD";
+    amountLimits.innerHTML = '<i class="ri-information-line me-1"></i>Limit: 1 - 500 USD';
+    amountEquiv.style.display = "";
+    amountEquiv.innerHTML = "";
+  } else if (cfg.amountUnit === "usd") {
+    amountLabel.textContent = "Map voye (USD)";
+    amountInput.placeholder = "e.g. 100";
+    amountInput.min = "1";
+    amountInput.max = "10000";
+    amountInput.step = "0.01";
+    amountSuffix.textContent = "USD";
+    amountLimits.innerHTML = '<i class="ri-information-line me-1"></i>Limit: 1 - 10,000 USD';
+    amountEquiv.style.display = "none";
   } else {
-    rateWidget.style.display = "none";
+    amountLabel.textContent = "Map voye (HTG)";
+    amountInput.placeholder = "e.g. 500";
+    amountInput.min = "<%= Transfer::SEND_MIN_HTG %>";
+    amountInput.max = "<%= Transfer::SEND_MAX_HTG %>";
+    amountInput.step = "1";
+    amountSuffix.textContent = "HTG";
+    amountLimits.innerHTML = '<i class="ri-information-line me-1"></i>Limit: <%= Transfer::SEND_MIN_HTG %> - <%= number_with_delimiter(Transfer::SEND_MAX_HTG) %> HTG';
+    amountEquiv.style.display = "none";
+  }
+
+  amountInput.value = "";
+  document.getElementById("transfer_amount").value = "";
+
+  // Disable/enable note toggle + submit button
+  var noteToggle = document.querySelector("#note-wrapper")
+    ? document.querySelector("#note-wrapper").previousElementSibling : null;
+  if (noteToggle && noteToggle.tagName === "A") {
+    noteToggle.style.opacity = isZero ? "0.4" : "1";
+    noteToggle.style.pointerEvents = isZero ? "none" : "";
+  }
+  if (submitBtn) {
+    submitBtn.disabled = isZero;
+    submitBtn.style.opacity = isZero ? "0.4" : "1";
   }
 
   updateFee();
 }
 
+// ── Destination custom dropdown ──
+function toggleDestDropdown() {
+  var menu = document.getElementById('dest-dropdown-menu');
+  menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+}
+
+function selectDest(dest, btn) {
+  // Update selected display
+  var logo = btn.querySelector('span');
+  if (logo) document.getElementById('dest-selected-logo').innerHTML = logo.outerHTML;
+
+  // Build label from DEST_CONFIG group + asset
+  var labels = {
+    "zellus-htg": "HTG", "zellus-usdc": "USD", "zellus-eth": "ETH", "zellus-wbtc": "wBTC",
+    "zellus-tslax": "TSLAX", "zellus-nvdax": "NVDAX", "zellus-aaplx": "AAPLX", "zellus-coinx": "COINX", "zellus-googlx": "GOOGLX"
+  };
+  document.getElementById('dest-selected-label').textContent = labels[dest] || btn.textContent.trim();
+
+  // Highlight active
+  document.querySelectorAll('#dest-dropdown-menu .dest-item').forEach(function(el) {
+    el.style.background = 'transparent';
+  });
+  btn.style.background = 'rgba(255,255,255,0.06)';
+
+  // Close and switch
+  document.getElementById('dest-dropdown-menu').style.display = 'none';
+  switchDestination(dest);
+}
+
+document.addEventListener('click', function(e) {
+  var dd = document.getElementById('dest-dropdown');
+  if (dd && !dd.contains(e.target)) {
+    document.getElementById('dest-dropdown-menu').style.display = 'none';
+  }
+});
+
+// ── Handle amount input: sync visible → hidden (convert USDC → HTG if needed) ──
+function handleAmountInput() {
+  var visibleInput = document.getElementById("amount-visible-input");
+  var hiddenInput = document.getElementById("transfer_amount");
+  var equiv = document.getElementById("amount-htg-equivalent");
+  var val = parseFloat(visibleInput.value) || 0;
+
+  if (currentAsset === "usdc") {
+    // Convert USDC to HTG for the backend
+    var htgAmount = Math.round(val * USDC_HTG_RATE);
+    hiddenInput.value = htgAmount > 0 ? htgAmount : "";
+    if (val > 0) {
+      equiv.style.display = "";
+      equiv.innerHTML = '<i class="ri-exchange-line me-1"></i>≈ ' + htgAmount.toLocaleString('fr') + ' HTG';
+    } else {
+      equiv.innerHTML = "";
+    }
+  } else {
+    // HTG or ETH: direct pass-through
+    hiddenInput.value = val > 0 ? val : "";
+    equiv.style.display = "none";
+  }
+}
+
 function toggleManualPhone() {
-  const sel = document.getElementById("moncash-select");
-  document.getElementById("manual-phone-wrapper").style.display = (sel && sel.value === "other") ? "" : "none";
+  // kept for crypto select fallback
+}
+
+// ── MonCash method select: saved number or manual ──
+function handleMoncashMethodSelect(select) {
+  var manualDiv = document.getElementById("moncash-manual-phone");
+  var phoneInput = document.getElementById("moncash-phone-input");
+  var phoneHidden = document.getElementById("receiver-phone-hidden");
+
+  if (select.value === "other") {
+    if (manualDiv) manualDiv.style.display = "";
+    if (phoneInput) { phoneInput.required = true; phoneInput.focus(); }
+    if (phoneHidden) phoneHidden.value = "";
+  } else {
+    if (manualDiv) manualDiv.style.display = "none";
+    if (phoneInput) phoneInput.required = false;
+    // Set phone from saved method
+    var opt = select.options[select.selectedIndex];
+    if (opt && phoneHidden) phoneHidden.value = opt.getAttribute("data-phone") || "";
+  }
+}
+
+// ── Legacy compatibility shims ──
+function switchHtgMode(mode) { /* handled by switchDestination */ }
+function switchUsdcMode(mode) { /* handled by switchDestination */ }
+function switchAsset(asset) { /* handled by switchDestination */ }
+
+// ── Bank method select: saved account or manual ──
+function handleBankMethodSelect(select) {
+  var manualFields = document.getElementById("bank-manual-fields");
+  var bankAcctInput = document.getElementById("bank-account-input");
+  var bankHolderInput = document.getElementById("bank-holder-input");
+
+  if (select.value === "other") {
+    if (manualFields) manualFields.style.display = "";
+    if (bankAcctInput) { bankAcctInput.required = true; bankAcctInput.focus(); }
+  } else {
+    if (manualFields) manualFields.style.display = "none";
+    if (bankAcctInput) bankAcctInput.required = false;
+  }
+}
+
+// ── Unified Receiver Lookup (search-as-you-type) ──
+var _htgLookupTimer = null;
+var _htgLastQuery = '';
+
+function handleReceiverLookup() {
+  var input = document.getElementById("receiver-lookup-input");
+  var resultDiv = document.getElementById("receiver-lookup-result");
+  var icon = document.getElementById("htg-search-icon");
+  var q = (input ? input.value : "").trim();
+
+  // Reset hidden fields
+  document.getElementById("receiver-cashtag-hidden").value = "";
+  document.getElementById("receiver-phone-hidden").value = "";
+  document.getElementById("receiver-email-hidden").value = "";
+  isZellusReceiver = false;
+  updateFee();
+
+  if (_htgLookupTimer) { clearTimeout(_htgLookupTimer); _htgLookupTimer = null; }
+
+  if (!q) {
+    resultDiv.style.display = 'none';
+    resultDiv.innerHTML = '';
+    icon.className = 'ri-search-line';
+    _htgLastQuery = '';
+    return;
+  }
+
+  if (q.length < 2) {
+    resultDiv.style.display = 'none';
+    _htgLastQuery = '';
+    return;
+  }
+
+  if (q === _htgLastQuery) return;
+
+  icon.className = 'ri-loader-4-line ri-spin';
+
+  _htgLookupTimer = setTimeout(function() {
+    _htgLastQuery = q;
+
+    fetch('<%= user_lookup_path %>' + '?q=' + encodeURIComponent(q), {
+      headers: { 'Accept': 'application/json' }
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      icon.className = 'ri-search-line';
+      resultDiv.style.display = 'block';
+
+      if (data.found) {
+        document.getElementById("receiver-cashtag-hidden").value = data.cashtag;
+        if (data.has_moncash) {
+          document.getElementById("receiver-phone-hidden").value = data.moncash_phone;
+        }
+        isZellusReceiver = true;
+        updateFee();
+
+        var avatarHtml = data.avatar_url
+          ? '<img src="' + data.avatar_url + '" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 1.5px solid var(--haiti-gold);">'
+          : '<div style="width: 32px; height: 32px; border-radius: 50%; background: var(--haiti-charcoal); border: 1.5px solid var(--haiti-gold); display: flex; align-items: center; justify-content: center; color: var(--haiti-gold); font-size: 13px; font-weight: 800;">' + data.display_name.charAt(0).toUpperCase() + '</div>';
+
+        resultDiv.innerHTML = '<div class="d-flex align-items-center justify-content-between p-2 rounded-3" style="background: rgba(22,101,52,0.08);">' +
+          '<div class="d-flex align-items-center gap-2">' + avatarHtml +
+          '<div><div class="fw-bold" style="color: #166534; font-size: 12px;">' + data.display_name + '</div>' +
+          '<div style="color: var(--haiti-olive); font-size: 10px;">$' + data.cashtag + (data.has_moncash ? ' · ' + data.moncash_phone : '') + '</div></div></div>' +
+          '<button type="button" class="btn btn-sm fw-bold rounded-pill" style="background: #166534; color: #fff; font-size: 10px;" ' +
+          'onclick="selectHtgReceiver(\'' + data.cashtag + '\', \'' + (data.moncash_phone || '') + '\', \'' + data.display_name.replace(/'/g, "\\'") + '\')"><i class="ri-check-line me-1"></i>Chwazi</button></div>';
+      } else {
+        resultDiv.innerHTML = '<div class="small fw-bold" style="color: #991b1b; font-size: 11px;"><i class="ri-close-circle-line me-1"></i>' + data.message + '</div>';
+      }
+    })
+    .catch(function() {
+      icon.className = 'ri-search-line';
+      resultDiv.style.display = 'block';
+      resultDiv.innerHTML = '<div class="small fw-bold" style="color: #991b1b; font-size: 11px;">Erè rechèch. Eseye ankò.</div>';
+    });
+  }, 300);
+}
+
+function selectHtgReceiver(cashtag, phone, name) {
+  var input = document.getElementById("receiver-lookup-input");
+  var resultDiv = document.getElementById("receiver-lookup-result");
+  document.getElementById("receiver-cashtag-hidden").value = cashtag;
+  if (phone) document.getElementById("receiver-phone-hidden").value = phone;
+  isZellusReceiver = true;
+  updateFee();
+  input.value = '$' + cashtag;
+  resultDiv.innerHTML = '<div class="small fw-bold" style="color: #166534; font-size: 11px;"><i class="ri-check-line me-1"></i>' + name + ' · $' + cashtag + '</div>';
+}
+
+
+// ── USDC $zellustag lookup (search-as-you-type) ──
+var _usdcLookupTimer = null;
+var _usdcLastQuery = '';
+
+function handleUsdcTagLookup() {
+  var input = document.getElementById("usdc-tag-input");
+  var resultDiv = document.getElementById("usdc-tag-result");
+  var icon = document.getElementById("usdc-search-icon");
+  var q = (input ? input.value : "").trim();
+
+  document.getElementById("receiver-cashtag-hidden").value = "";
+  isZellusReceiver = false;
+  updateFee();
+
+  if (_usdcLookupTimer) { clearTimeout(_usdcLookupTimer); _usdcLookupTimer = null; }
+
+  if (!q) {
+    resultDiv.style.display = 'none';
+    resultDiv.innerHTML = '';
+    icon.className = 'ri-search-line';
+    _usdcLastQuery = '';
+    return;
+  }
+
+  if (q.length < 2) {
+    resultDiv.style.display = 'none';
+    _usdcLastQuery = '';
+    return;
+  }
+
+  if (q === _usdcLastQuery) return;
+
+  icon.className = 'ri-loader-4-line ri-spin';
+
+  _usdcLookupTimer = setTimeout(function() {
+    _usdcLastQuery = q;
+
+    fetch('<%= user_lookup_path %>' + '?q=' + encodeURIComponent(q), {
+      headers: { 'Accept': 'application/json' }
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      icon.className = 'ri-search-line';
+      resultDiv.style.display = 'block';
+
+      if (data.found) {
+        var avatarHtml2 = data.avatar_url
+          ? '<img src="' + data.avatar_url + '" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 1.5px solid var(--haiti-gold);">'
+          : '<div style="width: 32px; height: 32px; border-radius: 50%; background: var(--haiti-charcoal); border: 1.5px solid var(--haiti-gold); display: flex; align-items: center; justify-content: center; color: var(--haiti-gold); font-size: 13px; font-weight: 800;">' + data.display_name.charAt(0).toUpperCase() + '</div>';
+
+        resultDiv.innerHTML = '<div class="d-flex align-items-center justify-content-between p-2 rounded-3" style="background: rgba(22,101,52,0.08);">' +
+          '<div class="d-flex align-items-center gap-2">' + avatarHtml2 +
+          '<div><div class="fw-bold" style="color: #166534; font-size: 12px;">' + data.display_name + '</div>' +
+          '<div style="color: var(--haiti-olive); font-size: 10px;">$' + data.cashtag + '</div></div></div>' +
+          '<button type="button" class="btn btn-sm fw-bold rounded-pill" style="background: #166534; color: #fff; font-size: 10px;" ' +
+          'onclick="selectUsdcReceiver(\'' + data.cashtag + '\', \'' + data.display_name.replace(/'/g, "\\'") + '\')"><i class="ri-check-line me-1"></i>Chwazi</button></div>';
+      } else {
+        resultDiv.innerHTML = '<div class="small fw-bold" style="color: #991b1b; font-size: 11px;"><i class="ri-close-circle-line me-1"></i>' + data.message + '</div>';
+      }
+    })
+    .catch(function() {
+      icon.className = 'ri-search-line';
+      resultDiv.style.display = 'block';
+      resultDiv.innerHTML = '<div class="small fw-bold" style="color: #991b1b; font-size: 11px;">Erè rechèch. Eseye ankò.</div>';
+    });
+  }, 300);
+}
+
+function selectUsdcReceiver(cashtag, name) {
+  var input = document.getElementById("usdc-tag-input");
+  var resultDiv = document.getElementById("usdc-tag-result");
+  document.getElementById("receiver-cashtag-hidden").value = cashtag;
+  isZellusReceiver = true;
+  updateFee();
+  input.value = '$' + cashtag;
+  resultDiv.innerHTML = '<div class="small fw-bold" style="color: #166534; font-size: 11px;"><i class="ri-check-line me-1"></i>' + name + ' · $' + cashtag + '</div>';
 }
 
 function toggleManualWallet() {
@@ -337,33 +1185,274 @@ function toggleManualWallet() {
 }
 
 function updateFee() {
-  const amountInput = document.getElementById("transfer_amount");
-  const amount = parseFloat(amountInput?.value) || 0;
-  const fee = Math.round(amount * 0.01);
-  const net = amount - fee;
-
-  document.getElementById("fee-display").textContent = fee.toLocaleString() + " HTG";
-  document.getElementById("net-display").textContent = Math.max(net, 0).toLocaleString() + " HTG";
-
-  const cryptoRow = document.getElementById("crypto-equiv");
-  const cryptoDisp = document.getElementById("crypto-display");
-
-  if (currentAsset !== "htg" && net > 0) {
-    cryptoRow.style.display = "flex";
-    let rate, label, prec;
-    if (currentAsset === "usdc")      { rate = USDC_HTG_RATE; label = "USDC"; prec = 2; }
-    else if (currentAsset === "eth")  { rate = ETH_HTG_RATE;  label = "ETH";  prec = 6; }
-    else if (currentAsset === "wbtc") { rate = WBTC_HTG_RATE; label = "WBTC"; prec = 8; }
-    const cryptoAmt = rate > 0 ? (net / rate).toFixed(prec) : "—";
-    cryptoDisp.textContent = "~" + cryptoAmt + " " + label;
-  } else {
-    cryptoRow.style.display = "none";
-  }
+  // Fee is shown on the review page, not here
+  // This function is kept for receiver lookup state tracking
 }
 
 document.addEventListener("DOMContentLoaded", function() {
-  const amountInput = document.getElementById("transfer_amount");
-  if (amountInput) amountInput.addEventListener("input", updateFee);
-  switchAsset("htg");
+  var lookupInput = document.getElementById("receiver-lookup-input");
+  if (lookupInput) lookupInput.addEventListener("input", handleReceiverLookup);
+
+  var usdcTagInputEl = document.getElementById("usdc-tag-input");
+  if (usdcTagInputEl) usdcTagInputEl.addEventListener("input", handleUsdcTagLookup);
+
+  // Sync MonCash manual phone input → hidden field
+  var moncashPhoneEl = document.getElementById("moncash-phone-input");
+  if (moncashPhoneEl) {
+    moncashPhoneEl.addEventListener("input", function() {
+      document.getElementById("receiver-phone-hidden").value = this.value.replace(/\s/g, "");
+    });
+  }
+
+  switchDestination("zellus-htg");
+
+  // Auto-prefill receiver if redirected from wallet withdraw panel
+  var urlParams = new URLSearchParams(window.location.search);
+  var prefill = urlParams.get('prefill');
+  if (prefill && lookupInput) {
+    lookupInput.value = '$' + prefill.replace(/^\$/, '');
+    handleReceiverLookup();
+  }
+
+  // Auto-fill amount from cart total (business payments)
+  var cartField = document.querySelector('input[name="cart_items"]');
+  if (cartField && cartField.value && cartField.value !== '[]') {
+    try {
+      var cartItems = JSON.parse(cartField.value);
+      if (cartItems.length > 0) {
+        var subtotal = cartItems.reduce(function(sum, item) {
+          return sum + (parseInt(item.quantity) || 0) * (parseFloat(item.unit_price) || 0);
+        }, 0);
+        // Get tax rate from URL param biz → find from receipt section
+        var receiptTotal = document.querySelector('.fw-black[style*="font-size: 14px; color: var(--haiti-charcoal)"]');
+        if (receiptTotal) {
+          var totalText = receiptTotal.textContent.replace(/[^\d]/g, '');
+          if (totalText) {
+            var amountVisible = document.getElementById('amount-visible-input');
+            var amountHidden = document.getElementById('transfer_amount');
+            if (amountVisible && amountHidden) {
+              amountVisible.value = totalText;
+              amountHidden.value = totalText;
+            }
+          }
+        }
+      }
+    } catch(e) {}
+  }
+});
+
+// ══════════════════════════════════════
+// ── QR SCANNER                      ──
+// ══════════════════════════════════════
+var _qrScanner = null;
+
+function openQrScanner() {
+  var overlay = document.getElementById('qr-scanner-overlay');
+  if (!overlay) return;
+
+  overlay.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+
+  // Reset status text
+  document.getElementById('qr-status-title').textContent = 'Eskane yon kòd QR';
+  document.getElementById('qr-status-hint').textContent = 'Mete kòd QR la nan kad la';
+
+  // Init html5-qrcode
+  _qrScanner = new Html5Qrcode("qr-reader");
+
+  _qrScanner.start(
+    { facingMode: "environment" },
+    { fps: 10, qrbox: { width: 250, height: 250 }, aspectRatio: 1.0 },
+    onQrScanSuccess,
+    function onScanFailure() { /* silent — scanning in progress */ }
+  ).catch(function(err) {
+    document.getElementById('qr-status-title').textContent = 'Pa ka ouvri kamera';
+    document.getElementById('qr-status-hint').textContent = 'Pèmèt aksè kamera nan navigatè ou';
+    console.error("QR camera error:", err);
+  });
+}
+
+function onQrScanSuccess(decodedText) {
+  var value = (decodedText || '').trim();
+  if (!value) return;
+
+  // Parse ethereum: URI format
+  if (value.toLowerCase().startsWith('ethereum:')) {
+    value = value.replace(/^ethereum:/i, '').split(/[?@]/)[0];
+  }
+
+  var matched = false;
+
+  // ── Zèllus cashtag: starts with $ ──
+  if (/^\$[a-zA-Z0-9]{5,20}$/.test(value)) {
+    var tag = value.substring(1);
+    // Switch to Zèllus HTG and trigger lookup
+    simulateDestSelect('zellus-htg');
+    var lookupInput = document.getElementById('receiver-lookup-input');
+    if (lookupInput) {
+      lookupInput.value = value;
+      handleReceiverLookup();
+    }
+    matched = true;
+  }
+  // ── MonCash phone: 509 + 8 digits ──
+  else if (/^509\d{8}$/.test(value)) {
+    simulateDestSelect('moncash-htg');
+    var phoneHidden = document.getElementById('receiver-phone-hidden');
+    if (phoneHidden) phoneHidden.value = value;
+    // Try manual phone input
+    var moncashSelect = document.getElementById('moncash-method-select');
+    if (moncashSelect) {
+      moncashSelect.value = 'other';
+      handleMoncashMethodSelect(moncashSelect);
+    }
+    var phoneInput = document.getElementById('moncash-phone-input');
+    if (phoneInput) phoneInput.value = value;
+    matched = true;
+  }
+  // ── Crypto address: 0x + 40 hex chars ──
+  else if (/^0x[a-fA-F0-9]{40}$/.test(value)) {
+    simulateDestSelect('zellus-usdc');
+    // Show manual wallet input
+    var cryptoSelect = document.getElementById('crypto-select');
+    if (cryptoSelect) {
+      cryptoSelect.value = 'other';
+      toggleManualWallet();
+    } else {
+      var manualWrapper = document.getElementById('manual-wallet-wrapper');
+      if (manualWrapper) manualWrapper.style.display = '';
+    }
+    var walletInput = document.querySelector("input[name='transfer[receiver_wallet_address]']");
+    if (walletInput) walletInput.value = value;
+    matched = true;
+  }
+
+  if (matched) {
+    // Force-enable amount field + submit button after QR scan
+    var amtInput = document.getElementById('amount-visible-input');
+    if (amtInput) {
+      amtInput.disabled = false;
+      amtInput.closest('.input-group').style.opacity = '1';
+    }
+    var submitBtn = document.querySelector("#transfer-form button[type='submit']");
+    if (submitBtn) { submitBtn.disabled = false; submitBtn.style.opacity = '1'; }
+
+    // Hide zero-balance warning
+    var zbw = document.getElementById('zero-bal-warning');
+    if (zbw) zbw.style.display = 'none';
+
+    // Lock QR recipient — hide receiver sections, keep dropdown visible
+    qrRecipientActive = true;
+    ['section-zellus', 'section-zellus-usdc', 'section-moncash', 'section-bank', 'section-crypto'].forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) el.style.display = 'none';
+    });
+
+    // Show confirmed recipient card
+    showQrConfirmedCard(value);
+
+    // Show success feedback
+    document.getElementById('qr-status-title').innerHTML = '<i class="ri-check-line me-1" style="color: #22c55e;"></i>Jwenn li!';
+    document.getElementById('qr-status-hint').textContent = 'N ap fèmen kamera a...';
+
+    // Brief delay then close
+    setTimeout(function() {
+      closeQrScanner();
+      var amountInput = document.getElementById('amount-visible-input');
+      if (amountInput) amountInput.focus();
+    }, 800);
+  } else {
+    // Invalid QR
+    document.getElementById('qr-status-title').innerHTML = '<i class="ri-error-warning-line me-1" style="color: #f59e0b;"></i>QR pa rekonèt';
+    document.getElementById('qr-status-hint').textContent = 'Eseye yon kòd QR Zèllus, MonCash, oswa Base';
+    // Reset after a beat so user can try again
+    setTimeout(function() {
+      document.getElementById('qr-status-title').textContent = 'Eskane yon kòd QR';
+      document.getElementById('qr-status-hint').textContent = 'Mete kòd QR la nan kad la';
+    }, 2000);
+  }
+}
+
+function closeQrScanner() {
+  var overlay = document.getElementById('qr-scanner-overlay');
+  if (overlay) overlay.style.display = 'none';
+  document.body.style.overflow = '';
+
+  if (_qrScanner) {
+    _qrScanner.stop().catch(function() {});
+    _qrScanner.clear();
+    _qrScanner = null;
+  }
+}
+
+// Helper: programmatically switch destination dropdown
+function simulateDestSelect(dest) {
+  switchDestination(dest);
+  var labels = {
+    "zellus-htg": "HTG", "zellus-usdc": "USD", "zellus-eth": "ETH", "zellus-wbtc": "wBTC",
+    "zellus-tslax": "TSLAX", "zellus-nvdax": "NVDAX", "zellus-aaplx": "AAPLX", "zellus-coinx": "COINX", "zellus-googlx": "GOOGLX"
+  };
+  var labelEl = document.getElementById('dest-selected-label');
+  if (labelEl && labels[dest]) labelEl.textContent = labels[dest];
+}
+
+// Show the confirmed recipient card after QR scan
+function showQrConfirmedCard(scannedValue) {
+  var card = document.getElementById('qr-confirmed-recipient');
+  var label = document.getElementById('qr-confirmed-label');
+  var dest = document.getElementById('qr-confirmed-dest');
+  if (!card) return;
+
+  if (scannedValue.startsWith('$')) {
+    label.textContent = scannedValue;
+    dest.textContent = 'HTG';
+  } else if (/^509\d{8}$/.test(scannedValue)) {
+    label.textContent = scannedValue.replace(/(\d{3})(\d{4})(\d{4})/, '$1 $2 $3');
+    dest.textContent = 'HTG';
+  } else if (/^0x/i.test(scannedValue)) {
+    label.textContent = scannedValue.substring(0, 6) + '...' + scannedValue.slice(-4);
+    dest.textContent = 'USD · Base';
+  } else {
+    label.textContent = scannedValue;
+    dest.textContent = '';
+  }
+
+  card.style.display = '';
+}
+
+// Clear QR recipient → restore normal form
+function clearQrRecipient() {
+  qrRecipientActive = false;
+
+  // Hide confirmed card
+  var card = document.getElementById('qr-confirmed-recipient');
+  if (card) card.style.display = 'none';
+
+  // Re-show the correct receiver section for the current destination
+  switchDestination(currentDest);
+}
+
+// ── Submit button loading state ──
+document.addEventListener("DOMContentLoaded", function() {
+  var form = document.getElementById("transfer-form");
+  if (form) {
+    form.addEventListener("submit", function() {
+      var btn = document.getElementById("transfer-submit-btn");
+      var icon = document.getElementById("submit-icon");
+      var text = document.getElementById("submit-text");
+      if (btn && icon && text) {
+        btn.disabled = true;
+        btn.style.opacity = "0.7";
+        icon.className = "ri-loader-4-line";
+        icon.style.animation = "spin 60s linear infinite";
+        text.textContent = "Ap trete...";
+      }
+    });
+  }
+
+  // Add spin keyframe
+  var style = document.createElement("style");
+  style.textContent = "@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }";
+  document.head.appendChild(style);
 });
 </script>

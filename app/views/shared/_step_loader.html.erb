@@ -1,0 +1,171 @@
+<%# Reusable Step Loader Overlay — see usage in README or existing forms %>
+<% id ||= "step-loader" %>
+<% steps ||= [] %>
+
+<div id="<%= id %>" class="zellus-step-loader" style="display: none;">
+  <div class="zsl-card">
+    <div class="zsl-icon">
+      <i class="ri-flashlight-fill"></i>
+    </div>
+    <div class="zsl-steps">
+      <% steps.each_with_index do |step, i| %>
+        <div class="zsl-step" data-step="<%= i %>">
+          <div class="zsl-step-indicator">
+            <div class="zsl-spinner"></div>
+            <i class="ri-check-line zsl-check"></i>
+          </div>
+          <span class="zsl-step-text"><%= step %></span>
+        </div>
+      <% end %>
+    </div>
+    <div class="zsl-secure">
+      <i class="ri-shield-check-fill me-1"></i>Tranzaksyon sekirize
+    </div>
+  </div>
+</div>
+
+<style>
+  .zellus-step-loader {
+    position: fixed;
+    inset: 0;
+    background: rgba(46, 46, 56, 0.85);
+    backdrop-filter: blur(6px);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: zslFadeIn 0.3s ease;
+  }
+  @keyframes zslFadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+  .zsl-card {
+    background: var(--haiti-cream, #F7F4E3);
+    border-radius: 20px;
+    padding: 36px 32px 28px;
+    width: 340px;
+    max-width: 90vw;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    animation: zslSlideUp 0.4s ease;
+  }
+  @keyframes zslSlideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+  .zsl-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--haiti-charcoal, #2E2E38);
+    color: var(--haiti-gold, #C5A059);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    margin: 0 auto 24px;
+  }
+
+  .zsl-steps {
+    text-align: left;
+    margin-bottom: 20px;
+  }
+
+  .zsl-step {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+    opacity: 0.3;
+    transition: opacity 0.4s ease;
+  }
+  .zsl-step.active { opacity: 1; }
+  .zsl-step.done { opacity: 0.7; }
+
+  .zsl-step-indicator {
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .zsl-spinner {
+    width: 28px;
+    height: 28px;
+    border: 2.5px solid rgba(197,160,89,0.2);
+    border-top-color: var(--haiti-gold, #C5A059);
+    border-radius: 50%;
+    display: none;
+    animation: zslSpin 0.7s linear infinite;
+  }
+  @keyframes zslSpin { to { transform: rotate(360deg); } }
+
+  .zsl-step.active .zsl-spinner { display: block; }
+
+  .zsl-check {
+    display: none;
+    color: #22c55e;
+    font-size: 18px;
+    font-weight: 700;
+    animation: zslPop 0.3s ease;
+  }
+  @keyframes zslPop { from { transform: scale(0); } to { transform: scale(1); } }
+
+  .zsl-step.done .zsl-check { display: block; }
+  .zsl-step.done .zsl-spinner { display: none; }
+
+  .zsl-step-text {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--haiti-charcoal, #2E2E38);
+    line-height: 1.3;
+  }
+
+  .zsl-secure {
+    font-size: 11px;
+    color: var(--haiti-olive, #5D6345);
+    opacity: 0.7;
+    padding-top: 8px;
+    border-top: 1px solid rgba(93,99,69,0.12);
+  }
+  .zsl-secure i { color: var(--haiti-gold, #C5A059); }
+</style>
+
+<script>
+  window.ZellusLoader = window.ZellusLoader || {
+    start: function(loaderId, form, opts) {
+      opts = opts || {};
+      var overlay = document.getElementById(loaderId);
+      if (!overlay) { if (form) form.submit(); return; }
+
+      var steps = overlay.querySelectorAll('.zsl-step');
+      if (steps.length === 0) { if (form) form.submit(); return; }
+
+      // Show overlay
+      overlay.style.display = 'flex';
+
+      var delay = opts.stepDelay || 2500;
+      var current = 0;
+
+      function next() {
+        if (current > 0) {
+          steps[current - 1].classList.remove('active');
+          steps[current - 1].classList.add('done');
+        }
+
+        if (current < steps.length) {
+          steps[current].classList.add('active');
+          current++;
+          setTimeout(next, delay);
+        } else {
+          // All done — brief pause then submit
+          setTimeout(function() {
+            if (form) form.submit();
+          }, 400);
+        }
+      }
+
+      next();
+    }
+  };
+</script>

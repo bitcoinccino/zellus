@@ -2,13 +2,17 @@
 
 Bonjou <%= @sender_name %>,
 
-Malerezman, transfè ou bay <%= @transfer.receiver_name %> pa t kapab trete.
+Malerezman, transfè ou bay <%= @transfer.receiver_name.presence || @receiver_display %> pa t kapab trete.
 
 Rezon: <%= @transfer.failure_reason %>
 
-Montan: <%= format_htg(@transfer.amount) %>
+Montan: <%= @amount_display %>
+<% if @basescan_url.present? %>Basescan: <%= @basescan_url %><% end %>
+<% if @transfer.wallet_funded? && (@is_usdc_wallet || @is_usdc_address) %>
+USD ranbouse nan pòtfèy Zèllus ou otomatikman.
+<% end %>
 
-Tanpri kontakte sipò Priotelus pou jwenn asistans oswa pou ranbousman.
+Tanpri kontakte sipò Zèllus pou jwenn asistans oswa pou ranbousman.
 
 Nou regrèt dezagreman an.
-— Ekip Priotelus
+— Ekip Zèllus

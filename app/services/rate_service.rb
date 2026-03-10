@@ -4,6 +4,35 @@ class RateService
   DEFAULT_ETH_USD_FALLBACK = 3_500.0
   DEFAULT_CACHE_TTL_SECONDS = 300
 
+  # Approximate fallback prices (USD) for tokenized stocks
+  STOCK_FALLBACKS = {
+    "tslax"  => 395.0,
+    "nvdax"  => 190.0,
+    "aaplx"  => 265.0,
+    "coinx"  => 180.0,
+    "googlx" => 310.0
+  }.freeze
+
+  STOCK_CMC_SLUGS = {
+    "tslax"  => "tesla-tokenized-stock-xstock",
+    "nvdax"  => "nvidia-tokenized-stock-xstock",
+    "aaplx"  => "apple-tokenized-stock-xstock",
+    "coinx"  => "coinbase-tokenized-stock-xstock",
+    "googlx" => "alphabet-tokenized-stock-xstock"
+  }.freeze
+
+  # Unified CMC slugs for all assets (crypto + stocks)
+  CMC_SLUGS = {
+    "usdc"   => "usd-coin",
+    "btc"    => "bitcoin",
+    "eth"    => "ethereum",
+    "tslax"  => "tesla-tokenized-stock-xstock",
+    "nvdax"  => "nvidia-tokenized-stock-xstock",
+    "aaplx"  => "apple-tokenized-stock-xstock",
+    "coinx"  => "coinbase-tokenized-stock-xstock",
+    "googlx" => "alphabet-tokenized-stock-xstock"
+  }.freeze
+
   class << self
     FETCHED_AT_CACHE_KEY = "rates/usd_htg_fetched_at".freeze
 
@@ -61,6 +90,46 @@ class RateService
 
     def eth_htg_sell_rate
       (eth_usd_rate * sell_rate).round(2)
+    end
+
+    # ── Stock token rates (xStocks on Base) ──────────────────────────
+    def stock_usd_rate(ticker)
+      ticker = ticker.to_s.downcase
+      Rails.cache.fetch("rates/#{ticker}_usd", expires_in: 30.seconds) do
+        fetch_stock_usd_rate(ticker) || STOCK_FALLBACKS.fetch(ticker, 0.0)
+      end
+    rescue => e
+      Rails.logger.error "RateService #{ticker}/USD cache error: #{e.message}"
+      STOCK_FALLBACKS.fetch(ticker, 0.0)
+    end
+
+    def stock_htg_buy_rate(ticker)
+      (stock_usd_rate(ticker) * buy_rate).round(2)
+    end
+
+    def stock_htg_sell_rate(ticker)
+      (stock_usd_rate(ticker) * sell_rate).round(2)
+    end
+
+    # Convenience methods for each stock
+    %w[tslax nvdax aaplx coinx googlx].each do |t|
+      define_method(:"#{t}_usd_rate") { stock_usd_rate(t) }
+      define_method(:"#{t}_htg_buy_rate") { stock_htg_buy_rate(t) }
+      define_method(:"#{t}_htg_sell_rate") { stock_htg_sell_rate(t) }
+    end
+
+    # ── Market Data (CoinMarketCap) ────────────────────────────────
+    def market_data(key)
+      key = key.to_s.downcase
+      slug = CMC_SLUGS[key]
+      return {} unless slug
+
+      Rails.cache.fetch("market_data/#{key}", expires_in: 5.minutes) do
+        fetch_cmc_market_data(slug)
+      end
+    rescue => e
+      Rails.logger.error "RateService market_data(#{key}) error: #{e.message}"
+      {}
     end
 
     # ── Timestamp ────────────────────────────────────────────────────
@@ -123,6 +192,72 @@ class RateService
     rescue => e
       Rails.logger.error "RateService #{coin_id}/USD fetch failed: #{e.message}"
       nil
+    end
+
+    # ── Stock/USD rate fetch (CoinMarketCap) ──────────────────────────
+    def fetch_stock_usd_rate(ticker)
+      slug = STOCK_CMC_SLUGS[ticker]
+      return nil unless slug
+
+      api_key = ENV["COINMARKETCAP_API_KEY"].to_s.strip
+      return nil if api_key.blank?
+
+      conn = Faraday.new(url: "https://pro-api.coinmarketcap.com")
+      response = conn.get("/v1/cryptocurrency/quotes/latest") do |req|
+        req.params["slug"] = slug
+        req.headers["X-CMC_PRO_API_KEY"] = api_key
+        req.headers["Accept"] = "application/json"
+      end
+
+      return nil unless response.success?
+
+      data = JSON.parse(response.body) rescue {}
+      # CMC returns { data: { "<id>": { quote: { USD: { price: ... } } } } }
+      coin_data = data.dig("data")&.values&.first
+      price = coin_data&.dig("quote", "USD", "price").to_f
+      return nil if price <= 0
+
+      Rails.logger.info "RateService #{ticker}/USD fetched: #{price}"
+      price.round(2)
+    rescue => e
+      Rails.logger.error "RateService #{ticker}/USD CMC fetch failed: #{e.message}"
+      nil
+    end
+
+    # ── CMC market data fetch ──────────────────────────────────────
+    def fetch_cmc_market_data(slug)
+      api_key = ENV["COINMARKETCAP_API_KEY"].to_s.strip
+      return {} if api_key.blank?
+
+      conn = Faraday.new(url: "https://pro-api.coinmarketcap.com")
+      response = conn.get("/v1/cryptocurrency/quotes/latest") do |req|
+        req.params["slug"] = slug
+        req.headers["X-CMC_PRO_API_KEY"] = api_key
+        req.headers["Accept"] = "application/json"
+      end
+
+      return {} unless response.success?
+
+      data = JSON.parse(response.body) rescue {}
+      coin_data = data.dig("data")&.values&.first
+      return {} unless coin_data
+
+      quote = coin_data.dig("quote", "USD") || {}
+
+      {
+        market_cap:          quote["market_cap"].to_f,
+        volume_24h:          quote["volume_24h"].to_f,
+        percent_change_24h:  quote["percent_change_24h"].to_f.round(2),
+        fdv:                 quote["fully_diluted_market_cap"].to_f,
+        circulating_supply:  coin_data["circulating_supply"].to_f,
+        total_supply:        coin_data["total_supply"].to_f,
+        max_supply:          coin_data["max_supply"].to_f,
+        symbol:              coin_data["symbol"].to_s,
+        price:               quote["price"].to_f.round(2)
+      }
+    rescue => e
+      Rails.logger.error "RateService CMC market_data fetch failed for #{slug}: #{e.message}"
+      {}
     end
 
     def rate_api_base_url

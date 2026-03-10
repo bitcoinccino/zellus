@@ -19,12 +19,17 @@ class AdminController < ApplicationController
                                 .where(transaction_type: :loan_request, status: :pending)
                                 .order(created_at: :desc)
 
+    # Bank Withdrawals (pending/processing)
+    @pending_bank_withdrawals = BankWithdrawal.includes(:user)
+                                              .where(status: %w[pending processing])
+                                              .order(created_at: :asc)
+
     @moncash_prefunded_balance = nil
     @moncash_prefunded_error = nil
 
     # 3. Live Treasury Balances (RPC)
     begin
-      rpc_url          = ENV['BASE_RPC_URL'].presence || "https://sepolia.base.org"
+      rpc_url          = ENV['BASE_RPC_URL'].presence || "https://mainnet.base.org"
       priv_hex         = ENV['TREASURY_PRIVATE_KEY'].to_s.strip.delete_prefix("0x")
       treasury_address = derive_treasury_address(priv_hex)
 
@@ -52,7 +57,7 @@ class AdminController < ApplicationController
   # app/controllers/admin_controller.rb
 
 def approve_loan
-  @transaction = Transaction.find(params[:id])
+  @transaction = Transaction.find_by!(token: params[:id])
 
   # 1. Standard Guard: Ensure it's a valid pending loan
   unless @transaction.loan_request? && @transaction.pending?
@@ -94,7 +99,7 @@ end
 
 
   def retry_transaction
-    @transaction = Transaction.find(params[:id])
+    @transaction = Transaction.find_by!(token: params[:id])
 
     if @transaction.blockchain_tx_hash.blank?
       @transaction.update!(status: :paid, failure_reason: nil)
@@ -105,8 +110,146 @@ end
     end
   end
 
+  # ── Invite Codes ──
+  def invite_codes
+    @invite_codes = InviteCode.includes(:creator).order(created_at: :desc)
+    @new_invite_code = InviteCode.new(region: "cotes_de_fer", max_uses: 1)
+    @regions = InviteCode::REGIONS
+    @total_signups = User.where.not(invite_code_id: nil).count
+  end
+
+  def create_invite_code
+    batch_size = params[:batch_size].to_i.clamp(1, 50)
+    region = params[:invite_code][:region]
+    max_uses = params[:invite_code][:max_uses].to_i
+    label = params[:invite_code][:label].presence
+    expires_in = params[:expires_in].to_i # days, 0 = never
+
+    created = 0
+    batch_size.times do
+      code = InviteCode.new(
+        region: region,
+        max_uses: max_uses,
+        label: label,
+        creator: current_user,
+        expires_at: expires_in > 0 ? expires_in.days.from_now : nil
+      )
+      created += 1 if code.save
+    end
+
+    redirect_to admin_invite_codes_path, notice: "#{created} kòd envitasyon kreye pou #{InviteCode::REGIONS[region]}."
+  end
+
+  def credit_wallet
+    user = User.find_by(email: params[:email]) || User.find_by(cashtag: params[:email]&.delete_prefix("$"))
+    unless user
+      redirect_to admin_dashboard_path, alert: "Itilizatè pa jwenn: #{params[:email]}"
+      return
+    end
+
+    wallet = user.ensure_wallet!
+    amount = params[:amount].to_f
+    asset = params[:asset].to_s.downcase
+
+    if amount <= 0 || !%w[htg usdc].include?(asset)
+      redirect_to admin_dashboard_path, alert: "Montan oswa aktif pa valid."
+      return
+    end
+
+    WalletService.new(wallet).deposit!(
+      amount: amount,
+      asset: asset,
+      moncash_transaction_id: "admin-credit-#{current_user.id}-#{Time.current.to_i}"
+    )
+
+    redirect_to admin_dashboard_path, notice: "#{amount} #{asset.upcase} kredite nan kont #{user.email} ($#{user.cashtag})."
+  end
+
+  # ── Bank Withdrawal: Mark as "processing" (admin started manual transfer) ──
+  def process_bank_withdrawal
+    bw = BankWithdrawal.find(params[:id])
+    unless bw.pending?
+      redirect_to admin_dashboard_path, alert: "Retrè bank sa a pa an atant."
+      return
+    end
+
+    bw.update!(status: :processing, processed_at: Time.current)
+    redirect_to admin_dashboard_path, notice: "Retrè bank ##{bw.id} make kòm 'Ap Trete'."
+  end
+
+  # ── Bank Withdrawal: Mark as "completed" with reference number ──
+  def complete_bank_withdrawal
+    bw = BankWithdrawal.find(params[:id])
+    unless bw.processing?
+      redirect_to admin_dashboard_path, alert: "Retrè bank sa a pa ap trete."
+      return
+    end
+
+    bw.update!(
+      status: :completed,
+      reference_number: params[:reference_number].to_s.strip.presence,
+      completed_at: Time.current
+    )
+
+    # Send completion email
+    begin
+      WalletMailer.with(
+        user_id: bw.user_id, amount: bw.amount.to_f, asset: "htg",
+        bank_name: bw.bank_name, bank_account: bw.bank_account_number,
+        reference_number: bw.reference_number
+      ).bank_withdrawal_completed.deliver_later
+    rescue => e
+      Rails.logger.error "Bank withdrawal completed email failed: #{e.message}"
+    end
+
+    redirect_to admin_dashboard_path, notice: "Retrè bank ##{bw.id} fini! Ref: #{bw.reference_number || '—'}"
+  end
+
+  # ── Bank Withdrawal: Mark as "failed" + refund user ──
+  def fail_bank_withdrawal
+    bw = BankWithdrawal.find(params[:id])
+    unless bw.pending? || bw.processing?
+      redirect_to admin_dashboard_path, alert: "Retrè bank sa a deja fini oswa echwe."
+      return
+    end
+
+    admin_note = params[:admin_note].to_s.strip.presence || "Anile pa admin"
+
+    ActiveRecord::Base.transaction do
+      bw.update!(status: :failed, admin_note: admin_note)
+
+      # Refund user's wallet
+      wallet = bw.user.ensure_wallet!
+      WalletService.new(wallet).refund!(
+        amount: bw.amount,
+        asset: "htg",
+        reference: bw,
+        reason: "Ranbousman retrè bank ##{bw.id} — #{admin_note}"
+      )
+    end
+
+    # Send failure + refund email
+    begin
+      WalletMailer.with(
+        user_id: bw.user_id, amount: bw.amount.to_f, asset: "htg",
+        bank_name: bw.bank_name, bank_account: bw.bank_account_number,
+        reason: admin_note
+      ).bank_withdrawal_failed.deliver_later
+    rescue => e
+      Rails.logger.error "Bank withdrawal failed email failed: #{e.message}"
+    end
+
+    redirect_to admin_dashboard_path, notice: "Retrè bank ##{bw.id} echwe. #{bw.amount.to_i} HTG ranbouse nan pòtfèy itilizatè a."
+  end
+
+  def toggle_invite_code
+    code = InviteCode.find(params[:id])
+    code.update!(active: !code.active?)
+    redirect_to admin_invite_codes_path, notice: "Kòd #{code.code} #{code.active? ? 'aktive' : 'dezaktive'}."
+  end
+
   def retry_payout
-    @transaction = Transaction.find(params[:id])
+    @transaction = Transaction.find_by!(token: params[:id])
 
     unless @transaction.sell? && @transaction.payout_failed?
       redirect_to admin_dashboard_path, alert: "Only sell transactions with payout failure can be retried."

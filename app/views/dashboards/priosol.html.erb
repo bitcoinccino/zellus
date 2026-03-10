@@ -1,109 +1,118 @@
-<div class="mb-4">
-  <h2 class="fw-bold" style="color: var(--haiti-charcoal);">
-    <i class="ri-loop-right-line me-2" style="color: var(--haiti-gold);"></i>PrioSòl
-  </h2>
-  <p class="mb-0" style="color: var(--haiti-olive);">Kreye Sòl pou fè ekonomi.</p>
-</div>
+<div class="container d-flex justify-content-center" style="min-height: 80vh;">
+  <div class="w-100" style="max-width: 900px;">
 
-<div class="row g-4">
-  <%# ── LEFT: Kijan Li Mache ── %>
-  <div class="col-lg-6">
-    <div class="card border-0 shadow-sm h-100" style="background: var(--haiti-cream); border-radius: 16px;">
-      <div class="card-body p-4">
-        <h5 class="fw-bold mb-4" style="color: var(--haiti-charcoal);">
-          <i class="ri-lightbulb-line me-2" style="color: var(--haiti-gold);"></i>Kijan Li Mache
-        </h5>
+    <%# ── Page Header ── %>
+    <div class="d-flex align-items-center justify-content-between mb-3">
+      <h1 class="h5 fw-black mb-0" style="color: var(--haiti-charcoal);">
+        <i class="ri-loop-right-line me-2" style="color: var(--haiti-gold);"></i>PrioSòl
+      </h1>
+      <%= link_to root_path, class: "small text-decoration-none fw-bold", style: "color: var(--haiti-olive);" do %>
+        <i class="ri-arrow-left-line me-1"></i>Lakay
+      <% end %>
+    </div>
+    <p class="mb-4" style="color: var(--haiti-olive); font-size: 13px;">Kreye Sòl pou fè ekonomi.</p>
 
-        <div class="d-flex align-items-start gap-3 mb-4">
-          <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px; background: var(--haiti-gold); color: var(--haiti-charcoal); font-weight: 800;">1</div>
-          <div>
-            <div class="fw-bold" style="color: var(--haiti-charcoal);">Kreye yon Sòl</div>
-            <div style="color: var(--haiti-olive); font-size: 13px; font-weight: 400;">Chwazi montan, dire (3, 6, oswa 12 mwa), ak kantite manm. Ou resevwa yon lyen pou pataje.</div>
+    <div class="row g-4">
+      <%# ── LEFT: Kijan Li Mache ── %>
+      <div class="col-lg-6">
+        <div class="card-base p-4 h-100">
+          <h5 class="fw-black mb-4" style="color: var(--haiti-charcoal);">
+            <i class="ri-lightbulb-line me-2" style="color: var(--haiti-gold);"></i>Kijan Li Mache
+          </h5>
+
+          <div class="d-flex align-items-start gap-3 mb-4">
+            <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px; background: var(--haiti-charcoal); color: var(--haiti-gold); font-weight: 800;">1</div>
+            <div>
+              <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;">Kreye yon Sòl</div>
+              <div style="color: var(--haiti-olive); font-size: 12px;">Chwazi montan, dire (3, 6, oswa 12 mwa), ak kantite manm. Ou resevwa yon lyen pou pataje.</div>
+            </div>
           </div>
-        </div>
 
-        <div class="d-flex align-items-start gap-3 mb-4">
-          <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px; background: var(--haiti-gold); color: var(--haiti-charcoal); font-weight: 800;">2</div>
-          <div>
-            <div class="fw-bold" style="color: var(--haiti-charcoal);">Envite Manm</div>
-            <div style="color: var(--haiti-olive); font-size: 13px; font-weight: 400;">Pataje lyen an ak zanmi, fanmi, oswa kominote'w. Lè tout manm jwenn, Sòl la aktive.</div>
+          <div class="d-flex align-items-start gap-3 mb-4">
+            <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px; background: var(--haiti-charcoal); color: var(--haiti-gold); font-weight: 800;">2</div>
+            <div>
+              <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;">Envite Manm</div>
+              <div style="color: var(--haiti-olive); font-size: 12px;">Pataje lyen an ak zanmi, fanmi, oswa kominote'w. Lè tout manm jwenn, Sòl la aktive.</div>
+            </div>
           </div>
-        </div>
 
-        <div class="d-flex align-items-start gap-3 mb-4">
-          <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px; background: var(--haiti-gold); color: var(--haiti-charcoal); font-weight: 800;">3</div>
-          <div>
-            <div class="fw-bold" style="color: var(--haiti-charcoal);">Peye Chak Wonn</div>
-            <div style="color: var(--haiti-olive); font-size: 13px; font-weight: 400;">Chak wonn, tout manm peye kontribisyon yo an HTG oswa USDC. Premye peman an genyen.</div>
+          <div class="d-flex align-items-start gap-3 mb-4">
+            <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px; background: var(--haiti-charcoal); color: var(--haiti-gold); font-weight: 800;">3</div>
+            <div>
+              <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;">Peye Chak Wonn</div>
+              <div style="color: var(--haiti-olive); font-size: 12px;">Chak wonn, tout manm peye kontribisyon yo an HTG oswa USD. Premye peman an genyen.</div>
+            </div>
           </div>
-        </div>
 
-        <div class="d-flex align-items-start gap-3">
-          <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px; background: var(--haiti-gold); color: var(--haiti-charcoal); font-weight: 800;">4</div>
-          <div>
-            <div class="fw-bold" style="color: var(--haiti-charcoal);">Resevwa Peman</div>
-            <div style="color: var(--haiti-olive); font-size: 13px; font-weight: 400;">Chak wonn, yon manm resevwa tout lajan an. Lajan an pwoteje nan eskwo jiskaske tout moun peye.</div>
+          <div class="d-flex align-items-start gap-3">
+            <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px; background: var(--haiti-charcoal); color: var(--haiti-gold); font-weight: 800;">4</div>
+            <div>
+              <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;">Resevwa Peman</div>
+              <div style="color: var(--haiti-olive); font-size: 12px;">Chak wonn, yon manm resevwa tout lajan an. Lajan an pwoteje nan eskwo jiskaske tout moun peye.</div>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  </div>
 
-  <%# ── RIGHT: Eta Aktyèl ── %>
-  <div class="col-lg-6">
-    <div class="card border-0 shadow-sm h-100" style="background: white; border-radius: 16px;">
-      <div class="card-body p-4">
-        <h5 class="fw-bold mb-4" style="color: var(--haiti-charcoal);">
-          <i class="ri-pie-chart-line me-2" style="color: var(--haiti-gold);"></i>Sòl Mwen Yo
-        </h5>
+      <%# ── RIGHT: Eta Aktyèl ── %>
+      <div class="col-lg-6">
+        <div class="card-base p-4 h-100">
+          <h5 class="fw-black mb-4" style="color: var(--haiti-charcoal);">
+            <i class="ri-pie-chart-line me-2" style="color: var(--haiti-gold);"></i>Sòl Mwen Yo
+          </h5>
 
-        <div class="row g-3 mb-3">
-          <div class="col-6">
-            <div class="p-3 rounded-3 text-center" style="background: var(--haiti-mint);">
-              <div style="color: var(--haiti-olive); font-size: 11px;">Aktif</div>
-              <div class="fw-bold fs-4" style="color: var(--haiti-charcoal);"><%= @active_circles.count %></div>
+          <div class="d-flex gap-3 mb-3">
+            <div class="flex-fill p-3 rounded-4 text-center" style="background: var(--haiti-charcoal);">
+              <div style="color: rgba(255,255,255,0.45); font-size: 11px; text-transform: uppercase; letter-spacing: 1px;">Aktif</div>
+              <div class="fw-black" style="color: #fff; font-size: 28px;"><%= @active_circles.count %></div>
+            </div>
+            <div class="flex-fill p-3 rounded-4 text-center" style="background: var(--haiti-charcoal);">
+              <div style="color: rgba(255,255,255,0.45); font-size: 11px; text-transform: uppercase; letter-spacing: 1px;">Total</div>
+              <div class="fw-black" style="color: #fff; font-size: 28px;"><%= @my_circles.count %></div>
             </div>
           </div>
-          <div class="col-6">
-            <div class="p-3 rounded-3 text-center" style="background: var(--haiti-mint);">
-              <div style="color: var(--haiti-olive); font-size: 11px;">Total</div>
-              <div class="fw-bold fs-4" style="color: var(--haiti-charcoal);"><%= @my_circles.count %></div>
-            </div>
-          </div>
-        </div>
 
-        <% if @my_circles.any? %>
-          <div class="fw-bold small mb-2" style="color: var(--haiti-charcoal);">Dènye Sòl Yo</div>
-          <% @my_circles.each do |circle| %>
-            <%= link_to sol_circle_path(circle.token), class: "d-flex justify-content-between align-items-center py-2 border-bottom text-decoration-none", style: "border-color: var(--haiti-mint) !important;" do %>
-              <div>
-                <div class="fw-bold small" style="color: var(--haiti-charcoal);"><%= circle.name %></div>
-                <div style="color: var(--haiti-olive); font-size: 11px;">
-                  <%= circle.sol_memberships.count %>/<%= circle.target_members %> manm
-                  &middot; <%= number_to_currency(circle.amount, unit: circle.htg? ? "HTG " : "USDC ", precision: circle.usdc? ? 2 : 0) %>
+          <% if @my_circles.any? %>
+            <div class="small fw-bold text-uppercase mb-2" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">
+              <i class="ri-history-line me-1"></i>Dènye Sòl Yo
+            </div>
+            <% @my_circles.each do |circle| %>
+              <%= link_to sol_circle_path(circle.token), class: "d-flex justify-content-between align-items-center p-2 rounded-3 mb-1 text-decoration-none", style: "background: rgba(93,99,69,0.05); transition: background 0.15s ease;" do %>
+                <div>
+                  <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 12px;">
+                    <i class="ri-loop-right-line me-1" style="color: var(--haiti-gold);"></i><%= circle.name.truncate(25) %>
+                  </div>
+                  <div style="color: var(--haiti-olive); font-size: 10px;">
+                    <%= circle.sol_memberships.count %>/<%= circle.target_members %> manm
+                    &middot; <%= number_to_currency(circle.amount, unit: circle.htg? ? "HTG " : "$ ", precision: circle.usdc? ? 2 : 0) %>
+                  </div>
                 </div>
-              </div>
-              <span class="badge rounded-pill" style="font-size: 9px; background: <%= circle.status_bg %>; color: <%= circle.status_color %>; border: 1px solid <%= circle.status_border %>;">
-                <i class="<%= circle.status_icon %> me-1"></i><%= circle.status_label %>
-              </span>
+                <div class="text-end d-flex align-items-center gap-2">
+                  <span class="badge rounded-pill" style="font-size: 9px; background: <%= circle.status_bg %>; color: <%= circle.status_color %>; border: 1px solid <%= circle.status_border %>;">
+                    <i class="<%= circle.status_icon %> me-1"></i><%= circle.status_label %>
+                  </span>
+                  <i class="ri-arrow-right-s-line" style="color: var(--haiti-olive); font-size: 16px;"></i>
+                </div>
+              <% end %>
             <% end %>
+          <% else %>
+            <div class="text-center py-4">
+              <i class="ri-inbox-line ri-2x d-block mb-2" style="color: var(--haiti-olive); opacity: 0.4;"></i>
+              <div style="color: var(--haiti-olive); font-size: 12px;">Ou poko nan okenn Sòl.</div>
+            </div>
           <% end %>
-        <% else %>
-          <div class="text-center py-4">
-            <i class="ri-loop-right-line" style="font-size: 2.5rem; color: var(--haiti-olive); opacity: 0.4;"></i>
-            <div class="mt-2" style="color: var(--haiti-olive); font-size: 13px; font-weight: 400;">Ou poko nan okenn Sòl.</div>
-          </div>
-        <% end %>
 
-        <div class="mt-4 d-flex gap-2">
-          <%= link_to new_sol_circle_path, class: "btn btn-prestige flex-fill rounded-pill" do %>
-            <i class="ri-add-circle-line me-2"></i>Kreye yon Sol
-          <% end %>
-          <%= link_to sol_circles_path, class: "btn btn-outline-dark flex-fill rounded-pill" do %>
-            <i class="ri-group-line me-2"></i>Wè Tout
-          <% end %>
+          <div class="mt-4 d-flex gap-2">
+            <%= link_to new_sol_circle_path, class: "btn flex-fill rounded-pill py-2", style: "background: var(--haiti-charcoal); color: var(--haiti-gold); font-weight: 700; font-size: 13px;" do %>
+              <i class="ri-add-circle-line me-2"></i>Kreye yon Sol
+            <% end %>
+            <%= link_to sol_circles_path, class: "btn flex-fill rounded-pill py-2", style: "background: rgba(93,99,69,0.1); border: 1.5px solid rgba(93,99,69,0.25); color: var(--haiti-charcoal); font-weight: 700; font-size: 13px;" do %>
+              <i class="ri-group-line me-2"></i>Wè Tout
+            <% end %>
+          </div>
         </div>
       </div>
     </div>
+
   </div>
 </div>

@@ -49,10 +49,15 @@ gem "sidekiq", "~> 7.3"
 
 gem "redis"
 
+# QR Code generation
+gem "rqrcode"
+
 # For Security & Environment variables
 gem "dotenv-rails", groups: [:development, :test]
 gem "lockbox"
 gem "devise"
+gem "omniauth-oauth2"
+gem "omniauth-rails_csrf_protection"
 
 # Add HTTP asset caching/compression and X-Sendfile acceleration to Puma [https://github.com/basecamp/thruster/]
 gem "thruster", require: false

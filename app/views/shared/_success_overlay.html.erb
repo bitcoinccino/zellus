@@ -1,0 +1,60 @@
+<%# Usage: render "shared/success_overlay", title: "Demann Voye!", subtitle: "Ou voye yon demann peman", redirect_to: wallet_path %>
+<% title ||= "Siksè!" %>
+<% subtitle ||= "" %>
+<% redirect_to_url ||= wallet_path %>
+
+<div id="success-overlay" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.7); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); align-items:center; justify-content:center; padding:1rem;">
+  <div class="text-center" style="animation: successFlyIn 0.6s ease-out;">
+    <%# ── Gold Checkmark Circle ── %>
+    <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-4"
+         style="width: 88px; height: 88px; background: var(--haiti-gold); box-shadow: 0 0 40px rgba(197,160,89,0.5);">
+      <i class="ri-check-line" style="font-size: 44px; color: #fff;"></i>
+    </div>
+
+    <%# ── Title ── %>
+    <h2 class="fw-black mb-2" style="color: #fff; font-size: 24px; letter-spacing: -0.5px;"><%= title %></h2>
+
+    <% if subtitle.present? %>
+      <p class="mb-0" style="color: rgba(255,255,255,0.6); font-size: 14px;"><%= subtitle %></p>
+    <% end %>
+
+    <%# ── Pulse dots ── %>
+    <div class="mt-4 d-flex justify-content-center gap-1">
+      <span class="success-dot" style="animation-delay: 0s;"></span>
+      <span class="success-dot" style="animation-delay: 0.2s;"></span>
+      <span class="success-dot" style="animation-delay: 0.4s;"></span>
+    </div>
+  </div>
+</div>
+
+<style>
+@keyframes successFlyIn {
+  0% { transform: translateY(-30px) scale(0.7); opacity: 0; }
+  60% { transform: translateY(5px) scale(1.05); opacity: 1; }
+  100% { transform: translateY(0) scale(1); }
+}
+@keyframes successDotPulse {
+  0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
+  40% { opacity: 1; transform: scale(1); }
+}
+.success-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--haiti-gold);
+  animation: successDotPulse 1.2s infinite ease-in-out;
+}
+</style>
+
+<script>
+function showSuccessOverlay() {
+  var overlay = document.getElementById('success-overlay');
+  if (!overlay) return;
+  overlay.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+  setTimeout(function() {
+    window.location.href = '<%= redirect_to_url %>';
+  }, 2500);
+}
+</script>

@@ -2,12 +2,13 @@
 
 Bonjou <%= @sender_name %>,
 
-Transfè ou konplete! <%= @transfer.receiver_name %> resevwa <%= format_htg(@transfer.net_amount) %> nan MonCash yo.
+Transfè ou konplete! <%= @transfer.receiver_name.presence || @receiver_display %> resevwa <%= @net_display %>.
 
 Detay:
-- Montan voye: <%= format_htg(@transfer.net_amount) %>
-- Pou: <%= @transfer.receiver_name %>
+- Montan voye: <%= @amount_display %>
+- Resevè: <%= @transfer.receiver_name.presence || @receiver_display %>
 - Dat: <%= @transfer.completed_at&.strftime("%d %b %Y %H:%M") %>
-<% if @transfer.moncash_transaction_id.present? %>- MonCash TX: <%= @transfer.moncash_transaction_id %><% end %>
+<% if @basescan_url.present? %>- Basescan: <%= @basescan_url %><% end %>
+<% if @transfer.moncash_transaction_id.present? && !@is_crypto %>- MonCash TX: <%= @transfer.moncash_transaction_id %><% end %>
 
-Mèsi paske w itilize Priotelus!
+Mèsi paske w itilize Zèllus!

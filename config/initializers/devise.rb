@@ -266,15 +266,28 @@ Devise.setup do |config|
   # should add them to the navigational formats lists.
   #
   # The "*/*" below is required to match Internet Explorer requests.
-  # config.navigational_formats = ['*/*', :html, :turbo_stream]
+  config.navigational_formats = ['*/*', :html, :turbo_stream]
 
   # The default HTTP method used to sign out a resource. Default is :delete.
   config.sign_out_via = :delete
 
   # ==> OmniAuth
-  # Add a new OmniAuth provider. Check the wiki for more information on setting
-  # up on your models and hooks.
-  # config.omniauth :github, 'APP_ID', 'APP_SECRET', scope: 'user,public_repo'
+  require_relative "../../lib/omniauth/strategies/bonid"
+
+  OmniAuth.config.logger = Rails.logger
+  OmniAuth.config.on_failure = proc { |env|
+    Rails.logger.error "═══ OmniAuth FAILURE ═══"
+    Rails.logger.error "  message: #{env['omniauth.error']&.message}"
+    Rails.logger.error "  type:    #{env['omniauth.error.type']}"
+    Rails.logger.error "  strategy: #{env['omniauth.error.strategy']&.name}"
+    Rails.logger.error "═══════════════════════"
+    OmniAuth::FailureEndpoint.new(env).redirect_to_failure
+  }
+
+  config.omniauth :bonid,
+    ENV["BONID_OAUTH_CLIENT_ID"],
+    ENV["BONID_OAUTH_CLIENT_SECRET"],
+    scope: "openid profile email phone address health identity:verify crime:status"
 
   # ==> Warden configuration
   # If you want to use other strategies, that are not supported by Devise, or

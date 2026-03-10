@@ -157,7 +157,7 @@ class MoncashService
   end
 
   # 5. Send HTG to a MonCash user
-  def self.transfert(receiver, amount, reference, desc = "Priotelus USDC Sale")
+  def self.transfert(receiver, amount, reference, desc = "Zèllus USDC Sale")
     token = get_token
     return { success: false, error: "Auth failed" } unless token
 

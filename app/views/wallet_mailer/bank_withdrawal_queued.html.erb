@@ -1,0 +1,43 @@
+<div style="margin-bottom:20px;">
+  <div style="font-size:15px; font-weight:800; color:#2E2E38; margin-bottom:6px;">Retrè Bank An Kou</div>
+  <div style="font-size:13px; color:#5D6345;">N ap trete retrè bank ou. Sa ka pran 1-2 jou ouvrab.</div>
+</div>
+
+<div style="background:#E8EDE0; border:2px solid #5D6345; border-radius:14px; padding:16px; margin-bottom:16px; text-align:center;">
+  <div style="color:#5D6345; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">Montan Retire</div>
+  <div style="color:#991b1b; font-size:28px; font-weight:900; letter-spacing:-1px;">
+    - <%= @amount_display %>
+  </div>
+  <div style="margin-top:4px;">
+    <span style="display:inline-block; background:#2E2E38; color:#C5A059; font-size:10px; font-weight:800; padding:3px 10px; border-radius:10px; letter-spacing:0.5px;">
+      <%= @bank_name %>
+    </span>
+  </div>
+</div>
+
+<div style="background:#fff; border:1px solid #d9d6c4; border-radius:12px; padding:12px; margin-bottom:16px;">
+  <table width="100%" cellspacing="0" cellpadding="0">
+    <tr>
+      <td style="color:#5D6345; font-size:12px; font-weight:600; padding-bottom:8px;">Bank</td>
+      <td style="color:#2E2E38; font-weight:700; text-align:right; padding-bottom:8px; font-size:12px;"><%= @bank_name %></td>
+    </tr>
+    <tr>
+      <td style="color:#5D6345; font-size:12px; font-weight:600; padding-bottom:8px;">Nimewo Kont</td>
+      <td style="color:#2E2E38; font-weight:700; text-align:right; padding-bottom:8px; font-size:12px;"><%= @bank_account %></td>
+    </tr>
+    <% if @account_holder.present? %>
+      <tr>
+        <td style="color:#5D6345; font-size:12px; font-weight:600; padding-bottom:8px;">Non sou Kont</td>
+        <td style="color:#2E2E38; font-weight:700; text-align:right; padding-bottom:8px; font-size:12px;"><%= @account_holder %></td>
+      </tr>
+    <% end %>
+    <tr>
+      <td style="color:#5D6345; font-size:12px; font-weight:600;">Frè</td>
+      <td style="color:#92400e; font-weight:700; text-align:right; font-size:12px;"><%= @fee.to_i > 0 ? "#{number_with_delimiter(@fee.to_i)} HTG (1%)" : "Gratis" %></td>
+    </tr>
+  </table>
+</div>
+
+<div style="font-size:13px; color:#5D6345; line-height:1.6;">
+  Retrè bank ou an kou. Ou ap resevwa lajan an nan kont Unibank ou nan 1-2 jou ouvrab. N ap voye yon imèl lè transfè a fini.
+</div>

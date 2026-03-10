@@ -46,7 +46,7 @@
       <div class="col-md-6">
         <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Aktif</label>
         <%= f.select :asset,
-              options_for_select([["HTG (MonCash)", "htg"], ["USDC (Base)", "usdc"]], @circle.asset),
+              options_for_select([["HTG (MonCash)", "htg"], ["USD ($)", "usdc"]], @circle.asset),
               {},
               { class: "form-select fw-bold", id: "sol_asset", style: "border: 2px solid var(--haiti-olive); background: var(--haiti-cream);" } %>
         <div class="small mt-1" style="color: var(--haiti-olive); font-size: 10px;">
@@ -107,7 +107,7 @@
             <i class="ri-percent-line me-1"></i>Estrikti Frè
           </div>
           <ul class="list-unstyled mb-0" style="font-size: 11px; color: var(--haiti-olive);">
-            <li><i class="ri-arrow-right-s-line me-1"></i> Frè platfòm Priotelus: <strong>2%</strong> sou chak peman</li>
+            <li><i class="ri-arrow-right-s-line me-1"></i> Frè platfòm Zèllus: <strong>2%</strong> sou chak peman</li>
             <li><i class="ri-arrow-right-s-line me-1"></i> Frè Mèt Sol: <strong>ou chwazi</strong> anwo a (0-5%)</li>
             <li><i class="ri-arrow-right-s-line me-1"></i> Rès la ale dirèkteman bay manm ki resevwa a</li>
           </ul>
@@ -185,7 +185,7 @@
 
       var minAmt = asset === "htg" ? lim.htg_min : lim.usdc_min;
       var maxAmt = asset === "htg" ? lim.htg_max : lim.usdc_max;
-      var unit = asset === "htg" ? "HTG" : "USDC";
+      var unit = asset === "htg" ? "HTG" : "USD";
 
       amountEl.min = minAmt;
       amountEl.max = maxAmt;

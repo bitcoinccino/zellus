@@ -1,14 +1,25 @@
 <div class="container d-flex justify-content-center align-items-center" style="min-height: 85vh;">
   <div class="card-base p-4 w-100 text-center shadow-lg" style="max-width: 440px;">
 
-    <div class="mb-3" style="font-size: 4rem; animation: flyIn 1s ease-out;">
-      <%= current_user.tier_icon %>
+    <div class="mb-3 d-flex justify-content-center" style="animation: flyIn 1s ease-out;">
+      <div style="width: 80px; height: 80px; border-radius: 50%; overflow: hidden; background: var(--haiti-charcoal); border: 3px solid var(--haiti-gold); display: flex; align-items: center; justify-content: center;">
+        <% if current_user.avatar.attached? %>
+          <%= image_tag current_user.avatar, style: "width: 100%; height: 100%; object-fit: cover;", alt: "" %>
+        <% else %>
+          <span style="font-size: 3rem;"><%= current_user.tier_icon %></span>
+        <% end %>
+      </div>
     </div>
 
     <h1 class="h4 fw-black text-uppercase mb-2" style="color: var(--haiti-charcoal);">Felisitasyon!</h1>
     <p class="small mb-4" style="color: var(--haiti-olive);">
       Ou enskri nan <strong><%= @circle.name %></strong>. Ou nan pozisyon
-      <strong>#<%= @circle.sol_memberships.find_by(user: current_user)&.position %></strong> nan wotasyon an.
+      <strong>#<%= @circle.sol_memberships.find_by(user: current_user)&.position %></strong>
+      <% if @circle.assigned? %>
+        (mèt Sol la ka chanje pozisyon ou).
+      <% else %>
+        nan wotasyon an.
+      <% end %>
     </p>
 
     <div class="p-3 mb-4 rounded-4 text-start" style="background-color: var(--haiti-mint); border: 2px solid var(--haiti-olive);">
@@ -17,8 +28,8 @@
       </div>
       <ul class="small mb-0 ps-3" style="color: var(--haiti-charcoal); line-height: 1.8;">
         <li>Sol la ap komanse le <strong><%= @circle.target_members %></strong> manm enskri</li>
-        <li>Chak manm kontribye <strong><%= number_to_currency(@circle.amount, unit: @circle.htg? ? "HTG " : "USDC ") %></strong></li>
-        <li>Dire Sol: <strong><%= @circle.duration_months %> Mwa</strong></li>
+        <li>Chak manm kontribye <strong><%= number_to_currency(@circle.amount, unit: @circle.htg? ? "HTG " : "$ ") %></strong></li>
+        <li>Frekans: <strong><%= @circle.frequency_label %></strong> · Dire: <strong><%= @circle.total_duration_label %></strong></li>
         <li>Peye a le pou monte nivo ou!</li>
       </ul>
     </div>

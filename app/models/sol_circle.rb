@@ -177,7 +177,7 @@ class SolCircle < ApplicationRecord
     if amount.present?
       min_amt = htg? ? lim[:htg_min] : lim[:usdc_min]
       max_amt = htg? ? lim[:htg_max] : lim[:usdc_max]
-      unit = htg? ? "HTG" : "USDC"
+      unit = htg? ? "HTG" : "USD"
 
       if amount < min_amt
         errors.add(:amount, "dwe omwen #{min_amt} #{unit} pou #{duration_months} mwa")

@@ -1,0 +1,111 @@
+<div class="container d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+  <div class="card-base p-4 w-100 shadow-lg" style="max-width: 440px;">
+
+    <%# ── Page Header ── %>
+    <div class="d-flex align-items-center justify-content-between mb-3">
+      <h1 class="h5 fw-black mb-0" style="color: var(--haiti-charcoal);">Verifye ak BonID</h1>
+      <%= link_to root_path, class: "small text-decoration-none fw-bold", style: "color: var(--haiti-olive);" do %>
+        <i class="ri-arrow-left-line me-1"></i>Lakay
+      <% end %>
+    </div>
+
+    <% if current_user.bonid_verified? %>
+      <%# ══════════════════════════════════════ %>
+      <%# ── VERIFIED STATE                 ──  %>
+      <%# ══════════════════════════════════════ %>
+      <div class="p-5 rounded-4 mb-4 text-center" style="background: var(--haiti-charcoal);">
+        <% if current_user.bonid_photo_url.present? %>
+          <img src="<%= current_user.bonid_photo_url %>" alt="Foto" class="rounded-circle mb-3" style="width: 80px; height: 80px; object-fit: cover; border: 3px solid var(--haiti-gold);">
+        <% else %>
+          <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3" style="width: 80px; height: 80px; background: rgba(197,160,89,0.15);">
+            <i class="ri-shield-check-fill" style="font-size: 2.5rem; color: var(--haiti-gold);"></i>
+          </div>
+        <% end %>
+        <div class="fw-bold text-uppercase mb-1" style="color: rgba(255,255,255,0.45); font-size: 11px; letter-spacing: 1.5px;">Verifye</div>
+        <div class="fw-black" style="color: #fff; font-size: 22px; line-height: 1.2;">
+          <%= current_user.bonid_full_name || current_user.display_name %>
+        </div>
+        <div style="border-top: 1px solid rgba(255,255,255,0.10); margin: 10px auto; width: 60%;"></div>
+        <div style="color: var(--haiti-gold); font-size: 13px; font-weight: 700;">
+          <i class="ri-fingerprint-line me-1"></i><%= current_user.bonid %>
+        </div>
+        <div class="mt-2" style="color: rgba(255,255,255,0.35); font-size: 11px;">
+          Verifye <%= current_user.bonid_verified_at.strftime("%d %b %Y") %>
+        </div>
+      </div>
+
+      <%# ── Verification Benefits ── %>
+      <div class="mb-3">
+        <div class="small fw-bold text-uppercase mb-2" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">
+          <i class="ri-gift-line me-1"></i>Avantaj Verifikasyon
+        </div>
+        <div class="d-flex align-items-center gap-2 p-2 rounded-3 mb-1" style="background: rgba(22,101,52,0.06);">
+          <i class="ri-checkbox-circle-fill" style="color: #166534;"></i>
+          <span style="color: var(--haiti-charcoal); font-size: 12px; font-weight: 600;">Limit kredi 2x pi gwo</span>
+        </div>
+        <div class="d-flex align-items-center gap-2 p-2 rounded-3 mb-1" style="background: rgba(22,101,52,0.06);">
+          <i class="ri-checkbox-circle-fill" style="color: #166534;"></i>
+          <span style="color: var(--haiti-charcoal); font-size: 12px; font-weight: 600;">Limit transfè jounalye pi wo</span>
+        </div>
+        <div class="d-flex align-items-center gap-2 p-2 rounded-3 mb-1" style="background: rgba(22,101,52,0.06);">
+          <i class="ri-checkbox-circle-fill" style="color: #166534;"></i>
+          <span style="color: var(--haiti-charcoal); font-size: 12px; font-weight: 600;">Konfyans pi wo nan PrioSòl</span>
+        </div>
+      </div>
+
+    <% else %>
+      <%# ══════════════════════════════════════ %>
+      <%# ── UNVERIFIED STATE               ──  %>
+      <%# ══════════════════════════════════════ %>
+      <div class="p-4 rounded-4 mb-4 text-center" style="background: var(--haiti-charcoal);">
+        <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3" style="width: 72px; height: 72px; background: rgba(197,160,89,0.15);">
+          <i class="ri-shield-check-line" style="font-size: 2.2rem; color: var(--haiti-gold);"></i>
+        </div>
+        <div class="fw-bold mb-2" style="color: #fff; font-size: 16px;">Verifye Idantite'w</div>
+        <div style="color: rgba(255,255,255,0.5); font-size: 12px; max-width: 280px; margin: 0 auto;">
+          Antre nimewo BonID ou pou verifye idantite'w epi debloke pi gwo limit kredi.
+        </div>
+      </div>
+
+      <%# ── Benefits Preview ── %>
+      <div class="mb-3">
+        <div class="small fw-bold text-uppercase mb-2" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">
+          <i class="ri-gift-line me-1"></i>Sa'w ap Debloke
+        </div>
+        <div class="d-flex align-items-center gap-2 p-2 rounded-3 mb-1" style="background: rgba(93,99,69,0.05);">
+          <i class="ri-lock-unlock-line" style="color: var(--haiti-gold);"></i>
+          <span style="color: var(--haiti-charcoal); font-size: 12px; font-weight: 600;">Limit kredi 2x pi gwo</span>
+        </div>
+        <div class="d-flex align-items-center gap-2 p-2 rounded-3 mb-1" style="background: rgba(93,99,69,0.05);">
+          <i class="ri-lock-unlock-line" style="color: var(--haiti-gold);"></i>
+          <span style="color: var(--haiti-charcoal); font-size: 12px; font-weight: 600;">Limit transfè jounalye pi wo</span>
+        </div>
+        <div class="d-flex align-items-center gap-2 p-2 rounded-3 mb-1" style="background: rgba(93,99,69,0.05);">
+          <i class="ri-lock-unlock-line" style="color: var(--haiti-gold);"></i>
+          <span style="color: var(--haiti-charcoal); font-size: 12px; font-weight: 600;">Konfyans pi wo nan PrioSòl</span>
+        </div>
+      </div>
+
+      <%# ── BonID Input Form ── %>
+      <%= form_with url: bonid_verification_path, method: :post, local: true, class: "mb-3" do |f| %>
+        <div class="small fw-bold text-uppercase mb-2" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">
+          <i class="ri-fingerprint-line me-1"></i>Nimewo BonID
+        </div>
+        <div class="input-group mb-3">
+          <span class="input-group-text" style="background: var(--haiti-charcoal); border: none; color: var(--haiti-gold);">
+            <i class="ri-shield-check-line"></i>
+          </span>
+          <%= f.text_field :bonid, class: "form-control", placeholder: "Ex: JM-1990-M-OUEST-P-2334-217", required: true, style: "background: var(--haiti-charcoal); border: none; color: #fff; font-weight: 600; font-size: 13px;", autofocus: true %>
+        </div>
+        <button type="submit" class="btn w-100 rounded-pill py-2" style="background: var(--haiti-charcoal); color: var(--haiti-gold); font-weight: 700; font-size: 13px;">
+          <i class="ri-shield-check-fill me-2"></i>Verifye Idantite Mwen
+        </button>
+      <% end %>
+
+      <div class="text-center" style="color: var(--haiti-olive); font-size: 11px;">
+        <i class="ri-lock-line me-1"></i>Done ou yo pwoteje epi an sekirite.
+      </div>
+    <% end %>
+
+  </div>
+</div>

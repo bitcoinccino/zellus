@@ -5,10 +5,10 @@ require 'faraday'
 class TransferPayoutWorker
   include Sidekiq::Job
 
-  # Base Sepolia (same constants as CryptoTransferWorker)
-  CHAIN_ID     = 84532
-  USDC_ADDRESS = "0x036CbD53842c5426634e7929541eC2318f3dCF7e"
-  WBTC_ADDRESS = ENV.fetch("WBTC_CONTRACT_ADDRESS", "0x0555E30da8f98308EdB960aa94C0Db47230d2B9c")
+  # Base Mainnet
+  CHAIN_ID     = 8453
+  USDC_ADDRESS = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
+  WBTC_ADDRESS = ENV.fetch("WBTC_CONTRACT_ADDRESS", "0x236aa50979D5f3De3Bd1Eeb40E81137F22ab794b")
   TRANSFER_SELECTOR = "a9059cbb"
 
   def perform(transfer_id)
@@ -17,8 +17,18 @@ class TransferPayoutWorker
     # Only process funded or claimed transfers
     return unless transfer.funded? || transfer.claimed?
 
+    # Bank transfers are admin-processed — skip automatic payout
+    if transfer.bank_transfer?
+      Rails.logger.info "TransferPayout: bank transfer=#{transfer.id} skipped (admin-processed)"
+      return
+    end
+
     if transfer.htg_transfer?
       process_htg_payout(transfer)
+    elsif transfer.usdc_wallet_transfer?
+      process_usdc_wallet_payout(transfer)
+    elsif transfer.stock_wallet_transfer?
+      process_stock_wallet_payout(transfer)
     else
       process_crypto_payout(transfer)
     end
@@ -55,6 +65,7 @@ class TransferPayoutWorker
         )
         notify_sender_completed(transfer)
         notify_receiver_completed(transfer)
+        award_invite_points_if_first!(receiver_user, transfer)
         Rails.logger.info "TransferPayout: #{transfer.net_amount} HTG credited to wallet of user=#{receiver_user.id} [transfer=#{transfer.id}]"
         return
       rescue => e
@@ -71,7 +82,7 @@ class TransferPayoutWorker
       return
     end
 
-    payout_reference = "priotelus-transfer-#{transfer.id}"
+    payout_reference = "zellus-transfer-#{transfer.id}"
 
     # 1. Verify MonCash receiver is active
     customer_check = MoncashService.customer_status(transfer.receiver_phone)
@@ -87,7 +98,7 @@ class TransferPayoutWorker
       transfer.receiver_phone,
       transfer.net_amount.to_i,
       payout_reference,
-      "Priotelus Zellus Transfer"
+      "Zèllus Transfer"
     )
 
     if result[:success]
@@ -114,15 +125,27 @@ class TransferPayoutWorker
     end
   end
 
-  # ── Find receiver by email or phone (for auto wallet credit) ──
+  # ── Find receiver by cashtag, email, phone, or payment method ──
   def find_receiver_user(transfer)
-    # 1. Try matching by email
+    # 1. Cashtag (highest priority)
+    if transfer.receiver_cashtag.present?
+      user = User.find_by("LOWER(cashtag) = ?", transfer.receiver_cashtag.downcase)
+      return user if user && user.id != transfer.user_id
+    end
+
+    # 2. Email
     if transfer.receiver_email.present?
       user = User.find_by(email: transfer.receiver_email)
       return user if user && user.id != transfer.user_id
     end
 
-    # 2. Try matching by phone via payment_methods
+    # 3. Phone on User model
+    if transfer.receiver_phone.present?
+      user = User.find_by(phone_number: transfer.receiver_phone)
+      return user if user && user.id != transfer.user_id
+    end
+
+    # 4. Phone via payment_methods (existing fallback)
     if transfer.receiver_phone.present?
       pm = PaymentMethod.where(active: true, category: "mobile_wallet", provider: "moncash")
                         .where(account_number: transfer.receiver_phone)
@@ -131,6 +154,25 @@ class TransferPayoutWorker
     end
 
     nil
+  end
+
+  # ── Award invite points on first completed transfer to receiver ──
+  def award_invite_points_if_first!(receiver_user, transfer)
+    return unless receiver_user.invited_by.present?
+
+    completed_count = Transfer.where(status: :completed).where(
+      "receiver_email = :email OR receiver_cashtag = :cashtag OR receiver_phone = :phone",
+      email: receiver_user.email,
+      cashtag: receiver_user.cashtag,
+      phone: receiver_user.phone_number
+    ).count
+
+    if completed_count == 1 # This is the first completed transfer
+      receiver_user.award_invite_points!
+      Rails.logger.info "TransferPayout: +#{User::INVITE_POINTS} PrioNet points awarded to inviter user=#{receiver_user.invited_by_id} [transfer=#{transfer.id}]"
+    end
+  rescue => e
+    Rails.logger.error "TransferPayout: invite points failed [transfer=#{transfer.id}]: #{e.message}"
   end
 
   # ── Mark transfer failed and refund sender's wallet if wallet-funded ──
@@ -142,16 +184,116 @@ class TransferPayoutWorker
       begin
         sender_wallet = transfer.user.wallet
         if sender_wallet
-          WalletService.new(sender_wallet).refund!(
-            amount: transfer.amount,
-            reference: transfer,
-            reason: "Transfè echwe — ranbousman otomatik"
-          )
-          Rails.logger.info "TransferPayout: refunded #{transfer.amount} HTG to sender wallet [transfer=#{transfer.id}]"
+          if transfer.usdc_wallet_transfer? || transfer.usdc_address_transfer?
+            usdc_amount = transfer.crypto_amount || transfer.net_amount
+            WalletService.new(sender_wallet).refund!(
+              amount: usdc_amount,
+              asset: "usdc",
+              reference: transfer,
+              reason: "Transfè USDC echwe — ranbousman otomatik"
+            )
+            Rails.logger.info "TransferPayout: refunded #{usdc_amount} USDC to sender wallet [transfer=#{transfer.id}]"
+          elsif transfer.stock_wallet_transfer?
+            stock_asset  = transfer.asset.to_s
+            stock_amount = transfer.crypto_amount || transfer.net_amount
+            WalletService.new(sender_wallet).refund!(
+              amount: stock_amount,
+              asset: stock_asset,
+              reference: transfer,
+              reason: "Transfè #{stock_asset.upcase} echwe — ranbousman otomatik"
+            )
+            Rails.logger.info "TransferPayout: refunded #{stock_amount} #{stock_asset.upcase} to sender wallet [transfer=#{transfer.id}]"
+          else
+            WalletService.new(sender_wallet).refund!(
+              amount: transfer.amount,
+              reference: transfer,
+              reason: "Transfè echwe — ranbousman otomatik"
+            )
+            Rails.logger.info "TransferPayout: refunded #{transfer.amount} HTG to sender wallet [transfer=#{transfer.id}]"
+          end
         end
       rescue => e
         Rails.logger.error "TransferPayout: wallet refund failed [transfer=#{transfer.id}]: #{e.message}"
       end
+    end
+  end
+
+  # ── USDC Wallet-to-Wallet (via $zellustag) ───────────────────────────────
+
+  def process_usdc_wallet_payout(transfer)
+    receiver_user = find_receiver_user(transfer)
+
+    unless receiver_user.present?
+      mark_failed_and_refund!(transfer, "Resevè $#{transfer.receiver_cashtag} pa jwenn")
+      Rails.logger.error "TransferPayout: USDC wallet receiver not found [transfer=#{transfer.id}]"
+      return
+    end
+
+    begin
+      receiver_wallet = receiver_user.ensure_wallet!
+      usdc_amount = transfer.crypto_amount || transfer.net_amount
+
+      WalletService.new(receiver_wallet).transfer_in!(
+        amount: usdc_amount,
+        transfer: transfer,
+        sender_user: transfer.user,
+        asset: "usdc"
+      )
+
+      transfer.update!(
+        status: :completed,
+        completed_at: Time.current,
+        payout_method: "wallet"
+      )
+
+      notify_sender_completed(transfer)
+      notify_receiver_completed(transfer)
+      award_invite_points_if_first!(receiver_user, transfer)
+
+      Rails.logger.info "TransferPayout: #{usdc_amount} USDC credited to wallet of user=#{receiver_user.id} [transfer=#{transfer.id}]"
+    rescue => e
+      Rails.logger.error "TransferPayout: USDC wallet credit failed [transfer=#{transfer.id}]: #{e.message}"
+      mark_failed_and_refund!(transfer, "Echèk kredi pòtfèy USDC: #{e.message}")
+    end
+  end
+
+  # ── Stock Wallet-to-Wallet (via $zellustag) ─────────────────────────────
+
+  def process_stock_wallet_payout(transfer)
+    receiver_user = find_receiver_user(transfer)
+
+    unless receiver_user.present?
+      mark_failed_and_refund!(transfer, "Resevè $#{transfer.receiver_cashtag} pa jwenn")
+      Rails.logger.error "TransferPayout: stock wallet receiver not found [transfer=#{transfer.id}]"
+      return
+    end
+
+    begin
+      receiver_wallet = receiver_user.ensure_wallet!
+      stock_asset  = transfer.asset.to_s
+      stock_amount = transfer.crypto_amount || transfer.net_amount
+
+      WalletService.new(receiver_wallet).transfer_in!(
+        amount: stock_amount,
+        transfer: transfer,
+        sender_user: transfer.user,
+        asset: stock_asset
+      )
+
+      transfer.update!(
+        status: :completed,
+        completed_at: Time.current,
+        payout_method: "wallet"
+      )
+
+      notify_sender_completed(transfer)
+      notify_receiver_completed(transfer)
+      award_invite_points_if_first!(receiver_user, transfer)
+
+      Rails.logger.info "TransferPayout: #{stock_amount} #{stock_asset.upcase} credited to wallet of user=#{receiver_user.id} [transfer=#{transfer.id}]"
+    rescue => e
+      Rails.logger.error "TransferPayout: stock wallet credit failed [transfer=#{transfer.id}]: #{e.message}"
+      mark_failed_and_refund!(transfer, "Echèk kredi pòtfèy #{stock_asset.upcase}: #{e.message}")
     end
   end
 
@@ -161,9 +303,11 @@ class TransferPayoutWorker
     require 'digest/keccak'
     require 'openssl'
 
-    unless transfer.receiver_wallet_address.present?
-      Rails.logger.error "TransferPayout: no wallet address [transfer=#{transfer.id}]"
-      transfer.update!(status: :failed, failure_reason: "Pa gen adrès wallet")
+    begin
+      EthAddressValidator.validate!(transfer.receiver_wallet_address)
+    rescue EthAddressValidator::InvalidAddressError => e
+      Rails.logger.error "TransferPayout: invalid wallet address [transfer=#{transfer.id}]: #{e.message}"
+      transfer.update!(status: :failed, failure_reason: e.message)
       notify_sender_failed(transfer)
       return
     end
@@ -175,54 +319,50 @@ class TransferPayoutWorker
       return
     end
 
-    rpc_url  = ENV['BASE_RPC_URL'].presence || "https://sepolia.base.org"
+    rpc_url  = ENV['BASE_RPC_URL'].presence || "https://mainnet.base.org"
     priv_hex = ENV['TREASURY_PRIVATE_KEY'].to_s.strip.delete_prefix("0x")
     raise "TREASURY_PRIVATE_KEY not set" if priv_hex.empty?
 
     key    = build_ec_key(priv_hex)
     sender = derive_address(key)
 
-    nonce     = rpc_call(rpc_url, "eth_getTransactionCount", [sender, "pending"]).to_i(16)
-    gas_price = rpc_call(rpc_url, "eth_gasPrice", []).to_i(16) * 2
+    TreasuryNonceLock.with_nonce(rpc_url, sender) do |nonce|
+      gas_price = capped_gas_price(rpc_url)
+      asset = transfer.asset.to_s
 
-    asset = transfer.asset.to_s
+      if asset == "eth"
+        amount_wei = (transfer.crypto_amount * 10**18).to_i
+        gas_limit  = 21_000
+        raw_tx = build_and_sign_tx(nonce: nonce, gas_price: gas_price, gas_limit: gas_limit,
+                                    to: transfer.receiver_wallet_address, data: "", value: amount_wei, key: key)
+      elsif asset == "wbtc"
+        amount_units = (transfer.crypto_amount * 10**8).to_i
+        calldata     = build_transfer_calldata(transfer.receiver_wallet_address, amount_units)
+        gas_limit    = estimate_gas(rpc_url, sender, WBTC_ADDRESS, calldata)
+        raw_tx = build_and_sign_tx(nonce: nonce, gas_price: gas_price, gas_limit: gas_limit,
+                                    to: WBTC_ADDRESS, data: calldata, key: key)
+      else
+        amount_units = (transfer.crypto_amount * 10**6).to_i
+        calldata     = build_transfer_calldata(transfer.receiver_wallet_address, amount_units)
+        gas_limit    = estimate_gas(rpc_url, sender, USDC_ADDRESS, calldata)
+        raw_tx = build_and_sign_tx(nonce: nonce, gas_price: gas_price, gas_limit: gas_limit,
+                                    to: USDC_ADDRESS, data: calldata, key: key)
+      end
 
-    if asset == "eth"
-      # Native ETH transfer
-      amount_wei = (transfer.crypto_amount * 10**18).to_i
-      gas_limit  = 21_000
-      Rails.logger.info "TransferPayout: sender=#{sender} nonce=#{nonce} gas=#{gas_price} amount_wei=#{amount_wei} [ETH transfer=#{transfer.id}]"
-      raw_tx = build_and_sign_tx(nonce: nonce, gas_price: gas_price, gas_limit: gas_limit,
-                                  to: transfer.receiver_wallet_address, data: "", value: amount_wei, key: key)
-    elsif asset == "wbtc"
-      # ERC-20 WBTC (8 decimals)
-      amount_units = (transfer.crypto_amount * 10**8).to_i
-      calldata     = build_transfer_calldata(transfer.receiver_wallet_address, amount_units)
-      gas_limit    = estimate_gas(rpc_url, sender, WBTC_ADDRESS, calldata)
-      Rails.logger.info "TransferPayout: sender=#{sender} nonce=#{nonce} gas=#{gas_price} amount=#{amount_units} [WBTC transfer=#{transfer.id}]"
-      raw_tx = build_and_sign_tx(nonce: nonce, gas_price: gas_price, gas_limit: gas_limit,
-                                  to: WBTC_ADDRESS, data: calldata, key: key)
-    else
-      # ERC-20 USDC (6 decimals)
-      amount_units = (transfer.crypto_amount * 10**6).to_i
-      calldata     = build_transfer_calldata(transfer.receiver_wallet_address, amount_units)
-      gas_limit    = estimate_gas(rpc_url, sender, USDC_ADDRESS, calldata)
-      Rails.logger.info "TransferPayout: sender=#{sender} nonce=#{nonce} gas=#{gas_price} amount=#{amount_units} [USDC transfer=#{transfer.id}]"
-      raw_tx = build_and_sign_tx(nonce: nonce, gas_price: gas_price, gas_limit: gas_limit,
-                                  to: USDC_ADDRESS, data: calldata, key: key)
+      Rails.logger.info "TransferPayout: signing #{asset.upcase} tx [transfer=#{transfer.id}]"
+
+      tx_hash = rpc_call(rpc_url, "eth_sendRawTransaction", ["0x#{raw_tx}"])
+      raise "RPC returned no tx hash" if tx_hash.blank?
+
+      transfer.update!(
+        status: :sent,
+        blockchain_tx_hash: tx_hash
+      )
+      Rails.logger.info "TransferPayout: broadcast ok [transfer=#{transfer.id}]"
+
+      # Schedule on-chain confirmation polling
+      TransferConfirmationWorker.perform_in(15.seconds, transfer.id)
     end
-
-    tx_hash = rpc_call(rpc_url, "eth_sendRawTransaction", ["0x#{raw_tx}"])
-    raise "RPC returned no tx hash" if tx_hash.blank?
-
-    transfer.update!(
-      status: :sent,
-      blockchain_tx_hash: tx_hash
-    )
-    Rails.logger.info "TransferPayout: sent #{transfer.crypto_amount} #{transfer.asset_label} → #{transfer.receiver_wallet_address}. Hash: #{tx_hash} [transfer=#{transfer.id}]"
-
-    # Schedule on-chain confirmation polling
-    TransferConfirmationWorker.perform_in(15.seconds, transfer.id)
   end
 
   # ── Crypto helpers (mirrored from CryptoTransferWorker) ─────────────────
@@ -268,13 +408,28 @@ class TransferPayoutWorker
     ])
 
     hash  = Digest::Keccak.digest(unsigned, 256)
-    r, s, v = sign_hash(hash, key)
+    r, s, v = sign_hash_with_retry(hash, key)
 
     rlp_encode([
       encode_int(nonce), encode_int(gas_price), encode_int(gas_limit),
       to_bytes, encode_int(value), data_bytes,
       encode_int(v), encode_int(r), encode_int(s)
     ]).unpack1('H*')
+  end
+
+  # Retry signing up to 5 times — OpenSSL ECDSA uses a random nonce k,
+  # so recovery_id may fail for one signature but succeed on the next.
+  def sign_hash_with_retry(hash_bytes, key, max_attempts: 5)
+    last_error = nil
+    max_attempts.times do |attempt|
+      begin
+        return sign_hash(hash_bytes, key)
+      rescue => e
+        last_error = e
+        Rails.logger.warn "TransferPayout: signing attempt #{attempt + 1} failed: #{e.message}, retrying..."
+      end
+    end
+    raise last_error
   end
 
   def sign_hash(hash_bytes, key)
@@ -362,17 +517,18 @@ class TransferPayoutWorker
     [hex].pack('H*').b
   end
 
-  # ── JSON-RPC ────────────────────────────────────────────────────────────
+  # ── JSON-RPC (delegated to BaseRpcClient with retry/backoff) ──────────
 
   def rpc_call(url, method, params)
-    conn = Faraday.new(url: url) { |f| f.adapter Faraday.default_adapter }
-    resp = conn.post do |req|
-      req.headers['Content-Type'] = 'application/json'
-      req.body = { jsonrpc: "2.0", id: 1, method: method, params: params }.to_json
-    end
-    body = JSON.parse(resp.body)
-    raise "RPC error (#{method}): #{body['error']}" if body['error']
-    body['result']
+    @rpc_client ||= BaseRpcClient.new(url: url)
+    @rpc_client.call(method, params)
+  end
+
+  MAX_GAS_PRICE = 500_000_000_000 # 500 gwei
+
+  def capped_gas_price(rpc_url)
+    base_price = rpc_call(rpc_url, "eth_gasPrice", []).to_i(16)
+    [base_price * 2, MAX_GAS_PRICE].min
   end
 
   def estimate_gas(url, from, to, data)
@@ -382,25 +538,29 @@ class TransferPayoutWorker
     (result.to_i(16) * 1.2).to_i
   end
 
-  # ── Email notifications ─────────────────────────────────────────────────
+  # ── Email & in-app notifications ────────────────────────────────────────
 
   def notify_sender_completed(transfer)
     TransferMailer.with(transfer_id: transfer.id).sender_completed.deliver_later
+    NotificationService.transfer_completed(transfer)
   rescue => e
-    Rails.logger.error "Transfer sender_completed email failed [transfer=#{transfer.id}]: #{e.message}"
+    Rails.logger.error "Transfer sender_completed notification failed [transfer=#{transfer.id}]: #{e.message}"
   end
 
   def notify_receiver_completed(transfer)
-    return if transfer.receiver_email.blank?
+    # In-app notification works even without email
+    NotificationService.transfer_received(transfer)
 
+    return if transfer.receiver_email.blank?
     TransferMailer.with(transfer_id: transfer.id).receiver_completed.deliver_later
   rescue => e
-    Rails.logger.error "Transfer receiver_completed email failed [transfer=#{transfer.id}]: #{e.message}"
+    Rails.logger.error "Transfer receiver_completed notification failed [transfer=#{transfer.id}]: #{e.message}"
   end
 
   def notify_sender_failed(transfer)
     TransferMailer.with(transfer_id: transfer.id).sender_failed.deliver_later
+    NotificationService.transfer_failed(transfer)
   rescue => e
-    Rails.logger.error "Transfer sender_failed email failed [transfer=#{transfer.id}]: #{e.message}"
+    Rails.logger.error "Transfer sender_failed notification failed [transfer=#{transfer.id}]: #{e.message}"
   end
 end

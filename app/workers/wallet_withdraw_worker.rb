@@ -3,14 +3,16 @@
 class WalletWithdrawWorker
   include Sidekiq::Job
 
-  # fee = 0 for standard withdrawals, > 0 for instant (so we refund the full amount on failure)
+  # fee is subtracted from amount: payout = amount - fee
+  # refund on failure = amount (the full amount debited from wallet)
   def perform(user_id, amount, phone, fee = 0)
     user   = User.find(user_id)
     wallet = user.wallet
     return unless wallet
 
-    refund_total = amount.to_d + fee.to_d
-    reference    = "wallet-withdraw-#{user_id}-#{Time.now.to_i}"
+    payout    = (amount.to_d - fee.to_d).to_i  # What user actually receives via MonCash
+    refund_total = amount.to_d                  # Full amount to refund on failure (including fee)
+    reference = "wallet-withdraw-#{user_id}-#{Time.now.to_i}"
 
     # 1. Verify MonCash receiver is active
     customer_check = MoncashService.customer_status(phone)
@@ -19,31 +21,32 @@ class WalletWithdrawWorker
         amount: refund_total,
         reason: "Retrè echwe: Kont MonCash #{phone} pa aktif — ranbouse #{refund_total.to_i} HTG"
       )
+      NotificationService.withdrawal_failed(user, refund_total, "Kont MonCash pa aktif")
       Rails.logger.error "WalletWithdraw: MonCash account #{phone} not active [user=#{user_id}]"
       return
     end
 
-    # 2. Send to MonCash (only the withdrawal amount, not the fee)
+    # 2. Send payout to MonCash (amount minus fee)
     result = MoncashService.transfert(
       phone,
-      amount.to_i,
+      payout,
       reference,
-      "Priotelus Wallet Withdrawal"
+      "Zèllus Wallet Withdrawal"
     )
 
     if result[:success]
-      # Update the most recent withdrawal ledger entry with MonCash tx id
       entry = wallet.wallet_ledger_entries.withdrawals.order(created_at: :desc).first
       entry&.update(moncash_transaction_id: result[:transaction_id])
-      Rails.logger.info "WalletWithdraw: #{amount} HTG sent to #{phone} [user=#{user_id}, fee=#{fee}]"
+      NotificationService.withdrawal_sent(user, payout, "MonCash")
+      Rails.logger.info "WalletWithdraw: #{payout} HTG sent to #{phone} [user=#{user_id}, fee=#{fee}]"
     else
-      # Ambiguous error: check if payout actually went through
       status_check = MoncashService.prefunded_transaction_status(reference)
       unless status_check[:success]
         WalletService.new(wallet).refund!(
           amount: refund_total,
           reason: "Retrè echwe: #{result[:error]} — ranbouse #{refund_total.to_i} HTG"
         )
+        NotificationService.withdrawal_failed(user, refund_total, result[:error].to_s)
         Rails.logger.error "WalletWithdraw: payout failed [user=#{user_id}]: #{result[:error]}"
       end
     end
@@ -53,11 +56,11 @@ class WalletWithdrawWorker
       user   = User.find(user_id)
       wallet = user.wallet
       if wallet
-        refund_total = amount.to_d + fee.to_d
         WalletService.new(wallet).refund!(
-          amount: refund_total,
-          reason: "Retrè echwe: #{e.message.truncate(100)} — ranbouse #{refund_total.to_i} HTG"
+          amount: amount.to_d,
+          reason: "Retrè echwe: #{e.message.truncate(100)} — ranbouse #{amount.to_i} HTG"
         )
+        NotificationService.withdrawal_failed(user, amount.to_d, e.message.truncate(80))
       end
     rescue => refund_error
       Rails.logger.error "WalletWithdraw refund failed [user=#{user_id}]: #{refund_error.message}"

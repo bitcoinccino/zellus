@@ -22,9 +22,9 @@ class TransactionMailer < ApplicationMailer
   def load_transaction
     @transaction = Transaction.includes(:user).find(params[:transaction_id])
     @user = @transaction.user
-    @brand_name = "Priotelus"
+    @brand_name = "Zèllus"
     @app_base_url = ENV["APP_BASE_URL"].to_s.strip
-    @transaction_url = @app_base_url.present? ? "#{@app_base_url}/transactions/#{@transaction.id}" : nil
+    @transaction_url = @app_base_url.present? ? "#{@app_base_url}/transactions/#{@transaction.token}" : nil
     @basescan_url = @transaction.blockchain_tx_hash.present? ? basescan_tx_url(@transaction.blockchain_tx_hash) : nil
     
     # Dynamic labels for the view
@@ -38,13 +38,13 @@ class TransactionMailer < ApplicationMailer
 
   def subject_prefix
     if @transaction.loan_request?
-      "Priotelus Pionye Prè"
+      "Zèllus Pionye Prè"
     elsif @transaction.failure_reason&.include?("REPAYMENT_LOAN_")
-      "Priotelus Ranbousman Prè"
+      "Zèllus Ranbousman Prè"
     elsif @transaction.buy?
-      "Priotelus Achte"
+      "Zèllus Achte"
     else
-      "Priotelus Vann"
+      "Zèllus Vann"
     end
   end
 
@@ -52,7 +52,7 @@ class TransactionMailer < ApplicationMailer
     if @transaction.loan_request?
       "Peman MonCash (Liy Kredi Pionye)"
     elsif @transaction.failure_reason&.include?("REPAYMENT_LOAN_")
-      "Regleman Dèt (#{@transaction.buy? ? 'MonCash' : 'USDC'})"
+      "Regleman Dèt (#{@transaction.buy? ? 'MonCash' : 'USD'})"
     elsif @transaction.buy?
       "MonCash (Digicel Gateway)"
     else
@@ -62,13 +62,13 @@ class TransactionMailer < ApplicationMailer
 
   def source_label
     if @transaction.loan_request?
-      "Trezò Priotelus"
+      "Trezò Zèllus"
     elsif @transaction.failure_reason&.include?("REPAYMENT_LOAN_")
       "Bous Itilizatè (Ranbousman Dèt)"
     elsif @transaction.buy?
       "Bous MonCash (HTG)"
     else
-      "Bous USDC itilizatè sou Base"
+      "Bous USD itilizatè sou Base"
     end
   end
 
@@ -76,7 +76,7 @@ class TransactionMailer < ApplicationMailer
     if @transaction.buy? && !@transaction.failure_reason&.include?("REPAYMENT_LOAN_")
       @transaction.destination_address.to_s
     elsif @transaction.failure_reason&.include?("REPAYMENT_LOAN_")
-      "Trezò Priotelus (Dèt Regle)"
+      "Trezò Zèllus (Dèt Regle)"
     else
       @transaction.moncash_phone.presence || "Resevè MonCash"
     end

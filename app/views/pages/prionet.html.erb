@@ -1,0 +1,122 @@
+<div class="container d-flex justify-content-center" style="min-height: 80vh;">
+  <div class="w-100" style="max-width: 900px;">
+
+    <%# ── Page Header ── %>
+    <div class="d-flex align-items-center justify-content-between mb-3">
+      <h1 class="h5 fw-black mb-0" style="color: var(--haiti-charcoal);">
+        <i class="ri-medal-line me-2" style="color: var(--haiti-gold);"></i>PriOnèt
+      </h1>
+      <%= link_to root_path, class: "small text-decoration-none fw-bold", style: "color: var(--haiti-olive);" do %>
+        <i class="ri-arrow-left-line me-1"></i>Lakay
+      <% end %>
+    </div>
+    <p class="mb-4" style="color: var(--haiti-olive); font-size: 13px;">Bati repitasyon'w pou debloke gwo kredi.</p>
+
+    <div class="row g-4">
+      <%# ── LEFT: Kijan Li Mache ── %>
+      <div class="col-lg-6">
+        <div class="card-base p-4 h-100">
+          <h5 class="fw-black mb-4" style="color: var(--haiti-charcoal);">
+            <i class="ri-lightbulb-line me-2" style="color: var(--haiti-gold);"></i>Kijan Li Mache
+          </h5>
+
+          <div class="d-flex align-items-start gap-3 mb-4">
+            <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px; background: var(--haiti-charcoal); color: var(--haiti-gold); font-weight: 800;">1</div>
+            <div>
+              <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;">Antre nan yon Sòl</div>
+              <div style="color: var(--haiti-olive); font-size: 12px;">Kreye oswa jwenn yon Sòl nan PrioSòl. Chak peman alè ogmante pwen'w.</div>
+            </div>
+          </div>
+
+          <div class="d-flex align-items-start gap-3 mb-4">
+            <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px; background: var(--haiti-charcoal); color: var(--haiti-gold); font-weight: 800;">2</div>
+            <div>
+              <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;">Peye Alè</div>
+              <div style="color: var(--haiti-olive); font-size: 12px;">Chak peman alè = <strong>+15 pwen</strong>. Peman an reta = <strong>-25 pwen</strong>. Defò = <strong>-50 pwen</strong>.</div>
+            </div>
+          </div>
+
+          <div class="d-flex align-items-start gap-3 mb-4">
+            <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px; background: var(--haiti-charcoal); color: var(--haiti-gold); font-weight: 800;">3</div>
+            <div>
+              <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;">Fini Sòl La</div>
+              <div style="color: var(--haiti-olive); font-size: 12px;">Lè ou fini yon Sòl nèt, ou resevwa yon <strong>+50 pwen</strong> bonis.</div>
+            </div>
+          </div>
+
+          <div class="d-flex align-items-start gap-3">
+            <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px; background: var(--haiti-charcoal); color: var(--haiti-gold); font-weight: 800;">4</div>
+            <div>
+              <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;">Monte Nivo</div>
+              <div style="color: var(--haiti-olive); font-size: 12px;">Plis pwen = pi gwo nivo = aksè a pi gwo prè nan PrioBousad.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <%# ── RIGHT: Nivo Kredi Yo ── %>
+      <div class="col-lg-6">
+        <div class="card-base p-4 h-100">
+          <h5 class="fw-black mb-4" style="color: var(--haiti-charcoal);">
+            <i class="ri-route-line me-2" style="color: var(--haiti-gold);"></i>Nivo Kredi Yo
+          </h5>
+
+          <%# Tier cards %>
+          <div class="p-3 rounded-4 mb-3" style="background: var(--haiti-charcoal);">
+            <div class="d-flex align-items-center gap-3 mb-3 pb-3" style="border-bottom: 1px solid rgba(255,255,255,0.08);">
+              <span style="font-size: 2rem;">🥚</span>
+              <div>
+                <div class="fw-bold" style="color: #fff;">Nouvo</div>
+                <div style="color: rgba(255,255,255,0.4); font-size: 11px;">0 pwen &middot; Pa gen aksè a prè</div>
+              </div>
+            </div>
+            <div class="d-flex align-items-center gap-3 mb-3 pb-3" style="border-bottom: 1px solid rgba(255,255,255,0.08);">
+              <span style="font-size: 2rem;">🐦</span>
+              <div>
+                <div class="fw-bold" style="color: #fff;">Pijon</div>
+                <div style="color: rgba(255,255,255,0.4); font-size: 11px;">100+ pwen &middot; Fini 1 Sòl</div>
+              </div>
+            </div>
+            <div class="d-flex align-items-center gap-3 mb-3 pb-3" style="border-bottom: 1px solid rgba(255,255,255,0.08);">
+              <span style="font-size: 2rem;">🕊️</span>
+              <div>
+                <div class="fw-bold" style="color: #fff;">Toutrèl</div>
+                <div style="color: rgba(255,255,255,0.4); font-size: 11px;">300+ pwen &middot; Prè jiska 5,000 HTG</div>
+              </div>
+            </div>
+            <div class="d-flex align-items-center gap-3 mb-3 pb-3" style="border-bottom: 1px solid rgba(255,255,255,0.08);">
+              <span style="font-size: 2rem;">🦅</span>
+              <div>
+                <div class="fw-bold" style="color: #fff;">Malfini</div>
+                <div style="color: rgba(255,255,255,0.4); font-size: 11px;">500+ pwen &middot; Prè jiska 25,000 HTG</div>
+              </div>
+            </div>
+            <div class="d-flex align-items-center gap-3">
+              <span style="font-size: 2rem;">⚡</span>
+              <div>
+                <div class="fw-bold" style="color: #fff;">Fokon</div>
+                <div style="color: rgba(255,255,255,0.4); font-size: 11px;">650+ pwen &middot; Prè jiska 100,000 HTG</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="p-3 rounded-4" style="background-color: rgba(197,160,89,0.12); border: 1px solid rgba(197,160,89,0.55);">
+            <div class="d-flex align-items-start gap-2">
+              <i class="ri-information-line flex-shrink-0" style="color: var(--haiti-gold); font-size: 18px; margin-top: 2px;"></i>
+              <div style="color: var(--haiti-charcoal); font-size: 12px;">
+                Kòmanse ak yon Sòl nan <strong>PrioSòl</strong> pou bati pwen kredi'w epi monte nivo.
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-4">
+            <%= link_to new_user_registration_path, class: "btn w-100 border-0 p-3", style: "background: var(--haiti-charcoal); color: var(--haiti-gold); font-weight: 700; font-size: 14px; border-radius: 8px;" do %>
+              <i class="ri-user-add-line me-2"></i>Kreye Kont pou Kòmanse
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

@@ -1,0 +1,166 @@
+<div class="container py-4">
+
+  <%# ── Header ── %>
+  <div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+      <h1 class="h4 fw-black mb-1" style="color: var(--haiti-charcoal);">
+        <i class="ri-key-2-line me-2" style="color: var(--haiti-gold);"></i>Kòd Envitasyon
+      </h1>
+      <p class="small mb-0" style="color: var(--haiti-olive);">Jere aksè nan Zèllus pou Côtes-de-Fer</p>
+    </div>
+    <%= link_to admin_dashboard_path, class: "btn btn-sm fw-bold rounded-pill px-3", style: "background: var(--haiti-charcoal); color: var(--haiti-gold);" do %>
+      <i class="ri-arrow-left-line me-1"></i>Tablo Admin
+    <% end %>
+  </div>
+
+  <%# ── Stats Row ── %>
+  <div class="row g-3 mb-4">
+    <div class="col-md-3">
+      <div class="card-base p-3 text-center">
+        <div class="fw-black h4 mb-0" style="color: var(--haiti-charcoal);"><%= @invite_codes.count %></div>
+        <div class="small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px;">Total Kòd</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card-base p-3 text-center">
+        <div class="fw-black h4 mb-0" style="color: var(--haiti-charcoal);"><%= @invite_codes.select(&:available?).count %></div>
+        <div class="small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px;">Disponib</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card-base p-3 text-center">
+        <div class="fw-black h4 mb-0" style="color: var(--haiti-charcoal);"><%= @invite_codes.sum(&:uses_count) %></div>
+        <div class="small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px;">Total Itilize</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card-base p-3 text-center">
+        <div class="fw-black h4 mb-0" style="color: var(--haiti-charcoal);"><%= @total_signups %></div>
+        <div class="small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px;">Enskri ak Kòd</div>
+      </div>
+    </div>
+  </div>
+
+  <%# ── Generate New Codes ── %>
+  <div class="card-base p-4 mb-4">
+    <h2 class="h6 fw-black mb-3" style="color: var(--haiti-charcoal);">
+      <i class="ri-add-circle-line me-2" style="color: var(--haiti-gold);"></i>Jenere Nouvo Kòd
+    </h2>
+
+    <%= form_tag create_admin_invite_code_path, method: :post, class: "row g-3" do %>
+      <div class="col-md-3">
+        <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px;">REJYON</label>
+        <select name="invite_code[region]" class="form-select shadow-none" style="border: 2px solid var(--haiti-olive); background-color: var(--haiti-cream);">
+          <% @regions.each do |key, name| %>
+            <option value="<%= key %>" <%= 'selected' if key == 'cotes_de_fer' %>><%= name %></option>
+          <% end %>
+        </select>
+      </div>
+
+      <div class="col-md-2">
+        <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px;">KANTITE KÒD</label>
+        <input type="number" name="batch_size" value="10" min="1" max="50" class="form-control shadow-none"
+               style="border: 2px solid var(--haiti-olive); background-color: var(--haiti-cream);">
+      </div>
+
+      <div class="col-md-2">
+        <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px;">ITILIZASYON MAX</label>
+        <input type="number" name="invite_code[max_uses]" value="1" min="1" max="1000" class="form-control shadow-none"
+               style="border: 2px solid var(--haiti-olive); background-color: var(--haiti-cream);">
+      </div>
+
+      <div class="col-md-2">
+        <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px;">EKSPIRE (JOU)</label>
+        <input type="number" name="expires_in" value="0" min="0" max="365" class="form-control shadow-none"
+               style="border: 2px solid var(--haiti-olive); background-color: var(--haiti-cream);"
+               placeholder="0 = janm">
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px;">ETIKÈT (OPSYONÈL)</label>
+        <input type="text" name="invite_code[label]" class="form-control shadow-none" placeholder="e.g. Mache Samdi"
+               style="border: 2px solid var(--haiti-olive); background-color: var(--haiti-cream);">
+      </div>
+
+      <div class="col-12">
+        <button type="submit" class="btn fw-bold px-4 py-2" style="background: var(--haiti-charcoal); color: var(--haiti-gold);">
+          <i class="ri-key-2-line me-2"></i>Jenere Kòd
+        </button>
+      </div>
+    <% end %>
+  </div>
+
+  <%# ── Codes Table ── %>
+  <div class="card-base p-4">
+    <h2 class="h6 fw-black mb-3" style="color: var(--haiti-charcoal);">
+      <i class="ri-list-check-2 me-2" style="color: var(--haiti-gold);"></i>Tout Kòd (<%= @invite_codes.count %>)
+    </h2>
+
+    <% if @invite_codes.any? %>
+      <div class="table-responsive">
+        <table class="table table-sm align-middle" style="font-size: 13px;">
+          <thead>
+            <tr style="color: var(--haiti-olive); font-size: 10px; text-transform: uppercase; letter-spacing: 1px;">
+              <th>Kòd</th>
+              <th>Rejyon</th>
+              <th>Etikèt</th>
+              <th>Itilize</th>
+              <th>Estati</th>
+              <th>Ekspire</th>
+              <th>Kreye pa</th>
+              <th>Dat</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @invite_codes.each do |ic| %>
+              <tr>
+                <td>
+                  <span class="fw-black" style="color: var(--haiti-charcoal); letter-spacing: 1px; font-family: 'Space Grotesk', monospace;">
+                    <%= ic.code %>
+                  </span>
+                </td>
+                <td><span class="badge rounded-pill" style="background: var(--haiti-mint); color: var(--haiti-olive); font-size: 10px;"><%= ic.display_region %></span></td>
+                <td class="small" style="color: var(--haiti-olive);"><%= ic.label || "—" %></td>
+                <td>
+                  <span class="fw-bold" style="color: <%= ic.maxed_out? ? '#991b1b' : 'var(--haiti-charcoal)' %>;">
+                    <%= ic.uses_count %>/<%= ic.max_uses %>
+                  </span>
+                </td>
+                <td>
+                  <% if ic.available? %>
+                    <span class="badge rounded-pill" style="background: #f0fdf4; color: #166534; font-size: 10px;">Disponib</span>
+                  <% elsif !ic.active? %>
+                    <span class="badge rounded-pill" style="background: #fef2f2; color: #991b1b; font-size: 10px;">Dezaktive</span>
+                  <% elsif ic.expired? %>
+                    <span class="badge rounded-pill" style="background: #fef2f2; color: #991b1b; font-size: 10px;">Ekspire</span>
+                  <% else %>
+                    <span class="badge rounded-pill" style="background: #fefce8; color: #854d0e; font-size: 10px;">Plen</span>
+                  <% end %>
+                </td>
+                <td class="small" style="color: var(--haiti-olive);">
+                  <%= ic.expires_at ? ic.expires_at.strftime("%d/%m/%Y") : "Janm" %>
+                </td>
+                <td class="small" style="color: var(--haiti-olive);"><%= ic.creator.email.split("@").first %></td>
+                <td class="small" style="color: var(--haiti-olive);"><%= ic.created_at.strftime("%d/%m %H:%M") %></td>
+                <td>
+                  <%= button_to toggle_admin_invite_code_path(ic), method: :post,
+                      class: "btn btn-sm rounded-pill px-3 fw-bold",
+                      style: ic.active? ? "background: #fef2f2; color: #991b1b; font-size: 10px;" : "background: #f0fdf4; color: #166534; font-size: 10px;" do %>
+                    <%= ic.active? ? "Dezaktive" : "Aktive" %>
+                  <% end %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    <% else %>
+      <div class="text-center py-4">
+        <i class="ri-key-2-line ri-2x mb-2" style="color: var(--haiti-olive); opacity: 0.3;"></i>
+        <p class="small" style="color: var(--haiti-olive);">Pa gen kòd envitasyon ankò. Jenere premye kòd ou!</p>
+      </div>
+    <% end %>
+  </div>
+
+</div>

@@ -1,148 +1,372 @@
-<div class="container d-flex justify-content-center align-items-center" style="min-height: 80vh;">
-  <div class="card-base p-4 w-100 shadow-lg" style="max-width: 420px;">
+<div class="container d-flex justify-content-center" style="min-height: 80vh; padding-top: 16px;">
+  <div class="w-100" style="max-width: 440px;">
 
-    <% status_pill = case @payment_request.status
-      when "active"   then "color: #166534; background-color: #dcfce7;"
-      when "paid"     then "color: #1d4ed8; background-color: #dbeafe;"
-      when "expired"  then "color: #92400e; background-color: #fef3c7;"
-      else                 "color: #991b1b; background-color: #fee2e2;"
-    end %>
+    <% creator = @payment_request.user %>
+    <% creator_name = creator.display_name %>
+    <% clean_creator = creator_name.gsub(/[^\p{L}\p{N}\s]/, '').strip %>
+    <% creator_initials = clean_creator.present? ? clean_creator.split.map { |w| w[0] }.join.upcase.first(2) : "?" %>
+    <% is_dead = @payment_request.expired? || @payment_request.canceled? || @payment_request.paid? %>
+    <% asset_colors = { "htg" => "var(--haiti-gold)", "usdc" => "#0052FF", "eth" => "#627eea", "wbtc" => "#f7931a" } %>
+    <% asset_color = asset_colors[@payment_request.asset] || "var(--haiti-gold)" %>
+    <% asset_labels = { "htg" => "Goud", "usdc" => "USD", "eth" => "Ethereum", "wbtc" => "Bitcoin" } %>
 
-    <%# ── Header ── %>
-    <div class="text-center mb-4">
-      <div class="d-inline-flex align-items-center justify-content-center mb-3 rounded-3"
-        style="width: 56px; height: 56px; background-color: var(--haiti-charcoal);">
-        <i class="ri-links-line ri-xl" style="color: var(--haiti-gold);"></i>
+    <%# ══════════════════════════════════════════ %>
+    <%# ── SINGLE CARD                          ── %>
+    <%# ══════════════════════════════════════════ %>
+    <div class="rounded-4" style="background: var(--haiti-cream); overflow: hidden;">
+
+      <%# ── Dark Hero Section (top) ── %>
+      <div class="p-4 text-center position-relative" style="background: var(--haiti-charcoal);">
+
+      <%# ── Status badge ── %>
+      <% status_cfg = case @payment_request.status
+        when "active"
+          { icon: "ri-flashlight-fill", color: "#22c55e", bg: "rgba(34,197,94,0.12)", label: "Aktif" }
+        when "paid"
+          { icon: "ri-checkbox-circle-fill", color: "#22c55e", bg: "rgba(34,197,94,0.12)", label: "Peye" }
+        when "expired"
+          { icon: "ri-forbid-line", color: "#f87171", bg: "rgba(248,113,113,0.12)", label: "Echwe" }
+        when "canceled"
+          { icon: "ri-close-circle-line", color: "#f87171", bg: "rgba(248,113,113,0.12)", label: "Anile" }
+        end %>
+      <div class="d-inline-flex align-items-center gap-1 px-3 py-1 rounded-pill mb-3"
+           style="background: <%= status_cfg[:bg] %>; font-size: 11px; font-weight: 700; color: <%= status_cfg[:color] %>;">
+        <i class="<%= status_cfg[:icon] %>" style="font-size: 12px;"></i> <%= status_cfg[:label] %>
       </div>
-      <h1 class="h5 fw-black mb-0" style="color: var(--haiti-charcoal);">Demann Peman</h1>
-      <p class="small mb-0" style="color: var(--haiti-olive);">Pataje ak Priotelus</p>
-    </div>
 
-    <%# ── Status ── %>
-    <div class="p-3 rounded-4 d-flex align-items-center justify-content-between mb-3"
-      style="background-color: rgba(93,99,69,0.08); border: 1px dashed var(--haiti-olive);">
-      <span class="small fw-bold" style="color: var(--haiti-olive);">
-        <i class="ri-pulse-line me-1"></i>Estati
-      </span>
-      <span class="badge rounded-pill fw-bold" style="<%= status_pill %> font-size: 10px; letter-spacing: 0.5px;">
-        <%= @payment_request.status.upcase %>
-      </span>
-    </div>
-
-    <%# ── Amount ── %>
-    <div class="p-3 rounded-4 mb-3" style="background-color: rgba(93,99,69,0.08); border: 1px dashed var(--haiti-olive);">
-      <div class="small fw-bold text-uppercase mb-1" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Montan Mande</div>
-      <div class="text-center">
-        <span class="fw-black" style="color: var(--haiti-gold); font-size: 28px; letter-spacing: -1px;">
-          <% if @payment_request.htg? %>
-            <%= number_to_currency(@payment_request.amount, unit: "", precision: 2) %>
-            <small style="font-size: 14px; letter-spacing: 0;">HTG</small>
+      <%# ── Creator Avatar ── %>
+      <div class="d-flex justify-content-center mb-2">
+        <div class="d-inline-flex align-items-center justify-content-center rounded-circle"
+             style="width: 56px; height: 56px; background: rgba(255,255,255,0.08); border: 2px solid var(--haiti-gold); overflow: hidden;">
+          <% if creator.avatar.attached? %>
+            <%= image_tag creator.avatar, style: "width: 100%; height: 100%; object-fit: cover;", alt: "" %>
           <% else %>
-            <%= number_with_precision(@payment_request.amount, precision: 2) %>
-            <small style="font-size: 14px; letter-spacing: 0;">USDC</small>
+            <span class="fw-black" style="color: var(--haiti-gold); font-size: 20px;"><%= creator_initials %></span>
           <% end %>
-        </span>
+        </div>
       </div>
-      <div class="text-center mt-1">
-        <span class="badge rounded-pill fw-bold" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 10px;">
-          <% if @payment_request.htg? %>
-            <i class="ri-smartphone-line me-1"></i>MONCASH
-          <% else %>
-            <i class="ri-instance-line me-1"></i>REZO BASE · USDC
-          <% end %>
-        </span>
-      </div>
-    </div>
 
-    <%# ── Details ── %>
-    <div class="p-3 rounded-4 mb-3" style="background-color: rgba(93,99,69,0.08); border: 1px dashed var(--haiti-olive);">
-      <div class="d-flex justify-content-between small mb-1">
-        <span class="fw-bold" style="color: var(--haiti-olive);">Peyè</span>
-        <span class="fw-black" style="color: var(--haiti-charcoal);"><%= @payment_request.payer_name.presence || "Nenpòt peyè" %></span>
-      </div>
+      <%# ── Creator Name ── %>
+      <div class="fw-bold mb-1" style="color: white; font-size: 16px;"><%= creator_name %></div>
+      <div style="color: rgba(255,255,255,0.4); font-size: 11px;">mande ou peye</div>
+
+      <%# ── Note ── %>
       <% if @payment_request.note.present? %>
-        <div class="d-flex justify-content-between small mb-1">
-          <span class="fw-bold" style="color: var(--haiti-olive);">Nòt</span>
-          <span class="fw-bold" style="color: var(--haiti-charcoal);"><%= @payment_request.note %></span>
+        <div class="d-inline-flex align-items-center gap-1 mt-1 px-2 py-1 rounded-pill"
+             style="background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.5); font-size: 10px; font-weight: 600;">
+          <i class="ri-price-tag-3-line" style="font-size: 10px;"></i> <%= @payment_request.note %>
         </div>
       <% end %>
-      <div class="d-flex justify-content-between small">
-        <span class="fw-bold" style="color: var(--haiti-olive);">Ekspire</span>
-        <span class="fw-bold" style="color: var(--haiti-charcoal);">
-          <%= @payment_request.expires_at.present? ? @payment_request.expires_at.strftime("%b %d, %Y %l:%M %p").strip : "Pa gen ekspirasyon" %>
-        </span>
-      </div>
-      <div class="text-end mt-1">
-        <% countdown_style = if @payment_request.expired_now?
-            "color: #991b1b; background: #fee2e2;"
-          elsif @payment_request.expires_soon?
-            "color: #92400e; background: #fef3c7;"
-          else
-            "color: var(--haiti-olive); background: rgba(93,99,69,0.12);"
-          end %>
-        <span class="badge rounded-pill" style="<%= countdown_style %> font-size: 9px; font-weight: 700; letter-spacing: 0.3px;">
-          <i class="ri-timer-line me-1"></i><%= @payment_request.expiry_countdown_label %>
-        </span>
-      </div>
-    </div>
 
-    <%# ── Receiver (if set) ── %>
-    <% if @payment_request.receiver_present? %>
-      <div class="p-3 rounded-4 mb-3" style="background-color: rgba(93,99,69,0.08); border: 1px dashed var(--haiti-olive);">
-        <div class="d-flex justify-content-between small">
-          <span class="fw-bold" style="color: var(--haiti-olive);">Resevè</span>
-          <span class="fw-bold" style="color: var(--haiti-charcoal);">
-            <%= @payment_request.receiver_display_label %>
-            <% if @payment_request.receiver_mobile_wallet? %>
-              · <code style="font-size: 10px;"><%= @payment_request.masked_receiver_account_number %></code>
-            <% else %>
-              · <code style="font-size: 10px;"><%= @payment_request.masked_receiver_wallet_address %></code>
-            <% end %>
+      <%# ── Amount ── %>
+      <div class="mt-3 mb-1">
+        <span class="fw-black" style="font-size: 44px; letter-spacing: -2px; line-height: 1;
+             color: <%= is_dead ? 'rgba(255,255,255,0.15)' : 'white' %>;
+             <%= 'text-decoration: line-through;' if is_dead %>">
+          <%= number_to_currency(@payment_request.amount, unit: "", precision: 2) %>
+        </span>
+      </div>
+      <div class="d-inline-flex align-items-center gap-1 px-3 py-1 rounded-pill mb-2"
+           style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08);">
+        <span class="fw-bold" style="color: <%= asset_color %>; font-size: 13px;"><%= @payment_request.asset.upcase %></span>
+      </div>
+
+      <%# ── Expiry countdown ── %>
+      <% if @payment_request.active? && @payment_request.expires_at.present? %>
+        <div class="mt-1">
+          <% countdown_style = if @payment_request.expires_soon?
+              "color: #fbbf24; background: rgba(251,191,36,0.12);"
+            else
+              "color: rgba(255,255,255,0.4); background: rgba(255,255,255,0.06);"
+            end %>
+          <span class="badge rounded-pill" style="<%= countdown_style %> font-size: 9px; font-weight: 700; letter-spacing: 0.3px;">
+            <i class="ri-timer-line me-1"></i><%= @payment_request.expiry_countdown_label %>
           </span>
         </div>
-      </div>
-    <% end %>
+      <% end %>
 
-    <%# ── How To Pay / Inactive ── %>
-    <% if @payment_request.active? %>
-      <div class="p-3 rounded-4 mb-3" style="background-color: rgba(93,99,69,0.08); border: 1px dashed var(--haiti-olive);">
-        <div class="small fw-bold text-uppercase mb-1" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">
-          <i class="ri-information-line me-1"></i>Kijan Pou Peye
-        </div>
-        <div class="small" style="color: var(--haiti-charcoal);">
-          <% if @payment_request.usdc? %>
-            Priotelus ap ouvri fliks <strong>ACHTE USDC</strong> epi estime montan HTG ki nesesè pou livre montan USDC mande a.
-          <% else %>
-            Priotelus ap ouvri fliks <strong>VANN USDC</strong> epi estime montan USDC ki nesesè pou livre montan HTG mande a.
-          <% end %>
-        </div>
       </div>
-    <% else %>
-      <div class="p-3 rounded-4 mb-3" style="background-color: rgba(93,99,69,0.08); border: 1px dashed var(--haiti-olive);">
-        <div class="small" style="color: var(--haiti-charcoal);">
-          Demann sa a pa ka peye ankò paske li <strong><%= @payment_request.status %></strong>.
-        </div>
-      </div>
-    <% end %>
 
-    <%# ── Actions ── %>
-    <div class="d-grid gap-2 mt-2">
-      <% if @payment_request.active? %>
+      <%# ── Payment Content Section (bottom, cream bg from parent) ── %>
+      <div class="p-4">
+
+      <% if !@payment_request.active? %>
+
+        <%# ── INACTIVE: Request is paid / expired / canceled ── %>
+        <div class="text-center py-3">
+          <i class="<%= status_cfg[:icon] %> ri-2x d-block mb-2" style="color: <%= status_cfg[:color] %>;"></i>
+          <div class="fw-bold mb-1" style="color: var(--haiti-charcoal); font-size: 14px;">
+            <% if @payment_request.paid? %>
+              Demann sa a deja peye
+            <% elsif @payment_request.expired? %>
+              Demann sa a ekspire
+            <% else %>
+              Demann sa a anile
+            <% end %>
+          </div>
+          <div class="small" style="color: var(--haiti-olive);">
+            Li pa ka peye ankò.
+          </div>
+        </div>
+
+      <% elsif current_user.blank? %>
+
+        <%# ── NOT LOGGED IN: Show login CTA ── %>
+        <div class="text-center mb-3">
+          <div class="small fw-bold text-uppercase mb-2" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">
+            <i class="ri-shield-check-line me-1"></i>Konekte pou Peye
+          </div>
+          <div class="small mb-3" style="color: var(--haiti-charcoal);">
+            Konekte nan kont Zèllus ou pou peye dirèkteman nan pòtfèy ou.
+          </div>
+        </div>
+        <%= link_to new_user_session_path,
+            class: "btn w-100 py-3 fw-bold rounded-4 border-0 d-flex align-items-center justify-content-center gap-2 shadow-sm",
+            style: "background: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 14px; letter-spacing: 0.3px;" do %>
+          <i class="ri-login-box-line" style="font-size: 18px;"></i> Konekte ak Zèllus
+        <% end %>
+
+      <% elsif @is_creator %>
+
+        <%# ── CREATOR: Can't pay own request ── %>
+        <div class="text-center py-3">
+          <i class="ri-information-line ri-2x d-block mb-2" style="color: var(--haiti-olive);"></i>
+          <div class="fw-bold mb-1" style="color: var(--haiti-charcoal); font-size: 14px;">
+            Sa a se demann ou
+          </div>
+          <div class="small" style="color: var(--haiti-olive);">
+            Ou pa ka peye pwòp demann peman ou. Pataje lyen an ak yon lòt moun.
+          </div>
+        </div>
+
+      <% elsif %w[eth wbtc].include?(@payment_request.asset) %>
+
+        <%# ── ETH / wBTC: Use Zèllus flow (no wallet balance for these) ── %>
+        <div class="text-center mb-3">
+          <div class="small fw-bold text-uppercase mb-2" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">
+            <i class="ri-information-line me-1"></i>Kijan Pou Peye
+          </div>
+          <div class="small mb-3" style="color: var(--haiti-charcoal);">
+            Achte <%= @payment_request.asset.upcase %> via Zèllus epi voye l bay <%= creator_name %>.
+          </div>
+        </div>
         <%= link_to new_transaction_path(
               request_token: @payment_request.token,
-              prefill_tab: (@payment_request.htg? ? "sell" : "buy")
+              prefill_tab: "buy"
             ),
-            class: "btn w-100 py-3 fw-bold rounded-4 shadow-sm border-0 d-flex align-items-center justify-content-center gap-2",
-            style: "background-color: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 14px; letter-spacing: 0.5px;" do %>
-          <i class="ri-flashlight-fill"></i> Peye ak Priotelus
+            class: "btn w-100 py-3 fw-bold rounded-4 border-0 d-flex align-items-center justify-content-center gap-2 shadow-sm",
+            style: "background: var(--haiti-charcoal); color: #{asset_color}; font-size: 14px; letter-spacing: 0.3px;" do %>
+          <i class="ri-flashlight-fill" style="font-size: 18px;"></i> Achte & Peye <%= @payment_request.asset.upcase %>
         <% end %>
+
+      <% elsif !@pin_set %>
+
+        <%# ── NO PIN: Setup PIN first ── %>
+        <div class="text-center mb-3">
+          <div class="small fw-bold text-uppercase mb-2" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">
+            <i class="ri-lock-line me-1"></i>Kreye PIN Transfè
+          </div>
+          <div class="small mb-3" style="color: var(--haiti-charcoal);">
+            Ou bezwen kreye yon PIN 4 chif pou konfime peman.
+          </div>
+        </div>
+        <%= form_with url: set_pin_payment_request_path(@payment_request.token), method: :post, local: true do |f| %>
+          <div class="mb-3">
+            <input type="password" name="transfer_pin" maxlength="4" pattern="\d{4}" inputmode="numeric"
+                   class="form-control text-center fw-bold rounded-3"
+                   style="font-size: 24px; letter-spacing: 8px; padding: 12px; border: 2px solid rgba(93,99,69,0.2); background: rgba(93,99,69,0.04);"
+                   placeholder="····" required autocomplete="off">
+          </div>
+          <button type="submit"
+                  class="btn w-100 py-3 fw-bold rounded-4 border-0 d-flex align-items-center justify-content-center gap-2 shadow-sm"
+                  style="background: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 14px;">
+            <i class="ri-lock-line" style="font-size: 18px;"></i> Enstale PIN
+          </button>
+        <% end %>
+
+      <% elsif @can_pay_direct %>
+
+        <%# ── SUFFICIENT BALANCE: Step 1 — Summary + Peye button ── %>
+        <div id="pr-pay-summary">
+          <div class="text-center mb-3">
+            <div class="small fw-bold text-uppercase mb-2" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">
+              <i class="ri-wallet-3-line me-1"></i>Konfime Peman
+            </div>
+            <div class="small mb-1" style="color: var(--haiti-charcoal);">
+              Peman ap sòti nan pòtfèy Zèllus ou.
+            </div>
+            <div class="d-inline-flex align-items-center gap-1 mt-1 px-3 py-1 rounded-pill"
+                 style="background: rgba(34,197,94,0.08); font-size: 11px; font-weight: 700; color: #22c55e;">
+              <i class="ri-wallet-3-line" style="font-size: 11px;"></i>
+              Balans: <%= number_with_precision(@payer_balance, precision: 2) %> <%= @payment_request.asset.upcase %>
+            </div>
+          </div>
+
+          <div class="p-3 rounded-3 mb-3" style="background: rgba(93,99,69,0.06); border: 1px dashed rgba(93,99,69,0.2);">
+            <div class="d-flex justify-content-between small mb-1">
+              <span style="color: var(--haiti-olive);">Voye</span>
+              <span class="fw-bold" style="color: var(--haiti-charcoal);">
+                <%= number_with_precision(@payment_request.amount, precision: 2) %> <%= @payment_request.asset.upcase %>
+              </span>
+            </div>
+            <div class="d-flex justify-content-between small mb-1">
+              <span style="color: var(--haiti-olive);">Bay</span>
+              <span class="fw-bold" style="color: var(--haiti-charcoal);"><%= creator_name %></span>
+            </div>
+            <div class="d-flex justify-content-between small">
+              <span style="color: var(--haiti-olive);">Frè</span>
+              <span class="fw-bold" style="color: #22c55e;">Gratis</span>
+            </div>
+          </div>
+
+          <button type="button" onclick="showPayPin()"
+                  class="btn w-100 py-3 fw-bold rounded-4 border-0 d-flex align-items-center justify-content-center gap-2 shadow-sm"
+                  style="background: var(--haiti-gold); color: var(--haiti-charcoal); font-size: 14px; letter-spacing: 0.3px;">
+            <i class="ri-send-plane-fill" style="font-size: 18px;"></i> Peye <%= number_with_precision(@payment_request.amount, precision: 2) %> <%= @payment_request.asset.upcase %>
+          </button>
+        </div>
+
+        <%# ── Step 2 — PIN entry (hidden until Peye clicked) ── %>
+        <div id="pr-pay-pin" style="display: none;">
+          <%= form_with url: pay_payment_request_path(@payment_request.token), method: :post, local: true do |f| %>
+            <div class="text-center mb-3">
+              <i class="ri-lock-password-line d-block mb-2" style="color: var(--haiti-gold); font-size: 28px;"></i>
+              <label class="small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">
+                <i class="ri-lock-line me-1"></i>Antre PIN Transfè Ou
+              </label>
+            </div>
+            <div class="mb-3">
+              <input type="password" name="transfer_pin" id="pr-pay-pin-input" maxlength="4" pattern="\d{4}" inputmode="numeric"
+                     class="form-control text-center fw-bold rounded-3"
+                     style="font-size: 24px; letter-spacing: 8px; padding: 12px; border: 2px solid rgba(93,99,69,0.2); background: rgba(93,99,69,0.04);"
+                     placeholder="····" required autocomplete="off" disabled>
+            </div>
+            <button type="submit"
+                    class="btn w-100 py-3 fw-bold rounded-4 border-0 d-flex align-items-center justify-content-center gap-2 shadow-sm"
+                    style="background: var(--haiti-gold); color: var(--haiti-charcoal); font-size: 14px; letter-spacing: 0.3px;">
+              <i class="ri-send-plane-fill" style="font-size: 18px;"></i>
+              Konfime &amp; Peye <%= number_with_precision(@payment_request.amount, precision: 2) %> <%= @payment_request.asset.upcase %>
+            </button>
+            <div class="text-center mt-3">
+              <a href="#" onclick="hidePayPin(); return false;" class="small fw-bold" style="color: var(--haiti-olive); text-decoration: none;">
+                <i class="ri-arrow-left-line me-1"></i>Retounen
+              </a>
+            </div>
+          <% end %>
+        </div>
+
+      <% else %>
+
+        <%# ── INSUFFICIENT BALANCE: Show shortfall + options ── %>
+        <div class="text-center mb-3">
+          <div class="small fw-bold text-uppercase mb-2" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">
+            <i class="ri-wallet-3-line me-1"></i>Balans Pa Sifi
+          </div>
+
+          <%# ── Balance vs Required ── %>
+          <div class="p-3 rounded-3 mb-3" style="background: rgba(248,113,113,0.06); border: 1px dashed rgba(248,113,113,0.2);">
+            <div class="d-flex justify-content-between small mb-1">
+              <span style="color: var(--haiti-olive);">Balans ou</span>
+              <span class="fw-bold" style="color: var(--haiti-charcoal);">
+                <%= number_with_precision(@payer_balance, precision: 2) %> <%= @payment_request.asset.upcase %>
+              </span>
+            </div>
+            <div class="d-flex justify-content-between small mb-1">
+              <span style="color: var(--haiti-olive);">Bezwen</span>
+              <span class="fw-bold" style="color: var(--haiti-charcoal);">
+                <%= number_with_precision(@payment_request.amount, precision: 2) %> <%= @payment_request.asset.upcase %>
+              </span>
+            </div>
+            <div class="d-flex justify-content-between small" style="border-top: 1px solid rgba(248,113,113,0.15); padding-top: 6px; margin-top: 4px;">
+              <span class="fw-bold" style="color: #f87171;">Manke</span>
+              <span class="fw-bold" style="color: #f87171;">
+                <%= number_with_precision(@balance_shortfall, precision: 2) %> <%= @payment_request.asset.upcase %>
+              </span>
+            </div>
+          </div>
+
+          <div class="small mb-3" style="color: var(--haiti-charcoal);">
+            Ajoute lajan nan pòtfèy ou pou peye demann sa a.
+          </div>
+        </div>
+
+        <%# ── Fund options ── %>
+        <div class="d-grid gap-2">
+          <% if @payment_request.htg? %>
+            <%# HTG: Deposit via MonCash ── %>
+            <%= link_to wallet_path,
+                class: "btn w-100 py-3 fw-bold rounded-4 border-0 d-flex align-items-center justify-content-center gap-2 shadow-sm",
+                style: "background: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 14px; letter-spacing: 0.3px;" do %>
+              <i class="ri-add-circle-line" style="font-size: 18px;"></i> Depoze HTG nan Pòtfèy
+            <% end %>
+          <% else %>
+            <%# USDC: Buy via Zèllus or deposit ── %>
+            <%= link_to new_transaction_path(prefill_tab: "buy"),
+                class: "btn w-100 py-3 fw-bold rounded-4 border-0 d-flex align-items-center justify-content-center gap-2 shadow-sm",
+                style: "background: var(--haiti-charcoal); color: #0052FF; font-size: 14px; letter-spacing: 0.3px;" do %>
+              <i class="ri-add-circle-line" style="font-size: 18px;"></i> Achte USD via Zèllus
+            <% end %>
+            <%= link_to wallet_path,
+                class: "btn w-100 py-2 fw-bold rounded-4 border-0 d-flex align-items-center justify-content-center gap-2",
+                style: "background: rgba(93,99,69,0.08); color: var(--haiti-charcoal); font-size: 12px;" do %>
+              <i class="ri-wallet-3-line" style="font-size: 14px;"></i> Al nan Pòtfèy
+            <% end %>
+          <% end %>
+        </div>
+
       <% end %>
-      <%= link_to root_path,
-          class: "btn w-100 py-2 fw-bold rounded-4 border-0 d-flex align-items-center justify-content-center gap-2",
-          style: "background: rgba(93,99,69,0.08); color: var(--haiti-charcoal); font-size: 12px;" do %>
-        <i class="ri-exchange-dollar-line"></i> Ouvri Priotelus
+
+      <%# ── Payer details (if set) ── %>
+      <% if @payment_request.payer_name.present? %>
+        <div class="d-flex justify-content-between align-items-center py-2 mt-3" style="border-top: 1px solid rgba(93,99,69,0.08);">
+          <span style="color: var(--haiti-olive); font-size: 12px;">Peyè</span>
+          <span class="fw-bold" style="color: var(--haiti-charcoal); font-size: 12px;"><%= @payment_request.payer_name %></span>
+        </div>
       <% end %>
-    </div>
+
+      <%# ── Expiry detail ── %>
+      <% if @payment_request.expires_at.present? %>
+        <div class="d-flex justify-content-between align-items-center py-2" style="border-top: 1px solid rgba(93,99,69,0.08);">
+          <span style="color: var(--haiti-olive); font-size: 12px;">Ekspire</span>
+          <span class="fw-bold" style="color: var(--haiti-charcoal); font-size: 12px;">
+            <%= @payment_request.expires_at.strftime("%d/%m/%Y · %l:%M %p").strip %>
+          </span>
+        </div>
+      <% end %>
+
+      <%# ── Ref ── %>
+      <div class="d-flex justify-content-between align-items-center py-2" style="border-top: 1px solid rgba(93,99,69,0.08);">
+        <span style="color: var(--haiti-olive); font-size: 12px;">Ref</span>
+        <span class="fw-bold" style="color: var(--haiti-charcoal); font-size: 11px; font-family: monospace;" id="pr-token-text">#<%= @payment_request.token.upcase %></span>
+      </div>
+
+      <%# ── Open Zèllus link ── %>
+      <div class="mt-3">
+        <%= link_to root_path,
+            class: "btn w-100 py-2 fw-bold rounded-4 border-0 d-flex align-items-center justify-content-center gap-2",
+            style: "background: rgba(93,99,69,0.08); color: var(--haiti-charcoal); font-size: 12px;" do %>
+          <i class="ri-exchange-dollar-line"></i> Ouvri Zèllus
+        <% end %>
+      </div>
+
+      </div><%# close payment content %>
+    </div><%# close outer card %>
 
   </div>
 </div>
+
+<script>
+function showPayPin() {
+  document.getElementById('pr-pay-summary').style.display = 'none';
+  document.getElementById('pr-pay-pin').style.display = '';
+  var input = document.getElementById('pr-pay-pin-input');
+  if (input) { input.disabled = false; input.focus(); }
+}
+
+function hidePayPin() {
+  document.getElementById('pr-pay-pin').style.display = 'none';
+  document.getElementById('pr-pay-summary').style.display = '';
+  var input = document.getElementById('pr-pay-pin-input');
+  if (input) { input.disabled = true; input.value = ''; }
+}
+</script>

@@ -15,7 +15,7 @@ class TransferConfirmationWorker
     return unless transfer.sent?
     return unless transfer.blockchain_tx_hash.present?
 
-    rpc_url = ENV['BASE_RPC_URL'].presence || "https://sepolia.base.org"
+    rpc_url = ENV['BASE_RPC_URL'].presence || "https://mainnet.base.org"
     receipt = fetch_receipt(rpc_url, transfer.blockchain_tx_hash)
 
     if receipt.nil?
@@ -25,6 +25,7 @@ class TransferConfirmationWorker
           status: :failed,
           failure_reason: "Konfirmasyon blockchain ekspire apre #{MAX_ATTEMPTS} esè. TX: #{transfer.blockchain_tx_hash}"
         )
+        refund_wallet_if_needed!(transfer)
         notify_sender_failed(transfer)
         Rails.logger.warn "TransferConfirmation: transfer=#{transfer_id} timed out (#{MAX_ATTEMPTS} attempts)"
       else
@@ -44,6 +45,7 @@ class TransferConfirmationWorker
         status: :failed,
         failure_reason: "Tranzaksyon blockchain te rejte. TX: #{transfer.blockchain_tx_hash}"
       )
+      refund_wallet_if_needed!(transfer)
       notify_sender_failed(transfer)
       Rails.logger.error "TransferConfirmation: transfer=#{transfer_id} reverted on-chain. Hash: #{transfer.blockchain_tx_hash}"
     end
@@ -72,6 +74,34 @@ class TransferConfirmationWorker
   rescue => e
     Rails.logger.error "TransferConfirmation: eth_getTransactionReceipt failed: #{e.message}"
     nil
+  end
+
+  # ── Refund wallet if transfer was wallet-funded ──
+  def refund_wallet_if_needed!(transfer)
+    return unless transfer.wallet_funded?
+
+    sender_wallet = transfer.user.wallet
+    return unless sender_wallet
+
+    if transfer.usdc_wallet_transfer? || transfer.usdc_address_transfer?
+      usdc_amount = transfer.crypto_amount || transfer.net_amount
+      WalletService.new(sender_wallet).refund!(
+        amount: usdc_amount,
+        asset: "usdc",
+        reference: transfer,
+        reason: "Tranzaksyon blockchain echwe — ranbousman otomatik"
+      )
+      Rails.logger.info "TransferConfirmation: refunded #{usdc_amount} USDC to sender wallet [transfer=#{transfer.id}]"
+    elsif transfer.htg_transfer?
+      WalletService.new(sender_wallet).refund!(
+        amount: transfer.amount,
+        reference: transfer,
+        reason: "Tranzaksyon blockchain echwe — ranbousman otomatik"
+      )
+      Rails.logger.info "TransferConfirmation: refunded #{transfer.amount} HTG to sender wallet [transfer=#{transfer.id}]"
+    end
+  rescue => e
+    Rails.logger.error "TransferConfirmation: wallet refund failed [transfer=#{transfer.id}]: #{e.message}"
   end
 
   def notify_sender_completed(transfer)

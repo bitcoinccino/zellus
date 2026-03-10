@@ -1,0 +1,418 @@
+<div class="container d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+  <div class="card-base p-4 w-100 shadow-lg" style="max-width: 440px;">
+
+    <%# ── Back Link ── %>
+    <div class="d-flex align-items-center justify-content-between mb-3">
+      <h1 class="h5 fw-black mb-0" style="color: var(--haiti-charcoal);">Detay Tranzaksyon</h1>
+      <%= link_to wallet_path, class: "small text-decoration-none fw-bold", style: "color: var(--haiti-olive);" do %>
+        <i class="ri-arrow-left-line me-1"></i>Pòtfèy
+      <% end %>
+    </div>
+
+    <%# ── Entry Type Header ── %>
+    <%
+      is_biz_transfer = @entry.reference_type == "Transfer" && @entry.reference&.business_id.present?
+      biz_name = is_biz_transfer ? @entry.reference.business&.name : nil
+
+      entry_config = case @entry.entry_type
+      when "deposit"
+        { icon: "ri-add-circle-line", color: "#166534", bg: "#dcfce7", border: "#bbf7d0", label: "Depo" }
+      when "withdrawal"
+        { icon: "ri-arrow-up-circle-line", color: "#991b1b", bg: "#fee2e2", border: "#fca5a5", label: "Retrè" }
+      when "transfer_out"
+        if is_biz_transfer
+          { icon: "ri-store-2-fill", color: "var(--haiti-charcoal)", bg: "rgba(197,160,89,0.15)", border: "var(--haiti-gold)", label: "Peman Zèllus" }
+        else
+          { icon: "ri-send-plane-line", color: "#991b1b", bg: "#fee2e2", border: "#fca5a5", label: "Transfè Voye" }
+        end
+      when "transfer_in"
+        if is_biz_transfer
+          { icon: "ri-store-2-fill", color: "var(--haiti-charcoal)", bg: "rgba(197,160,89,0.15)", border: "var(--haiti-gold)", label: "Peman Biznis Resevwa" }
+        else
+          { icon: "ri-download-line", color: "#166534", bg: "#dcfce7", border: "#bbf7d0", label: "Transfè Resevwa" }
+        end
+      when "fee"
+        { icon: "ri-percent-line", color: "#92400e", bg: "#fef3c7", border: "#fde68a", label: "Frè" }
+      when "instant_fee"
+        { icon: "ri-flashlight-line", color: "#92400e", bg: "#fef3c7", border: "#fde68a", label: "Frè Instant" }
+      when "refund"
+        { icon: "ri-refresh-line", color: "#1d4ed8", bg: "#dbeafe", border: "#bfdbfe", label: "Ranbousman" }
+      when "conversion_out"
+        { icon: "ri-exchange-2-line", color: "#991b1b", bg: "#fee2e2", border: "#fca5a5", label: "Konvèsyon Sòti" }
+      when "conversion_in"
+        { icon: "ri-exchange-2-line", color: "#166534", bg: "#dcfce7", border: "#bbf7d0", label: "Konvèsyon Antre" }
+      else
+        { icon: "ri-file-list-line", color: "var(--haiti-olive)", bg: "var(--haiti-mint)", border: "var(--haiti-olive)", label: @entry.entry_type.humanize }
+      end
+    %>
+
+    <div class="text-center mb-4">
+      <div class="d-inline-flex align-items-center justify-content-center mb-3"
+           style="width: 70px; height: 70px; background-color: <%= entry_config[:color] %>; border-radius: 20px; transform: rotate(-5deg); box-shadow: 4px 4px 0px #2E2E38;">
+        <i class="<%= entry_config[:icon] %> ri-2x text-white" style="transform: rotate(5deg);"></i>
+      </div>
+      <h2 class="h4 fw-black mb-1 text-uppercase" style="color: #2E2E38; letter-spacing: -0.5px;"><%= entry_config[:label] %></h2>
+      <p style="color: #5D6345; font-size: 11px; font-weight: 700; letter-spacing: 1px;" class="text-uppercase mb-0">
+        <i class="ri-time-line me-1"></i><%= @entry.created_at.strftime("%b %d, %Y · %l:%M %p").strip %>
+      </p>
+
+      <%# ── Counterparty (who paid / who received) ── %>
+      <% if @entry.reference_type == "Transfer" && @entry.reference.present? %>
+        <% xfer = @entry.reference %>
+        <div class="mt-3 d-flex align-items-center justify-content-center gap-2">
+          <% if %w[transfer_out].include?(@entry.entry_type) %>
+            <%# Current user SENT — show who they paid %>
+            <div class="d-flex align-items-center gap-2 px-3 py-2 rounded-pill" style="background: var(--haiti-mint); border: 1px solid rgba(93,99,69,0.15);">
+              <% if is_biz_transfer %>
+                <% biz_logo = xfer.business&.logo %>
+                <% if biz_logo&.attached? %>
+                  <%= image_tag biz_logo.variant(resize_to_fill: [24, 24]), style: "width: 24px; height: 24px; border-radius: 50%; object-fit: cover; border: 1.5px solid var(--haiti-gold);" %>
+                <% else %>
+                  <i class="ri-store-2-fill" style="color: var(--haiti-gold); font-size: 16px;"></i>
+                <% end %>
+                <span class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;">
+                  Bay <strong><%= xfer.business&.name || xfer.receiver_display %></strong>
+                </span>
+              <% else %>
+                <i class="ri-user-line" style="color: var(--haiti-olive); font-size: 16px;"></i>
+                <span class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;">
+                  Bay <strong><%= xfer.receiver_name.presence || xfer.receiver_display %></strong>
+                </span>
+              <% end %>
+            </div>
+          <% elsif %w[transfer_in].include?(@entry.entry_type) %>
+            <%# Current user RECEIVED — show who sent it %>
+            <div class="d-flex align-items-center gap-2 px-3 py-2 rounded-pill" style="background: var(--haiti-mint); border: 1px solid rgba(93,99,69,0.15);">
+              <% sender = xfer.user %>
+              <% if is_biz_transfer %>
+                <i class="ri-store-2-fill" style="color: var(--haiti-gold); font-size: 16px;"></i>
+                <span class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;">
+                  De <strong><%= sender&.cashtag.present? ? "$#{sender.cashtag}" : sender&.display_name %></strong>
+                  <span style="color: var(--haiti-olive);">→ <%= xfer.business&.name %></span>
+                </span>
+              <% else %>
+                <i class="ri-user-line" style="color: var(--haiti-olive); font-size: 16px;"></i>
+                <span class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;">
+                  De <strong><%= sender&.cashtag.present? ? "$#{sender.cashtag}" : sender&.display_name %></strong>
+                </span>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+
+    <%# ── Amount Card ── %>
+    <% asset_precision = case @entry.asset
+      when "wbtc" then 8
+      when "eth"  then 6
+      when "usdc" then 2
+      else 2
+    end %>
+    <% usd_value = case @entry.asset
+      when "wbtc" then @entry.amount.to_f * @btc_usd_rate.to_f
+      when "eth"  then @entry.amount.to_f * @eth_usd_rate.to_f
+      when "usdc" then @entry.amount.to_f
+      else nil
+    end %>
+    <div class="p-4 mb-3 text-center" style="background-color: <%= entry_config[:bg] %>; border: 2px solid <%= entry_config[:border] %>; border-radius: 20px;">
+      <div style="color: <%= entry_config[:color] %>; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">
+        <%= @entry.credit? ? "Montan Resevwa" : "Montan Debite" %>
+      </div>
+      <div class="fw-black" style="color: <%= entry_config[:color] %>; font-size: 36px; letter-spacing: -2px;">
+        <%= @entry.credit? ? "+" : "-" %><%= number_to_currency(@entry.amount, unit: "", precision: asset_precision) %>
+        <span style="font-size: 16px; letter-spacing: 0;"><%= @entry.asset_label %></span>
+      </div>
+      <% if usd_value && @entry.asset != "usdc" %>
+        <div class="fw-bold mt-1" style="color: <%= entry_config[:color] %>; font-size: 14px; opacity: 0.7;">
+          ≈ $<%= number_with_precision(usd_value, precision: 2, delimiter: ",") %> USD
+        </div>
+      <% end %>
+      <div style="margin-top: 6px;">
+        <span class="d-inline-block rounded-pill px-3 py-1" style="background: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 10px; font-weight: 800; letter-spacing: 0.5px;">
+          <% case @entry.asset %>
+          <% when "usdc" %>
+            <i class="ri-coin-line me-1"></i>USD · Base
+          <% when "wbtc" %>
+            <i class="ri-bit-coin-line me-1"></i>wBTC · Base
+          <% when "eth" %>
+            <i class="ri-ethereum-line me-1"></i>ETH · Base
+          <% else %>
+            <i class="ri-money-dollar-circle-line me-1"></i>HTG · GOUD
+          <% end %>
+        </span>
+      </div>
+    </div>
+
+    <%# ── Details Table ── %>
+    <div class="p-3 mb-3" style="background: #fff; border-radius: 16px; border: 1px solid #d9d6c4;">
+      <table width="100%" cellspacing="0" cellpadding="0">
+        <tr>
+          <td style="color: #5D6345; font-size: 12px; font-weight: 600; padding-bottom: 10px;">Tip</td>
+          <td style="color: #2E2E38; font-weight: 700; text-align: right; padding-bottom: 10px; font-size: 12px;">
+            <span class="badge rounded-pill" style="background-color: <%= entry_config[:bg] %>; color: <%= entry_config[:color] %>; border: 1px solid <%= entry_config[:border] %>; font-size: 10px;">
+              <i class="<%= entry_config[:icon] %> me-1"></i><%= entry_config[:label] %>
+            </span>
+          </td>
+        </tr>
+        <tr>
+          <td style="color: #5D6345; font-size: 12px; font-weight: 600; padding-bottom: 10px;">Aktif</td>
+          <td style="color: #2E2E38; font-weight: 700; text-align: right; padding-bottom: 10px; font-size: 12px;"><%= @entry.asset_label %></td>
+        </tr>
+        <tr>
+          <td style="color: #5D6345; font-size: 12px; font-weight: 600; padding-bottom: 10px;">Montan</td>
+          <td style="color: <%= @entry.credit? ? '#166534' : '#991b1b' %>; font-weight: 700; text-align: right; padding-bottom: 10px; font-size: 12px;">
+            <%= @entry.credit? ? "+" : "-" %><%= number_to_currency(@entry.amount, unit: "", precision: asset_precision) %> <%= @entry.asset_label %>
+          </td>
+        </tr>
+        <% if usd_value %>
+          <tr>
+            <td style="color: #5D6345; font-size: 12px; font-weight: 600; padding-bottom: 10px;">Valè USD</td>
+            <td style="color: #2E2E38; font-weight: 700; text-align: right; padding-bottom: 10px; font-size: 12px;">
+              ≈ $<%= number_with_precision(usd_value, precision: 2, delimiter: ",") %> USD
+            </td>
+          </tr>
+        <% end %>
+        <tr>
+          <td style="color: #5D6345; font-size: 12px; font-weight: 600; padding-bottom: 10px;">Balans Apre</td>
+          <td style="color: #2E2E38; font-weight: 700; text-align: right; padding-bottom: 10px; font-size: 12px;">
+            <%= number_to_currency(@entry.balance_after, unit: "", precision: asset_precision) %> <%= @entry.asset_label %>
+          </td>
+        </tr>
+        <% if @entry.description.present? %>
+          <tr>
+            <td style="color: #5D6345; font-size: 12px; font-weight: 600; padding-bottom: 10px;">Deskripsyon</td>
+            <td style="color: #2E2E38; font-weight: 700; text-align: right; padding-bottom: 10px; font-size: 12px;"><%= @entry.description.to_s.gsub("USDC", "USD") %></td>
+          </tr>
+        <% end %>
+        <tr>
+          <td style="color: #5D6345; font-size: 12px; font-weight: 600;">Dat</td>
+          <td style="color: #2E2E38; font-weight: 700; text-align: right; font-size: 12px;"><%= @entry.created_at.strftime("%d %b %Y, %l:%M %p").strip %></td>
+        </tr>
+      </table>
+    </div>
+
+    <%# ── Blockchain TX Hash (for USDC deposits/withdrawals) ── %>
+    <% tx_hash = @entry.moncash_transaction_id %>
+    <% if tx_hash.present? && tx_hash.match?(/\A0x[a-fA-F0-9]{64}\z/) %>
+      <div class="p-3 mb-3" style="background: #fff; border-radius: 16px; border: 1px solid #d9d6c4;">
+        <div class="d-flex align-items-center mb-2">
+          <i class="ri-links-line me-2" style="color: var(--haiti-gold);"></i>
+          <span class="text-uppercase fw-bold" style="color: #5D6345; font-size: 10px; letter-spacing: 0.1em;">Tranzaksyon Blockchain</span>
+        </div>
+        <div class="p-2 rounded" style="background-color: #fcfcf9; border-left: 3px solid var(--haiti-gold);">
+          <code style="color: #2E2E38; font-size: 10px; word-break: break-all; font-weight: 600;"><%= tx_hash %></code>
+        </div>
+        <div class="mt-2">
+          <%= link_to basescan_tx_url(tx_hash), target: "_blank", rel: "noopener",
+              class: "text-decoration-none small fw-bold d-inline-flex align-items-center gap-1",
+              style: "color: #5D6345; font-size: 11px;" do %>
+            <i class="ri-external-link-line"></i> We sou Basescan
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+
+    <%# ── Business Info (for business payments) ── %>
+    <% if is_biz_transfer && biz_name.present? %>
+      <% biz = @entry.reference.business %>
+      <div class="p-3 mb-3" style="background: rgba(197,160,89,0.08); border-radius: 16px; border: 1.5px solid var(--haiti-gold);">
+        <div class="d-flex align-items-center gap-3">
+          <% if biz.logo.attached? %>
+            <%= image_tag biz.logo.variant(resize_to_fill: [44, 44]), class: "rounded-circle",
+                style: "width: 44px; height: 44px; object-fit: cover; border: 2px solid var(--haiti-gold);" %>
+          <% else %>
+            <div class="d-flex align-items-center justify-content-center rounded-circle"
+                 style="width: 44px; height: 44px; background: var(--haiti-charcoal); flex-shrink: 0;">
+              <i class="<%= biz.category_icon %>" style="color: var(--haiti-gold); font-size: 20px;"></i>
+            </div>
+          <% end %>
+          <div>
+            <div class="fw-black" style="color: var(--haiti-charcoal); font-size: 14px;"><%= biz.name %></div>
+            <span class="badge rounded-pill px-2 py-1" style="background: var(--haiti-mint); color: var(--haiti-olive); font-size: 10px; font-weight: 700;">
+              <i class="<%= biz.category_icon %> me-1"></i><%= biz.category_label %>
+            </span>
+          </div>
+        </div>
+        <% if @entry.reference.business_line_items.any? %>
+          <div class="mt-3 pt-2" style="border-top: 1px solid rgba(197,160,89,0.3);">
+            <div class="small fw-bold text-uppercase mb-2" style="color: var(--haiti-olive); font-size: 9px; letter-spacing: 1px;">ATIK ACHTE</div>
+            <% @entry.reference.business_line_items.each do |item| %>
+              <div class="d-flex justify-content-between small mb-1">
+                <span style="color: var(--haiti-charcoal); font-size: 12px;"><%= item.name %> × <%= item.quantity %></span>
+                <span class="fw-bold" style="color: var(--haiti-charcoal); font-size: 12px;"><%= number_to_currency(item.line_total, unit: "", precision: 0) %> HTG</span>
+              </div>
+            <% end %>
+            <% if @entry.reference.tax_amount.to_f > 0 %>
+              <div class="d-flex justify-content-between small mt-1 pt-1" style="border-top: 1px solid rgba(197,160,89,0.2);">
+                <span style="color: var(--haiti-olive); font-size: 11px;">Taks</span>
+                <span class="fw-bold" style="color: var(--haiti-olive); font-size: 11px;"><%= number_to_currency(@entry.reference.tax_amount, unit: "", precision: 0) %> HTG</span>
+              </div>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+
+    <%# ── Conversion Details (for conversion_in / conversion_out) ── %>
+    <% if %w[conversion_in conversion_out].include?(@entry.entry_type) %>
+      <%
+        # Find the paired conversion entry (same wallet, same second, opposite type)
+        paired_type = @entry.entry_type == "conversion_in" ? "conversion_out" : "conversion_in"
+        paired_entry = @wallet.wallet_ledger_entries
+          .where(entry_type: paired_type)
+          .where(created_at: (@entry.created_at - 2.seconds)..(@entry.created_at + 2.seconds))
+          .first
+
+        if @entry.entry_type == "conversion_out"
+          from_entry = @entry
+          to_entry   = paired_entry
+        else
+          from_entry = paired_entry
+          to_entry   = @entry
+        end
+
+        from_precision = case from_entry&.asset
+          when "wbtc" then 8
+          when "eth"  then 6
+          when "usdc" then 2
+          else 2
+        end
+        to_precision = case to_entry&.asset
+          when "wbtc" then 8
+          when "eth"  then 6
+          when "usdc" then 2
+          else 2
+        end
+      %>
+      <% if from_entry && to_entry %>
+        <div class="p-3 mb-3" style="background: rgba(197,160,89,0.08); border-radius: 16px; border: 1.5px solid var(--haiti-gold);">
+          <div class="d-flex align-items-center mb-3">
+            <i class="ri-exchange-2-line me-2" style="color: var(--haiti-gold); font-size: 18px;"></i>
+            <span class="text-uppercase fw-bold" style="color: var(--haiti-charcoal); font-size: 11px; letter-spacing: 0.1em;">Detay Konvèsyon</span>
+          </div>
+
+          <%# ── Visual FROM → TO flow ── %>
+          <div class="d-flex align-items-center justify-content-center gap-2 mb-3">
+            <%# FROM side %>
+            <div class="text-center flex-fill p-2 rounded-3" style="background: rgba(153,27,27,0.06); border: 1px solid rgba(153,27,27,0.15);">
+              <div class="fw-bold text-uppercase mb-1" style="color: #991b1b; font-size: 9px; letter-spacing: 0.5px;">Map Chanje Sa</div>
+              <div class="fw-black" style="color: var(--haiti-charcoal); font-size: 16px;">
+                <%= number_to_currency(from_entry.amount, unit: "", precision: from_precision) %>
+              </div>
+              <span class="badge rounded-pill px-2 py-1 mt-1" style="background: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 10px; font-weight: 800;">
+                <%= from_entry.asset_label %>
+              </span>
+            </div>
+
+            <%# Arrow %>
+            <div style="flex-shrink: 0;">
+              <div class="d-flex align-items-center justify-content-center rounded-circle"
+                   style="width: 32px; height: 32px; background: var(--haiti-charcoal);">
+                <i class="ri-arrow-right-line" style="color: var(--haiti-gold); font-size: 16px;"></i>
+              </div>
+            </div>
+
+            <%# TO side %>
+            <div class="text-center flex-fill p-2 rounded-3" style="background: rgba(22,101,52,0.06); border: 1px solid rgba(22,101,52,0.15);">
+              <div class="fw-bold text-uppercase mb-1" style="color: #166534; font-size: 9px; letter-spacing: 0.5px;">Pou Sa</div>
+              <div class="fw-black" style="color: var(--haiti-charcoal); font-size: 16px;">
+                <%= number_to_currency(to_entry.amount, unit: "", precision: to_precision) %>
+              </div>
+              <span class="badge rounded-pill px-2 py-1 mt-1" style="background: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 10px; font-weight: 800;">
+                <%= to_entry.asset_label %>
+              </span>
+            </div>
+          </div>
+
+          <%# ── Rate info ── %>
+          <% if from_entry.amount.to_f > 0 %>
+            <div class="text-center p-2 rounded-3" style="background: rgba(93,99,69,0.08);">
+              <span class="small fw-bold" style="color: var(--haiti-olive); font-size: 11px;">
+                <i class="ri-exchange-line me-1"></i>1 <%= from_entry.asset_label %> = <%= number_with_precision(to_entry.amount.to_f / from_entry.amount.to_f, precision: to_precision, strip_insignificant_zeros: true) %> <%= to_entry.asset_label %>
+              </span>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+    <% end %>
+
+    <%# ── Reference Link (Transfer, etc.) ── %>
+    <% if @entry.reference_type == "Transfer" && @entry.reference_id.present? %>
+      <% transfer_ref = Transfer.find_by(id: @entry.reference_id) %>
+      <% if transfer_ref %>
+        <div class="p-3 mb-3" style="background: #fff; border-radius: 16px; border: 1px solid #d9d6c4;">
+          <div class="d-flex align-items-center mb-2">
+            <i class="ri-send-plane-line me-2" style="color: var(--haiti-gold);"></i>
+            <span class="text-uppercase fw-bold" style="color: #5D6345; font-size: 10px; letter-spacing: 0.1em;">Detay Transfè</span>
+          </div>
+          <table width="100%" cellspacing="0" cellpadding="0">
+            <% if @entry.entry_type == "transfer_in" && transfer_ref.user.present? %>
+              <tr>
+                <td style="color: #5D6345; font-size: 12px; font-weight: 600; padding-bottom: 8px;">Voye pa</td>
+                <td style="color: #2E2E38; font-weight: 700; text-align: right; padding-bottom: 8px; font-size: 12px;">
+                  <%= transfer_ref.user.cashtag.present? ? "$#{transfer_ref.user.cashtag}" : transfer_ref.user.display_name %>
+                </td>
+              </tr>
+            <% end %>
+            <% if @entry.entry_type == "transfer_out" %>
+              <% receiver_label = transfer_ref.receiver_cashtag.present? ? "$#{transfer_ref.receiver_cashtag}" : (transfer_ref.receiver_phone.presence || transfer_ref.receiver_email.presence || transfer_ref.receiver_wallet_address.to_s.truncate(16)) %>
+              <tr>
+                <td style="color: #5D6345; font-size: 12px; font-weight: 600; padding-bottom: 8px;">Resevè</td>
+                <td style="color: #2E2E38; font-weight: 700; text-align: right; padding-bottom: 8px; font-size: 12px;"><%= receiver_label %></td>
+              </tr>
+            <% end %>
+            <tr>
+              <td style="color: #5D6345; font-size: 12px; font-weight: 600; padding-bottom: 8px;">Estati</td>
+              <td style="text-align: right; padding-bottom: 8px;">
+                <% status_style = case transfer_ref.status
+                  when "completed" then "color: #166534; background-color: #dcfce7; border-color: #166534;"
+                  when "pending"   then "color: #92400e; background-color: #fef3c7; border-color: #92400e;"
+                  when "failed"    then "color: #991b1b; background-color: #fee2e2; border-color: #991b1b;"
+                  else                  "color: #5D6345; background-color: var(--haiti-mint); border-color: #5D6345;"
+                  end %>
+                <span class="badge rounded-pill border" style="<%= status_style %> font-size: 10px; font-weight: 800;">
+                  <%= transfer_ref.status.upcase %>
+                </span>
+              </td>
+            </tr>
+            <% if transfer_ref.note.present? %>
+              <tr>
+                <td style="color: #5D6345; font-size: 12px; font-weight: 600;">Nòt</td>
+                <td style="color: #2E2E38; font-weight: 700; text-align: right; font-size: 12px;"><%= transfer_ref.note.truncate(60) %></td>
+              </tr>
+            <% end %>
+          </table>
+          <% if transfer_ref.user_id == @wallet.user_id %>
+            <div class="mt-2">
+              <%= link_to transfer_path(transfer_ref),
+                  class: "btn w-100 py-2 fw-bold rounded-3 d-flex align-items-center justify-content-center gap-2",
+                  style: "background: var(--haiti-mint); color: var(--haiti-charcoal); border: 1px solid var(--haiti-olive); font-size: 12px;" do %>
+                <i class="ri-eye-line"></i> We Paj Transfè
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+    <% elsif @entry.reference_type.present? && @entry.reference_id.present? %>
+      <div class="p-3 mb-3" style="background: #fff; border-radius: 16px; border: 1px solid #d9d6c4;">
+        <div class="d-flex align-items-center mb-2">
+          <i class="ri-link me-2" style="color: var(--haiti-gold);"></i>
+          <span class="text-uppercase fw-bold" style="color: #5D6345; font-size: 10px; letter-spacing: 0.1em;">Referans</span>
+        </div>
+        <div class="small" style="color: #5D6345; font-size: 11px;">
+          <%= @entry.reference_type %> #<%= @entry.reference_id %>
+        </div>
+      </div>
+    <% end %>
+
+    <%# ── Action Buttons ── %>
+    <div class="d-grid gap-2">
+      <%= link_to wallet_path,
+          class: "btn py-3 fw-bold rounded-4 d-flex align-items-center justify-content-center gap-2",
+          style: "background-color: var(--haiti-charcoal); color: var(--haiti-gold); border: 2px solid var(--haiti-charcoal);" do %>
+        <i class="ri-wallet-3-line"></i> Retounen nan Pòtfèy
+      <% end %>
+    </div>
+  </div>
+</div>

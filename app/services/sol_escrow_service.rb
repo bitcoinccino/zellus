@@ -26,7 +26,7 @@ class SolEscrowService
         amount: amount,
         balance_after: new_balance,
         reference: reference,
-        description: "Kontribisyon #{user.email.split('@').first} — Wonn #{round.round_number}"
+        description: "Kontribisyon #{user.display_name} — Wonn #{round.round_number}"
       )
     end
   end
@@ -89,7 +89,7 @@ class SolEscrowService
         asset: asset,
         amount: net,
         balance_after: remaining,
-        description: "Peman #{recipient.email.split('@').first} — Wonn #{round.round_number}"
+        description: "Peman #{recipient.display_name} — Wonn #{round.round_number}"
       )
 
       update_balance!(asset, remaining)
@@ -127,7 +127,7 @@ class SolEscrowService
         asset: asset,
         amount: amount,
         balance_after: new_balance,
-        description: reason || "Ranbousman #{user.email.split('@').first}"
+        description: reason || "Ranbousman #{user.display_name}"
       )
     end
   end

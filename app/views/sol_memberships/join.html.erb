@@ -3,8 +3,12 @@
 
     <div class="text-center mb-4">
       <div class="d-inline-flex align-items-center justify-content-center mb-3 rounded-circle"
-           style="width: 70px; height: 70px; background-color: var(--haiti-charcoal); border: 3px solid var(--haiti-gold);">
-        <span style="font-size: 2.5rem;"><%= current_user.tier_icon %></span>
+           style="width: 70px; height: 70px; background-color: var(--haiti-charcoal); border: 3px solid var(--haiti-gold); overflow: hidden;">
+        <% if current_user.avatar.attached? %>
+          <%= image_tag current_user.avatar, style: "width: 100%; height: 100%; object-fit: cover;", alt: "" %>
+        <% else %>
+          <span style="font-size: 2.5rem;"><%= current_user.tier_icon %></span>
+        <% end %>
       </div>
       <h1 class="h4 fw-black mb-1 text-uppercase" style="color: var(--haiti-charcoal);">Sol Envitasyon</h1>
       <p class="small mb-0" style="color: var(--haiti-olive);">Ou envite pou rantre nan yon sèk Sol</p>
@@ -19,16 +23,19 @@
         <span class="badge rounded-pill" style="background-color: <%= @circle.status_bg %>; color: <%= @circle.status_color %>; border: 1px solid <%= @circle.status_border %>; font-size: 10px; font-weight: 800;">
           <i class="<%= @circle.status_icon %> me-1"></i><%= @circle.status_label %>
         </span>
+        <span class="badge rounded-pill" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 10px; font-weight: 800;">
+          <i class="<%= @circle.assigned? ? 'ri-user-settings-line' : 'ri-loop-right-line' %> me-1"></i><%= @circle.rotation_type_label %>
+        </span>
       </div>
       <h2 class="h5 fw-black mb-2" style="color: var(--haiti-charcoal);"><%= @circle.name %></h2>
       <div class="d-flex flex-wrap gap-3">
         <div>
           <div class="small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Kontribisyon</div>
-          <div class="fw-black" style="color: var(--haiti-charcoal);"><%= number_to_currency(@circle.amount, unit: @circle.htg? ? "HTG " : "USDC ") %></div>
+          <div class="fw-black" style="color: var(--haiti-charcoal);"><%= number_to_currency(@circle.amount, unit: @circle.htg? ? "HTG " : "$ ") %></div>
         </div>
         <div>
-          <div class="small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Dire</div>
-          <div class="fw-bold" style="color: var(--haiti-charcoal);"><%= @circle.duration_months %> Mwa</div>
+          <div class="small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Frekans</div>
+          <div class="fw-bold" style="color: var(--haiti-charcoal);"><%= @circle.frequency_label %></div>
         </div>
         <div>
           <div class="small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Manm</div>
@@ -47,7 +54,7 @@
           <div class="fw-bold small" style="color: var(--haiti-olive);">
             <%= Date.today.strftime("%d %b %Y") %>
             <i class="ri-arrow-right-s-line" style="vertical-align: middle;"></i>
-            <%= (Date.today + @circle.duration_months.months).strftime("%d %b %Y") %>
+            <%= (Date.today + @circle.total_duration_days.days).strftime("%d %b %Y") %>
           </div>
           <div style="font-size: 9px; color: var(--haiti-gold);">
             <i class="ri-hourglass-line me-1"></i>Estimasyon — ap tann manm
@@ -62,13 +69,17 @@
         <i class="ri-lightbulb-line me-1"></i> Kijan Sol la Fonksyone
       </div>
       <ul class="small mb-0 ps-3" style="color: var(--haiti-charcoal); line-height: 1.9; font-size: 12px;">
-        <li>Chak manm kontribye <strong><%= number_to_currency(@circle.amount, unit: @circle.htg? ? "HTG " : "USDC ") %></strong> chak wonn</li>
-        <li>Yon manm resevwa tout kès la chak wonn (wotasyon)</li>
-        <li>Peman total: <strong><%= number_to_currency(@circle.payout_amount, unit: @circle.htg? ? "HTG " : "USDC ") %></strong> pa wonn</li>
+        <li>Chak manm kontribye <strong><%= number_to_currency(@circle.amount, unit: @circle.htg? ? "HTG " : "$ ") %></strong> chak wonn</li>
+        <% if @circle.assigned? %>
+          <li>Mèt Sol la chwazi ki manm resevwa kès la chak wonn (<strong>Asiyen</strong>)</li>
+        <% else %>
+          <li>Yon manm resevwa tout kès la chak wonn (<strong>Wotasyon</strong>)</li>
+        <% end %>
+        <li>Peman total: <strong><%= number_to_currency(@circle.payout_amount, unit: @circle.htg? ? "HTG " : "$ ") %></strong> pa wonn</li>
         <% if @circle.total_fee_percent > 0 %>
           <li>Frè: <%= @circle.total_fee_percent %>% (platfòm + kreyatè)</li>
         <% end %>
-        <li>Ou ka peye via <strong>MonCash</strong> oswa <strong>USDC</strong></li>
+        <li>Ou ka peye via <strong>MonCash</strong> oswa <strong>USD</strong></li>
         <li>Peye a lè = monte nivo kredi ou!</li>
       </ul>
     </div>
@@ -106,8 +117,14 @@
       <div class="d-grid gap-2">
         <% @circle.users.each do |user| %>
           <div class="d-flex align-items-center gap-2 p-2 rounded-3" style="background: var(--haiti-cream);">
-            <span style="font-size: 1.3rem;"><%= user.tier_icon %></span>
-            <span class="small fw-bold" style="color: var(--haiti-charcoal);"><%= user.email.split('@').first %></span>
+            <div style="width: 28px; height: 28px; border-radius: 50%; overflow: hidden; flex-shrink: 0; background: var(--haiti-charcoal); display: flex; align-items: center; justify-content: center;">
+              <% if user.avatar.attached? %>
+                <%= image_tag user.avatar, style: "width: 100%; height: 100%; object-fit: cover;", alt: "" %>
+              <% else %>
+                <span style="font-size: 0.9rem;"><%= user.tier_icon %></span>
+              <% end %>
+            </div>
+            <span class="small fw-bold" style="color: var(--haiti-charcoal);"><%= user.display_name %></span>
             <span class="small" style="color: var(--haiti-olive);">(<%= user.credit_tier %>)</span>
           </div>
         <% end %>

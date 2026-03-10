@@ -25,7 +25,7 @@ class SellTransferWorker
     end
 
   rescue => e
-    Rails.logger.error "Priotelus Bank Payout Error [tx=#{transaction_id}]: #{e.message}"
+    Rails.logger.error "Zèllus Bank Payout Error [tx=#{transaction_id}]: #{e.message}"
   end
 
   private
@@ -34,7 +34,7 @@ class SellTransferWorker
   def process_usdc_repayment(transaction, transaction_id, attempt)
     return unless transaction.blockchain_tx_hash.present?
 
-    rpc_url = ENV['BASE_RPC_URL'].presence || "https://sepolia.base.org"
+    rpc_url = ENV['BASE_RPC_URL'].presence || "https://mainnet.base.org"
     receipt = fetch_receipt(rpc_url, transaction.blockchain_tx_hash)
 
     if receipt.nil?
@@ -51,7 +51,8 @@ class SellTransferWorker
         # FOKON BOOST: Reward for using Sovereign Assets (+60 points)
         transaction.user.increment!(:credit_score, 60)
         notify_transaction_email(:completed, transaction)
-        Rails.logger.info "Priotelus: Loan ##{loan_id} repaid via USDC. User score boosted."
+        NotificationService.transaction_completed(transaction)
+        Rails.logger.info "Zèllus: Loan ##{loan_id} repaid via USDC. User score boosted."
       end
     else
       fail_tx(transaction, "USDC transaction reverted.")
@@ -61,7 +62,7 @@ class SellTransferWorker
   def process_sell_with_blockchain_check(transaction, transaction_id, attempt)
     return unless transaction.blockchain_tx_hash.present?
 
-    rpc_url = ENV['BASE_RPC_URL'].presence || "https://sepolia.base.org"
+    rpc_url = ENV['BASE_RPC_URL'].presence || "https://mainnet.base.org"
     receipt = fetch_receipt(rpc_url, transaction.blockchain_tx_hash)
 
     if receipt.nil?
@@ -75,7 +76,7 @@ class SellTransferWorker
 
   def process_moncash_payout(transaction)
     type_label = transaction.loan_request? ? "Loan" : "Sell"
-    payout_reference = "priotelus-#{transaction.transaction_type}-#{transaction.id}"
+    payout_reference = "zellus-#{transaction.transaction_type}-#{transaction.id}"
 
     # Verify MonCash Receiver
     customer_check = MoncashService.customer_status(transaction.moncash_phone)
@@ -90,12 +91,14 @@ class SellTransferWorker
     if result[:success]
       transaction.update!(status: :completed, moncash_transaction_id: result[:transaction_id])
       notify_transaction_email(:completed, transaction)
+      NotificationService.transaction_completed(transaction)
     else
       # Ambiguous error check
       status_check = MoncashService.prefunded_transaction_status(payout_reference)
       if status_check[:success]
         transaction.update!(status: :completed)
         notify_transaction_email(:completed, transaction)
+        NotificationService.transaction_completed(transaction)
       else
         transaction.update!(status: :payout_failed, failure_reason: "MonCash failed: #{result[:error]}")
       end
@@ -109,6 +112,7 @@ class SellTransferWorker
   def fail_tx(transaction, reason)
     transaction.update!(status: :failed, failure_reason: reason)
     notify_transaction_email(:failed, transaction)
+    NotificationService.transaction_failed(transaction)
   end
 
   def fetch_receipt(rpc_url, tx_hash)

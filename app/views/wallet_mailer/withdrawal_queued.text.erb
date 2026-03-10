@@ -1,0 +1,14 @@
+Zèllus Bank — Retrè HTG An Kou
+
+Bonjou <%= @user.display_name %>,
+
+Retrè MonCash ou an kou!
+
+Montan: - <%= @amount_display %>
+Nimewo MonCash: <%= @phone %>
+Metòd: <%= @instant ? "Instant" : "Estanda (48 èdtan)" %>
+<% if @fee.to_f > 0 %>Frè instant: HTG <%= format('%.0f', @fee.to_f) %><% end %>
+
+<% if @instant %>Ou ap resevwa lajan an sou MonCash ou nan kèk minit.<% else %>Ou ap resevwa lajan an sou MonCash ou nan 48 èdtan.<% end %>
+
+Mèsi paske w itilize Zèllus!

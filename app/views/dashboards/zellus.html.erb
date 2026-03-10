@@ -4,7 +4,10 @@
     <%# ══════════════════════════════════════ %>
     <%# ── BALANCE HERO + ACTIONS          ── %>
     <%# ══════════════════════════════════════ %>
-    <div class="p-5 rounded-4 mb-4 text-center position-relative" style="background: var(--haiti-charcoal);">
+    <div class="p-3 p-md-5 rounded-4 mb-4 text-center position-relative" style="background: var(--haiti-charcoal);">
+      <%= link_to wallet_path, class: "position-absolute d-flex align-items-center gap-1", style: "top: 16px; left: 16px; color: rgba(255,255,255,0.5); font-size: 12px; text-decoration: none;" do %>
+        <i class="ri-wallet-3-line"></i>Pòtfèy Mwen
+      <% end %>
       <% if @wallet.held? %>
         <span class="badge rounded-pill position-absolute" style="top: 16px; right: 16px; background: #fee2e2; color: #991b1b; font-size: 9px;">
           <i class="ri-lock-line me-1"></i>JELE
@@ -55,7 +58,7 @@
                    <% when 'withdrawal' %>background: #fef2f2;
                    <% when 'transfer_out' %>background: #fef2f2;
                    <% when 'transfer_in' %>background: #f0fdf4;
-                   <% when 'fee', 'instant_fee' %>background: #fffbeb;
+                   <% when 'fee', 'instant_fee', 'conversion_fee' %>background: #fffbeb;
                    <% when 'refund' %>background: #eff6ff;
                    <% else %>background: #f9fafb;
                    <% end %>">
@@ -72,6 +75,8 @@
                   <i class="ri-percent-line" style="color: #92400e; font-size: 18px;"></i>
                 <% when "instant_fee" %>
                   <i class="ri-flashlight-line" style="color: var(--haiti-gold); font-size: 18px;"></i>
+                <% when "conversion_fee" %>
+                  <i class="ri-swap-line" style="color: #92400e; font-size: 18px;"></i>
                 <% when "refund" %>
                   <i class="ri-refresh-line" style="color: #1d4ed8; font-size: 18px;"></i>
                 <% end %>

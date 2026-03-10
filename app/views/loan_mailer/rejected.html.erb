@@ -1,0 +1,33 @@
+<div style="margin-bottom:20px;">
+  <div style="font-size:15px; font-weight:800; color:#991b1b; margin-bottom:6px;">Demann Prè Refize ✗</div>
+  <div style="font-size:13px; color:#5D6345;">Prè #<%= @loan.id %> — <%= @loan.created_at.strftime("%b %d, %Y") %></div>
+</div>
+
+<div style="background:#fdf2f2; border:1px solid #fca5a5; border-radius:14px; padding:16px; margin-bottom:16px;">
+  <table width="100%" cellspacing="0" cellpadding="0">
+    <tr>
+      <td style="color:#5D6345; font-size:12px; font-weight:600; padding-bottom:8px;">Montan Mande</td>
+      <td style="color:#2E2E38; font-weight:800; text-align:right; padding-bottom:8px;">HTG <%= format('%.0f', @loan.fiat_amount.to_f) %></td>
+    </tr>
+    <tr>
+      <td style="color:#5D6345; font-size:12px; font-weight:600; padding-bottom:8px;">Objektif</td>
+      <td style="color:#2E2E38; font-weight:800; text-align:right; padding-bottom:8px;"><%= @loan.loan_purpose_label %></td>
+    </tr>
+  </table>
+</div>
+
+<div style="font-size:13px; color:#5D6345; line-height:1.6;">
+  Malerezman, demann prè ou pa apwouve pou moman sa a. Rezon posib:
+</div>
+
+<ul style="font-size:12px; color:#5D6345; margin-top:8px; padding-left:20px;">
+  <li>Skor PrioNet pa sifi</li>
+  <li>Montan depase limit nivo ou</li>
+  <li>Istwa ranbousman pa konplete</li>
+</ul>
+
+<div style="margin-top:12px; background:#E8EDE0; border:1px solid #d9d6c4; border-radius:12px; padding:12px;">
+  <div style="color:#5D6345; font-size:11px; font-weight:600;">
+    💡 Amelyore rank ou: Patisipe nan PrioSol, peye alè, epi envite zanmi pou ogmante pwen PrioNet ou.
+  </div>
+</div>

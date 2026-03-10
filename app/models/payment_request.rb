@@ -1,10 +1,11 @@
 class PaymentRequest < ApplicationRecord
   belongs_to :user
+  belongs_to :payer, class_name: "User", optional: true
   belongs_to :payment_method, optional: true
   belongs_to :sol_round, optional: true
 
   enum :status, { active: "active", paid: "paid", expired: "expired", canceled: "canceled" }
-  enum :asset, { htg: "htg", usdc: "usdc" }
+  enum :asset, { htg: "htg", usdc: "usdc", eth: "eth", wbtc: "wbtc", tslax: "tslax", nvdax: "nvdax", aaplx: "aaplx", coinx: "coinx", googlx: "googlx" }
 
   before_validation :ensure_token
   after_update :fulfill_sol_contribution, if: -> { saved_change_to_status? && paid? && sol_round_id.present? }
@@ -21,6 +22,9 @@ class PaymentRequest < ApplicationRecord
             allow_blank: true
 
   scope :recent_first, -> { order(created_at: :desc) }
+  scope :incoming_for, ->(user) { where(payer_id: user.id, status: :active) }
+
+  validate :payer_is_not_creator
 
   def expired_now?
     expires_at.present? && expires_at < Time.current
@@ -37,17 +41,17 @@ class PaymentRequest < ApplicationRecord
   end
 
   def expiry_countdown_label
-    return "No expiration" if expires_at.blank?
-    return "Expired" if expired_now?
+    return "Pa gen ekspirasyon" if expires_at.blank?
+    return "Ekspire" if expired_now?
 
     remaining = time_until_expiry.to_i
     hours = remaining / 3600
     minutes = (remaining % 3600) / 60
 
     if hours > 0
-      "#{hours}h #{minutes}m left"
+      "#{hours}h #{minutes}m rete"
     else
-      "#{[minutes, 0].max}m left"
+      "#{[minutes, 0].max}m rete"
     end
   end
 
@@ -56,6 +60,7 @@ class PaymentRequest < ApplicationRecord
 
     update!(status: :expired)
     PaymentRequestMailer.with(payment_request_id: id).request_expired.deliver_later
+    NotificationService.payment_request_expired(self)
     true
   end
 
@@ -131,6 +136,12 @@ class PaymentRequest < ApplicationRecord
     end
   rescue => e
     Rails.logger.error "PaymentRequest#fulfill_sol_contribution failed: #{e.message}"
+  end
+
+  def payer_is_not_creator
+    if payer_id.present? && payer_id == user_id
+      errors.add(:payer_id, "ou pa ka mande tèt ou")
+    end
   end
 
   def ensure_token

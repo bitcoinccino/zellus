@@ -2,20 +2,21 @@
 
 Bonjou <%= @sender_name %>,
 
-Lajan ou depoze avèk siksè! N ap voye <%= format_htg(@transfer.net_amount) %> bay <%= @transfer.receiver_name %>.
+Lajan ou depoze avèk siksè! N ap voye <%= @net_display %> bay <%= @transfer.receiver_name.presence || @receiver_display %>.
 
 Detay Transfè:
-- Montan: <%= format_htg(@transfer.amount) %>
-- Frè: <%= format_htg(@transfer.fee) %>
-- Moun Nan Ap Resevwa: <%= format_htg(@transfer.net_amount) %>
-- Pou: <%= @transfer.receiver_name %>
+- Montan: <%= @amount_display %>
+- Frè: <%= @fee_display %>
+- Moun Nan Ap Resevwa: <%= @net_display %>
+- Pou: <%= @transfer.receiver_name.presence || @receiver_display %>
 <% if @transfer.note.present? %>- Nòt: <%= @transfer.note %><% end %>
-
-<% if @transfer.receiver_phone.present? %>
+<% if @is_usdc_wallet %>
+Transfè Zèllus · USD — Gratis & Enstantane
+<% elsif @transfer.receiver_phone.present? %>
 N ap voye lajan an dirèkteman nan MonCash moun nan.
-<% else %>
+<% elsif @claim_url.present? %>
 Moun nan dwe reklame lajan an ak lyen sa a:
 <%= @claim_url %>
 <% end %>
 
-Mèsi paske w itilize Priotelus!
+Mèsi paske w itilize Zèllus!

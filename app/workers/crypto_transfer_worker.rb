@@ -7,21 +7,27 @@ require 'faraday'
 class CryptoTransferWorker
   include Sidekiq::Job
 
-  # Base Sepolia testnet chain ID
-  CHAIN_ID     = 84532
-  # USDC on Base Sepolia (6 decimals)
-  USDC_ADDRESS = "0x036CbD53842c5426634e7929541eC2318f3dCF7e"
-  # WBTC on Base (8 decimals) — configurable via ENV for testnet vs mainnet
+  # Base Mainnet chain ID
+  CHAIN_ID     = 8453
+  # USDC on Base Mainnet (6 decimals)
+  USDC_ADDRESS = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
+  # WBTC on Base Mainnet (8 decimals)
   WBTC_ADDRESS = ENV.fetch("WBTC_CONTRACT_ADDRESS", "0x0555E30da8f98308EdB960aa94C0Db47230d2B9c")
   # keccak256("transfer(address,uint256)")[0..3] — fixed ABI selector
   TRANSFER_SELECTOR = "a9059cbb"
+
+  # Gas cap: 500 gwei
+  MAX_GAS_PRICE = 500_000_000_000
 
   def perform(transaction_id)
     transaction = Transaction.find(transaction_id)
     return unless transaction.paid?
     return if transaction.blockchain_tx_hash.present?
 
-    rpc_url  = ENV['BASE_RPC_URL'].presence || "https://sepolia.base.org"
+    # Validate destination address
+    EthAddressValidator.validate!(transaction.destination_address)
+
+    rpc_url  = ENV['BASE_RPC_URL'].presence || "https://mainnet.base.org"
     priv_hex = ENV['TREASURY_PRIVATE_KEY'].to_s.strip.delete_prefix("0x")
     raise "TREASURY_PRIVATE_KEY not set" if priv_hex.empty?
 
@@ -30,43 +36,47 @@ class CryptoTransferWorker
     is_eth  = transaction.respond_to?(:eth?)  && transaction.eth?
     is_wbtc = transaction.respond_to?(:wbtc?) && transaction.wbtc?
 
-    nonce     = rpc_call(rpc_url, "eth_getTransactionCount", [sender, "pending"]).to_i(16)
-    gas_price = rpc_call(rpc_url, "eth_gasPrice", []).to_i(16) * 2  # 2x buffer for safe fee estimation
-
-    if is_eth
-      # Native ETH transfer — value = amount in wei, gas = 21000, no calldata
-      amount    = (transaction.crypto_amount * 10**18).to_i
-      gas_limit = 21_000
-      Rails.logger.info "Priotelus: sender=#{sender} nonce=#{nonce} gas_price=#{gas_price} gas_limit=#{gas_limit} amount_wei=#{amount} [ETH]"
-      raw_tx = build_and_sign_tx(nonce: nonce, gas_price: gas_price, gas_limit: gas_limit,
-                                  to: transaction.destination_address, data: "", value: amount, key: key)
-    elsif is_wbtc
-      # ERC-20 WBTC transfer — 8 decimals
-      amount    = (transaction.crypto_amount * 10**8).to_i
-      calldata  = build_transfer_calldata(transaction.destination_address, amount)
-      gas_limit = estimate_gas(rpc_url, sender, WBTC_ADDRESS, calldata)
-      Rails.logger.info "Priotelus: sender=#{sender} nonce=#{nonce} gas_price=#{gas_price} gas_limit=#{gas_limit} amount=#{amount} [WBTC]"
-      raw_tx = build_and_sign_tx(nonce: nonce, gas_price: gas_price, gas_limit: gas_limit,
-                                  to: WBTC_ADDRESS, data: calldata, key: key)
-    else
-      # ERC-20 USDC transfer — 6 decimals
-      amount    = (transaction.crypto_amount * 10**6).to_i
-      calldata  = build_transfer_calldata(transaction.destination_address, amount)
-      gas_limit = estimate_gas(rpc_url, sender, USDC_ADDRESS, calldata)
-      Rails.logger.info "Priotelus: sender=#{sender} nonce=#{nonce} gas_price=#{gas_price} gas_limit=#{gas_limit} amount=#{amount} [USDC]"
-      raw_tx = build_and_sign_tx(nonce: nonce, gas_price: gas_price, gas_limit: gas_limit,
-                                  to: USDC_ADDRESS, data: calldata, key: key)
+    # ETH/wBTC transfers disabled (HTG + USD only mode)
+    if is_eth || is_wbtc
+      Rails.logger.warn "CryptoTransfer: ETH/WBTC disabled (HTG+USD only mode) [tx=#{transaction_id}]"
+      transaction.update!(status: :failed, failure_reason: "ETH/WBTC transfers paused — HTG+USD only mode")
+      return
     end
 
-    tx_hash = rpc_call(rpc_url, "eth_sendRawTransaction", ["0x#{raw_tx}"])
-    raise "RPC returned no tx hash" if tx_hash.blank?
+    TreasuryNonceLock.with_nonce(rpc_url, sender) do |nonce|
+      base_price = rpc_call(rpc_url, "eth_gasPrice", []).to_i(16)
+      gas_price  = [base_price * 2, MAX_GAS_PRICE].min
 
-    currency = is_eth ? "ETH" : is_wbtc ? "WBTC" : "USDC"
-    transaction.update!(blockchain_tx_hash: tx_hash, status: :crypto_sent)
-    Rails.logger.info "Priotelus: sent #{transaction.crypto_amount} #{currency} → #{transaction.destination_address}. Hash: #{tx_hash}"
+      if is_eth
+        amount    = (transaction.crypto_amount * 10**18).to_i
+        gas_limit = 21_000
+        raw_tx = build_and_sign_tx(nonce: nonce, gas_price: gas_price, gas_limit: gas_limit,
+                                    to: transaction.destination_address, data: "", value: amount, key: key)
+      elsif is_wbtc
+        amount    = (transaction.crypto_amount * 10**8).to_i
+        calldata  = build_transfer_calldata(transaction.destination_address, amount)
+        gas_limit = estimate_gas(rpc_url, sender, WBTC_ADDRESS, calldata)
+        raw_tx = build_and_sign_tx(nonce: nonce, gas_price: gas_price, gas_limit: gas_limit,
+                                    to: WBTC_ADDRESS, data: calldata, key: key)
+      else
+        amount    = (transaction.crypto_amount * 10**6).to_i
+        calldata  = build_transfer_calldata(transaction.destination_address, amount)
+        gas_limit = estimate_gas(rpc_url, sender, USDC_ADDRESS, calldata)
+        raw_tx = build_and_sign_tx(nonce: nonce, gas_price: gas_price, gas_limit: gas_limit,
+                                    to: USDC_ADDRESS, data: calldata, key: key)
+      end
 
-    # Poll for on-chain confirmation → marks transaction as completed
-    TransactionConfirmationWorker.perform_in(15.seconds, transaction.id)
+      Rails.logger.info "CryptoTransfer: signing tx [tx=#{transaction_id}]"
+
+      tx_hash = rpc_call(rpc_url, "eth_sendRawTransaction", ["0x#{raw_tx}"])
+      raise "RPC returned no tx hash" if tx_hash.blank?
+
+      currency = is_eth ? "ETH" : is_wbtc ? "WBTC" : "USDC"
+      transaction.update!(blockchain_tx_hash: tx_hash, status: :crypto_sent)
+      Rails.logger.info "CryptoTransfer: broadcast ok #{currency} [tx=#{transaction_id}]"
+
+      TransactionConfirmationWorker.perform_in(15.seconds, transaction.id)
+    end
 
   rescue => e
     notify_failure = false
@@ -78,8 +88,11 @@ class CryptoTransferWorker
     rescue
       nil
     end
-    notify_transaction_email(:failed, transaction) if notify_failure && transaction
-    Rails.logger.error "Priotelus CryptoTransfer failed [tx=#{transaction_id}]: #{e.message}"
+    if notify_failure && transaction
+      notify_transaction_email(:failed, transaction)
+      NotificationService.transaction_failed(transaction)
+    end
+    Rails.logger.error "Zèllus CryptoTransfer failed [tx=#{transaction_id}]: #{e.message}"
     raise
   end
 
@@ -132,13 +145,28 @@ class CryptoTransferWorker
     ])
 
     hash  = Digest::Keccak.digest(unsigned, 256)
-    r, s, v = sign_hash(hash, key)
+    r, s, v = sign_hash_with_retry(hash, key)
 
     rlp_encode([
       encode_int(nonce), encode_int(gas_price), encode_int(gas_limit),
       to_bytes, encode_int(value), data_bytes,
       encode_int(v), encode_int(r), encode_int(s)
     ]).unpack1('H*')
+  end
+
+  # Retry signing up to 5 times — OpenSSL ECDSA uses a random nonce k,
+  # so recovery_id may fail for one signature but succeed on the next.
+  def sign_hash_with_retry(hash_bytes, key, max_attempts: 5)
+    last_error = nil
+    max_attempts.times do |attempt|
+      begin
+        return sign_hash(hash_bytes, key)
+      rescue => e
+        last_error = e
+        Rails.logger.warn "CryptoTransfer: signing attempt #{attempt + 1} failed: #{e.message}, retrying..."
+      end
+    end
+    raise last_error
   end
 
   def sign_hash(hash_bytes, key)
@@ -230,17 +258,11 @@ class CryptoTransferWorker
     [hex].pack('H*').b
   end
 
-  # ── JSON-RPC ─────────────────────────────────────────────────────────────
+  # ── JSON-RPC (delegated to BaseRpcClient with retry/backoff) ──────────
 
   def rpc_call(url, method, params)
-    conn = Faraday.new(url: url) { |f| f.adapter Faraday.default_adapter }
-    resp = conn.post do |req|
-      req.headers['Content-Type'] = 'application/json'
-      req.body = { jsonrpc: "2.0", id: 1, method: method, params: params }.to_json
-    end
-    body = JSON.parse(resp.body)
-    raise "RPC error (#{method}): #{body['error']}" if body['error']
-    body['result']
+    @rpc_client ||= BaseRpcClient.new(url: url)
+    @rpc_client.call(method, params)
   end
 
   def estimate_gas(url, from, to, data)

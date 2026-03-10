@@ -1,0 +1,40 @@
+<div style="margin-bottom:20px;">
+  <div style="font-size:15px; font-weight:800; color:#C5A059; margin-bottom:6px;">Ou Gen Yon Demann Peman</div>
+  <div style="font-size:13px; color:#5D6345;"><%= @creator_name %> mande ou lajan ak Zèllus.</div>
+</div>
+
+<div style="background:#E8EDE0; border:2px solid #5D6345; border-radius:14px; padding:16px; margin-bottom:16px; text-align:center;">
+  <div style="color:#5D6345; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">Montan Mande</div>
+  <div style="color:#C5A059; font-size:28px; font-weight:900; letter-spacing:-1px;"><%= @amount_display %></div>
+  <div style="margin-top:4px;">
+    <span style="display:inline-block; background:#2E2E38; color:#C5A059; font-size:10px; font-weight:800; padding:3px 10px; border-radius:10px;">
+      <%= @payment_request.asset.upcase %>
+    </span>
+  </div>
+</div>
+
+<% if @payment_request.note.present? %>
+  <div style="background:#fff; border:1px solid #d9d6c4; border-radius:12px; padding:12px; margin-bottom:16px;">
+    <div style="color:#5D6345; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">Nòt</div>
+    <div style="color:#2E2E38; font-size:13px;"><%= @payment_request.note %></div>
+  </div>
+<% end %>
+
+<% if @payment_request.expires_at.present? %>
+  <div style="background:#fff; border:1px solid #d9d6c4; border-radius:12px; padding:12px; margin-bottom:16px;">
+    <div style="color:#5D6345; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">Ekspirasyon</div>
+    <div style="color:#2E2E38; font-size:13px;"><%= @payment_request.expires_at.strftime("%b %d, %Y %l:%M %p").strip %></div>
+  </div>
+<% end %>
+
+<% if @share_url.present? %>
+  <div style="margin-bottom:16px; text-align:center;">
+    <a href="<%= @share_url %>" style="display:inline-block; background:#2E2E38; color:#C5A059; font-size:14px; font-weight:700; padding:14px 32px; border-radius:14px; text-decoration:none;">
+      Peye Kounye a
+    </a>
+  </div>
+<% end %>
+
+<div style="font-size:13px; color:#5D6345; line-height:1.6;">
+  <%= @creator_name %> mande ou <%= @amount_display %>. Klike bouton anlè a pou peye dirèkteman nan Zèllus.
+</div>

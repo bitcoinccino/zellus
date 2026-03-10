@@ -1,42 +1,71 @@
 <div class="container d-flex justify-content-center align-items-center" style="min-height: 85vh;">
-  <div class="card p-4 w-100 border-0 shadow-lg"
-       style="max-width: <%= @transaction.sell? ? '960px' : '440px' %>; border-radius: 28px; background-color: #F7F4E3; box-shadow: 20px 20px 60px #d9d6c4, -20px -20px 60px #ffffff !important;">
+  <div class="card-base p-4 w-100 shadow-lg"
+       style="max-width: <%= @transaction.sell? ? '960px' : '440px' %>;">
 
     <!-- Header -->
     <div class="text-center mb-4">
-      <% if @transaction.completed? %>
-        <div class="d-inline-flex align-items-center justify-content-center mb-3" style="width: 70px; height: 70px; background-color: #166534; border-radius: 20px; transform: rotate(-5deg); box-shadow: 4px 4px 0px #2E2E38;">
-          <i class="ri-checkbox-circle-fill ri-2x text-white" style="transform: rotate(5deg);"></i>
-        </div>
-        <h2 class="h4 fw-black mb-1 text-uppercase" style="color: #2E2E38; letter-spacing: -0.5px;">Transfè Konplè</h2>
-      <% elsif @transaction.payout_failed? %>
-        <div class="d-inline-flex align-items-center justify-content-center mb-3" style="width: 70px; height: 70px; background-color: #c2410c; border-radius: 20px; transform: rotate(-5deg); box-shadow: 4px 4px 0px #2E2E38;">
-          <i class="ri-error-warning-fill ri-2x text-white" style="transform: rotate(5deg);"></i>
-        </div>
-        <h2 class="h4 fw-black mb-1 text-uppercase" style="color: #2E2E38; letter-spacing: -0.5px;">Depo Resevwa</h2>
-        <p class="small mb-0" style="color: #9a3412; font-size: 11px; font-weight: 700;"><%= @transaction.crypto_currency.upcase %> konfime sou Base, men peman MonCash bezwen reesye/revizyon sipò.</p>
-      <% elsif @transaction.failed? %>
-        <div class="d-inline-flex align-items-center justify-content-center mb-3" style="width: 70px; height: 70px; background-color: #991b1b; border-radius: 20px; transform: rotate(-5deg); box-shadow: 4px 4px 0px #2E2E38;">
-          <i class="ri-close-circle-fill ri-2x text-white" style="transform: rotate(5deg);"></i>
-        </div>
-        <h2 class="h4 fw-black mb-1 text-uppercase" style="color: #2E2E38; letter-spacing: -0.5px;">Transfè Echwe</h2>
-      <% elsif @transaction.paid? %>
-        <div class="d-inline-flex align-items-center justify-content-center mb-3" style="width: 70px; height: 70px; background-color: #92400e; border-radius: 20px; transform: rotate(-5deg); box-shadow: 4px 4px 0px #2E2E38;">
-          <i class="ri-loader-4-line ri-2x text-white" style="transform: rotate(5deg);"></i>
-        </div>
-        <h2 class="h4 fw-black mb-1 text-uppercase" style="color: #2E2E38; letter-spacing: -0.5px;">Peman Resevwa</h2>
-        <p class="small mb-0" style="color: #92400e; font-size: 11px; font-weight: 700;">Ap voye <%= @transaction.crypto_currency.upcase %> nan pòtfèy ou...</p>
-      <% elsif @transaction.crypto_sent? %>
-        <div class="d-inline-flex align-items-center justify-content-center mb-3" style="width: 70px; height: 70px; background-color: #92400e; border-radius: 20px; transform: rotate(-5deg); box-shadow: 4px 4px 0px #2E2E38;">
-          <i class="ri-send-plane-fill ri-2x text-white" style="transform: rotate(5deg);"></i>
-        </div>
-        <h2 class="h4 fw-black mb-1 text-uppercase" style="color: #2E2E38; letter-spacing: -0.5px;"><%= @transaction.crypto_currency.upcase %> Voye</h2>
-        <p class="small mb-0" style="color: #92400e; font-size: 11px; font-weight: 700;">Ap tann konfimasyon blockchain...</p>
+      <% if @transaction.loan_request? %>
+        <%# ── Loan-specific headers ── %>
+        <% if @transaction.completed? %>
+          <div class="d-inline-flex align-items-center justify-content-center mb-3 rounded-3" style="width: 56px; height: 56px; background-color: #166534;">
+            <i class="ri-checkbox-circle-fill ri-xl text-white"></i>
+          </div>
+          <h2 class="h4 fw-black mb-1 text-uppercase" style="color: #2E2E38; letter-spacing: -0.5px;">Prè Ranbouse</h2>
+          <p class="small mb-0" style="color: #166534; font-size: 11px; font-weight: 700;">Ranbousman konplete. Mèsi pou konfyans ou!</p>
+        <% elsif @transaction.failed? %>
+          <div class="d-inline-flex align-items-center justify-content-center mb-3 rounded-3" style="width: 56px; height: 56px; background-color: #991b1b;">
+            <i class="ri-close-circle-fill ri-xl text-white"></i>
+          </div>
+          <h2 class="h4 fw-black mb-1 text-uppercase" style="color: #2E2E38; letter-spacing: -0.5px;">Prè Refize</h2>
+        <% elsif @transaction.paid? %>
+          <div class="d-inline-flex align-items-center justify-content-center mb-3 rounded-3" style="width: 56px; height: 56px; background-color: var(--haiti-gold);">
+            <i class="ri-hand-coin-fill ri-xl" style="color: var(--haiti-charcoal);"></i>
+          </div>
+          <h2 class="h4 fw-black mb-1 text-uppercase" style="color: #2E2E38; letter-spacing: -0.5px;">Prè Apwouve</h2>
+          <p class="small mb-0" style="color: var(--haiti-olive); font-size: 11px; font-weight: 700;">Lajan deboure. Tanpri ranbouse anvan dat limit.</p>
+        <% else %>
+          <div class="d-inline-flex align-items-center justify-content-center mb-3 rounded-3" style="width: 56px; height: 56px; background-color: var(--haiti-olive);">
+            <i class="ri-time-line ri-xl text-white"></i>
+          </div>
+          <h2 class="h4 fw-black mb-1 text-uppercase" style="color: #2E2E38; letter-spacing: -0.5px;">Demann Prè Soumèt</h2>
+          <p class="small mb-0" style="color: var(--haiti-olive); font-size: 11px; font-weight: 700;">Ap tann revizyon admin...</p>
+        <% end %>
       <% else %>
-        <div class="d-inline-flex align-items-center justify-content-center mb-3" style="width: 70px; height: 70px; background-color: #5D6345; border-radius: 20px; transform: rotate(-5deg); box-shadow: 4px 4px 0px #2E2E38;">
-          <i class="ri-shield-user-fill ri-2x text-white" style="transform: rotate(5deg);"></i>
-        </div>
-        <h2 class="h4 fw-black mb-1 text-uppercase" style="color: #2E2E38; letter-spacing: -0.5px;">Verifye Transfè</h2>
+        <%# ── Buy/Sell headers ── %>
+        <% if @transaction.completed? %>
+          <div class="d-inline-flex align-items-center justify-content-center mb-3 rounded-3" style="width: 56px; height: 56px; background-color: #166534;">
+            <i class="ri-checkbox-circle-fill ri-xl text-white"></i>
+          </div>
+          <h2 class="h4 fw-black mb-1 text-uppercase" style="color: #2E2E38; letter-spacing: -0.5px;">Transfè Konplè</h2>
+        <% elsif @transaction.payout_failed? %>
+          <div class="d-inline-flex align-items-center justify-content-center mb-3 rounded-3" style="width: 56px; height: 56px; background-color: #c2410c;">
+            <i class="ri-error-warning-fill ri-xl text-white"></i>
+          </div>
+          <h2 class="h4 fw-black mb-1 text-uppercase" style="color: #2E2E38; letter-spacing: -0.5px;">Depo Resevwa</h2>
+          <p class="small mb-0" style="color: #9a3412; font-size: 11px; font-weight: 700;"><%= @transaction.crypto_currency.upcase %> konfime sou Base, men peman MonCash bezwen reesye/revizyon sipò.</p>
+        <% elsif @transaction.failed? %>
+          <div class="d-inline-flex align-items-center justify-content-center mb-3 rounded-3" style="width: 56px; height: 56px; background-color: #991b1b;">
+            <i class="ri-close-circle-fill ri-xl text-white"></i>
+          </div>
+          <h2 class="h4 fw-black mb-1 text-uppercase" style="color: #2E2E38; letter-spacing: -0.5px;">Transfè Echwe</h2>
+        <% elsif @transaction.paid? %>
+          <div class="d-inline-flex align-items-center justify-content-center mb-3 rounded-3" style="width: 56px; height: 56px; background-color: #92400e;">
+            <i class="ri-loader-4-line ri-xl text-white"></i>
+          </div>
+          <h2 class="h4 fw-black mb-1 text-uppercase" style="color: #2E2E38; letter-spacing: -0.5px;">Peman Resevwa</h2>
+          <p class="small mb-0" style="color: #92400e; font-size: 11px; font-weight: 700;">Ap voye <%= @transaction.crypto_currency.upcase %> nan pòtfèy ou...</p>
+        <% elsif @transaction.crypto_sent? %>
+          <div class="d-inline-flex align-items-center justify-content-center mb-3 rounded-3" style="width: 56px; height: 56px; background-color: #92400e;">
+            <i class="ri-send-plane-fill ri-xl text-white"></i>
+          </div>
+          <h2 class="h4 fw-black mb-1 text-uppercase" style="color: #2E2E38; letter-spacing: -0.5px;"><%= @transaction.crypto_currency.upcase %> Voye</h2>
+          <p class="small mb-0" style="color: #92400e; font-size: 11px; font-weight: 700;">Ap tann konfimasyon blockchain...</p>
+        <% else %>
+          <div class="d-inline-flex align-items-center justify-content-center mb-3 rounded-3" style="width: 56px; height: 56px; background-color: #5D6345;">
+            <i class="ri-shield-user-fill ri-xl text-white"></i>
+          </div>
+          <h2 class="h4 fw-black mb-1 text-uppercase" style="color: #2E2E38; letter-spacing: -0.5px;">Verifye Transfè</h2>
+        <% end %>
       <% end %>
       <p style="color: #5D6345; font-size: 11px; font-weight: 700; letter-spacing: 1px;" class="text-uppercase">
         <i class="ri-hashtag me-1"></i> TX #<%= @transaction.id %>
@@ -44,6 +73,75 @@
         <%= @transaction.created_at.strftime("%b %d, %Y") %>
       </p>
     </div>
+
+    <%# ── Loan Details (only for loan_request) ── %>
+    <% if @transaction.loan_request? %>
+      <div class="p-3 mb-4" style="background-color: var(--haiti-mint); border: 2px solid var(--haiti-olive); border-radius: 18px;">
+        <div class="small fw-bold text-uppercase mb-2" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">
+          <i class="ri-hand-coin-line me-1" style="color: var(--haiti-gold);"></i>Detay Prè Pionye
+        </div>
+
+        <div class="d-flex justify-content-between mb-1">
+          <span class="small" style="color: var(--haiti-olive);">Montan Prè</span>
+          <span class="small fw-bold" style="color: var(--haiti-charcoal);"><%= number_to_currency(@transaction.fiat_amount, unit: "HTG ", precision: 0) %></span>
+        </div>
+
+        <% if @transaction.loan_purpose.present? %>
+          <div class="d-flex justify-content-between mb-1">
+            <span class="small" style="color: var(--haiti-olive);">Objektif</span>
+            <span class="small fw-bold" style="color: var(--haiti-charcoal);"><%= @transaction.loan_purpose_label %></span>
+          </div>
+        <% end %>
+
+        <% if @transaction.repayment_term_weeks.present? %>
+          <div class="d-flex justify-content-between mb-1">
+            <span class="small" style="color: var(--haiti-olive);">Tèm Ranbousman</span>
+            <span class="small fw-bold" style="color: var(--haiti-charcoal);"><%= @transaction.repayment_term_label %></span>
+          </div>
+        <% end %>
+
+        <% if @transaction.loan_interest_rate.present? && @transaction.loan_interest_rate > 0 %>
+          <div class="d-flex justify-content-between mb-1">
+            <span class="small" style="color: var(--haiti-olive);">To Enterè</span>
+            <span class="small fw-bold" style="color: #D8000C;"><%= number_to_percentage(@transaction.loan_interest_rate * 100, precision: 1) %></span>
+          </div>
+          <div class="d-flex justify-content-between mb-1">
+            <span class="small" style="color: var(--haiti-olive);">Enterè</span>
+            <span class="small fw-bold" style="color: #D8000C;">+ <%= number_to_currency(@transaction.loan_interest_amount, unit: "HTG ", precision: 0) %></span>
+          </div>
+        <% end %>
+
+        <hr style="border-color: var(--haiti-olive); opacity: 0.2;" class="my-2">
+
+        <div class="d-flex justify-content-between">
+          <span class="fw-bold" style="color: var(--haiti-charcoal);">Total Ranbousman</span>
+          <span class="fw-black" style="color: var(--haiti-charcoal);"><%= number_to_currency(@transaction.loan_total_repayable || @transaction.fiat_amount, unit: "HTG ", precision: 0) %></span>
+        </div>
+
+        <% if @transaction.loan_due_date.present? %>
+          <div class="d-flex justify-content-between mt-1">
+            <span class="small" style="color: var(--haiti-olive);">Dat Limit</span>
+            <span class="small fw-bold" style="color: <%= @transaction.loan_overdue? ? '#991b1b' : 'var(--haiti-charcoal)' %>;">
+              <% if @transaction.loan_overdue? %>
+                <i class="ri-error-warning-fill me-1"></i>
+              <% end %>
+              <%= @transaction.loan_due_date.strftime("%d %b %Y") %>
+              <% if @transaction.loan_overdue? %>
+                <span style="font-size: 9px;"> (AN RETA)</span>
+              <% end %>
+            </span>
+          </div>
+        <% end %>
+
+        <% if @transaction.collateral_description.present? %>
+          <div class="mt-2 pt-2" style="border-top: 1px dashed rgba(93,99,69,0.3);">
+            <div class="small" style="color: var(--haiti-olive);">
+              <i class="ri-shield-keyhole-line me-1"></i>Kolateral: <strong style="color: var(--haiti-charcoal);"><%= @transaction.collateral_description %></strong>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
 
     <% if (@transaction.failed? || @transaction.payout_failed?) && @transaction.failure_reason.present? %>
       <% failure_box_style = if @transaction.payout_failed?
@@ -67,6 +165,7 @@
       </div>
     <% end %>
 
+    <% unless @transaction.loan_request? %>
     <% masked_moncash_phone = @transaction.moncash_phone.to_s.gsub(/\d(?=\d{4})/, "•") %>
 
     <div class="mb-4">
@@ -254,10 +353,115 @@
           <%= @transaction.status.upcase %>
         </span>
       </div>
+    </div>
+    <% end %>
+    <%# end unless loan_request — buy/sell sections above are hidden for loans %>
+
+    <%# ── Loan Status Badge (for loan_request only) ── %>
+    <% if @transaction.loan_request? %>
+      <% loan_status_config = case @transaction.status
+        when "completed" then { bg: "#dcfce7", border: "#bbf7d0", color: "#166534", icon: "ri-checkbox-circle-fill", label: "RANBOUSE" }
+        when "paid"      then { bg: "#fef3c7", border: "#fde68a", color: "#92400e", icon: "ri-hand-coin-fill",       label: "APWOUVE — DWE RANBOUSE" }
+        when "failed"    then { bg: "#fee2e2", border: "#fca5a5", color: "#991b1b", icon: "ri-close-circle-fill",    label: "REFIZE" }
+        else                  { bg: "var(--haiti-mint)", border: "var(--haiti-olive)", color: "var(--haiti-olive)", icon: "ri-time-line", label: "AP TANN REVIZYON" }
+        end %>
+      <div class="d-flex align-items-center p-3 mb-4" style="background-color: <%= loan_status_config[:bg] %>; border-radius: 18px; border: 1px solid <%= loan_status_config[:border] %>;">
+        <div class="d-flex align-items-center justify-content-center rounded-3 me-3 shadow-sm"
+             style="width: 44px; height: 44px; background-color: var(--haiti-olive);">
+          <i class="ri-hand-coin-fill ri-lg text-white"></i>
+        </div>
+        <div>
+          <span class="d-block fw-bold small" style="color: var(--haiti-charcoal);">
+            Prè Pionye
+          </span>
+          <span style="color: var(--haiti-olive); font-size: 11px; font-weight: 600;">Sèvis Prè Zèllus</span>
+        </div>
+        <span class="badge rounded-pill border ms-auto" style="color: <%= loan_status_config[:color] %>; background-color: <%= loan_status_config[:bg] %>; border-color: <%= loan_status_config[:color] %> !important; font-size: 10px; font-weight: 800; letter-spacing: 0.5px;">
+          <i class="<%= loan_status_config[:icon] %> me-1"></i><%= loan_status_config[:label] %>
+        </span>
+      </div>
+    <% end %>
+
+      <%# ── Loan Repayment Actions (shown when loan is disbursed = "paid" status) ── %>
+      <% if @transaction.loan_request? && @transaction.paid? %>
+        <div class="p-3 mb-4" style="background-color: var(--haiti-mint); border: 2px solid var(--haiti-olive); border-radius: 18px;">
+          <div class="small fw-bold text-uppercase mb-3" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">
+            <i class="ri-refund-2-line me-1" style="color: var(--haiti-gold);"></i>Opsyon Ranbousman
+          </div>
+
+          <% wallet_balance = current_user.wallet&.htg_balance || 0 %>
+          <% repay_amount = @transaction.loan_total_repayable || @transaction.fiat_amount %>
+
+          <%# Option 1: Wallet (Instant) %>
+          <div class="mb-2">
+            <%= button_to repay_wallet_loan_path(@transaction), method: :post,
+                class: "btn w-100 py-3 fw-bold rounded-4 d-flex align-items-center justify-content-center gap-2",
+                style: "background-color: var(--haiti-charcoal); color: var(--haiti-gold); border: 2px solid var(--haiti-charcoal);",
+                disabled: wallet_balance < repay_amount do %>
+              <i class="ri-wallet-3-fill"></i> Peye ak Pòtfèy
+              <span class="badge rounded-pill" style="background: var(--haiti-gold); color: var(--haiti-charcoal); font-size: 9px;">ENSTANTAN</span>
+            <% end %>
+            <div class="small mt-1 text-center" style="color: var(--haiti-olive); font-size: 10px;">
+              Balans pòtfèy: <strong><%= number_to_currency(wallet_balance, unit: "HTG ", precision: 0) %></strong>
+              <% if wallet_balance < repay_amount %>
+                <span style="color: #991b1b;"> — pa ase (bezwen <%= number_to_currency(repay_amount, unit: "HTG ", precision: 0) %>)</span>
+              <% end %>
+            </div>
+          </div>
+
+          <%# Option 2: MonCash %>
+          <div class="mb-2">
+            <%= button_to repay_loan_path(@transaction, asset: "htg"), method: :post,
+                class: "btn w-100 py-3 fw-bold rounded-4 d-flex align-items-center justify-content-center gap-2",
+                style: "background: linear-gradient(135deg, #d90429, #ef233c); color: #fff; border: none;" do %>
+              <i class="ri-smartphone-line"></i> Peye ak MonCash
+            <% end %>
+          </div>
+
+          <%# Option 3: USDC (Diaspora) %>
+          <div class="mb-2">
+            <%= button_to repay_loan_path(@transaction, asset: "usdc"), method: :post,
+                class: "btn w-100 py-3 fw-bold rounded-4 d-flex align-items-center justify-content-center gap-2",
+                style: "background-color: #0052FF; color: #fff; border: none;" do %>
+              <i class="ri-coin-line"></i> Peye ak USD
+              <span class="badge rounded-pill" style="background: rgba(255,255,255,0.2); font-size: 9px;">DYASPORA</span>
+            <% end %>
+          </div>
+
+          <% if @transaction.loan_overdue? %>
+            <div class="mt-2 p-2 rounded-3 text-center" style="background: #fdf2f2; border: 1px solid #fca5a5;">
+              <div class="small fw-bold" style="color: #991b1b; font-size: 11px;">
+                <i class="ri-error-warning-fill me-1"></i>Prè sa a AN RETA. Ou ap pèdi -15 PrioNet pwen chak jou jiskaske ou peye.
+              </div>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
 
       <!-- Actions -->
       <div class="d-grid gap-2">
-        <% if @transaction.pending? %>
+        <% if @transaction.loan_request? %>
+          <%# ── Loan Actions ── %>
+          <% if @transaction.pending? %>
+            <div class="p-3 rounded-4 text-center" style="background-color: rgba(93,99,69,0.08); border: 1px dashed var(--haiti-olive);">
+              <i class="ri-time-line ri-lg mb-2" style="color: var(--haiti-olive);"></i>
+              <div class="small fw-bold" style="color: var(--haiti-olive); font-size: 11px;">
+                Demann prè ou ap revize pa yon admin. Ou ap resevwa yon imèl lè li apwouve oswa refize.
+              </div>
+            </div>
+          <% end %>
+          <%= link_to transactions_path,
+              class: "btn py-3 fw-bold rounded-4 d-flex align-items-center justify-content-center gap-2",
+              style: "background-color: var(--haiti-charcoal); color: var(--haiti-gold); border: 2px solid var(--haiti-charcoal);" do %>
+            <i class="ri-history-line"></i> Retounen nan Istwa
+          <% end %>
+          <%= link_to new_loan_path,
+              class: "btn btn-link text-decoration-underline small fw-bold",
+              style: "color: var(--haiti-olive); font-size: 12px;" do %>
+            <i class="ri-add-line me-1"></i> Nouvo Demann Prè
+          <% end %>
+        <% elsif @transaction.pending? %>
+          <%# ── Buy/Sell Pending Actions ── %>
           <% if @transaction.sell? %>
             <div class="p-3 rounded-4" style="background-color: rgba(93,99,69,0.08); border: 1px dashed var(--haiti-olive);">
               <div class="small fw-bold text-uppercase mb-2" style="color: #5D6345; font-size: 10px; letter-spacing: 0.08em;">
@@ -298,6 +502,7 @@
               class: "btn btn-link text-decoration-underline small fw-bold",
               style: "color: #5D6345; font-size: 12px;" %>
         <% else %>
+          <%# ── Non-pending Buy/Sell ── %>
           <%= link_to transactions_path,
               class: "btn py-3 fw-bold rounded-4 d-flex align-items-center justify-content-center gap-2",
               style: "background-color: #2E2E38; color: #C5A059; border: 2px solid #2E2E38;" do %>
@@ -310,7 +515,6 @@
           <% end %>
         <% end %>
       </div>
-    </div>
   </div>
 </div>
 

@@ -1,4 +1,4 @@
-<div class="container py-4" style="max-width: 600px;">
+<div class="container py-4" style="max-width: 900px;">
   <!-- Header Card -->
   <div class="card-base p-4 mb-4 text-center">
     <div class="d-inline-flex align-items-center justify-content-center mb-3 rounded-3"
@@ -12,20 +12,41 @@
       <span class="badge rounded-pill" style="background-color: <%= @circle.status_bg %>; color: <%= @circle.status_color %>; border: 1px solid <%= @circle.status_border %>; font-size: 10px; font-weight: 800; letter-spacing: 0.5px;">
         <i class="<%= @circle.status_icon %> me-1"></i><%= @circle.status_label %>
       </span>
+      <span class="badge rounded-pill" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 10px; font-weight: 800; letter-spacing: 0.5px;">
+        <i class="<%= @circle.assigned? ? 'ri-user-settings-line' : 'ri-loop-right-line' %> me-1"></i><%= @circle.rotation_type_label %>
+      </span>
     </div>
     <h1 class="h4 fw-black mb-1" style="color: var(--haiti-charcoal);"><%= @circle.name %></h1>
     <p class="small mb-0" style="color: var(--haiti-olive);">Jeton Sèk: <code><%= @circle.token %></code></p>
 
-    <div class="d-flex justify-content-center gap-4 mt-3">
+    <div class="d-flex flex-column flex-md-row justify-content-center gap-3 gap-md-4 mt-3">
       <div class="text-center">
         <div class="small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Kontribisyon</div>
-        <div class="fw-black" style="color: var(--haiti-charcoal);"><%= number_to_currency(@circle.amount, unit: @circle.htg? ? "HTG " : "USDC ") %></div>
+        <div class="fw-black" style="color: var(--haiti-charcoal);"><%= number_to_currency(@circle.amount, unit: @circle.htg? ? "HTG " : "$ ") %></div>
       </div>
-      <div class="text-center ps-4" style="border-left: 2px solid var(--haiti-olive);">
+      <div class="text-center ps-md-4" style="border-left: 2px solid var(--haiti-olive);">
+        <div class="small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Frekans</div>
+        <div class="fw-bold" style="color: var(--haiti-charcoal);"><%= @circle.frequency_label %></div>
+      </div>
+      <div class="text-center ps-md-4" style="border-left: 2px solid var(--haiti-olive);">
+        <div class="small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Manm</div>
+        <div class="fw-bold" style="color: var(--haiti-charcoal);"><%= @circle.sol_memberships.count %> / <%= @circle.target_members %></div>
+      </div>
+      <% if @circle.monthly? %>
+        <div class="text-center ps-md-4" style="border-left: 2px solid var(--haiti-olive);">
+          <div class="small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Jou Peman</div>
+          <div class="fw-bold" style="color: var(--haiti-charcoal);">
+            <span style="font-size: 11px;">Kontrib:</span> <%= @circle.contribution_day %>
+            <i class="ri-arrow-right-s-line" style="vertical-align: middle; color: var(--haiti-olive);"></i>
+            <span style="font-size: 11px;">Peman:</span> <%= @circle.payout_day %>
+          </div>
+        </div>
+      <% end %>
+      <div class="text-center ps-md-4" style="border-left: 2px solid var(--haiti-olive);">
         <div class="small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Dire</div>
-        <div class="fw-bold" style="color: var(--haiti-charcoal);"><%= @circle.duration_months %> Mwa</div>
+        <div class="fw-bold" style="color: var(--haiti-charcoal);"><%= @circle.total_duration_label %></div>
       </div>
-      <div class="text-center ps-4" style="border-left: 2px solid var(--haiti-olive);">
+      <div class="text-center ps-md-4" style="border-left: 2px solid var(--haiti-olive);">
         <div class="small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Peryòd</div>
         <% if @circle.start_date %>
           <div class="fw-bold" style="color: var(--haiti-charcoal);">
@@ -37,10 +58,10 @@
           <div class="fw-bold" style="color: var(--haiti-olive);">
             <%= Date.today.strftime("%d %b %Y") %>
             <i class="ri-arrow-right-s-line" style="vertical-align: middle;"></i>
-            <%= (Date.today + @circle.duration_months.months).strftime("%d %b %Y") %>
+            <%= (Date.today + @circle.total_duration_days.days).strftime("%d %b %Y") %>
           </div>
           <div style="font-size: 9px; color: var(--haiti-gold);">
-            <i class="ri-hourglass-line me-1"></i>Estimasyon — ap tann manm
+            <i class="ri-hourglass-line me-1"></i>Estimasyon
           </div>
         <% end %>
       </div>
@@ -54,68 +75,171 @@
         <i class="ri-medal-line me-1"></i> Resevwa Peman Wonn Sa a
       </div>
       <div class="d-flex align-items-center gap-3">
-        <span style="font-size: 2.5rem;"><%= @current_round.payout_user.tier_icon %></span>
+        <% payout_u = @current_round.payout_user %>
+        <div style="width: 50px; height: 50px; border-radius: 50%; overflow: hidden; flex-shrink: 0; background: var(--haiti-charcoal); border: 2px solid var(--haiti-gold); display: flex; align-items: center; justify-content: center;">
+          <% if payout_u.avatar.attached? %>
+            <%= image_tag payout_u.avatar, style: "width: 100%; height: 100%; object-fit: cover;", alt: "" %>
+          <% else %>
+            <span style="font-size: 1.6rem;"><%= payout_u.tier_icon %></span>
+          <% end %>
+        </div>
         <div>
-          <div class="fw-black h5 mb-0" style="color: var(--haiti-charcoal);"><%= @current_round.payout_user.email.split('@').first %></div>
+          <div class="fw-black h5 mb-0" style="color: var(--haiti-charcoal);"><%= @current_round.payout_user.display_name %></div>
           <div class="small fw-bold" style="color: #166534;">Nivo: <%= @current_round.payout_user.credit_tier %></div>
         </div>
         <div class="ms-auto text-end">
           <div class="small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Total Kès</div>
-          <div class="fw-black h5 mb-0" style="color: var(--haiti-charcoal);"><%= number_to_currency(@circle.payout_amount, unit: @circle.htg? ? "HTG " : "USDC ") %></div>
+          <div class="fw-black h5 mb-0" style="color: var(--haiti-charcoal);"><%= number_to_currency(@circle.payout_amount, unit: @circle.htg? ? "HTG " : "$ ") %></div>
         </div>
-      </div>
-    </div>
-  <% else %>
-    <!-- Waiting for Members -->
-    <div class="card-base p-4 mb-4 text-center" style="border-left: 5px solid var(--haiti-gold); background-color: var(--haiti-cream);">
-      <div class="d-inline-flex align-items-center justify-content-center mb-2 rounded-circle"
-           style="width: 48px; height: 48px; background-color: var(--haiti-gold);">
-        <i class="ri-hourglass-line ri-lg" style="color: var(--haiti-charcoal);"></i>
-      </div>
-      <div class="fw-black h5 mb-1" style="color: var(--haiti-charcoal);">Ap Tann Manm</div>
-      <div class="small" style="color: var(--haiti-olive);">
-        <strong><%= @circle.sol_memberships.count %></strong> / <strong><%= @circle.target_members %></strong> manm enskri.
-        Sol la ap kòmanse lè tout manm rive.
       </div>
     </div>
   <% end %>
 
-  <!-- The Rotation List -->
-  <div class="card-base p-0 overflow-hidden mb-4">
-    <div class="px-4 py-3" style="border-bottom: 2px solid var(--haiti-olive); background-color: var(--haiti-mint);">
-      <h4 class="small fw-bold text-uppercase mb-0" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Wotasyon Peman</h4>
-    </div>
+  <!-- Two-column: Rotation + Activity -->
+  <div class="row g-4 mb-4">
 
-    <% @members.each do |membership| %>
-      <div class="d-flex align-items-center gap-3 p-3 <%= 'fw-bold' if membership.user == current_user %>"
-           style="border-bottom: 1px solid rgba(93,99,69,0.1); <%= 'background-color: var(--haiti-cream);' if membership.user == current_user %>">
-        <% is_current = @current_round && membership.position == @current_round.round_number %>
-        <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold"
-             style="width: 32px; height: 32px; font-size: 12px;
-                    background: <%= is_current ? 'var(--haiti-gold)' : 'var(--haiti-mint)' %>;
-                    color: <%= is_current ? 'var(--haiti-charcoal)' : 'var(--haiti-olive)' %>;
-                    border: 1px solid var(--haiti-olive);">
-          <%= membership.position %>
+    <%# ── Left: Wotasyon Peman ── %>
+    <div class="col-lg-6">
+      <div class="card-base p-0 overflow-hidden h-100">
+        <div class="px-4 py-3" style="border-bottom: 2px solid var(--haiti-olive); background-color: var(--haiti-mint);">
+          <h4 class="small fw-bold text-uppercase mb-0" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">
+            <i class="<%= @circle.assigned? ? 'ri-user-settings-line' : 'ri-loop-right-line' %> me-1"></i>
+            <%= @circle.assigned? ? "Pozisyon Asiyen" : "Wotasyon Peman" %>
+          </h4>
         </div>
 
-        <span style="font-size: 1.3rem;"><%= membership.user.tier_icon %></span>
+        <% can_reorder = @circle.assigned? && @circle.pending? && @circle.user == current_user %>
+        <% member_count = @members.size %>
 
-        <div class="flex-grow-1">
-          <div class="small fw-bold" style="color: var(--haiti-charcoal);">
-            <%= membership.user.email.split('@').first %> <%= "(Ou)" if membership.user == current_user %>
+        <% @members.each do |membership| %>
+          <div class="d-flex align-items-center gap-2 px-3 py-2 <%= 'fw-bold' if membership.user == current_user %>"
+               style="border-bottom: 1px solid rgba(93,99,69,0.1); <%= 'background-color: var(--haiti-cream);' if membership.user == current_user %>">
+            <% is_current = @current_round && membership.position == @current_round.round_number %>
+            <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold flex-shrink-0"
+                 style="width: 28px; height: 28px; font-size: 11px;
+                        background: <%= is_current ? 'var(--haiti-gold)' : 'var(--haiti-mint)' %>;
+                        color: <%= is_current ? 'var(--haiti-charcoal)' : 'var(--haiti-olive)' %>;
+                        border: 1px solid var(--haiti-olive);">
+              <%= membership.position %>
+            </div>
+
+            <div style="width: 26px; height: 26px; border-radius: 50%; overflow: hidden; flex-shrink: 0; background: var(--haiti-charcoal); display: flex; align-items: center; justify-content: center;">
+              <% if membership.user.avatar.attached? %>
+                <%= image_tag membership.user.avatar, style: "width: 100%; height: 100%; object-fit: cover;", alt: "" %>
+              <% else %>
+                <span style="font-size: 0.85rem;"><%= membership.user.tier_icon %></span>
+              <% end %>
+            </div>
+
+            <div class="flex-grow-1" style="min-width: 0;">
+              <div class="small fw-bold text-truncate" style="color: var(--haiti-charcoal); font-size: 12px;">
+                <%= membership.user.display_name %> <%= "(Ou)" if membership.user == current_user %>
+              </div>
+              <div class="small" style="color: var(--haiti-olive); font-size: 9px;">Nivo: <%= membership.user.credit_tier %></div>
+            </div>
+
+            <% if can_reorder %>
+              <div class="d-flex flex-column gap-0 flex-shrink-0">
+                <% if membership.position > 1 %>
+                  <%= button_to reorder_sol_circle_path(@circle.token, membership_id: membership.token, direction: "up"),
+                        method: :post, class: "btn btn-sm p-0 border-0 lh-1", style: "background: none;",
+                        data: { turbo: false } do %>
+                    <i class="ri-arrow-up-s-line" style="color: var(--haiti-gold); font-size: 18px;"></i>
+                  <% end %>
+                <% else %>
+                  <span style="width: 18px; height: 18px; display: inline-block;"></span>
+                <% end %>
+                <% if membership.position < member_count %>
+                  <%= button_to reorder_sol_circle_path(@circle.token, membership_id: membership.token, direction: "down"),
+                        method: :post, class: "btn btn-sm p-0 border-0 lh-1", style: "background: none;",
+                        data: { turbo: false } do %>
+                    <i class="ri-arrow-down-s-line" style="color: var(--haiti-gold); font-size: 18px;"></i>
+                  <% end %>
+                <% else %>
+                  <span style="width: 18px; height: 18px; display: inline-block;"></span>
+                <% end %>
+              </div>
+            <% end %>
+
+            <% if is_current %>
+              <span class="badge rounded-pill flex-shrink-0" style="background-color: #dcfce7; color: #166534; font-size: 8px; font-weight: 800;">Aktyèl</span>
+            <% elsif @current_round && membership.position < @current_round.round_number %>
+              <i class="ri-checkbox-circle-fill flex-shrink-0" style="color: #166534;"></i>
+            <% else %>
+              <i class="ri-time-line flex-shrink-0" style="color: var(--haiti-olive);"></i>
+            <% end %>
           </div>
-          <div class="small" style="color: var(--haiti-olive); font-size: 10px;">Nivo: <%= membership.user.credit_tier %></div>
-        </div>
+        <% end %>
 
-        <% if is_current %>
-          <span class="badge rounded-pill" style="background-color: #dcfce7; color: #166534; font-size: 9px; font-weight: 800;">Aktyèl</span>
-        <% elsif @current_round && membership.position < @current_round.round_number %>
-          <i class="ri-checkbox-circle-fill" style="color: #166534;"></i>
-        <% else %>
-          <i class="ri-time-line" style="color: var(--haiti-olive);"></i>
+        <% if can_reorder %>
+          <div class="px-3 py-2 text-center" style="background-color: rgba(197,160,89,0.08);">
+            <div class="small" style="color: var(--haiti-gold); font-size: 10px; font-weight: 600;">
+              <i class="ri-drag-move-line me-1"></i>Sèvi ak flèch yo pou chanje pozisyon manm yo
+            </div>
+          </div>
         <% end %>
       </div>
-    <% end %>
+    </div>
+
+    <%# ── Right: Aktivite ── %>
+    <div class="col-lg-6">
+      <div class="card-base p-0 overflow-hidden h-100">
+        <div class="px-4 py-3" style="border-bottom: 2px solid var(--haiti-olive); background-color: var(--haiti-mint);">
+          <h4 class="small fw-bold text-uppercase mb-0" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">
+            <i class="ri-pulse-line me-1"></i>Aktivite
+          </h4>
+        </div>
+
+        <% if @contributions.any? %>
+          <% @contributions.each do |contrib| %>
+            <% round = contrib.sol_round %>
+            <% unit = @circle.htg? ? "HTG" : "$ " %>
+            <div class="d-flex align-items-center gap-2 px-3 py-2" style="border-bottom: 1px solid rgba(93,99,69,0.08);">
+              <%# Status icon %>
+              <% if contrib.paid? %>
+                <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                     style="width: 26px; height: 26px; background: #dcfce7;">
+                  <i class="ri-check-line" style="color: #166534; font-size: 12px;"></i>
+                </div>
+              <% elsif contrib.pending? %>
+                <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                     style="width: 26px; height: 26px; background: #fefce8;">
+                  <i class="ri-hourglass-line" style="color: #854d0e; font-size: 12px;"></i>
+                </div>
+              <% else %>
+                <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                     style="width: 26px; height: 26px; background: #fef2f2;">
+                  <i class="ri-close-line" style="color: #991b1b; font-size: 12px;"></i>
+                </div>
+              <% end %>
+
+              <%# Details %>
+              <div class="flex-grow-1" style="min-width: 0;">
+                <div class="small fw-bold text-truncate" style="color: var(--haiti-charcoal); font-size: 11px;">
+                  <% if contrib.paid? %>
+                    $<%= contrib.user.cashtag %> peye <%= number_to_currency(@circle.amount, unit: "#{unit} ", precision: @circle.htg? ? 0 : 2) %>
+                  <% elsif contrib.pending? %>
+                    $<%= contrib.user.cashtag %> dwe peye
+                  <% else %>
+                    $<%= contrib.user.cashtag %> pa t kapab peye
+                  <% end %>
+                </div>
+                <div class="small" style="color: var(--haiti-olive); font-size: 9px;">
+                  Wonn #<%= round.round_number %> · Pou $<%= round.payout_user.cashtag %> · <%= time_ago_in_words(contrib.updated_at) %>
+                </div>
+              </div>
+            </div>
+          <% end %>
+        <% else %>
+          <div class="p-4 text-center">
+            <i class="ri-inbox-line d-block mb-2" style="color: var(--haiti-olive); font-size: 24px;"></i>
+            <div class="small fw-bold" style="color: var(--haiti-olive);">Pa gen aktivite ankò</div>
+            <div class="small" style="color: var(--haiti-olive); font-size: 10px;">Kontribisyon yo ap parèt isit la lè Sol la kòmanse.</div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
   </div>
 
   <!-- Invite CTA -->
@@ -123,7 +247,7 @@
     <div class="small fw-bold text-uppercase mb-2" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">
       <i class="ri-share-forward-line me-1"></i> Pataje Lyen Envitasyon
     </div>
-    <div class="d-flex gap-2 align-items-start">
+    <div class="d-flex gap-2 align-items-start justify-content-center" style="max-width: 480px; margin: 0 auto;">
       <input type="text" class="form-control fw-bold" style="border: 2px solid var(--haiti-olive); background: var(--haiti-cream); font-size: 11px;"
              value="<%= join_sol_circle_url(@circle.token) %>" readonly id="inviteLink">
       <button class="btn btn-sm fw-bold rounded-3" style="background: var(--haiti-charcoal); color: var(--haiti-gold);"

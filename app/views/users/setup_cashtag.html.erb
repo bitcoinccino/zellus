@@ -1,0 +1,90 @@
+<div class="container d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+  <div class="card-base p-4 w-100" style="max-width: 420px;">
+
+    <div class="text-center mb-4">
+      <i class="ri-flashlight-line mb-3" style="font-size: 3rem; color: var(--haiti-gold);"></i>
+      <h1 class="h4 fw-black mb-1" style="color: var(--haiti-charcoal);">Chwazi Non Zèllus Ou</h1>
+      <p class="small mb-0" style="color: var(--haiti-olive);">Kreye yon non inik pou voye ak resevwa lajan imedyatman</p>
+    </div>
+
+    <% if current_user.errors.any? %>
+      <div class="alert alert-danger rounded-3 mb-3" style="background: #fdf2f2; border: 1px solid #fca5a5; color: #991b1b; font-size: 12px;">
+        <i class="ri-error-warning-fill me-1"></i><%= current_user.errors.full_messages.to_sentence %>
+      </div>
+    <% end %>
+
+    <%= form_with url: setup_cashtag_path, method: :post, local: true do |f| %>
+
+      <%# ── Zellustag ── %>
+      <div class="mb-3">
+        <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 11px; letter-spacing: 0.5px;">NON ZÈLLUS</label>
+        <div class="input-group">
+          <span class="input-group-text fw-bold" style="background-color: var(--haiti-mint); border: 2px solid var(--haiti-olive); border-right: none; color: var(--haiti-charcoal); font-size: 16px;">$</span>
+          <input type="text" name="cashtag" id="cashtag-input" value="<%= params[:cashtag] %>"
+                 placeholder="nonpa" maxlength="20" required autocomplete="off"
+                 class="form-control shadow-none"
+                 style="border: 2px solid var(--haiti-olive); border-left: none; background-color: var(--haiti-cream); color: var(--haiti-charcoal);">
+        </div>
+        <div id="cashtag-availability" class="small mt-1" style="font-size: 11px; min-height: 16px;"></div>
+      </div>
+
+      <%# ── Phone (optional) ── %>
+      <div class="mb-4">
+        <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 11px; letter-spacing: 0.5px;">
+          NIMEWO TELEFON <span class="text-lowercase fw-normal">(opsyonèl)</span>
+        </label>
+        <div class="input-group">
+          <span class="input-group-text" style="background-color: var(--haiti-mint); border: 2px solid var(--haiti-olive); border-right: none;">
+            <i class="ri-phone-line" style="color: var(--haiti-olive);"></i>
+          </span>
+          <input type="tel" name="phone_number" value="<%= params[:phone_number] %>"
+                 placeholder="50912345678" maxlength="11"
+                 class="form-control shadow-none"
+                 style="border: 2px solid var(--haiti-olive); border-left: none; background-color: var(--haiti-cream); color: var(--haiti-charcoal);">
+        </div>
+        <div class="small mt-1" style="color: var(--haiti-olive); font-size: 10px;">
+          <i class="ri-information-line me-1"></i>Nimewo MonCash ou (509 + 8 chif)
+        </div>
+      </div>
+
+      <div class="d-grid">
+        <button type="submit" class="btn py-3 fw-black text-uppercase"
+                style="background-color: var(--haiti-charcoal); color: var(--haiti-gold); border: 2px solid var(--haiti-charcoal); letter-spacing: 1px;">
+          <i class="ri-check-line me-1"></i> Kontinye
+        </button>
+      </div>
+
+    <% end %>
+
+  </div>
+</div>
+
+<script>
+var cashtagTimer;
+var cashtagInput = document.getElementById('cashtag-input');
+var cashtagResult = document.getElementById('cashtag-availability');
+
+if (cashtagInput) {
+  cashtagInput.addEventListener('input', function() {
+    clearTimeout(cashtagTimer);
+    var tag = this.value.replace(/^\$/, '').toLowerCase().replace(/[^a-z0-9]/g, '');
+    this.value = tag;
+    if (tag.length < 5) {
+      cashtagResult.innerHTML = tag.length > 0 ? '<span style="color: var(--haiti-olive);">Minimòm 5 karaktè</span>' : '';
+      return;
+    }
+    cashtagResult.innerHTML = '<span style="color: var(--haiti-olive);"><i class="ri-loader-4-line me-1"></i>Ap verifye...</span>';
+    cashtagTimer = setTimeout(function() {
+      fetch('/users/check_cashtag?cashtag=' + encodeURIComponent(tag))
+        .then(function(r) { return r.json(); })
+        .then(function(d) {
+          if (d.available) {
+            cashtagResult.innerHTML = '<span style="color: #166534;"><i class="ri-check-line me-1"></i>' + d.message + '</span>';
+          } else {
+            cashtagResult.innerHTML = '<span style="color: #991b1b;"><i class="ri-close-line me-1"></i>' + d.message + '</span>';
+          }
+        });
+    }, 300);
+  });
+}
+</script>

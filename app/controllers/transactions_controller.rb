@@ -19,20 +19,42 @@ class TransactionsController < ApplicationController
   def create
     load_order_limits
     load_display_rates
-    @fee_percentage  = 0.02
+    load_buy_payment_methods
+    load_sell_payment_methods
     tx_type          = params[:transaction_type] == "sell" ? "sell" : "buy"
-    @sell_crypto     = params[:sell_crypto_currency].to_s == "wbtc" ? "wbtc" : "usdc"
-    @buy_crypto      = case params[:crypto_currency].to_s
-                       when "wbtc" then "wbtc"
-                       when "eth"  then "eth"
-                       else "usdc"
-                       end
+
+    # PIN verification
+    unless current_user.transfer_pin_set?
+      flash.now[:alert] = "Ou dwe kreye yon PIN transfè anvan ou ka kontinye."
+      @initial_exchange_tab = tx_type
+      render :new, status: :unprocessable_entity
+      return
+    end
+
+    unless current_user.verify_transfer_pin(params[:transfer_pin])
+      flash.now[:alert] = "PIN pa kòrèk. Tanpri eseye ankò."
+      @initial_exchange_tab = tx_type
+      render :new, status: :unprocessable_entity
+      return
+    end
+    # HTG + USD only mode: force all transactions to USDC
+    @sell_crypto     = "usdc"
+    @buy_crypto      = "usdc"
+    # Block non-USD assets
+    requested_buy  = params[:crypto_currency].to_s
+    requested_sell = params[:sell_crypto_currency].to_s
+    if %w[wbtc eth tslax nvdax aaplx coinx googlx].include?(requested_buy) || %w[wbtc].include?(requested_sell)
+      redirect_to new_transaction_path, alert: "Sèlman USD disponib pou kounye a. ETH, wBTC, ak stòk ap vini byento."
+      return
+    end
     @exchange_rate   = if tx_type == "sell"
                          @sell_crypto == "wbtc" ? @wbtc_htg_sell_rate : @sell_exchange_rate
                        else
                          case @buy_crypto
                          when "wbtc" then @wbtc_htg_buy_rate
                          when "eth"  then @eth_htg_buy_rate
+                         when "tslax", "nvdax", "aaplx", "coinx", "googlx"
+                           @stock_rates[@buy_crypto][:htg_buy]
                          else @buy_exchange_rate
                          end
                        end
@@ -56,8 +78,9 @@ class TransactionsController < ApplicationController
         return
       end
       gross_htg          = (crypto_amount * @exchange_rate).round(2)
-      fee_htg            = (gross_htg * @fee_percentage).round(2)
+      fee_htg            = FeeService.crypto_fee(gross_htg)
       net_htg            = gross_htg - fee_htg
+      @fee_percentage    = FeeService.crypto_fee_percent(gross_htg)
 
       @transaction = current_user.transactions.new(
         transaction_type:    :sell,
@@ -90,11 +113,7 @@ class TransactionsController < ApplicationController
       # Buy flow: user specifies HTG amount, we calculate crypto to send
       @transaction = current_user.transactions.new(transaction_params)
       @transaction.transaction_type = :buy
-      @transaction.crypto_currency  = case @buy_crypto
-                                      when "wbtc" then :wbtc
-                                      when "eth"  then :eth
-                                      else :usdc
-                                      end
+      @transaction.crypto_currency  = @buy_crypto.to_sym
       @transaction.destination_address = buy_destination_address.to_s.strip
       if buy_amount_limit_error(@transaction.fiat_amount).present?
         flash.now[:alert] = buy_amount_limit_error(@transaction.fiat_amount)
@@ -106,11 +125,12 @@ class TransactionsController < ApplicationController
         render :new, status: :unprocessable_entity
         return
       end
-      @transaction.fee_amount       = @transaction.fiat_amount * @fee_percentage
+      @transaction.fee_amount       = FeeService.crypto_fee(@transaction.fiat_amount)
+      @fee_percentage               = FeeService.crypto_fee_percent(@transaction.fiat_amount)
       net_fiat                      = @transaction.fiat_amount - @transaction.fee_amount
       precision = case @buy_crypto
-                  when "wbtc" then 8
-                  when "eth"  then 8
+                  when "wbtc", "eth" then 8
+                  when "tslax", "nvdax", "aaplx", "coinx", "googlx" then 8
                   else 6
                   end
       @transaction.crypto_amount    = (net_fiat / @exchange_rate).round(precision)
@@ -139,12 +159,12 @@ class TransactionsController < ApplicationController
 
   # 4. Review: The "Confirm" page we just built
   def show
-    @transaction = current_user.transactions.find(params[:id])
+    @transaction = current_user.transactions.find_by!(token: params[:ref])
   end
 
   # 5. Execute: Trigger the MonCash API
   def pay
-    @transaction = current_user.transactions.find(params[:id])
+    @transaction = current_user.transactions.find_by!(token: params[:ref])
     
     # MoncashService.create_payment now updates @transaction.last_moncash_order_id internally
     url = MoncashService.create_payment(@transaction)
@@ -160,7 +180,7 @@ class TransactionsController < ApplicationController
 
   # 5b. Dev/admin fallback: mark buy payment as paid without MonCash callback/OTP
   def manual_confirm
-    @transaction = current_user.transactions.find(params[:id])
+    @transaction = current_user.transactions.find_by!(token: params[:ref])
 
     unless manual_confirm_allowed?
       redirect_to transaction_path(@transaction), alert: "Manual confirmation is disabled."
@@ -179,7 +199,7 @@ class TransactionsController < ApplicationController
 
   # 5c. Sell flow: user submits the Base tx hash proving they sent USDC to treasury
   def submit_sell_tx_hash
-    @transaction = current_user.transactions.find(params[:id])
+    @transaction = current_user.transactions.find_by!(token: params[:ref])
 
     unless @transaction.sell?
       redirect_to transaction_path(@transaction), alert: "TX hash submission is only available for sell orders."
@@ -204,7 +224,7 @@ class TransactionsController < ApplicationController
     )
     SellTransferWorker.perform_async(@transaction.id)
 
-    crypto_label = @transaction.wbtc? ? "WBTC" : "USDC"
+    crypto_label = @transaction.wbtc? ? "WBTC" : "USD"
     redirect_to transaction_path(@transaction), notice: "Deposit TX hash submitted. We are verifying your #{crypto_label} transfer on Base."
   end
 
@@ -231,7 +251,7 @@ class TransactionsController < ApplicationController
     return
   end
 
-  # --- NEW: PRIOTELUS LOAN REPAYMENT LOGIC ---
+  # --- NEW: ZÈLLUS LOAN REPAYMENT LOGIC ---
   if @transaction.loan_request? || @transaction.failure_reason&.include?("REPAYMENT_LOAN_")
     # Check if they used USDC (Sovereign Bonus) or HTG
     is_usdc = @transaction.failure_reason&.include?("USDC") || @transaction.sell?
@@ -265,16 +285,19 @@ end
   def load_display_rates
     @buy_exchange_rate  = RateService.buy_rate
     @sell_exchange_rate = RateService.sell_rate
-    @wbtc_htg_buy_rate  = RateService.wbtc_htg_buy_rate
-    @wbtc_htg_sell_rate = RateService.wbtc_htg_sell_rate
-    @eth_htg_buy_rate   = RateService.eth_htg_buy_rate
-    @eth_htg_sell_rate  = RateService.eth_htg_sell_rate
+    # ETH/BTC/stock rates disabled (HTG + USD only mode)
+    @wbtc_htg_buy_rate  = 0
+    @wbtc_htg_sell_rate = 0
+    @eth_htg_buy_rate   = 0
+    @eth_htg_sell_rate  = 0
+    @stock_rates = %w[tslax nvdax aaplx coinx googlx].index_with { |_| { usd: 0, htg_buy: 0, htg_sell: 0 } }
     @rates_updated_at   = RateService.usd_htg_rate_updated_at
   rescue => e
     Rails.logger.error "TransactionsController rate load failed: #{e.message}"
     @buy_exchange_rate = @sell_exchange_rate = 135.50
     @wbtc_htg_buy_rate = @wbtc_htg_sell_rate = 12_872_500.0
     @eth_htg_buy_rate = @eth_htg_sell_rate = 390_000.0
+    @stock_rates = %w[tslax nvdax aaplx coinx googlx].index_with { |_| { usd: 0, htg_buy: 0, htg_sell: 0 } }
     @rates_updated_at = nil
   end
 
@@ -301,6 +324,7 @@ end
 
   def load_buy_payment_methods
     @buy_wallet_methods = current_user.payment_methods.active.crypto_wallet.base.order(created_at: :desc)
+    @buy_moncash_methods = current_user.payment_methods.active.mobile_wallet.moncash.order(created_at: :desc)
   end
 
   def manual_confirm_allowed?
@@ -411,7 +435,7 @@ end
       max = @sell_max_eth
       prec = 6
     else
-      label = "USDC"
+      label = "USD"
       min = @sell_min_usdc
       max = @sell_max_usdc
       prec = 2

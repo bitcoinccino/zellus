@@ -16,7 +16,7 @@
           <tr class="small text-uppercase fw-black" style="color: var(--haiti-olive); font-size: 11px;">
             <th class="ps-4 py-3">Dat</th>
             <th class="py-3">Montan Peye</th>
-            <th class="py-3">USDC Resevwa</th>
+            <th class="py-3">USD Resevwa</th>
             <th class="py-3">Pòtfèy Resevè</th>
             <th class="py-3">Estati</th>
             <th class="pe-4 py-3 text-end">Detay</th>
@@ -30,7 +30,7 @@
                 <span class="opacity-50" style="font-size: 10px;"><%= t.created_at.strftime("%I:%M %p") %></span>
               </td>
               <td class="fw-bold text-dark"><%= number_to_currency(t.fiat_amount, unit: "HTG ", precision: 0) %></td>
-              <td class="fw-black" style="color: var(--haiti-olive);"><%= t.crypto_amount %> USDC</td>
+              <td class="fw-black" style="color: var(--haiti-olive);"><%= t.crypto_amount %> USD</td>
               <td>
                 <code style="font-size: 11px; color: var(--haiti-charcoal);">
                   <%= t.destination_address.present? ? "#{t.destination_address.first(6)}...#{t.destination_address.last(4)}" : "—" %>
