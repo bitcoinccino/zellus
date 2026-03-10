@@ -315,7 +315,6 @@
             <% end %>
             <div>
               <div class="fw-bold" style="color: #fff; font-size: 13px;">Pòtfèy Biznis</div>
-              <div style="color: rgba(255,255,255,0.6); font-size: 11px;"><%= @business.name %></div>
             </div>
           </div>
           <div class="text-end">
@@ -1012,7 +1011,7 @@
     <%# ══════════════════════════════════════ %>
     <%# ── TAB SWITCHER                  ──  %>
     <%# ══════════════════════════════════════ %>
-    <div id="section-tabs" class="d-flex gap-2 mb-4 p-1 rounded-3" style="background: rgba(93,99,69,0.08);">
+    <div id="section-tabs" class="d-flex gap-2 mb-4 p-2 rounded-3" style="background: rgba(93,99,69,0.08);">
       <button type="button" class="wallet-tab active" id="tab-btn-lajan" onclick="switchTab('lajan')">
         <i class="ri-wallet-3-line me-1"></i>Pèsonèl
       </button>
@@ -1043,21 +1042,6 @@
       <% wbtc_usd_val = wbtc_bal * btc_usd %>
       <% eth_usd_val  = eth_bal * eth_usd %>
 
-      <%# ── Section Header with Logo Badge ── %>
-      <div class="pb-3 mb-3">
-        <div class="d-flex align-items-center gap-3">
-          <div class="d-flex align-items-center justify-content-center rounded-circle"
-               style="width: 44px; height: 44px; min-width: 44px; background: var(--haiti-charcoal);">
-            <i class="ri-wallet-3-line" style="font-size: 22px; color: var(--haiti-gold);"></i>
-          </div>
-          <div>
-            <div class="fw-black" style="color: var(--haiti-charcoal); font-size: 15px;">Pòtfèy Pèsonèl</div>
-            <div style="color: var(--haiti-olive); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
-              <i class="ri-money-dollar-circle-line me-1" style="font-size: 9px;"></i>HTG · USD
-            </div>
-          </div>
-        </div>
-      </div>
 
       <%# HTG %>
           <div class="asset-card d-flex align-items-center justify-content-between rounded-3 mb-2" style="background: rgba(93,99,69,0.05); padding: 18px;">
@@ -1158,25 +1142,6 @@
     <%# ══════════════════════════════════════ %>
     <% if @business.present? %>
     <div id="section-biznis" class="mb-3" style="display: none;">
-      <%# ── Section Header with Logo Badge ── %>
-      <div class="pb-3 mb-3">
-        <div class="d-flex align-items-center gap-3">
-          <% if @business.logo.attached? %>
-            <%= image_tag @business.logo, class: "rounded-circle", style: "width: 44px; height: 44px; min-width: 44px; object-fit: cover; border: 2px solid var(--haiti-olive);" %>
-          <% else %>
-            <div class="d-flex align-items-center justify-content-center rounded-circle"
-                 style="width: 44px; height: 44px; min-width: 44px; background: var(--haiti-olive);">
-              <i class="<%= @business.category_icon %>" style="font-size: 22px; color: var(--haiti-gold);"></i>
-            </div>
-          <% end %>
-          <div>
-            <div class="fw-black" style="color: var(--haiti-charcoal); font-size: 15px;"><%= @business.name %></div>
-            <div style="color: var(--haiti-olive); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
-              <i class="ri-store-2-line me-1" style="font-size: 9px;"></i>Biznis · <%= @business.category_label %>
-            </div>
-          </div>
-        </div>
-      </div>
 
       <%# Business HTG %>
       <div class="asset-card d-flex align-items-center justify-content-between rounded-3 mb-2" style="background: rgba(93,99,69,0.05); padding: 18px;">
