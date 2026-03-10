@@ -1,0 +1,113 @@
+<div class="container py-4" style="max-width: 700px;">
+  <div class="card-base p-4">
+
+    <%# ── Header ── %>
+    <div class="d-flex align-items-center justify-content-between mb-4">
+      <div class="d-flex align-items-center gap-3">
+        <% if @business.logo.attached? %>
+          <%= image_tag @business.logo, class: "rounded-circle", style: "width: 44px; height: 44px; object-fit: cover; border: 2px solid var(--haiti-olive);" %>
+        <% else %>
+          <div class="d-flex align-items-center justify-content-center rounded-circle"
+               style="width: 44px; height: 44px; background: var(--haiti-olive);">
+            <i class="<%= @business.category_icon %>" style="font-size: 22px; color: var(--haiti-gold);"></i>
+          </div>
+        <% end %>
+        <div>
+          <h1 class="h5 fw-black mb-0" style="color: var(--haiti-charcoal);">Tablo Biznis</h1>
+          <div style="color: var(--haiti-olive); font-size: 12px;"><%= @business.name %></div>
+        </div>
+      </div>
+      <div class="d-flex gap-2">
+        <%= link_to business_path, class: "btn btn-sm rounded-pill px-3", style: "background: rgba(93,99,69,0.08); color: var(--haiti-charcoal); font-size: 12px;" do %>
+          <i class="ri-store-2-line me-1"></i>Pwofil
+        <% end %>
+      </div>
+    </div>
+
+    <%# ── Stats Grid ── %>
+    <div class="row g-2 mb-4">
+      <div class="col-6">
+        <div class="p-3 rounded-3" style="background: var(--haiti-charcoal);">
+          <div style="color: rgba(255,255,255,0.5); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Total Resevwa</div>
+          <div class="fw-black" style="color: #22c55e; font-size: 24px;"><%= number_with_delimiter(@business.total_received.to_i) %></div>
+          <div style="color: rgba(255,255,255,0.4); font-size: 11px;">HTG</div>
+        </div>
+      </div>
+      <div class="col-6">
+        <div class="p-3 rounded-3" style="background: var(--haiti-charcoal);">
+          <div style="color: rgba(255,255,255,0.5); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Frè Kolekte</div>
+          <div class="fw-black" style="color: var(--haiti-gold); font-size: 24px;"><%= number_with_precision(@business.total_fees_collected, precision: 2) %></div>
+          <div style="color: rgba(255,255,255,0.4); font-size: 11px;">HTG</div>
+        </div>
+      </div>
+      <div class="col-6">
+        <div class="p-3 rounded-3" style="background: rgba(93,99,69,0.06);">
+          <div style="color: var(--haiti-olive); font-size: 10px; font-weight: 700; text-transform: uppercase;">Mwa Sa</div>
+          <div class="fw-black" style="color: var(--haiti-charcoal); font-size: 20px;"><%= number_with_delimiter(@this_month_received.to_i) %> <small style="font-size: 12px;">HTG</small></div>
+          <div style="color: var(--haiti-olive); font-size: 11px;"><%= @this_month_count %> tranzaksyon</div>
+        </div>
+      </div>
+      <div class="col-6">
+        <div class="p-3 rounded-3" style="background: rgba(93,99,69,0.06);">
+          <div style="color: var(--haiti-olive); font-size: 10px; font-weight: 700; text-transform: uppercase;">Total Tranzaksyon</div>
+          <div class="fw-black" style="color: var(--haiti-charcoal); font-size: 20px;"><%= @business.transaction_count %></div>
+          <div style="color: var(--haiti-olive); font-size: 11px;">depi kòmansman</div>
+        </div>
+      </div>
+    </div>
+
+    <%# ── Top Products ── %>
+    <% if @top_products.any? %>
+      <div class="mb-4">
+        <h2 class="h6 fw-black mb-3" style="color: var(--haiti-charcoal);">
+          <i class="ri-trophy-line me-1" style="color: var(--haiti-gold);"></i>Top Pwodui
+        </h2>
+        <% @top_products.each_with_index do |product, idx| %>
+          <div class="d-flex align-items-center justify-content-between rounded-3 mb-2 p-2" style="background: rgba(93,99,69,0.04);">
+            <div class="d-flex align-items-center gap-2">
+              <span class="fw-black text-center" style="width: 24px; color: var(--haiti-gold); font-size: 14px;"><%= idx + 1 %></span>
+              <span class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;"><%= product.name %></span>
+            </div>
+            <span style="color: var(--haiti-olive); font-size: 12px; font-weight: 600;"><%= number_with_delimiter(product.total_revenue.to_i) %> HTG</span>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+
+    <%# ── Recent Payments ── %>
+    <div class="mb-2">
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <h2 class="h6 fw-black mb-0" style="color: var(--haiti-charcoal);">
+          <i class="ri-history-line me-1" style="color: var(--haiti-gold);"></i>Dènye Peman
+        </h2>
+        <%= link_to payments_business_path, style: "color: var(--haiti-olive); font-size: 12px; font-weight: 600; text-decoration: none;" do %>
+          Tout <i class="ri-arrow-right-s-line"></i>
+        <% end %>
+      </div>
+
+      <% if @recent_transfers.any? %>
+        <% @recent_transfers.limit(10).each do |transfer| %>
+          <div class="d-flex align-items-center justify-content-between py-2" style="border-bottom: 1px solid rgba(93,99,69,0.06);">
+            <div>
+              <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;">
+                <%= transfer.user&.display_name || transfer.user&.cashtag || "Anonim" %>
+              </div>
+              <div style="color: var(--haiti-olive); font-size: 11px;">
+                <%= transfer.created_at.strftime("%-d %b %Y, %l:%M %p").strip %>
+              </div>
+            </div>
+            <div class="text-end">
+              <div class="fw-black" style="color: #166534; font-size: 14px;">+<%= number_with_delimiter(transfer.amount.to_i) %> HTG</div>
+            </div>
+          </div>
+        <% end %>
+      <% else %>
+        <div class="text-center py-4" style="color: var(--haiti-olive); font-size: 13px;">
+          <i class="ri-inbox-line d-block mb-2" style="font-size: 32px; opacity: 0.3;"></i>
+          Pa gen peman ankò.
+        </div>
+      <% end %>
+    </div>
+
+  </div>
+</div>

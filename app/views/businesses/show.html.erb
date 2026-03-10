@@ -1,0 +1,139 @@
+<div class="container py-4" style="max-width: 700px;">
+  <div class="card-base p-4">
+
+    <%# ── Business Header ── %>
+    <div class="d-flex align-items-center justify-content-between mb-4">
+      <div class="d-flex align-items-center gap-3">
+        <% if @business.logo.attached? %>
+          <%= image_tag @business.logo, class: "rounded-circle", style: "width: 56px; height: 56px; object-fit: cover; border: 2px solid var(--haiti-olive);" %>
+        <% else %>
+          <div class="d-flex align-items-center justify-content-center rounded-circle"
+               style="width: 56px; height: 56px; background: var(--haiti-olive);">
+            <i class="<%= @business.category_icon %>" style="font-size: 28px; color: var(--haiti-gold);"></i>
+          </div>
+        <% end %>
+        <div>
+          <h1 class="h5 fw-black mb-0" style="color: var(--haiti-charcoal);"><%= @business.name %></h1>
+          <div class="d-flex align-items-center gap-2">
+            <span class="badge rounded-pill" style="background: <%= @business.active? ? 'rgba(22,101,52,0.1)' : 'rgba(153,27,27,0.1)' %>; color: <%= @business.active? ? '#166534' : '#991b1b' %>; font-size: 10px;">
+              <i class="ri-checkbox-circle-fill me-1"></i><%= @business.active? ? "Aktif" : @business.suspended? ? "Sispann" : "An atant" %>
+            </span>
+            <span style="color: var(--haiti-olive); font-size: 11px;"><%= @business.category_label %></span>
+          </div>
+        </div>
+      </div>
+      <%= link_to edit_business_path, class: "btn btn-sm rounded-pill px-3", style: "background: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 12px;" do %>
+        <i class="ri-edit-line me-1"></i>Modifye
+      <% end %>
+    </div>
+
+    <%# ── Stats Row ── %>
+    <div class="row g-2 mb-4">
+      <div class="col-4">
+        <div class="text-center p-3 rounded-3" style="background: rgba(93,99,69,0.06);">
+          <div class="fw-black" style="color: var(--haiti-charcoal); font-size: 18px;">
+            <%= number_with_delimiter(@business.total_received.to_i) %>
+          </div>
+          <div style="color: var(--haiti-olive); font-size: 10px; font-weight: 600;">HTG RESEVWA</div>
+        </div>
+      </div>
+      <div class="col-4">
+        <div class="text-center p-3 rounded-3" style="background: rgba(93,99,69,0.06);">
+          <div class="fw-black" style="color: var(--haiti-charcoal); font-size: 18px;">
+            <%= @business.transaction_count %>
+          </div>
+          <div style="color: var(--haiti-olive); font-size: 10px; font-weight: 600;">TRANZAKSYON</div>
+        </div>
+      </div>
+      <div class="col-4">
+        <div class="text-center p-3 rounded-3" style="background: rgba(93,99,69,0.06);">
+          <div class="fw-black" style="color: var(--haiti-charcoal); font-size: 18px;">
+            <%= (@business.fee_rate * 100).round(1) %>%
+          </div>
+          <div style="color: var(--haiti-olive); font-size: 10px; font-weight: 600;">TO FRÈ</div>
+        </div>
+      </div>
+    </div>
+
+    <%# ── Business Details ── %>
+    <div class="rounded-3 p-3 mb-4" style="background: rgba(93,99,69,0.04); border: 1px solid rgba(93,99,69,0.1);">
+      <% if @business.description.present? %>
+        <div class="mb-2" style="color: var(--haiti-charcoal); font-size: 13px;"><%= @business.description %></div>
+      <% end %>
+      <div class="d-flex flex-wrap gap-3" style="font-size: 12px; color: var(--haiti-olive);">
+        <% if @business.commune.present? %>
+          <span><i class="ri-map-pin-line me-1"></i><%= @business.commune %><%= ", #{@business.department}" if @business.department.present? %></span>
+        <% end %>
+        <% if @business.phone.present? %>
+          <span><i class="ri-phone-line me-1"></i><%= @business.phone %></span>
+        <% end %>
+        <span><i class="ri-link me-1"></i>b/<%= @business.slug %></span>
+      </div>
+    </div>
+
+    <%# ── Quick Links ── %>
+    <div class="d-flex gap-2 mb-4">
+      <%= link_to dashboard_business_path, class: "btn flex-grow-1 rounded-3 py-2", style: "background: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 13px; font-weight: 700;" do %>
+        <i class="ri-layout-grid-line me-1"></i>Tablo
+      <% end %>
+      <%= link_to payments_business_path, class: "btn flex-grow-1 rounded-3 py-2", style: "background: rgba(93,99,69,0.08); color: var(--haiti-charcoal); font-size: 13px; font-weight: 700;" do %>
+        <i class="ri-money-dollar-circle-line me-1"></i>Peman
+      <% end %>
+      <%= link_to public_business_path(@business.slug), class: "btn flex-grow-1 rounded-3 py-2", style: "background: rgba(93,99,69,0.08); color: var(--haiti-charcoal); font-size: 13px; font-weight: 700;" do %>
+        <i class="ri-pages-line me-1"></i>Paj Piblik
+      <% end %>
+    </div>
+
+    <%# ── Products Section ── %>
+    <div class="d-flex align-items-center justify-content-between mb-3">
+      <h2 class="h6 fw-black mb-0" style="color: var(--haiti-charcoal);">
+        <i class="ri-shopping-bag-line me-1" style="color: var(--haiti-gold);"></i>Pwodui (<%= @products.count %>)
+      </h2>
+      <%= link_to new_business_product_path, class: "btn btn-sm rounded-pill px-3", style: "background: var(--haiti-olive); color: white; font-size: 12px;" do %>
+        <i class="ri-add-line me-1"></i>Ajoute
+      <% end %>
+    </div>
+
+    <% if @products.any? %>
+      <% @products.each do |product| %>
+        <div class="d-flex align-items-center justify-content-between rounded-3 mb-2 p-3" style="background: rgba(93,99,69,0.04);">
+          <div class="d-flex align-items-center gap-3">
+            <% if product.image.attached? %>
+              <%= image_tag product.image, class: "rounded-3", style: "width: 44px; height: 44px; object-fit: cover;" %>
+            <% else %>
+              <div class="d-flex align-items-center justify-content-center rounded-3"
+                   style="width: 44px; height: 44px; background: rgba(93,99,69,0.1);">
+                <i class="ri-shopping-bag-line" style="font-size: 20px; color: var(--haiti-olive);"></i>
+              </div>
+            <% end %>
+            <div>
+              <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 14px;">
+                <%= product.name %>
+                <% unless product.active? %>
+                  <span class="badge rounded-pill ms-1" style="background: rgba(153,27,27,0.1); color: #991b1b; font-size: 9px;">Inaktif</span>
+                <% end %>
+              </div>
+              <div style="color: var(--haiti-olive); font-size: 11px;">
+                <%= number_with_delimiter(product.sold_count) %> vann · <%= number_with_delimiter(product.total_revenue.to_i) %> HTG revni
+              </div>
+            </div>
+          </div>
+          <div class="d-flex align-items-center gap-2">
+            <span class="fw-black" style="color: var(--haiti-charcoal); font-size: 14px;">
+              <%= number_with_delimiter(product.price.to_i) %> <small style="color: var(--haiti-olive);">HTG</small>
+            </span>
+            <%= link_to edit_business_product_path(product), class: "text-decoration-none" do %>
+              <i class="ri-edit-line" style="color: var(--haiti-olive); font-size: 16px;"></i>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    <% else %>
+      <div class="text-center py-4" style="color: var(--haiti-olive); font-size: 13px;">
+        <i class="ri-shopping-bag-line d-block mb-2" style="font-size: 32px; opacity: 0.3;"></i>
+        Ou poko gen pwodui. Ajoute premye pwodui ou!
+      </div>
+    <% end %>
+
+  </div>
+</div>

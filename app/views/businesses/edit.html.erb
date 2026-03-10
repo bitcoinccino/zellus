@@ -1,0 +1,19 @@
+<div class="container py-4" style="max-width: 600px;">
+  <div class="card-base p-4">
+    <%# ── Header ── %>
+    <div class="d-flex align-items-center gap-3 mb-4">
+      <%= link_to business_path, class: "text-decoration-none" do %>
+        <div class="d-flex align-items-center justify-content-center rounded-circle"
+             style="width: 40px; height: 40px; background: rgba(93,99,69,0.08);">
+          <i class="ri-arrow-left-line" style="font-size: 20px; color: var(--haiti-charcoal);"></i>
+        </div>
+      <% end %>
+      <div>
+        <h1 class="h5 fw-black mb-0" style="color: var(--haiti-charcoal);">Modifye Biznis</h1>
+        <div style="color: var(--haiti-olive); font-size: 12px;"><%= @business.name %></div>
+      </div>
+    </div>
+
+    <%= render "form" %>
+  </div>
+</div>

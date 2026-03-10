@@ -1,0 +1,92 @@
+<div class="container py-4" style="max-width: 700px;">
+  <div class="card-base p-4">
+
+    <%# ── Header ── %>
+    <div class="d-flex align-items-center gap-3 mb-4">
+      <%= link_to dashboard_business_path, class: "text-decoration-none" do %>
+        <div class="d-flex align-items-center justify-content-center rounded-circle"
+             style="width: 40px; height: 40px; background: rgba(93,99,69,0.08);">
+          <i class="ri-arrow-left-line" style="font-size: 20px; color: var(--haiti-charcoal);"></i>
+        </div>
+      <% end %>
+      <div>
+        <h1 class="h5 fw-black mb-0" style="color: var(--haiti-charcoal);">Analitik Biznis</h1>
+        <div style="color: var(--haiti-olive); font-size: 12px;"><%= @business.name %></div>
+      </div>
+    </div>
+
+    <%# ── Monthly Volume Chart (simple bar chart) ── %>
+    <div class="mb-4">
+      <h2 class="h6 fw-black mb-3" style="color: var(--haiti-charcoal);">
+        <i class="ri-bar-chart-line me-1" style="color: var(--haiti-gold);"></i>Volim Pa Mwa
+      </h2>
+      <div class="rounded-3 p-3" style="background: rgba(93,99,69,0.04);">
+        <% max_vol = @monthly_data.map { |d| d[:volume] }.max %>
+        <% max_vol = 1 if max_vol.to_i == 0 %>
+        <% @monthly_data.each do |data| %>
+          <div class="d-flex align-items-center gap-3 mb-2">
+            <div style="width: 60px; font-size: 11px; color: var(--haiti-olive); font-weight: 600; text-align: right;">
+              <%= data[:month] %>
+            </div>
+            <div class="flex-grow-1" style="height: 24px; background: rgba(93,99,69,0.08); border-radius: 4px; overflow: hidden;">
+              <div style="height: 100%; width: <%= (data[:volume].to_f / max_vol * 100).round(1) %>%; background: var(--haiti-olive); border-radius: 4px; transition: width 0.3s;"></div>
+            </div>
+            <div style="width: 70px; font-size: 12px; color: var(--haiti-charcoal); font-weight: 700;">
+              <%= number_with_delimiter(data[:volume].to_i) %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+    <%# ── Top Products by Revenue ── %>
+    <div class="mb-4">
+      <h2 class="h6 fw-black mb-3" style="color: var(--haiti-charcoal);">
+        <i class="ri-trophy-line me-1" style="color: var(--haiti-gold);"></i>Top Pwodui pa Revni
+      </h2>
+      <% if @top_products.any? %>
+        <% @top_products.each_with_index do |product, idx| %>
+          <div class="d-flex align-items-center justify-content-between py-2 px-3 rounded-3 mb-2" style="background: rgba(93,99,69,0.04);">
+            <div class="d-flex align-items-center gap-3">
+              <span class="d-flex align-items-center justify-content-center rounded-circle fw-black"
+                    style="width: 28px; height: 28px; background: <%= idx < 3 ? 'var(--haiti-gold)' : 'rgba(93,99,69,0.1)' %>; color: <%= idx < 3 ? 'white' : 'var(--haiti-charcoal)' %>; font-size: 12px;">
+                <%= idx + 1 %>
+              </span>
+              <div>
+                <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;"><%= product.name %></div>
+                <div style="color: var(--haiti-olive); font-size: 11px;"><%= product.sold_count %> vann · <%= number_with_delimiter(product.price.to_i) %> HTG/inite</div>
+              </div>
+            </div>
+            <div class="fw-black" style="color: var(--haiti-charcoal); font-size: 14px;">
+              <%= number_with_delimiter(product.total_revenue.to_i) %> <small style="color: var(--haiti-olive);">HTG</small>
+            </div>
+          </div>
+        <% end %>
+      <% else %>
+        <div class="text-center py-3" style="color: var(--haiti-olive); font-size: 13px;">
+          Pa gen done ankò.
+        </div>
+      <% end %>
+    </div>
+
+    <%# ── Fee Breakdown ── %>
+    <div class="rounded-3 p-3" style="background: rgba(93,99,69,0.04); border: 1px dashed rgba(93,99,69,0.15);">
+      <h2 class="h6 fw-black mb-3" style="color: var(--haiti-charcoal);">
+        <i class="ri-percent-line me-1" style="color: var(--haiti-gold);"></i>Rezime Frè
+      </h2>
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <span style="color: var(--haiti-olive); font-size: 12px;">To Frè</span>
+        <span class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;"><%= (@business.fee_rate * 100).round(1) %>%</span>
+      </div>
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <span style="color: var(--haiti-olive); font-size: 12px;">Total Frè Kolekte</span>
+        <span class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;"><%= number_with_precision(@business.total_fees_collected, precision: 2) %> HTG</span>
+      </div>
+      <div class="d-flex justify-content-between align-items-center">
+        <span style="color: var(--haiti-olive); font-size: 12px;">Total Volim</span>
+        <span class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;"><%= number_with_delimiter(@business.total_received.to_i) %> HTG</span>
+      </div>
+    </div>
+
+  </div>
+</div>

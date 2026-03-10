@@ -4,97 +4,273 @@
   .bb-dark-select { color: #fff !important; }
   .bb-dark-select option { background: #fff; color: #111827; }
 
-  .wallet-action-btn {
-    background: rgba(93,99,69,0.1);
-    border: 1.5px solid rgba(93,99,69,0.25);
-    color: var(--haiti-charcoal);
-    font-weight: 700;
-    font-size: 13px;
-    transition: all 0.15s ease;
+  /* Disabled state */
+  .bb-dark-field:disabled, .bb-dark-select:disabled {
+    background-color: #4a4a54 !important;
+    color: rgba(255,255,255,0.32) !important;
+    font-weight: 400 !important;
   }
-  .wallet-action-btn:hover { background: rgba(93,99,69,0.18); color: var(--haiti-charcoal); }
-  .wallet-action-btn.active {
-    background: var(--haiti-charcoal);
-    border-color: var(--haiti-charcoal);
-    color: var(--haiti-gold);
+  .bb-dark-field:disabled::placeholder { color: rgba(255,255,255,0.22) !important; font-weight: 400 !important; }
+  .input-group:has(.bb-dark-field:disabled) .input-group-text,
+  .input-group:has(.bb-dark-select:disabled) .input-group-text {
+    background-color: #4a4a54 !important; color: rgba(197,160,89,0.35) !important;
   }
 
-  .amount-chip {
-    background: var(--haiti-mint);
-    border: 1.5px solid rgba(93,99,69,0.25);
-    color: var(--haiti-charcoal);
-    font-weight: 700;
-    font-size: 13px;
-    cursor: pointer;
-    transition: all 0.15s ease;
+  .deposit-currency-select {
+    background-color: var(--haiti-charcoal); color: white; font-weight: 700; font-size: 14px;
+    border: none; border-radius: 12px; padding: 12px 16px;
+    appearance: none; -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23C5A059' viewBox='0 0 24 24'%3E%3Cpath d='M12 16l-6-6h12z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 14px center; cursor: pointer; transition: all 0.15s ease;
   }
-  .amount-chip:hover, .amount-chip.selected {
-    background: var(--haiti-charcoal);
-    border-color: var(--haiti-charcoal);
-    color: var(--haiti-gold);
-  }
+  .deposit-currency-select:focus { outline: none; box-shadow: 0 0 0 2px var(--haiti-gold); }
+  .deposit-currency-select option { background: var(--haiti-charcoal); color: white; font-weight: 700; padding: 8px; }
 
-  .withdraw-option {
-    cursor: pointer;
-    transition: all 0.15s ease;
-    border-bottom: 1px solid rgba(93,99,69,0.12);
-  }
+  .dep-method-btn { opacity: 0.5; }
+  .dep-method-btn.selected { opacity: 1; box-shadow: 0 0 0 2px var(--haiti-gold); }
+  .dep-method-btn:hover { opacity: 0.85; }
+
+  .withdraw-option { cursor: pointer; transition: all 0.15s ease; border-bottom: 1px solid rgba(93,99,69,0.12); }
   .withdraw-option:hover { background: rgba(93,99,69,0.05); }
   .withdraw-option.selected { background: rgba(197,160,89,0.08); }
+
+  /* ── Withdraw category tabs ── */
+  .wd-cat-btn {
+    background: rgba(93,99,69,0.08); border: 1.5px solid transparent; border-radius: 12px;
+    padding: 10px 8px; font-size: 12px; font-weight: 800; color: var(--haiti-olive);
+    cursor: pointer; transition: all 0.15s ease; text-align: center;
+  }
+  .wd-cat-btn:hover { background: rgba(93,99,69,0.14); }
+  .wd-cat-btn.active { background: var(--haiti-charcoal); color: var(--haiti-gold); border-color: var(--haiti-charcoal); }
+
+  /* ── Withdraw asset rows ── */
+  .wd-crypto-asset, .wd-stock-asset { transition: all 0.15s ease; }
+  .wd-crypto-asset:hover, .wd-stock-asset:hover { transform: translateY(-1px); box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+
+  /* ── Convert dropdown items ── */
+  .cv-dd-item:hover { background: rgba(255,255,255,0.08) !important; }
+
+  /* ── Convert asset rows ── */
+  .cv-asset-row { transition: all 0.15s ease; }
+  .cv-asset-row:hover { transform: translateY(-1px); box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
 
   .panel-slide { display: none; }
   .panel-slide.open { display: block; animation: slideDown 0.2s ease; }
   @keyframes slideDown { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+
+  .ledger-entry-link {
+    background: transparent; transition: all 0.15s ease;
+    border-bottom: 1px solid rgba(93,99,69,0.08);
+  }
+  .ledger-entry-link:hover {
+    background: rgba(93,99,69,0.06);
+    border-left: 3px solid var(--haiti-gold);
+    padding-left: 9px !important;
+  }
+  .ledger-icon {
+    width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; font-size: 16px;
+  }
+  .ledger-icon.credit { background: #f0fdf4; color: #166534; }
+  .ledger-icon.debit  { background: #fef2f2; color: #991b1b; }
+  .ledger-icon.fee    { background: rgba(197,160,89,0.15); color: var(--haiti-gold); }
+
+  /* ── Tab switcher ── */
+  .wallet-tab { flex: 1; padding: 10px; border: none; font-weight: 700; font-size: 13px; cursor: pointer;
+    background: transparent; color: var(--haiti-olive); border-radius: 10px; transition: all 0.2s ease; }
+  .wallet-tab.active { background: var(--haiti-charcoal); color: var(--haiti-gold); }
+
+  /* ── Asset cards ── */
+  .asset-card { transition: all 0.15s ease; border-left: 3px solid transparent; }
+  .asset-card:hover { background: rgba(93,99,69,0.08) !important; transform: translateX(2px); }
+
+  /* ── Robinhood flickering decimals ── */
+  @keyframes flashGreen { 0% { color: #22c55e; } 100% { color: inherit; } }
+  @keyframes flashRed   { 0% { color: #ef4444; } 100% { color: inherit; } }
+  .tick-up   { animation: flashGreen 0.8s ease; }
+  .tick-down { animation: flashRed 0.8s ease; }
+  .tick-arrow { font-size: 10px; font-weight: 800; margin-left: 3px; transition: opacity 0.3s ease; }
+  .tick-arrow.up   { color: #22c55e; }
+  .tick-arrow.down { color: #ef4444; }
+
+  /* ── LIVE badge pulse ── */
+  @keyframes livePulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+  .live-badge { animation: livePulse 1.5s ease-in-out infinite; }
+
+  /* ── Stock cards (Robinhood-style) ── */
+  @keyframes stockFadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes stockShimmer { 0% { background-position: -200px 0; } 100% { background-position: 200px 0; } }
+  @keyframes miniPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+  .stock-card {
+    animation: stockFadeUp 0.4s ease both; transition: all 0.2s ease;
+    cursor: pointer; position: relative; overflow: hidden;
+  }
+  .stock-card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.08); background: rgba(93,99,69,0.09) !important; }
+  .stock-card:active { transform: scale(0.98); }
+  .stock-card::after {
+    content: ''; position: absolute; top: 0; left: -200px;
+    width: 200px; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(197,160,89,0.06), transparent);
+    animation: stockShimmer 3s ease infinite; pointer-events: none;
+  }
+  .stock-card:nth-child(1) { animation-delay: 0s; }
+  .stock-card:nth-child(2) { animation-delay: 0.06s; }
+  .stock-card:nth-child(3) { animation-delay: 0.12s; }
+  .stock-card:nth-child(4) { animation-delay: 0.18s; }
+  .stock-card:nth-child(5) { animation-delay: 0.24s; }
+  .stock-logo-pulse { animation: miniPulse 2.5s ease-in-out infinite; }
+  .stock-price-tag {
+    display: inline-block; padding: 2px 7px; border-radius: 6px;
+    font-size: 9px; font-weight: 700; letter-spacing: 0.3px;
+  }
 </style>
 
-<div class="container d-flex justify-content-center align-items-center" style="min-height: 80vh;">
-  <div class="card-base p-4 w-100 shadow-lg" style="max-width: 440px;">
+<%# ── Rate variables (declared early so To Jodya card can use them) ── %>
+<% usdc_htg = @sell_rate || 135.50 %>
+<% btc_usd  = @btc_usd_rate || 95000.0 %>
+<% eth_usd  = @eth_usd_rate || 3500.0 %>
+<% htg_bal  = @wallet.htg_balance.to_f %>
+<% usdc_bal = @wallet.usdc_balance.to_f %>
+<% eth_bal  = @wallet.eth_balance.to_f %>
+<% wbtc_bal = @wallet.wbtc_balance.to_f %>
+<% total_htg = htg_bal + (usdc_bal * usdc_htg) + (wbtc_bal * btc_usd * usdc_htg) + (eth_bal * eth_usd * usdc_htg) %>
+<% total_usd = (usdc_bal * 1.0) + (wbtc_bal * btc_usd) + (eth_bal * eth_usd) + (htg_bal / usdc_htg) %>
 
-    <%# ── Flash Messages ── %>
-    <% if flash[:alert].present? %>
-      <div class="alert alert-warning rounded-3 mb-3" style="background: #fefce8; border: 1px solid #fde68a; color: #854d0e; font-size: 12px;">
-        <i class="ri-error-warning-line me-1"></i><%= flash[:alert] %>
+<% content_for :full_width, true %>
+<div class="d-flex justify-content-center" style="min-height: 80vh; padding-top: 32px;">
+  <div class="w-100 px-3" style="max-width: 560px;">
+
+    <%# ══════════════════════════════════════════ %>
+    <%# ── Pòtfèy Card (centered single column) ── %>
+    <%# ══════════════════════════════════════════ %>
+    <div style="width: 100%;">
+
+    <%# ══════════════════════════════════════ %>
+    <%# ── Pòtfèy Card                     ── %>
+    <%# ══════════════════════════════════════ %>
+    <div class="card-base p-4">
+
+    <%# ── Personal Card COLLAPSED strip (hidden by default, shown when business is front) ── %>
+    <% if @business.present? %>
+      <div id="personal-card-strip" class="mb-0"
+           style="display: none; background: var(--haiti-charcoal); cursor: pointer;
+                  position: relative; z-index: 0; padding: 18px 20px;
+                  border-radius: 16px 16px 0 0;"
+           onclick="toggleWalletCard('personal')">
+        <div class="d-flex align-items-center justify-content-between">
+          <div class="d-flex align-items-center gap-2">
+            <div class="d-flex align-items-center justify-content-center rounded-circle"
+                 style="width: 36px; height: 36px; min-width: 36px; background: rgba(255,255,255,0.12);">
+              <i class="ri-wallet-3-line" style="font-size: 18px; color: var(--haiti-gold);"></i>
+            </div>
+            <div>
+              <div class="fw-bold" style="color: #fff; font-size: 13px;">Pòtfèy Mwen</div>
+              <div style="color: rgba(255,255,255,0.6); font-size: 11px;">Pòtfèy Pèsonèl</div>
+            </div>
+          </div>
+          <div class="text-end">
+            <div class="fw-black" style="color: #22c55e; font-size: 16px;">
+              <span id="strip-htg-bal"><%= number_with_delimiter(total_htg.floor.to_i) %></span>
+              <span style="font-size: 10px; color: rgba(255,255,255,0.5);">HTG</span>
+            </div>
+            <div style="color: rgba(255,255,255,0.5); font-size: 10px;">
+              ≈ $<span id="strip-usd-bal"><%= number_with_delimiter(total_usd.floor.to_i) %></span> USD
+            </div>
+          </div>
+        </div>
       </div>
     <% end %>
-    <% if flash[:notice].present? %>
-      <div class="alert rounded-3 mb-3" style="background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; font-size: 12px;">
-        <i class="ri-checkbox-circle-line me-1"></i><%= flash[:notice] %>
-      </div>
-    <% end %>
+
+    <div id="section-hero-card" style="position: relative; z-index: 1;">
 
     <%# ── Page Header ── %>
-    <div id="section-header" class="d-flex align-items-center justify-content-between mb-3">
+    <div id="section-header" class="mb-3">
       <h1 class="h5 fw-black mb-0" style="color: var(--haiti-charcoal);">Pòtfèy Mwen</h1>
-      <%= link_to zellus_path, class: "small text-decoration-none fw-bold", style: "color: var(--haiti-olive);" do %>
-        <i class="ri-arrow-left-line me-1"></i>Zèllus
-      <% end %>
     </div>
 
     <%# ══════════════════════════════════════ %>
     <%# ── BALANCE HERO                   ──  %>
     <%# ══════════════════════════════════════ %>
-    <div id="section-hero" class="p-5 rounded-4 mb-4 text-center position-relative" style="background: var(--haiti-charcoal);">
+    <div id="section-hero" class="p-4 rounded-4 mb-3 text-center position-relative" style="background: var(--haiti-charcoal);"
+         data-usdc-htg="<%= usdc_htg %>" data-btc-usd="<%= btc_usd %>" data-eth-usd="<%= eth_usd %>">
       <% if @wallet.held? %>
-        <span class="badge rounded-pill position-absolute" style="top: 16px; right: 16px; background: #fee2e2; color: #991b1b; font-size: 9px;">
+        <span class="badge rounded-pill position-absolute" style="top: 16px; left: 16px; background: #fee2e2; color: #991b1b; font-size: 9px;">
           <i class="ri-lock-line me-1"></i>JELE
         </span>
       <% end %>
-      <div class="fw-bold text-uppercase mb-2" style="color: rgba(255,255,255,0.45); font-size: 11px; letter-spacing: 1.5px;">Balans Zèllus</div>
-      <div class="fw-black mb-3" style="color: #fff; font-size: 48px; letter-spacing: -2px; line-height: 1;">
-        <%= number_to_currency(@wallet.htg_balance, unit: "", precision: 2) %>
+
+      <%# More menu %>
+      <div class="position-absolute" style="top: 12px; right: 12px;">
+        <button type="button" id="hero-menu-btn" class="btn border-0 p-0 d-flex align-items-center justify-content-center"
+                style="width: 32px; height: 32px; color: rgba(255,255,255,0.7);"
+                onclick="toggleHeroMenu()">
+          <i class="ri-more-fill" style="font-size: 22px; font-weight: 900;"></i>
+        </button>
+        <div id="hero-menu-dropdown" class="rounded-3 overflow-hidden" style="display: none; position: absolute; top: 38px; right: 0; min-width: 160px; background: var(--haiti-charcoal); border: 1px solid rgba(255,255,255,0.12); box-shadow: 0 8px 24px rgba(0,0,0,0.4); z-index: 10;">
+          <%= link_to new_transaction_path, class: "d-flex align-items-center gap-2 px-3 py-2 text-decoration-none", style: "color: #fff; font-size: 13px; font-weight: 600;", onclick: "closeHeroMenu()", onmouseover: "this.style.background='rgba(255,255,255,0.06)'", onmouseout: "this.style.background='transparent'" do %>
+            <i class="ri-shopping-cart-line" style="color: var(--haiti-gold); font-size: 16px;"></i> Achte
+          <% end %>
+          <div style="height: 1px; background: rgba(255,255,255,0.08);"></div>
+          <a href="javascript:void(0)" onclick="closeHeroMenu(); togglePanel('withdraw');" class="d-flex align-items-center gap-2 px-3 py-2 text-decoration-none" style="color: #fff; font-size: 13px; font-weight: 600;" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'">
+            <i class="ri-logout-box-line" style="color: var(--haiti-gold); font-size: 16px;"></i> Retire
+          </a>
+          <div style="height: 1px; background: rgba(255,255,255,0.08);"></div>
+          <a href="javascript:void(0)" onclick="closeHeroMenu(); togglePanel('convert');" class="d-flex align-items-center gap-2 px-3 py-2 text-decoration-none" style="color: #fff; font-size: 13px; font-weight: 600;" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'">
+            <i class="ri-swap-line" style="color: var(--haiti-gold); font-size: 16px;"></i> Konvèti
+          </a>
+          <div style="height: 1px; background: rgba(255,255,255,0.08);"></div>
+          <a href="javascript:void(0)" onclick="closeHeroMenu(); togglePanel('deposit');" class="d-flex align-items-center gap-2 px-3 py-2 text-decoration-none" style="color: #fff; font-size: 13px; font-weight: 600;" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'">
+            <i class="ri-download-line" style="color: var(--haiti-gold); font-size: 16px;"></i> Depoze
+          </a>
+        </div>
+      </div>
+
+      <div class="d-flex align-items-center justify-content-center gap-2 mb-2">
+        <span class="fw-bold text-uppercase" style="color: rgba(255,255,255,0.45); font-size: 11px; letter-spacing: 1.5px;">Valè Total Pòtfèy</span>
+        <span class="live-badge d-inline-flex align-items-center gap-1 rounded-pill px-2" style="background: rgba(34,197,94,0.15); font-size: 8px; font-weight: 700; color: #22c55e;">
+          <span style="width: 5px; height: 5px; border-radius: 50%; background: #22c55e; display: inline-block;"></span> LIVE
+        </span>
+      </div>
+      <div class="fw-black mb-1" style="color: #22c55e; font-size: 48px; letter-spacing: -2px; line-height: 1;">
+        <span id="hero-htg-whole"><%= number_with_delimiter(total_htg.floor.to_i) %></span>.<span id="hero-htg-dec" class="tick-decimals"><%= "%02d" % ((total_htg * 100).floor % 100) %></span>
         <span style="font-size: 18px; color: rgba(255,255,255,0.5); letter-spacing: 0;">HTG</span>
       </div>
-      <div class="d-flex justify-content-center gap-2 mt-3">
-        <button type="button" onclick="togglePanel('deposit')" id="btn-deposit"
-                class="btn wallet-action-btn rounded-pill px-4 py-2"
-                style="background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.15); color: rgba(255,255,255,0.8);">
-          <i class="ri-add-line me-1"></i>Depoze
-        </button>
-        <button type="button" onclick="togglePanel('withdraw')" id="btn-withdraw"
-                class="btn wallet-action-btn rounded-pill px-4 py-2"
-                style="background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.15); color: rgba(255,255,255,0.8);">
-          <i class="ri-arrow-up-line me-1"></i>Retire
-        </button>
+      <div class="fw-bold mt-1" style="color: var(--haiti-gold); font-size: 14px;">
+        ≈ $<span id="hero-usd-whole"><%= number_with_delimiter(total_usd.floor.to_i) %></span>.<span id="hero-usd-dec" class="tick-decimals"><%= "%02d" % ((total_usd * 100).floor % 100) %></span> USD
+      </div>
+
+      <%# ── Mini balance breakdown ── %>
+      <div class="d-flex justify-content-center gap-3 mt-3 pt-3" style="border-top: 1px solid rgba(255,255,255,0.08);">
+        <div class="text-center">
+          <div style="color: rgba(255,255,255,0.35); font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Lajan</div>
+          <div style="color: #fff; font-size: 13px; font-weight: 800;"><span id="mini-htg-bal"><%= number_with_delimiter(htg_bal.floor.to_i) %></span> <span style="color: rgba(255,255,255,0.4); font-size: 10px;">HTG</span></div>
+        </div>
+        <div style="width: 1px; background: rgba(255,255,255,0.08);"></div>
+        <div class="text-center">
+          <div style="color: rgba(255,255,255,0.35); font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">USD</div>
+          <div style="color: #fff; font-size: 13px; font-weight: 800;">$<span id="mini-usdc-bal"><%= format('%.2f', usdc_bal) %></span></div>
+        </div>
+        <%# ETH and wBTC mini balances hidden (HTG + USD only mode) %>
+        <span id="mini-eth-bal" style="display:none;"><%= format('%.4f', eth_bal) %></span>
+        <span id="mini-wbtc-bal" style="display:none;"><%= format('%.6f', wbtc_bal) %></span>
+      </div>
+
+      <%# ── Action Buttons ── %>
+      <div class="d-flex justify-content-center gap-4 mt-3">
+        <%= link_to new_payment_request_path, class: "text-decoration-none text-center" do %>
+          <div class="d-flex align-items-center justify-content-center rounded-circle mx-auto mb-1"
+               style="width: 48px; height: 48px; background: rgba(255,255,255,0.1);">
+            <i class="ri-hand-coin-fill" style="color: var(--haiti-gold); font-size: 22px;"></i>
+          </div>
+          <div style="color: rgba(255,255,255,0.7); font-size: 11px; font-weight: 700;">Mande</div>
+        <% end %>
+        <%= link_to new_transfer_path, class: "text-decoration-none text-center" do %>
+          <div class="d-flex align-items-center justify-content-center rounded-circle mx-auto mb-1"
+               style="width: 48px; height: 48px; background: rgba(255,255,255,0.1);">
+            <i class="ri-send-plane-fill" style="color: var(--haiti-gold); font-size: 22px;"></i>
+          </div>
+          <div style="color: rgba(255,255,255,0.7); font-size: 11px; font-weight: 700;">Peye</div>
+        <% end %>
       </div>
     </div>
 
@@ -114,64 +290,270 @@
       </div>
     <% end %>
 
+    </div><%# ── end section-hero-card (toggleable hero wrapper) ── %>
+
+    <%# ══════════════════════════════════════ %>
+    <%# ── Pòtfèy Biznis (Apple Wallet stack) ── %>
+    <%# ══════════════════════════════════════ %>
+    <% if @business.present? %>
+      <%# ── Business COLLAPSED strip (shown by default, peeks below personal card) ── %>
+      <div id="section-biznis-strip" class="rounded-4"
+           style="background: var(--haiti-olive); margin-top: -12px;
+                  position: relative; z-index: 0; cursor: pointer;
+                  padding: 24px 20px 18px;
+                  box-shadow: 0 4px 12px rgba(0,0,0,0.1);"
+           onclick="toggleWalletCard('biznis')">
+        <div class="d-flex align-items-center justify-content-between">
+          <div class="d-flex align-items-center gap-2">
+            <div class="d-flex align-items-center justify-content-center rounded-circle"
+                 style="width: 36px; height: 36px; min-width: 36px; background: rgba(255,255,255,0.15);">
+              <i class="<%= @business.category_icon %>" style="font-size: 18px; color: var(--haiti-gold);"></i>
+            </div>
+            <div>
+              <div class="fw-bold" style="color: #fff; font-size: 13px;">Pòtfèy Biznis</div>
+              <div style="color: rgba(255,255,255,0.6); font-size: 11px;"><%= @business.name %></div>
+            </div>
+          </div>
+          <div class="text-end">
+            <div class="fw-black" style="color: var(--haiti-gold); font-size: 16px;">
+              <%= number_with_delimiter(@business.total_received.floor.to_i) %>
+              <span style="font-size: 10px; color: rgba(255,255,255,0.5);">HTG</span>
+            </div>
+            <div style="color: rgba(255,255,255,0.5); font-size: 10px;">
+              <%= @business.transaction_count %> tranzaksyon
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <%# ── Business EXPANDED card (hidden by default, shown when business is front) ── %>
+      <div id="section-biznis-full" class="text-center"
+           style="display: none; position: relative; z-index: 1;
+                  background: var(--haiti-olive); margin-top: 0;
+                  padding: 28px 24px 24px;
+                  border-radius: 0 0 16px 16px;">
+
+          <%# ── Logo + Name (centered) ── %>
+          <div class="d-flex flex-column align-items-center mb-3">
+            <div class="d-flex align-items-center justify-content-center rounded-circle mb-2"
+                 style="width: 52px; height: 52px; background: rgba(255,255,255,0.15);">
+              <i class="<%= @business.category_icon %>" style="font-size: 26px; color: var(--haiti-gold);"></i>
+            </div>
+            <span class="fw-bold" style="color: rgba(255,255,255,0.6); font-size: 11px; letter-spacing: 1px; text-transform: uppercase;"><%= @business.name %></span>
+          </div>
+
+          <%# ── Balance ── %>
+          <div class="fw-black mb-1" style="color: var(--haiti-gold); font-size: 42px; letter-spacing: -2px; line-height: 1;">
+            <%= number_with_delimiter(@business.total_received.floor.to_i) %><span style="font-size: 14px; color: rgba(255,255,255,0.5);">.<%= "%02d" % ((@business.total_received * 100).floor % 100) %></span>
+            <span style="font-size: 18px; color: rgba(255,255,255,0.5); letter-spacing: 0;">HTG</span>
+          </div>
+          <div class="fw-bold mt-1 mb-3" style="color: rgba(255,255,255,0.6); font-size: 13px;">
+            <%= @business.category_label %>
+          </div>
+
+          <%# ── Resevwa / Mande Action Buttons ── %>
+          <div class="d-flex justify-content-center gap-4 mt-2 pt-3" style="border-top: 1px solid rgba(255,255,255,0.12);">
+            <%= link_to public_business_path(@business.slug), class: "text-decoration-none text-center" do %>
+              <div class="d-flex align-items-center justify-content-center rounded-circle mx-auto mb-1"
+                   style="width: 48px; height: 48px; background: rgba(255,255,255,0.12);">
+                <i class="ri-qr-code-line" style="color: var(--haiti-gold); font-size: 22px;"></i>
+              </div>
+              <div style="color: rgba(255,255,255,0.7); font-size: 11px; font-weight: 700;">Resevwa</div>
+            <% end %>
+            <%= link_to new_payment_request_path, class: "text-decoration-none text-center" do %>
+              <div class="d-flex align-items-center justify-content-center rounded-circle mx-auto mb-1"
+                   style="width: 48px; height: 48px; background: rgba(255,255,255,0.12);">
+                <i class="ri-hand-coin-fill" style="color: var(--haiti-gold); font-size: 22px;"></i>
+              </div>
+              <div style="color: rgba(255,255,255,0.7); font-size: 11px; font-weight: 700;">Mande</div>
+            <% end %>
+          </div>
+      </div>
+    <% end %>
+
     <%# ══════════════════════════════════════ %>
     <%# ── DEPOSIT PANEL (bottom-sheet)  ──  %>
+
     <%# ══════════════════════════════════════ %>
     <div id="panel-deposit" class="panel-slide mb-3">
       <div class="p-3 rounded-4" style="background: var(--haiti-cream); border: 1.5px solid rgba(93,99,69,0.2);">
-
-        <%# ── Panel header with back button ── %>
-        <div class="d-flex align-items-center justify-content-between mb-3">
+        <div class="d-flex align-items-center justify-content-between mb-2">
           <div class="fw-black" style="color: var(--haiti-charcoal); font-size: 18px;">Depoze Lajan</div>
           <button type="button" onclick="togglePanel('deposit')" class="btn btn-sm p-0" style="color: var(--haiti-olive);">
             <i class="ri-close-line" style="font-size: 20px;"></i>
           </button>
         </div>
-
-        <%# ── Quick amount chips ── %>
-        <div class="row g-2 mb-3">
-          <% [500, 1000, 2500].each do |amt| %>
-            <div class="col-4">
-              <div class="amount-chip rounded-3 text-center py-2" onclick="selectDepositAmount(<%= amt %>)">
-                <%= number_to_currency(amt, unit: "", precision: 0) %>
-              </div>
+        <p class="mb-3" style="color: var(--haiti-olive); font-size: 12px; line-height: 1.5;">
+          Ajoute lajan nan kont ou fasil e rapid. Chwazi MonCash pou depo cash oswa voye kripto dirèkteman sou adrès Base ou.
+        </p>
+        <%# ── Deposit Method Selector ── %>
+        <div class="d-flex gap-2 mb-3">
+          <%# Cash toggle %>
+          <button type="button" id="dep-btn-cash" onclick="selectDepositMethod('cash')"
+                  class="flex-grow-1 d-flex align-items-center gap-2 p-2 rounded-3 border-0 dep-method-btn selected"
+                  style="background: var(--haiti-charcoal); cursor: pointer;">
+            <%= image_tag "moncash.svg", size: "28x28", style: "border-radius: 6px;" %>
+            <div class="text-start">
+              <div class="fw-bold" style="font-size: 13px; color: var(--haiti-gold);">Cash</div>
+              <div style="font-size: 9px; color: rgba(255,255,255,0.45);">MonCash</div>
             </div>
-          <% end %>
-          <% [5000, 10000].each do |amt| %>
-            <div class="col-4">
-              <div class="amount-chip rounded-3 text-center py-2" onclick="selectDepositAmount(<%= amt %>)">
-                <%= number_to_currency(amt, unit: "", precision: 0) %>
-              </div>
+          </button>
+          <%# Kripto toggle %>
+          <button type="button" id="dep-btn-kripto" onclick="selectDepositMethod('kripto')"
+                  class="flex-grow-1 d-flex align-items-center gap-2 p-2 rounded-3 border-0 dep-method-btn"
+                  style="background: var(--haiti-charcoal); cursor: pointer;">
+            <div class="d-flex" style="margin-left: -4px;">
+              <%= usd_logo(size: 20) %>
+              <%= wbtc_base_logo_svg(size: 20) %>
+              <%= eth_base_logo_svg(size: 20) %>
             </div>
-          <% end %>
-          <div class="col-4">
-            <div class="amount-chip rounded-3 text-center py-2" onclick="selectDepositAmount(0)" id="chip-custom">
-              <i class="ri-more-fill"></i>
+            <div class="text-start">
+              <div class="fw-bold" style="font-size: 13px; color: var(--haiti-gold);">Kripto</div>
+              <div style="font-size: 9px; color: rgba(255,255,255,0.45);">Sou Base</div>
             </div>
-          </div>
+          </button>
         </div>
 
-        <%# ── Deposit form ── %>
-        <%= form_with(url: deposit_wallet_path, method: :post, local: true, id: "deposit-form", html: { onsubmit: "return handleDepositSubmit(this);" }) do %>
-          <div class="input-group mb-2">
-            <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);">
-              <i class="ri-money-dollar-circle-line"></i>
-            </span>
-            <input type="number" name="amount" id="deposit-amount"
-                   class="form-control border-0 fw-bold shadow-none p-3 bb-dark-field"
-                   placeholder="Montan (HTG)" min="100" max="50000" step="1" required
-                   style="background-color: var(--haiti-charcoal); color: white;">
-            <span class="input-group-text border-0 fw-bold" style="background-color: var(--haiti-charcoal); color: var(--haiti-olive); font-size: 11px;">HTG</span>
-          </div>
-          <div class="d-flex justify-content-between mb-2">
-            <span class="small" style="color: var(--haiti-olive); font-size: 10px;">Min: 100 HTG</span>
-            <span class="small" style="color: var(--haiti-olive); font-size: 10px;">Max: 50,000 HTG</span>
-          </div>
-          <button type="submit" id="deposit-btn" class="btn w-100 py-2 fw-bold rounded-pill border-0"
-                  style="background-color: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 13px;">
-            <i class="ri-smartphone-line me-1"></i>Kontinye ak MonCash
-          </button>
-        <% end %>
+        <%# ── Cash (MonCash) Section ── %>
+        <div id="deposit-cash-section">
+          <%= form_with(url: deposit_wallet_path, method: :post, local: true, id: "deposit-form", html: { onsubmit: "return handleDepositSubmit(this);" }) do %>
+
+            <%# ══ STEP 1: Amount + MonCash Number ══ %>
+            <div id="deposit-step-1">
+              <div class="input-group mb-2">
+                <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);"><i class="ri-money-dollar-circle-line"></i></span>
+                <input type="number" name="amount" id="deposit-amount" class="form-control border-0 fw-bold shadow-none p-3 bb-dark-field"
+                       placeholder="Montan (HTG)" min="131" max="327678" step="1" required style="background-color: var(--haiti-charcoal); color: white;">
+                <span class="input-group-text border-0 fw-bold" style="background-color: var(--haiti-charcoal); color: var(--haiti-olive); font-size: 11px;">HTG</span>
+              </div>
+              <div class="d-flex justify-content-between mb-3">
+                <span class="small" style="color: var(--haiti-olive); font-size: 10px;">Min: 131 HTG</span>
+                <span class="small" style="color: var(--haiti-olive); font-size: 10px;">Max: 327,678 HTG</span>
+              </div>
+
+              <%# ── MonCash Number ── %>
+              <div class="mb-1" style="font-size: 11px; font-weight: 700; color: var(--haiti-olive); letter-spacing: 0.3px;">
+                Map Depoze Ak
+              </div>
+              <div class="input-group mb-3">
+                <span class="input-group-text border-0 p-0 ps-2" style="background-color: var(--haiti-charcoal);">
+                  <%= image_tag "moncash.svg", size: "28x28", style: "border-radius: 6px;" %>
+                </span>
+                <% if @moncash_methods.any? %>
+                  <select name="moncash_phone" id="deposit-moncash-phone" class="form-select border-0 fw-bold shadow-none p-3 bb-dark-select"
+                          style="background-color: var(--haiti-charcoal); color: white;" required>
+                    <% @moncash_methods.each do |m| %>
+                      <option value="<%= m.account_number %>" data-masked="<%= m.masked_account_number %>"><%= m.masked_account_number %></option>
+                    <% end %>
+                    <option value="">Lòt nimewo...</option>
+                  </select>
+                <% else %>
+                  <input type="tel" name="moncash_phone" id="deposit-moncash-phone" class="form-control border-0 fw-bold shadow-none p-3 bb-dark-field"
+                         placeholder="(509) XXXX XXXX" pattern="509\d{8}" required style="background-color: var(--haiti-charcoal); color: white;">
+                <% end %>
+              </div>
+
+              <button type="button" onclick="showDepositReview()" class="btn w-100 fw-bold rounded-pill border-0 d-flex align-items-center justify-content-center gap-2"
+                      style="background-color: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 15px; padding: 14px 24px; letter-spacing: 0.3px;">
+                <i class="ri-smartphone-line" style="font-size: 18px;"></i>Kontinye ak MonCash
+              </button>
+            </div>
+
+            <%# ══ STEP 2: Review + PIN ══ %>
+            <div id="deposit-step-2" style="display: none;">
+              <%# ── Summary ── %>
+              <div class="rounded-3 p-3 mb-3" style="background: rgba(46,46,56,0.05);">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <span style="color: var(--haiti-olive); font-size: 12px;">Montan</span>
+                  <span id="review-deposit-amount" class="fw-black" style="color: var(--haiti-charcoal); font-size: 18px;"></span>
+                </div>
+                <hr class="my-2" style="border-color: var(--haiti-olive); opacity: 0.12;">
+                <div class="d-flex justify-content-between align-items-center">
+                  <span style="color: var(--haiti-olive); font-size: 12px;">Map Depoze Ak</span>
+                  <div class="d-flex align-items-center gap-2">
+                    <%= image_tag "moncash.svg", size: "20x20", style: "border-radius: 4px;" %>
+                    <span id="review-deposit-phone" class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;"></span>
+                  </div>
+                </div>
+              </div>
+
+              <%# ── PIN ── %>
+              <div class="mb-1" style="font-size: 11px; font-weight: 700; color: var(--haiti-olive); letter-spacing: 0.3px;">
+                <i class="ri-lock-password-line me-1" style="color: var(--haiti-gold);"></i>Antre PIN ou
+              </div>
+              <div class="input-group mb-3">
+                <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);"><i class="ri-lock-password-line"></i></span>
+                <input type="password" name="transfer_pin" id="deposit-pin" class="form-control border-0 fw-bold shadow-none p-3 bb-dark-field"
+                       placeholder="PIN" maxlength="4" pattern="\d{4}" required inputmode="numeric"
+                       style="background-color: var(--haiti-charcoal); color: white; letter-spacing: 8px; text-align: center;">
+              </div>
+
+              <div class="d-flex gap-2">
+                <button type="button" onclick="backToDepositStep1()" class="btn rounded-pill border-0 d-flex align-items-center justify-content-center gap-1"
+                        style="background: rgba(93,99,69,0.12); color: var(--haiti-charcoal); font-size: 13px; padding: 14px 20px; flex-shrink: 0;">
+                  <i class="ri-arrow-left-line" style="font-size: 16px;"></i>Retounen
+                </button>
+                <button type="submit" id="deposit-btn" class="btn flex-grow-1 fw-bold rounded-pill border-0 d-flex align-items-center justify-content-center gap-2"
+                        style="background-color: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 15px; padding: 14px 24px; letter-spacing: 0.3px;">
+                  <i class="ri-shield-check-line" style="font-size: 18px;"></i>Konfime Depo
+                </button>
+              </div>
+            </div>
+
+          <% end %>
+        </div>
+
+        <%# ── Kripto (Base Address + QR) Section ── %>
+        <div id="deposit-kripto-section" style="display: none;">
+          <% if current_user.deposit_address.present? %>
+            <%# Supported assets %>
+            <div class="d-flex align-items-center justify-content-center gap-3 mb-3 py-2 rounded-3" style="background: rgba(46,46,56,0.06);">
+              <div class="text-center">
+                <%= usd_logo(size: 22) %>
+                <div style="font-size: 8px; font-weight: 700; color: var(--haiti-olive); margin-top: 2px;">USD</div>
+              </div>
+              <div class="text-center">
+                <%= wbtc_base_logo_svg(size: 22) %>
+                <div style="font-size: 8px; font-weight: 700; color: var(--haiti-olive); margin-top: 2px;">wBTC</div>
+              </div>
+              <div class="text-center">
+                <%= eth_base_logo_svg(size: 22) %>
+                <div style="font-size: 8px; font-weight: 700; color: var(--haiti-olive); margin-top: 2px;">ETH</div>
+              </div>
+            </div>
+
+            <%# QR Code %>
+            <div class="text-center mb-3">
+              <div id="deposit-qr" style="display: inline-block; border-radius: 12px; border: 3px solid var(--haiti-gold); overflow: hidden; padding: 8px; background: #fff;">
+                <div style="width: 148px; height: 148px; display: flex; align-items: center; justify-content: center;">
+                  <i class="ri-loader-4-line ri-spin" style="font-size: 24px; color: var(--haiti-olive);"></i>
+                </div>
+              </div>
+            </div>
+
+            <%# Address + Copy %>
+            <div class="d-flex align-items-center gap-2 p-2 rounded-3 mb-2" style="background: var(--haiti-charcoal);">
+              <code id="deposit-addr-text" class="flex-grow-1 text-truncate" style="color: var(--haiti-gold); font-size: 11px; letter-spacing: 0.3px;">
+                <%= current_user.deposit_address %>
+              </code>
+              <button type="button" onclick="copyDepositAddress()" class="btn btn-sm p-1 px-2 rounded-pill border-0"
+                      style="background: rgba(197,160,89,0.25); color: var(--haiti-gold); font-size: 10px; white-space: nowrap;">
+                <i class="ri-file-copy-line me-1"></i><span id="copy-addr-label">Kopye</span>
+              </button>
+            </div>
+
+            <div class="text-center" style="color: var(--haiti-olive); font-size: 10px;">
+              <i class="ri-information-line"></i> Voye USD sou adrès sa a
+              <div style="font-size: 9px; margin-top: 2px; color: var(--haiti-gold); font-weight: 700;">
+                <i class="ri-error-warning-line"></i> Rezo Base sèlman — pa Ethereum mainnet
+              </div>
+            </div>
+          <% else %>
+            <div class="text-center py-3" style="color: var(--haiti-olive); font-size: 12px;">
+              <i class="ri-loader-4-line ri-spin me-1"></i> Ap jenere adrès ou...
+            </div>
+          <% end %>
+        </div>
       </div>
     </div>
 
@@ -180,111 +562,165 @@
     <%# ══════════════════════════════════════════ %>
     <div id="panel-withdraw" class="panel-slide mb-3">
       <div class="p-3 rounded-4" style="background: var(--haiti-cream); border: 1.5px solid rgba(93,99,69,0.2);">
-
-        <%# ── Panel header with back button ── %>
         <div class="d-flex align-items-center justify-content-between mb-3">
           <div class="fw-black" style="color: var(--haiti-charcoal); font-size: 18px;">Retire Lajan</div>
           <button type="button" onclick="togglePanel('withdraw')" class="btn btn-sm p-0" style="color: var(--haiti-olive);">
             <i class="ri-close-line" style="font-size: 20px;"></i>
           </button>
         </div>
-        <div class="small mb-3" style="color: var(--haiti-olive);">
-          <%= number_to_currency(@wallet.htg_balance, unit: "", precision: 0) %> HTG disponib
-        </div>
+
+        <div class="small mb-3" style="color: var(--haiti-olive);">Chwazi aktif ou vle retire a, antre montan an, epi konfime.</div>
+
+        <%# Asset Type Selector hidden (HTG + USD only mode — only Lajan withdraw active) %>
 
         <% if current_user.transfer_pin_set? %>
-          <%# ── Step 1: Amount + Phone + PIN ── %>
+
+        <%# ════════════════════════════════════ %>
+        <%# ── LAJAN (HTG / MonCash) Section ── %>
+        <%# ════════════════════════════════════ %>
+        <div id="wd-section-lajan">
+          <%# ── Asset Picker: HTG ── %>
+          <div class="wd-asset-row selected d-flex align-items-center justify-content-between p-3 rounded-3 mb-3"
+               style="background: rgba(93,99,69,0.06); border: 1.5px solid var(--haiti-gold); cursor: default;">
+            <div class="d-flex align-items-center gap-3">
+              <%= htg_logo_svg(size: 34) %>
+              <div>
+                <div class="fw-black" style="color: var(--haiti-charcoal); font-size: 14px;">HTG</div>
+                <div style="color: var(--haiti-olive); font-size: 10px; font-weight: 600;">Goud Ayisyen</div>
+              </div>
+            </div>
+            <div class="text-end">
+              <div class="fw-black" style="color: var(--haiti-charcoal); font-size: 14px;"><%= number_to_currency(@wallet.htg_balance, unit: "", precision: 0) %></div>
+              <div style="color: var(--haiti-olive); font-size: 10px; font-weight: 600;">disponib</div>
+            </div>
+          </div>
+
           <%= form_with(url: withdraw_wallet_path, method: :post, local: true, id: "withdraw-form") do %>
             <input type="hidden" name="instant" id="instant-field" value="0">
 
-            <div class="input-group mb-2">
-              <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);">
-                <i class="ri-money-dollar-circle-line"></i>
-              </span>
-              <input type="number" name="amount" id="withdraw-amount"
-                     class="form-control border-0 fw-bold shadow-none p-3 bb-dark-field"
-                     placeholder="Montan (HTG)" min="100" max="50000" step="1" required
-                     oninput="updateFeePreview()"
-                     style="background-color: var(--haiti-charcoal); color: white;">
-              <span class="input-group-text border-0 fw-bold" style="background-color: var(--haiti-charcoal); color: var(--haiti-olive); font-size: 11px;">HTG</span>
-            </div>
-
-            <div class="input-group mb-2">
-              <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);">
-                <i class="ri-smartphone-line"></i>
-              </span>
-              <% if @moncash_methods.any? %>
-                <select name="moncash_phone" class="form-select border-0 fw-bold shadow-none p-3 bb-dark-select"
-                        style="background-color: var(--haiti-charcoal); color: white;" required>
-                  <% @moncash_methods.each do |m| %>
-                    <option value="<%= m.account_number %>"><%= m.display_label %> · <%= m.account_number %></option>
-                  <% end %>
-                  <option value="">Lòt nimewo...</option>
-                </select>
-              <% else %>
-                <input type="tel" name="moncash_phone"
-                       class="form-control border-0 fw-bold shadow-none p-3 bb-dark-field"
-                       placeholder="509XXXXXXXX" pattern="509\d{8}" required
+            <%# ── STEP 1: Amount + Phone + Type ── %>
+            <div id="wd-step1-lajan">
+              <div class="mb-1 fw-bold" style="font-size: 11px; color: var(--haiti-olive);">Map Voye</div>
+              <div class="input-group mb-2">
+                <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);"><i class="ri-money-dollar-circle-line"></i></span>
+                <input type="number" name="amount" id="withdraw-amount" class="form-control border-0 fw-bold shadow-none p-3 bb-dark-field"
+                       placeholder="Montan (HTG)" min="100" max="50000" step="1" required oninput="updateFeePreview()"
                        style="background-color: var(--haiti-charcoal); color: white;">
-              <% end %>
-            </div>
-
-            <div class="input-group mb-3">
-              <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);">
-                <i class="ri-lock-password-line"></i>
-              </span>
-              <input type="password" name="transfer_pin"
-                     class="form-control border-0 fw-bold shadow-none p-3 bb-dark-field"
-                     placeholder="PIN 4 chif" maxlength="4" pattern="\d{4}" required inputmode="numeric"
-                     style="background-color: var(--haiti-charcoal); color: white; letter-spacing: 8px; text-align: center;">
-            </div>
-
-            <%# ── Step 2: Standard vs Instant (Cash App list style) ── %>
-            <div class="mb-3 rounded-3 overflow-hidden" style="border: 1px solid rgba(93,99,69,0.15);">
-              <div class="withdraw-option selected d-flex align-items-center justify-content-between p-3"
-                   id="opt-standard" onclick="selectWithdrawType('standard')">
+                <span class="input-group-text border-0 fw-bold" style="background-color: var(--haiti-charcoal); color: var(--haiti-olive); font-size: 11px;">HTG</span>
+              </div>
+              <div class="mb-1 fw-bold d-flex align-items-center gap-1" style="font-size: 11px; color: var(--haiti-olive);">
+                <%= image_tag "moncash.svg", size: "14x14", style: "border-radius: 3px;" %> Sou Moncash Sa:
+              </div>
+              <div class="input-group mb-3">
+                <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);"><%= moncash_logo_svg(size: 20) %></span>
+                <% if @moncash_methods.any? %>
+                  <select name="moncash_phone" id="wd-lajan-phone" class="form-select border-0 fw-bold shadow-none p-3 bb-dark-select"
+                          style="background-color: var(--haiti-charcoal); color: white;" required
+                          onchange="toggleCustomPhone(this)">
+                    <% @moncash_methods.each do |m| %>
+                      <option value="<%= m.account_number %>"><%= m.account_number[0..2] %>···<%= m.account_number.last(4) %></option>
+                    <% end %>
+                    <option value="custom">Lòt nimewo...</option>
+                  </select>
+                <% end %>
+                <input type="tel" id="wd-lajan-phone-custom" name="moncash_phone_custom"
+                       class="form-control border-0 fw-bold shadow-none p-3 bb-dark-field"
+                       placeholder="509XXXXXXXX" pattern="509\d{8}"
+                       style="background-color: var(--haiti-charcoal); color: white; display: none;">
+              </div>
+              <div class="d-flex align-items-center justify-content-between p-3 rounded-3 mb-3" style="background: rgba(93,99,69,0.06); border: 1px solid rgba(93,99,69,0.15);">
                 <div class="d-flex align-items-center gap-2">
-                  <i class="ri-time-line" style="font-size: 18px; color: var(--haiti-olive);"></i>
-                  <div>
-                    <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;">Estanda (48 èdtan)</div>
-                  </div>
+                  <i class="ri-percent-line" style="font-size: 18px; color: var(--haiti-olive);"></i>
+                  <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;">Frè retrè</div>
                 </div>
-                <span class="fw-black" style="color: #166534; font-size: 12px;">GRATIS</span>
+                <span id="fee-label" class="fw-bold" style="color: var(--haiti-olive); font-size: 12px;">2% frè</span>
               </div>
-              <div class="withdraw-option d-flex align-items-center justify-content-between p-3"
-                   id="opt-instant" onclick="selectWithdrawType('instant')" style="border-bottom: none;">
-                <div class="d-flex align-items-center gap-2">
-                  <i class="ri-flashlight-fill" style="font-size: 18px; color: var(--haiti-gold);"></i>
-                  <div>
-                    <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;">Instant</div>
-                  </div>
-                </div>
-                <span id="fee-label" class="fw-bold" style="color: var(--haiti-olive); font-size: 12px;">0.8% frè</span>
-              </div>
+              <button type="button" onclick="showWithdrawReview('lajan')" class="btn w-100 fw-bold rounded-pill border-0 d-flex align-items-center justify-content-center gap-2"
+                      style="background: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 15px; padding: 14px 24px; letter-spacing: 0.3px;">
+                <i class="ri-arrow-right-line" style="font-size: 18px;"></i>Kontinye
+              </button>
             </div>
 
-            <%# ── Fee summary (instant only) ── %>
-            <div id="fee-summary" class="p-2 rounded-3 mb-3" style="background: rgba(197,160,89,0.08); display: none;">
-              <div class="d-flex justify-content-between small">
-                <span style="color: var(--haiti-olive);">Montan retrè</span>
-                <span id="summary-amount" class="fw-bold" style="color: var(--haiti-charcoal);">0 HTG</span>
+            <%# ── STEP 2: Review + PIN ── %>
+            <div id="wd-step2-lajan" style="display: none;">
+              <div class="rounded-3 p-3 mb-3" style="background: rgba(197,160,89,0.08);">
+                <div class="small fw-bold mb-2" style="color: var(--haiti-charcoal);">
+                  <i class="ri-file-list-3-line me-1" style="color: var(--haiti-gold);"></i>Rezime Retrè
+                </div>
+                <div class="d-flex justify-content-between small mb-1">
+                  <span style="color: var(--haiti-olive);">Montan</span>
+                  <span id="wd-review-amount-lajan" class="fw-bold" style="color: var(--haiti-charcoal);"></span>
+                </div>
+                <div class="d-flex justify-content-between small mb-1">
+                  <span style="color: var(--haiti-olive);">MonCash</span>
+                  <span id="wd-review-phone-lajan" class="fw-bold" style="color: var(--haiti-charcoal);"></span>
+                </div>
+                <div class="d-flex justify-content-between small mb-1">
+                  <span style="color: var(--haiti-olive);">Vitès</span>
+                  <span id="wd-review-type-lajan" class="fw-bold" style="color: var(--haiti-charcoal);"></span>
+                </div>
+                <div id="wd-review-fee-row" class="d-flex justify-content-between small mb-1" style="display: none;">
+                  <span style="color: var(--haiti-olive);">Frè</span>
+                  <span id="wd-review-fee-lajan" class="fw-bold" style="color: var(--haiti-gold);"></span>
+                </div>
+                <hr class="my-2" style="border-color: var(--haiti-olive); opacity: 0.15;">
+                <div class="d-flex justify-content-between small">
+                  <span class="fw-bold" style="color: var(--haiti-charcoal);">Total debite</span>
+                  <span id="wd-review-total-lajan" class="fw-black" style="color: var(--haiti-charcoal);"></span>
+                </div>
               </div>
-              <div class="d-flex justify-content-between small">
-                <span style="color: var(--haiti-olive);">Frè instant (0.8%)</span>
-                <span id="summary-fee" class="fw-bold" style="color: var(--haiti-gold);">0 HTG</span>
+
+              <div class="input-group mb-3">
+                <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);"><i class="ri-lock-password-line"></i></span>
+                <input type="password" name="transfer_pin" id="wd-pin-lajan" class="form-control border-0 fw-bold shadow-none p-3 bb-dark-field"
+                       placeholder="PIN" maxlength="4" pattern="\d{4}" required inputmode="numeric"
+                       style="background-color: var(--haiti-charcoal); color: white; letter-spacing: 8px; text-align: center;">
               </div>
-              <hr class="my-1" style="border-color: var(--haiti-olive); opacity: 0.15;">
-              <div class="d-flex justify-content-between small">
-                <span class="fw-bold" style="color: var(--haiti-charcoal);">Total debite</span>
-                <span id="summary-total" class="fw-black" style="color: var(--haiti-charcoal);">0 HTG</span>
+
+              <div class="d-flex gap-2">
+                <button type="button" onclick="backToWithdrawStep1('lajan')" class="btn flex-shrink-0 fw-bold rounded-pill border-0 px-3"
+                        style="background: rgba(93,99,69,0.1); color: var(--haiti-charcoal); font-size: 14px; padding: 14px 16px;">
+                  <i class="ri-arrow-left-line"></i>
+                </button>
+                <button type="submit" id="withdraw-btn" class="btn flex-grow-1 fw-bold rounded-pill border-0 d-flex align-items-center justify-content-center gap-2"
+                        style="background: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 15px; padding: 14px 24px; letter-spacing: 0.3px;">
+                  <i class="ri-check-line" style="font-size: 18px;"></i>Konfime Retrè
+                </button>
               </div>
             </div>
-
-            <button type="submit" id="withdraw-btn" class="btn w-100 py-2 fw-bold rounded-pill border-0"
-                    style="background: rgba(93,99,69,0.12); color: var(--haiti-charcoal); font-size: 13px;">
-              <i class="ri-time-line me-1"></i>Retire nan 48 èdtan (Gratis)
-            </button>
           <% end %>
+        </div>
+
+        <%# ════════════════════════════════════ %>
+        <%# ── KRIPTO Section (DISABLED)       ── %>
+        <%# ════════════════════════════════════ %>
+        <div id="wd-section-kripto" style="display: none;">
+          <div class="text-center py-4">
+            <i class="ri-lock-line ri-2x mb-2 d-block" style="color: var(--haiti-gold);"></i>
+            <div class="fw-bold mb-1" style="color: var(--haiti-charcoal); font-size: 14px;">Retrè USD Dezaktive</div>
+            <div class="small mb-3" style="color: var(--haiti-olive);">
+              Ou ka konvèti USD an Goud epi retire via MonCash.
+            </div>
+            <button type="button" onclick="switchWithdrawCategory('lajan')" class="btn btn-sm fw-bold rounded-pill px-4"
+                    style="background: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 12px; padding: 10px 20px;">
+              <i class="ri-money-dollar-circle-line me-1"></i>Retire Goud via MonCash
+            </button>
+          </div>
+        </div>
+
+        <%# ════════════════════════════════════ %>
+        <%# ── STÒK Section (DISABLED)         ── %>
+        <%# ════════════════════════════════════ %>
+        <div id="wd-section-stok" style="display: none;">
+          <div class="text-center py-4">
+            <i class="ri-lock-line ri-2x mb-2 d-block" style="color: var(--haiti-gold);"></i>
+            <div class="fw-bold mb-1" style="color: var(--haiti-charcoal); font-size: 14px;">Retrè Stòk Dezaktive</div>
+            <div class="small" style="color: var(--haiti-olive);">
+              Fonksyon sa a ap retounen byento.
+            </div>
+          </div>
+        </div>
+
         <% else %>
           <div class="text-center py-3" style="color: var(--haiti-olive);">
             <i class="ri-lock-line ri-2x mb-2 d-block" style="color: var(--haiti-gold);"></i>
@@ -294,198 +730,1534 @@
       </div>
     </div>
 
-    <%# ══════════════════════════════════ %>
-    <%# ── TRANSACTION HISTORY        ── %>
-    <%# ══════════════════════════════════ %>
-    <div class="mb-3">
-      <div class="small fw-bold text-uppercase mb-2" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">
-        <i class="ri-history-line me-1"></i>Istwa Tranzaksyon
+    <%# ══════════════════════════════════════════ %>
+    <%# ── CONVERT PANEL (Konvèti)           ── %>
+    <%# ══════════════════════════════════════════ %>
+    <div id="panel-convert" class="panel-slide mb-3">
+      <div class="p-3 rounded-4" style="background: var(--haiti-cream); border: 1.5px solid rgba(93,99,69,0.2);">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+          <div class="fw-black" style="color: var(--haiti-charcoal); font-size: 18px;">Konvèti</div>
+          <button type="button" onclick="togglePanel('convert')" class="btn btn-sm p-0" style="color: var(--haiti-olive);">
+            <i class="ri-close-line" style="font-size: 20px;"></i>
+          </button>
+        </div>
+
+        <% cv_stock_meta = {
+             "tslax"  => { name: "Tesla",     logo: "tslax_logo",  color: "#CC0000", accent: "rgba(204,0,0,0.08)" },
+             "nvdax"  => { name: "Nvidia",    logo: "nvdax_logo",  color: "#76B900", accent: "rgba(118,185,0,0.08)" },
+             "aaplx"  => { name: "Apple",     logo: "aaplx_logo",  color: "#555555", accent: "rgba(85,85,85,0.08)" },
+             "coinx"  => { name: "Coinbase",  logo: "coinx_logo",  color: "#0052FF", accent: "rgba(0,82,255,0.08)" },
+             "googlx" => { name: "Alphabet",  logo: "googlx_logo", color: "#4285F4", accent: "rgba(66,133,244,0.08)" }
+           } %>
+
+        <% if current_user.transfer_pin_set? %>
+          <%= form_with(url: convert_wallet_path, method: :post, local: true, id: "convert-form") do %>
+            <input type="hidden" name="from_asset" id="convert-from-asset" value="">
+            <input type="hidden" name="to_asset" id="convert-to-asset" value="">
+
+            <%# ── STEP 1: From / To + Amount ── %>
+            <div id="cv-step1">
+
+              <%# ══ FROM dropdown ══ %>
+              <div class="d-flex gap-2 mb-2 align-items-end">
+                <div class="flex-fill" style="position: relative;">
+                  <label class="form-label small fw-bold text-uppercase mb-1" style="color: var(--haiti-olive); font-size: 9px; letter-spacing: 1px;">
+                    <i class="ri-logout-box-line me-1"></i>Map Chanje Sa
+                  </label>
+                  <div class="d-flex align-items-center gap-2 p-3 rounded-3" id="cv-from-display"
+                       style="background: var(--haiti-charcoal); cursor: pointer;" onclick="toggleCvDropdown('from')">
+                    <span id="cv-from-logo"><%= htg_logo_svg(size: 22) %></span>
+                    <span class="fw-bold" style="color: #fff; font-size: 13px;" id="cv-from-label">HTG</span>
+                    <span class="ms-auto fw-bold" style="color: var(--haiti-gold); font-size: 12px;" id="cv-from-bal"><%= number_to_currency(htg_bal, unit: "", precision: 0) %></span>
+                    <i class="ri-arrow-down-s-line" style="color: rgba(255,255,255,0.5);"></i>
+                  </div>
+                  <div id="cv-from-dropdown" style="display: none; position: absolute; left: 0; right: 0; z-index: 20; margin-top: 4px; border-radius: 12px; background: var(--haiti-charcoal); border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 8px 24px rgba(0,0,0,0.4); overflow: hidden;">
+                    <button type="button" class="cv-dd-item d-flex align-items-center gap-2 w-100 px-3 py-2 border-0"
+                            onclick="pickConvertAsset('from','htg',event)"
+                            style="background: transparent; color: white; font-size: 13px; font-weight: 600; cursor: pointer;">
+                      <%= htg_logo_svg(size: 20) %>
+                      <span>HTG</span>
+                      <span class="ms-auto" style="color: var(--haiti-gold); font-size: 11px;"><%= number_to_currency(htg_bal, unit: "", precision: 0) %></span>
+                    </button>
+                    <button type="button" class="cv-dd-item d-flex align-items-center gap-2 w-100 px-3 py-2 border-0"
+                            onclick="pickConvertAsset('from','usdc',event)"
+                            style="background: transparent; color: white; font-size: 13px; font-weight: 600; cursor: pointer;">
+                      <%= usd_logo(size: 20) %>
+                      <span>USD</span>
+                      <span class="ms-auto" style="color: var(--haiti-gold); font-size: 11px;"><%= number_with_precision(usdc_bal, precision: 2) %></span>
+                    </button>
+                  </div>
+                </div>
+
+                <%# ══ SWAP BUTTON ══ %>
+                <div class="pb-1">
+                  <button type="button" onclick="swapConvertDirection()" class="btn rounded-circle p-0 d-inline-flex align-items-center justify-content-center"
+                          style="width: 36px; height: 36px; background: var(--haiti-charcoal); border: 2px solid var(--haiti-cream); flex-shrink: 0;">
+                    <i class="ri-arrow-left-right-line" style="color: var(--haiti-gold); font-size: 15px;"></i>
+                  </button>
+                </div>
+
+                <%# ══ TO dropdown ══ %>
+                <div class="flex-fill" style="position: relative;">
+                  <label class="form-label small fw-bold text-uppercase mb-1" style="color: var(--haiti-olive); font-size: 9px; letter-spacing: 1px;">
+                    <i class="ri-login-box-line me-1"></i>Pou Sa
+                  </label>
+                  <div class="d-flex align-items-center gap-2 p-3 rounded-3" id="cv-to-display"
+                       style="background: var(--haiti-charcoal); cursor: pointer;" onclick="toggleCvDropdown('to')">
+                    <span id="cv-to-logo"><%= usd_logo(size: 22) %></span>
+                    <span class="fw-bold" style="color: #fff; font-size: 13px;" id="cv-to-label">USD</span>
+                    <span class="ms-auto fw-bold" style="color: var(--haiti-gold); font-size: 12px;" id="cv-to-bal"><%= number_with_precision(usdc_bal, precision: 2) %></span>
+                    <i class="ri-arrow-down-s-line" style="color: rgba(255,255,255,0.5);"></i>
+                  </div>
+                  <div id="cv-to-dropdown" style="display: none; position: absolute; left: 0; right: 0; z-index: 20; margin-top: 4px; border-radius: 12px; background: var(--haiti-charcoal); border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 8px 24px rgba(0,0,0,0.4); overflow: hidden;">
+                    <button type="button" class="cv-dd-item d-flex align-items-center gap-2 w-100 px-3 py-2 border-0"
+                            onclick="pickConvertAsset('to','htg',event)"
+                            style="background: transparent; color: white; font-size: 13px; font-weight: 600; cursor: pointer;">
+                      <%= htg_logo_svg(size: 20) %>
+                      <span>HTG</span>
+                      <span class="ms-auto" style="color: var(--haiti-gold); font-size: 11px;"><%= number_to_currency(htg_bal, unit: "", precision: 0) %></span>
+                    </button>
+                    <button type="button" class="cv-dd-item d-flex align-items-center gap-2 w-100 px-3 py-2 border-0"
+                            onclick="pickConvertAsset('to','usdc',event)"
+                            style="background: transparent; color: white; font-size: 13px; font-weight: 600; cursor: pointer;">
+                      <%= usd_logo(size: 20) %>
+                      <span>USD</span>
+                      <span class="ms-auto" style="color: var(--haiti-gold); font-size: 11px;"><%= number_with_precision(usdc_bal, precision: 2) %></span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <%# ══ AMOUNT ══ %>
+              <div class="mb-2 mt-1">
+                <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">
+                  <i class="ri-money-dollar-circle-line me-1"></i>Montan
+                </label>
+                <div class="input-group">
+                  <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);"><i class="ri-money-dollar-circle-line"></i></span>
+                  <input type="number" name="amount" id="convert-amount" class="form-control border-0 fw-bold shadow-none p-3 bb-dark-field"
+                         placeholder="0.00" min="0.00000001" step="any" required style="background-color: var(--haiti-charcoal); color: white; font-size: 18px;"
+                         oninput="updateConvertPreview()">
+                  <span class="input-group-text border-0 fw-bold" id="convert-currency-suffix"
+                        style="background-color: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 13px;">HTG</span>
+                </div>
+              </div>
+
+              <%# ══ RATE PREVIEW ══ %>
+              <div class="p-2 rounded-3 mb-3 text-center" style="background: rgba(93,99,69,0.08);">
+                <span class="small fw-bold" style="color: var(--haiti-olive); font-size: 11px;">
+                  <i class="ri-exchange-line me-1"></i>1 USD = <span id="convert-rate"><%= (@sell_rate || 135.50).round(2) %></span> HTG
+                </span>
+                <div id="convert-preview-result" class="fw-black mt-1" style="color: var(--haiti-charcoal); font-size: 14px; display: none;"></div>
+              </div>
+
+              <%# ── Daily swap limit bar (USD→HTG) ── %>
+              <div class="p-2 rounded-3 mb-2" style="background: rgba(197,160,89,0.08); font-size: 11px;">
+                <div class="d-flex justify-content-between">
+                  <span style="color: var(--haiti-olive);">
+                    <i class="ri-timer-line me-1"></i>Limit jounalye (USD → Goud)
+                  </span>
+                  <span class="fw-bold" style="color: var(--haiti-charcoal);">
+                    $ <%= @limit_service.daily_swap_remaining.to_f.round(2) %> rete
+                  </span>
+                </div>
+                <div class="mt-1" style="height: 4px; background: rgba(93,99,69,0.12); border-radius: 2px;">
+                  <% pct = @limit_service.limits[:daily_swap_usd].to_f > 0 ? (@limit_service.daily_swap_used.to_f / @limit_service.limits[:daily_swap_usd].to_f * 100) : 0 %>
+                  <div style="width: <%= [pct, 100].min %>%; height: 100%; background: var(--haiti-gold); border-radius: 2px;"></div>
+                </div>
+              </div>
+
+              <%# ── Unsupported pair notice ── %>
+              <div id="cv-unsupported" class="p-2 rounded-3 mb-3 text-center" style="background: rgba(197,160,89,0.1); display: none;">
+                <span class="small fw-bold" style="color: var(--haiti-olive); font-size: 11px;">
+                  <i class="ri-time-line me-1" style="color: var(--haiti-gold);"></i>Konvèsyon sa a ap vini byento
+                </span>
+              </div>
+
+              <button type="button" id="cv-continue-btn" onclick="showConvertReview()" class="btn w-100 fw-bold rounded-pill border-0 d-flex align-items-center justify-content-center gap-2"
+                      style="background: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 15px; padding: 14px 24px; letter-spacing: 0.3px;">
+                <i class="ri-arrow-right-line" style="font-size: 18px;"></i>Kontinye
+              </button>
+            </div>
+
+            <%# ── STEP 2: Review + PIN ── %>
+            <div id="cv-step2" style="display: none;">
+              <div class="rounded-3 p-3 mb-3" style="background: rgba(197,160,89,0.08);">
+                <div class="small fw-bold mb-2" style="color: var(--haiti-charcoal);">
+                  <i class="ri-file-list-3-line me-1" style="color: var(--haiti-gold);"></i>Rezime Konvèsyon
+                </div>
+                <div class="d-flex justify-content-between small mb-1">
+                  <span style="color: var(--haiti-olive);">Map Chanje Sa</span>
+                  <span id="cv-review-from" class="fw-bold" style="color: var(--haiti-charcoal);"></span>
+                </div>
+                <div class="d-flex justify-content-between small mb-1">
+                  <span style="color: var(--haiti-olive);">Pou Sa</span>
+                  <span id="cv-review-to" class="fw-bold" style="color: var(--haiti-charcoal);"></span>
+                </div>
+                <div class="d-flex justify-content-between small mb-1">
+                  <span style="color: var(--haiti-olive);">Montan</span>
+                  <span id="cv-review-amount" class="fw-bold" style="color: var(--haiti-charcoal);"></span>
+                </div>
+                <div class="d-flex justify-content-between small mb-1">
+                  <span style="color: var(--haiti-olive);">To</span>
+                  <span id="cv-review-rate" class="fw-bold" style="color: var(--haiti-charcoal);"></span>
+                </div>
+                <hr class="my-2" style="border-color: var(--haiti-olive); opacity: 0.15;">
+                <div class="d-flex justify-content-between small">
+                  <span class="fw-bold" style="color: var(--haiti-charcoal);">Ou pral resevwa</span>
+                  <span id="cv-review-receive" class="fw-black" style="color: #22c55e;"></span>
+                </div>
+              </div>
+
+              <div class="input-group mb-3">
+                <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);"><i class="ri-lock-password-line"></i></span>
+                <input type="password" name="transfer_pin" id="cv-pin" class="form-control border-0 fw-bold shadow-none p-3 bb-dark-field"
+                       placeholder="PIN" maxlength="4" pattern="\d{4}" required inputmode="numeric"
+                       style="background-color: var(--haiti-charcoal); color: white; letter-spacing: 8px; text-align: center;">
+              </div>
+
+              <div class="d-flex gap-2">
+                <button type="button" onclick="backToConvertStep1()" class="btn flex-shrink-0 fw-bold rounded-pill border-0 px-3"
+                        style="background: rgba(93,99,69,0.1); color: var(--haiti-charcoal); font-size: 14px; padding: 14px 16px;">
+                  <i class="ri-arrow-left-line"></i>
+                </button>
+                <button type="submit" id="convert-btn" class="btn flex-grow-1 fw-bold rounded-pill border-0 d-flex align-items-center justify-content-center gap-2"
+                        style="background: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 15px; padding: 14px 24px; letter-spacing: 0.3px;">
+                  <i class="ri-swap-line" style="font-size: 18px;"></i>Konvèti Kounye a
+                </button>
+              </div>
+            </div>
+
+          <% end %>
+        <% else %>
+          <div class="text-center py-3" style="color: var(--haiti-olive);">
+            <i class="ri-lock-line ri-2x mb-2 d-block" style="color: var(--haiti-gold);"></i>
+            <div class="small">Ou dwe kreye yon PIN anvan ou ka konvèti lajan.</div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+    <%# ── Step Loader for Deposit ── %>
+    <%= render "shared/step_loader", id: "deposit-loader", steps: [
+      "Kounya nou prale nan MonCash…",
+      "N'ap checke si gen trafik…",
+      "Ah nou bon, nou prèske rive…",
+      "Nou rive anbyen sou MonCash!"
+    ] %>
+
+    <%# ── Step Loader for Convert ── %>
+    <%= render "shared/step_loader", id: "convert-loader", steps: [
+      "N'ap bloke to a pou ou...",
+      "N'ap verifye balans ou...",
+      "N'ap konvèti lajan an...",
+      "Konvèsyon reyisi!"
+    ] %>
+
+    <div id="section-portfolio"><%# ── portfolio section (inside main card) ── %>
+
+    <%# ══════════════════════════════════════ %>
+    <%# ── INCOMING PAYMENT REQUESTS     ──  %>
+    <%# ══════════════════════════════════════ %>
+    <% if @incoming_requests.any? %>
+      <div id="section-incoming" class="mb-3">
+        <div class="p-3 rounded-4" style="background: rgba(197,160,89,0.12); border: 1.5px solid rgba(197,160,89,0.55);">
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <i class="ri-mail-download-line" style="color: var(--haiti-gold); font-size: 18px;"></i>
+            <span class="fw-black" style="color: var(--haiti-charcoal); font-size: 14px;">
+              Demann Peman
+              <span class="badge rounded-pill ms-1" style="background: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 10px;">
+                <%= @incoming_requests.size %>
+              </span>
+            </span>
+          </div>
+
+          <% @incoming_requests.each do |req| %>
+            <div class="d-flex align-items-center gap-2 p-2 rounded-3 mb-1" style="background: rgba(255,255,255,0.7);">
+              <%= link_to public_payment_request_path(req.token), class: "d-flex align-items-center justify-content-between flex-grow-1 text-decoration-none", style: "min-width: 0;" do %>
+                <div>
+                  <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 12px;">
+                    <%= req.user.display_name %> mande ou lajan
+                  </div>
+                  <div style="color: var(--haiti-olive); font-size: 10px;">
+                    <%= req.note.presence || "Pa gen nòt" %> · <%= req.expiry_countdown_label %>
+                  </div>
+                </div>
+                <div class="text-end">
+                  <div class="fw-black" style="color: var(--haiti-gold); font-size: 14px;">
+                    <%= req.htg? ? "HTG #{number_with_precision(req.amount, precision: 0)}" : "#{number_with_precision(req.amount, precision: 2)} #{req.asset == 'usdc' ? 'USD' : req.asset.upcase}" %>
+                  </div>
+                  <div style="font-size: 9px; color: #166534; font-weight: 700;">
+                    <i class="ri-arrow-right-s-line"></i> Peye
+                  </div>
+                </div>
+              <% end %>
+              <%= button_to dismiss_payment_request_path(req.token), method: :post, class: "btn btn-sm p-0 border-0 bg-transparent flex-shrink-0", style: "width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;", title: "Kache", data: { turbo_confirm: "Kache demann #{req.user.display_name}?" } do %>
+                <i class="ri-close-line" style="font-size: 16px; color: #991b1b;"></i>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+
+    <%# ══════════════════════════════════════ %>
+    <%# ── TAB SWITCHER                  ──  %>
+    <%# ══════════════════════════════════════ %>
+    <div id="section-tabs" class="d-flex gap-2 mb-4 p-1 rounded-3" style="background: rgba(93,99,69,0.08);">
+      <button type="button" class="wallet-tab active" id="tab-btn-lajan" onclick="switchTab('lajan')">
+        <i class="ri-wallet-3-line me-1"></i>Pèsonèl
+      </button>
+      <% if @business.present? %>
+        <button type="button" class="wallet-tab" id="tab-btn-biznis" onclick="switchTab('biznis')">
+          <i class="ri-store-2-line me-1"></i>Biznis
+        </button>
+      <% end %>
+      <%# Kripto tab hidden (HTG + USD only mode) %>
+      <button type="button" class="wallet-tab" id="tab-btn-kripto" onclick="switchTab('kripto')" style="display:none;">
+        <i class="ri-coin-line me-1"></i>Kripto
+      </button>
+      <%# Stòk tab hidden (HTG + USD only mode) %>
+      <button type="button" class="wallet-tab" id="tab-btn-stok" onclick="switchTab('stok')" style="display:none;">
+        <i class="ri-stock-line me-1"></i>Stòk
+      </button>
+      <button type="button" class="wallet-tab" id="tab-btn-aktivite" onclick="switchTab('aktivite')">
+        <i class="ri-history-line me-1"></i>Aktivite
+      </button>
+    </div>
+
+    <%# ══════════════════════════════════════ %>
+    <%# ── LAJAN TAB (Assets + Rates)    ──  %>
+    <%# ══════════════════════════════════════ %>
+    <div id="section-lajan" class="mb-3">
+      <% htg_usd = htg_bal / usdc_htg %>
+      <% usdc_htg_val = usdc_bal * usdc_htg %>
+      <% wbtc_usd_val = wbtc_bal * btc_usd %>
+      <% eth_usd_val  = eth_bal * eth_usd %>
+
+      <%# ── Section Header with Logo Badge ── %>
+      <div class="pt-4 pb-3 mb-3" style="border-top: 1px solid rgba(93,99,69,0.08);">
+        <div class="d-flex align-items-center gap-3">
+          <div class="d-flex align-items-center justify-content-center rounded-circle"
+               style="width: 44px; height: 44px; min-width: 44px; background: var(--haiti-charcoal);">
+            <i class="ri-wallet-3-line" style="font-size: 22px; color: var(--haiti-gold);"></i>
+          </div>
+          <div>
+            <div class="fw-black" style="color: var(--haiti-charcoal); font-size: 15px;">Pòtfèy Pèsonèl</div>
+            <div style="color: var(--haiti-olive); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
+              <i class="ri-money-dollar-circle-line me-1" style="font-size: 9px;"></i>HTG · USD
+            </div>
+          </div>
+        </div>
       </div>
 
-      <% if @ledger_entries.any? %>
-        <% @ledger_entries.each do |entry| %>
-          <div class="d-flex justify-content-between align-items-center p-2 rounded-3 mb-1"
-               style="background-color: rgba(93,99,69,0.05);">
-            <div>
-              <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 12px;">
-                <% case entry.entry_type %>
-                <% when "deposit" %>
-                  <i class="ri-add-circle-line me-1" style="color: #166534;"></i>
-                <% when "withdrawal" %>
-                  <i class="ri-arrow-up-circle-line me-1" style="color: #991b1b;"></i>
-                <% when "transfer_out" %>
-                  <i class="ri-send-plane-line me-1" style="color: #991b1b;"></i>
-                <% when "transfer_in" %>
-                  <i class="ri-download-line me-1" style="color: #166534;"></i>
-                <% when "fee" %>
-                  <i class="ri-percent-line me-1" style="color: #92400e;"></i>
-                <% when "instant_fee" %>
-                  <i class="ri-flashlight-line me-1" style="color: var(--haiti-gold);"></i>
-                <% when "refund" %>
-                  <i class="ri-refresh-line me-1" style="color: #1d4ed8;"></i>
-                <% end %>
-                <%= entry.description.to_s.truncate(40) %>
+      <%# HTG %>
+          <div class="asset-card d-flex align-items-center justify-content-between rounded-3 mb-2" style="background: rgba(93,99,69,0.05); padding: 18px;">
+            <div class="d-flex align-items-center gap-3">
+              <%= htg_logo_svg(size: 36) %>
+              <div>
+                <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 14px;">HTG</div>
+                <div style="color: var(--haiti-olive); font-size: 10px;">Goud Ayisyen</div>
               </div>
-              <div style="color: var(--haiti-olive); font-size: 10px;"><%= entry.created_at.strftime("%b %d, %Y %l:%M %p").strip %></div>
             </div>
             <div class="text-end">
-              <div class="fw-black" style="font-size: 13px; color: <%= entry.credit? ? '#166534' : '#991b1b' %>;">
-                <%= entry.credit? ? "+" : "-" %><%= number_to_currency(entry.amount, unit: "", precision: 0) %> HTG
+              <div class="fw-black" style="color: var(--haiti-charcoal); font-size: 14px;">
+                <span id="asset-htg-bal"><%= number_with_precision(htg_bal, precision: 2) %></span>
               </div>
-              <div style="color: var(--haiti-olive); font-size: 9px;">
-                Balans: <%= number_to_currency(entry.balance_after, unit: "", precision: 0) %> HTG
+              <div style="color: var(--haiti-olive); font-size: 10px; font-weight: 600;">
+                ≈ $<span id="asset-htg-usd"><%= number_with_precision(htg_usd, precision: 2) %></span> USD
               </div>
             </div>
           </div>
-        <% end %>
-      <% else %>
-        <div class="text-center p-4" style="color: var(--haiti-olive);">
-          <i class="ri-inbox-line ri-2x mb-2 d-block"></i>
-          <div class="small">Ou poko gen okenn tranzaksyon nan pòtfèy ou.</div>
+
+          <%# USD — shows HTG equivalent (moved from Kripto tab for HTG + USD only mode) %>
+          <div class="asset-card d-flex align-items-center justify-content-between rounded-3 mb-2" style="background: rgba(93,99,69,0.05); padding: 18px;">
+            <div class="d-flex align-items-center gap-3">
+              <%= usd_logo(size: 36) %>
+              <div>
+                <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 14px;">USD</div>
+                <div style="color: var(--haiti-olive); font-size: 10px;">Dola Ameriken</div>
+              </div>
+            </div>
+            <div class="text-end">
+              <div class="fw-black" style="color: var(--haiti-charcoal); font-size: 14px;">
+                <span id="asset-usdc-bal"><%= number_with_precision(usdc_bal, precision: 2) %></span>
+              </div>
+              <div style="color: var(--haiti-olive); font-size: 10px; font-weight: 600;">
+                ≈ <span id="asset-usdc-htg"><%= number_with_precision(usdc_htg_val, precision: 2, delimiter: ",") %></span> HTG
+              </div>
+            </div>
+          </div>
+    </div>
+
+    <%# ══════════════════════════════════════ %>
+    <%# ── KRIPTO TAB — hidden (HTG + USD only mode) ── %>
+    <%# ══════════════════════════════════════ %>
+    <div id="section-kripto" class="mb-3" style="display: none;">
+          <%# wBTC and ETH hidden (HTG + USD only mode) %>
+    </div>
+
+    <%# ══════════════════════════════════════ %>
+    <%# ── STÒK TAB (Tokenized Stocks)     ── %>
+    <%# ══════════════════════════════════════ %>
+    <div id="section-stok" class="mb-3" style="display: none;">
+      <%# ── Section Header ── %>
+      <div class="pt-3 mb-2" style="border-top: 1px solid rgba(93,99,69,0.08);">
+        <div style="color: var(--haiti-olive); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px;">
+          <i class="ri-stock-line me-1" style="color: var(--haiti-gold);"></i>Stòk Sou Rezo Base
+        </div>
+      </div>
+
+      <% stock_meta = {
+           "tslax"  => { name: "Tesla",     logo: "tslax_logo",  color: "#CC0000", accent: "rgba(204,0,0,0.08)" },
+           "nvdax"  => { name: "Nvidia",    logo: "nvdax_logo",  color: "#76B900", accent: "rgba(118,185,0,0.08)" },
+           "aaplx"  => { name: "Apple",     logo: "aaplx_logo",  color: "#555555", accent: "rgba(85,85,85,0.08)" },
+           "coinx"  => { name: "Coinbase",  logo: "coinx_logo",  color: "#0052FF", accent: "rgba(0,82,255,0.08)" },
+           "googlx" => { name: "Alphabet",  logo: "googlx_logo", color: "#4285F4", accent: "rgba(66,133,244,0.08)" }
+         } %>
+      <% stock_meta.each do |ticker, meta| %>
+        <% bal = @wallet.balance_for(ticker) %>
+        <% usd_rate = @stock_usd_rates[ticker] || 0 %>
+        <% usd_val = bal.to_f * usd_rate.to_f %>
+        <div class="stock-card d-flex align-items-center justify-content-between rounded-3 mb-2"
+             style="background: <%= meta[:accent] %>; border-left: 3px solid <%= meta[:color] %>; padding: 16px;">
+          <div class="d-flex align-items-center gap-3">
+            <div class="stock-logo-pulse"><%= send(meta[:logo], size: 38) %></div>
+            <div>
+              <div class="fw-black" style="color: var(--haiti-charcoal); font-size: 14px;">
+                <%= ticker.upcase %>
+                <span class="stock-price-tag ms-1" style="background: <%= meta[:accent] %>; color: <%= meta[:color] %>;">
+                  $<%= number_with_precision(usd_rate, precision: 2, delimiter: ",") %>
+                </span>
+              </div>
+              <div style="color: var(--haiti-olive); font-size: 10px; font-weight: 600;"><%= meta[:name] %> · Base</div>
+            </div>
+          </div>
+          <div class="text-end">
+            <div class="fw-black" style="color: var(--haiti-charcoal); font-size: 14px;">
+              <%= number_with_precision(bal, precision: 6, strip_insignificant_zeros: true) %>
+            </div>
+            <div style="color: var(--haiti-olive); font-size: 10px; font-weight: 600;">
+              ≈ $<%= number_with_precision(usd_val, precision: 2, delimiter: ",") %> USD
+            </div>
+          </div>
         </div>
       <% end %>
     </div>
 
+    <%# ══════════════════════════════════════ %>
+    <%# ── BIZNIS TAB (Business Currencies) ── %>
+    <%# ══════════════════════════════════════ %>
+    <% if @business.present? %>
+    <div id="section-biznis" class="mb-3" style="display: none;">
+      <%# ── Section Header with Logo Badge ── %>
+      <div class="pt-4 pb-3 mb-3" style="border-top: 1px solid rgba(93,99,69,0.08);">
+        <div class="d-flex align-items-center gap-3">
+          <% if @business.logo.attached? %>
+            <%= image_tag @business.logo, class: "rounded-circle", style: "width: 44px; height: 44px; min-width: 44px; object-fit: cover; border: 2px solid var(--haiti-olive);" %>
+          <% else %>
+            <div class="d-flex align-items-center justify-content-center rounded-circle"
+                 style="width: 44px; height: 44px; min-width: 44px; background: var(--haiti-olive);">
+              <i class="<%= @business.category_icon %>" style="font-size: 22px; color: var(--haiti-gold);"></i>
+            </div>
+          <% end %>
+          <div>
+            <div class="fw-black" style="color: var(--haiti-charcoal); font-size: 15px;"><%= @business.name %></div>
+            <div style="color: var(--haiti-olive); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
+              <i class="ri-store-2-line me-1" style="font-size: 9px;"></i>Biznis · <%= @business.category_label %>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <%# Business HTG %>
+      <div class="asset-card d-flex align-items-center justify-content-between rounded-3 mb-2" style="background: rgba(93,99,69,0.05); padding: 18px;">
+        <div class="d-flex align-items-center gap-3">
+          <%= htg_logo_svg(size: 36) %>
+          <div>
+            <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 14px;">HTG</div>
+            <div style="color: var(--haiti-olive); font-size: 10px;">Goud Ayisyen</div>
+          </div>
+        </div>
+        <div class="text-end">
+          <div class="fw-black" style="color: var(--haiti-charcoal); font-size: 14px;">
+            <%= number_with_precision(@business.total_received.to_f, precision: 2, delimiter: ",") %>
+          </div>
+          <div style="color: var(--haiti-olive); font-size: 10px; font-weight: 600;">
+            ≈ $<%= number_with_precision(@business.total_received.to_f / usdc_htg, precision: 2, delimiter: ",") %> USD
+          </div>
+        </div>
+      </div>
+
+      <%# Business USD %>
+      <div class="asset-card d-flex align-items-center justify-content-between rounded-3 mb-3" style="background: rgba(93,99,69,0.05); padding: 18px;">
+        <div class="d-flex align-items-center gap-3">
+          <%= usd_logo(size: 36) %>
+          <div>
+            <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 14px;">USD</div>
+            <div style="color: var(--haiti-olive); font-size: 10px;">Dola Ameriken</div>
+          </div>
+        </div>
+        <div class="text-end">
+          <div class="fw-black" style="color: var(--haiti-charcoal); font-size: 14px;">
+            <%= number_with_precision(@business.total_fees_collected.to_f, precision: 2, delimiter: ",") %>
+          </div>
+          <div style="color: var(--haiti-olive); font-size: 10px; font-weight: 600;">
+            ≈ <%= number_with_precision(@business.total_fees_collected.to_f * usdc_htg, precision: 2, delimiter: ",") %> HTG
+          </div>
+        </div>
+      </div>
+
+      <%# Business Summary ── %>
+      <div class="rounded-3 p-3 mt-1" style="background: rgba(93,99,69,0.05); border: 1px dashed rgba(93,99,69,0.15);">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span style="color: var(--haiti-olive); font-size: 11px;">Tranzaksyon Total</span>
+          <span class="fw-bold" style="color: var(--haiti-charcoal); font-size: 12px;"><%= @business.transaction_count.to_i %></span>
+        </div>
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span style="color: var(--haiti-olive); font-size: 11px;">Frè Biznis</span>
+          <span class="fw-bold" style="color: var(--haiti-charcoal); font-size: 12px;"><%= (@business.fee_rate.to_f * 100).round(1) %>%</span>
+        </div>
+        <div class="d-flex justify-content-between align-items-center">
+          <span style="color: var(--haiti-olive); font-size: 11px;">Kategori</span>
+          <span class="fw-bold" style="color: var(--haiti-charcoal); font-size: 12px;"><%= @business.category_label %></span>
+        </div>
+      </div>
+    </div>
+    <% end %>
+
+    <%# ══════════════════════════════════════ %>
+    <%# ── AKTIVITE TAB (Transaction History) ── %>
+    <%# ══════════════════════════════════════ %>
+    <div id="section-aktivite" class="mb-3" style="display: none;">
+      <%# ── Section Header ── %>
+      <div class="pt-3 mb-2" style="border-top: 1px solid rgba(93,99,69,0.08);">
+        <div style="color: var(--haiti-olive); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px;">
+          <i class="ri-history-line me-1" style="color: var(--haiti-gold);"></i>Aktivite
+        </div>
+      </div>
+      <% if @ledger_entries.any? %>
+        <%# Pre-load receiver users for transfer_out entries to avoid N+1 %>
+        <%
+          out_cashtags = @ledger_entries.select { |e| e.entry_type == "transfer_out" && e.reference_type == "Transfer" }
+                          .map { |e| e.reference&.receiver_cashtag }.compact.uniq
+          receiver_users_by_tag = out_cashtags.any? ? User.where(cashtag: out_cashtags).index_by(&:cashtag) : {}
+        %>
+        <div style="max-height: 400px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--haiti-olive) transparent;">
+          <% @ledger_entries.each do |entry| %>
+            <%
+              xfer = (entry.reference_type == "Transfer") ? entry.reference : nil
+              is_biz = xfer&.business_id.present?
+              is_transfer = %w[transfer_out transfer_in].include?(entry.entry_type) && xfer.present?
+
+              # Determine counterparty for transfers
+              if is_transfer
+                if entry.entry_type == "transfer_in"
+                  counterparty_user = xfer.user
+                  counterparty_name = counterparty_user&.cashtag.present? ? "$#{counterparty_user.cashtag}" : (counterparty_user&.bonid_first_name || counterparty_user&.display_name || "Moun")
+                else
+                  if is_biz
+                    counterparty_user = nil
+                    counterparty_name = xfer.business&.name || xfer.receiver_display
+                  else
+                    counterparty_user = xfer.receiver_cashtag.present? ? receiver_users_by_tag[xfer.receiver_cashtag] : nil
+                    counterparty_name = xfer.receiver_cashtag.present? ? "$#{xfer.receiver_cashtag}" : xfer.receiver_display
+                  end
+                end
+              end
+
+              icon_class = case entry.entry_type
+                when "deposit"        then "ri-add-circle-fill"
+                when "withdrawal"     then "ri-arrow-up-circle-fill"
+                when "fee"            then "ri-percent-fill"
+                when "instant_fee"    then "ri-flashlight-fill"
+                when "refund"         then "ri-refresh-fill"
+                when "conversion_out" then "ri-exchange-line"
+                when "conversion_in"  then "ri-exchange-line"
+                else "ri-exchange-line"
+              end
+              badge_type = case entry.entry_type
+                when "fee", "instant_fee" then "fee"
+                else entry.credit? ? "credit" : "debit"
+              end
+              amount_color = entry.credit? ? "#166534" : "#991b1b"
+              time_full = entry.created_at.strftime("%b %d, %Y %l:%M %p").strip
+              time_short = if entry.created_at > 1.hour.ago
+                  time_ago_in_words(entry.created_at) + " pase"
+                elsif entry.created_at > 1.day.ago
+                  entry.created_at.strftime("%l:%M %p").strip
+                elsif entry.created_at > 7.days.ago
+                  entry.created_at.strftime("%A").strip
+                else
+                  entry.created_at.strftime("%-d %b %Y").strip
+                end
+            %>
+            <%= link_to entry_wallet_path(entry.id), class: "d-flex align-items-center gap-3 px-2 py-3 text-decoration-none ledger-entry-link", title: time_full do %>
+
+              <%# ── LEFT: Avatar (transfers) or Icon badge (other) ── %>
+              <% if is_transfer %>
+                <% avatar_user = counterparty_user %>
+                <% if is_biz && xfer.business&.logo&.attached? %>
+                  <div style="width: 38px; height: 38px; border-radius: 50%; overflow: hidden; flex-shrink: 0; border: 1.5px solid var(--haiti-gold);">
+                    <%= image_tag xfer.business.logo, style: "width: 100%; height: 100%; object-fit: cover;" %>
+                  </div>
+                <% elsif avatar_user&.avatar&.attached? %>
+                  <div style="width: 38px; height: 38px; border-radius: 50%; overflow: hidden; flex-shrink: 0; border: 1.5px solid var(--haiti-gold);">
+                    <%= image_tag avatar_user.avatar, style: "width: 100%; height: 100%; object-fit: cover;", alt: "" %>
+                  </div>
+                <% elsif avatar_user.present? %>
+                  <div style="width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: var(--haiti-charcoal); border: 1.5px solid var(--haiti-gold);">
+                    <span style="font-size: 16px;"><%= avatar_user.tier_icon %></span>
+                  </div>
+                <% else %>
+                  <div class="ledger-icon <%= badge_type %>">
+                    <i class="<%= entry.entry_type == 'transfer_out' ? (is_biz ? 'ri-store-2-fill' : 'ri-send-plane-fill') : 'ri-download-2-fill' %>"></i>
+                  </div>
+                <% end %>
+              <% else %>
+                <div class="ledger-icon <%= badge_type %>">
+                  <i class="<%= icon_class %>"></i>
+                </div>
+              <% end %>
+
+              <%# ── MIDDLE: Description + time ── %>
+              <div class="flex-grow-1" style="min-width: 0;">
+                <% if is_transfer %>
+                  <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;">
+                    <% if entry.entry_type == "transfer_out" %>
+                      Ou voye <%= number_to_currency(entry.amount, unit: "", precision: entry.asset == "htg" ? 0 : 2) %> <%= entry.asset_label %> bay
+                      <span style="color: var(--haiti-gold); font-weight: 800;"><%= counterparty_name %></span>
+                    <% else %>
+                      Ou resevwa <%= number_to_currency(entry.amount, unit: "", precision: entry.asset == "htg" ? 0 : 2) %> <%= entry.asset_label %> nan men
+                      <span style="color: var(--haiti-gold); font-weight: 800;"><%= counterparty_name %></span>
+                    <% end %>
+                  </div>
+                <% else %>
+                  <div class="fw-bold text-truncate" style="color: var(--haiti-charcoal); font-size: 13px;">
+                    <%= entry.description.to_s.truncate(35) %>
+                  </div>
+                <% end %>
+                <div style="color: var(--haiti-olive); font-size: 10px;"><%= time_short %></div>
+              </div>
+
+              <%# ── RIGHT: Amount ── %>
+              <div class="text-end flex-shrink-0">
+                <div class="fw-black" style="font-size: 15px; color: <%= amount_color %>;">
+                  <%= entry.credit? ? "+" : "-" %><%= number_to_currency(entry.amount, unit: "", precision: entry.asset == "htg" ? 0 : 6) %>
+                </div>
+                <div style="color: var(--haiti-olive); font-size: 9px; font-weight: 600;"><%= entry.asset_label %></div>
+              </div>
+            <% end %>
+          <% end %>
+        </div>
+      <% else %>
+        <div class="text-center py-5" style="color: var(--haiti-olive);">
+          <i class="ri-inbox-line" style="font-size: 2.5rem; opacity: 0.4;"></i>
+          <div class="mt-2 fw-bold" style="font-size: 13px;">Pa gen aktivite ankò</div>
+          <div class="small" style="opacity: 0.6;">Tranzaksyon ou yo ap parèt la a.</div>
+        </div>
+      <% end %>
+    </div>
+
+    <%# ── USD Disclaimer Footer ── %>
+    <div class="text-center mt-3 pt-3" style="border-top: 1px solid rgba(93,99,69,0.08);">
+      <div style="color: var(--haiti-olive); font-size: 10px; font-weight: 600;">
+        <i class="ri-shield-check-line me-1" style="color: var(--haiti-gold);"></i>
+        Tout balans USD yo apiye 1:1 ak USDC sou rezo Base.
+      </div>
+    </div>
+
+    </div>
+    </div><%# ── end card-base ── %>
+    </div><%# ── end column ── %>
 
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 <script>
-  var activePanel = null;
+var activePanel = null;
+var depositQrGenerated = false;
+var activeWallet = 'personal'; // 'personal' or 'biznis'
 
-  // ── Auto-open panel if linked from Zèllus dashboard ──
-  (function() {
-    var params = new URLSearchParams(window.location.search);
-    var panel = params.get('action_panel');
-    if (panel === 'deposit' || panel === 'withdraw') {
-      setTimeout(function() { togglePanel(panel); }, 100);
+// ══════════════════════════════════════
+// ── WALLET CARD TOGGLE (Apple Wallet) ──
+// ══════════════════════════════════════
+function toggleWalletCard(which) {
+  var heroCard = document.getElementById('section-hero-card');
+  var personalStrip = document.getElementById('personal-card-strip');
+  var biznisStrip = document.getElementById('section-biznis-strip');
+  var biznisFull = document.getElementById('section-biznis-full');
+
+  if (!personalStrip || !biznisStrip || !biznisFull) return;
+
+  if (which === 'biznis' && activeWallet !== 'biznis') {
+    // Bring business to front
+    heroCard.style.display = 'none';
+    personalStrip.style.display = 'block';
+    personalStrip.style.borderBottomLeftRadius = '0';
+    personalStrip.style.borderBottomRightRadius = '0';
+    biznisStrip.style.display = 'none';
+    biznisFull.style.display = 'block';
+    activeWallet = 'biznis';
+  } else if (which === 'personal' && activeWallet !== 'personal') {
+    // Bring personal to front
+    heroCard.style.display = 'block';
+    personalStrip.style.display = 'none';
+    biznisStrip.style.display = 'block';
+    biznisFull.style.display = 'none';
+    activeWallet = 'personal';
+  }
+}
+
+// ══════════════════════════════════════
+// ── HERO MORE MENU                  ──
+// ══════════════════════════════════════
+function toggleHeroMenu() {
+  var dd = document.getElementById('hero-menu-dropdown');
+  dd.style.display = dd.style.display === 'none' ? 'block' : 'none';
+}
+function closeHeroMenu() {
+  document.getElementById('hero-menu-dropdown').style.display = 'none';
+}
+// Close when tapping outside
+document.addEventListener('click', function(e) {
+  var menu = document.getElementById('hero-menu-dropdown');
+  var btn  = document.getElementById('hero-menu-btn');
+  if (menu && btn && !menu.contains(e.target) && !btn.contains(e.target)) {
+    menu.style.display = 'none';
+  }
+});
+
+// ══════════════════════════════════════
+// ── ROBINHOOD LIVE TICKER           ──
+// ══════════════════════════════════════
+var RATES = {
+  usdc_htg:  <%= usdc_htg.to_f.round(4) %>,
+  btc_usd:   <%= btc_usd.to_f.round(4) %>,
+  eth_usd:   <%= eth_usd.to_f.round(4) %>,
+  tslax_usd: <%= (@stock_usd_rates["tslax"]  || 0).to_f.round(4) %>,
+  nvdax_usd: <%= (@stock_usd_rates["nvdax"]  || 0).to_f.round(4) %>,
+  aaplx_usd: <%= (@stock_usd_rates["aaplx"]  || 0).to_f.round(4) %>,
+  coinx_usd: <%= (@stock_usd_rates["coinx"]  || 0).to_f.round(4) %>,
+  googlx_usd: <%= (@stock_usd_rates["googlx"] || 0).to_f.round(4) %>
+};
+var BALS = {
+  htg:  <%= htg_bal.to_f %>,
+  usdc: <%= usdc_bal.to_f %>,
+  wbtc: <%= wbtc_bal.to_f %>,
+  eth:  <%= eth_bal.to_f %>
+};
+
+function microTick() {
+  // Tick all rates — cents only, smooth counting
+  tickRate('usdc');
+  tickRate('btc');
+  tickRate('eth');
+  tickRate('tslax');
+  tickRate('nvdax');
+  tickRate('aaplx');
+  tickRate('coinx');
+  tickRate('googlx');
+
+  // Asset card equivalents
+  var htgUsd  = BALS.htg / RATES.usdc_htg;
+  var usdcHtg = BALS.usdc * RATES.usdc_htg;
+  var wbtcUsd = BALS.wbtc * RATES.btc_usd;
+  var ethUsd  = BALS.eth  * RATES.eth_usd;
+
+  tickDecimalEl('asset-htg-usd',  htgUsd);
+  tickDecimalEl('asset-usdc-htg', usdcHtg);
+  tickDecimalEl('asset-wbtc-usd', wbtcUsd);
+  tickDecimalEl('asset-eth-usd',  ethUsd);
+
+  // Hero decimals
+  var totalHtg = BALS.htg + usdcHtg + (BALS.wbtc * RATES.btc_usd * RATES.usdc_htg) + (BALS.eth * RATES.eth_usd * RATES.usdc_htg);
+  var totalUsd = BALS.usdc + (BALS.wbtc * RATES.btc_usd) + (BALS.eth * RATES.eth_usd) + (BALS.htg / RATES.usdc_htg);
+
+  tickHeroDecimals('hero-htg-dec', totalHtg);
+  tickHeroDecimals('hero-usd-dec', totalUsd);
+}
+
+function tickRate(key) {
+  var decEl   = document.getElementById('rate-' + key + '-dec');
+  var arrowEl = document.getElementById('rate-' + key + '-arrow');
+  if (!decEl) return;
+
+  var rateMap = {
+    usdc: 'usdc_htg', btc: 'btc_usd', eth: 'eth_usd',
+    tslax: 'tslax_usd', nvdax: 'nvdax_usd', aaplx: 'aaplx_usd',
+    coinx: 'coinx_usd', googlx: 'googlx_usd'
+  };
+
+  var oldDec = parseInt(decEl.textContent);
+  // Subtle jitter: ±1 cent only
+  var centDelta = (Math.random() < 0.5 ? -1 : 1);
+  var targetDec = Math.max(0, Math.min(99, oldDec + centDelta));
+  var up = targetDec > oldDec;
+
+  // Show arrow briefly
+  if (arrowEl) {
+    arrowEl.style.opacity = '1';
+    arrowEl.className = 'tick-arrow ' + (up ? 'up' : 'down');
+    arrowEl.innerHTML = up ? '&#9650;' : '&#9660;';
+    setTimeout(function() { arrowEl.style.opacity = '0'; }, 3000);
+  }
+
+  // Single step update — just 1 cent, no counting animation
+  decEl.textContent = ('0' + targetDec).slice(-2);
+  decEl.className = 'tick-decimals ' + (up ? 'tick-up' : 'tick-down');
+  setTimeout(function() { decEl.className = 'tick-decimals'; }, 1200);
+
+  // Update RATES for sparkline accuracy (cent-only jitter)
+  if (rateMap[key]) {
+    var whole = Math.floor(RATES[rateMap[key]]);
+    RATES[rateMap[key]] = whole + targetDec / 100;
+  }
+}
+
+// ══════════════════════════════════════
+// ── SPARKLINE ENGINE               ──
+// ══════════════════════════════════════
+var SPARK_W = 60, SPARK_H = 24, SPARK_MAX = 30;
+var sparkData = {};
+var sparkKeys = ['usdc','btc','eth','tslax','nvdax','aaplx','coinx','googlx'];
+var sparkRateKeys = {
+  usdc: 'usdc_htg', btc: 'btc_usd', eth: 'eth_usd',
+  tslax: 'tslax_usd', nvdax: 'nvdax_usd', aaplx: 'aaplx_usd',
+  coinx: 'coinx_usd', googlx: 'googlx_usd'
+};
+
+sparkKeys.forEach(function(k) {
+  var base = RATES[sparkRateKeys[k]];
+  var pts = [];
+  for (var i = 0; i < 15; i++) {
+    pts.push(base * (1 + (Math.random() - 0.5) * 0.004));
+  }
+  sparkData[k] = pts;
+});
+
+function buildSparkPath(key) {
+  var pts = sparkData[key];
+  if (!pts || pts.length < 2) return;
+  var lineEl = document.getElementById('spark-' + key + '-line');
+  var areaEl = document.getElementById('spark-' + key + '-area');
+  if (!lineEl) return;
+
+  var min = Math.min.apply(null, pts);
+  var max = Math.max.apply(null, pts);
+  var range = max - min || 1;
+  var stepX = SPARK_W / (pts.length - 1);
+
+  var lineParts = [];
+  var areaParts = ['M0,' + SPARK_H];
+  for (var i = 0; i < pts.length; i++) {
+    var x = (i * stepX).toFixed(1);
+    var y = (SPARK_H - ((pts[i] - min) / range) * (SPARK_H - 2) - 1).toFixed(1);
+    lineParts.push((i === 0 ? 'M' : 'L') + x + ',' + y);
+    areaParts.push('L' + x + ',' + y);
+  }
+  areaParts.push('L' + SPARK_W + ',' + SPARK_H + 'Z');
+
+  lineEl.setAttribute('d', lineParts.join(''));
+  areaEl.setAttribute('d', areaParts.join(''));
+}
+
+function sparkTick() {
+  sparkKeys.forEach(function(k) {
+    var val = RATES[sparkRateKeys[k]];
+    sparkData[k].push(val);
+    if (sparkData[k].length > SPARK_MAX) sparkData[k].shift();
+    buildSparkPath(k);
+  });
+}
+
+sparkKeys.forEach(function(k) { buildSparkPath(k); });
+
+function tickHeroDecimals(elId, baseVal) {
+  var el = document.getElementById(elId);
+  if (!el) return;
+  var oldDec = parseInt(el.textContent);
+  // Subtle jitter: ±1 cent only
+  var jitter = (Math.random() < 0.5 ? -1 : 1);
+  var newDec = Math.max(0, Math.min(99, oldDec + jitter));
+  el.textContent = ('0' + newDec).slice(-2);
+  var up = newDec > oldDec;
+  el.className = 'tick-decimals ' + (up ? 'tick-up' : 'tick-down');
+  setTimeout(function() { el.className = 'tick-decimals'; }, 1200);
+}
+
+function tickDecimalEl(elId, val) {
+  var el = document.getElementById(elId);
+  if (!el) return;
+  el.textContent = val.toLocaleString('en', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+// Tick every 8 seconds (slow, subtle movement)
+setInterval(function() { microTick(); sparkTick(); }, 8000);
+setTimeout(function() { microTick(); sparkTick(); }, 5000);
+
+// ══════════════════════════════════════
+// ── TAB SWITCHING                   ──
+// ══════════════════════════════════════
+function switchTab(tab) {
+  var sections = {
+    lajan:    document.getElementById('section-lajan'),
+    biznis:   document.getElementById('section-biznis'),
+    kripto:   document.getElementById('section-kripto'),
+    stok:     document.getElementById('section-stok'),
+    aktivite: document.getElementById('section-aktivite')
+  };
+  var buttons = {
+    lajan:    document.getElementById('tab-btn-lajan'),
+    biznis:   document.getElementById('tab-btn-biznis'),
+    kripto:   document.getElementById('tab-btn-kripto'),
+    stok:     document.getElementById('tab-btn-stok'),
+    aktivite: document.getElementById('tab-btn-aktivite')
+  };
+
+  Object.keys(sections).forEach(function(key) {
+    if (sections[key] && buttons[key]) {
+      if (key === tab) {
+        sections[key].style.display = '';
+        buttons[key].classList.add('active');
+      } else {
+        sections[key].style.display = 'none';
+        buttons[key].classList.remove('active');
+      }
     }
-  })();
+  });
+}
 
-  // ── Panel toggle (deposit / withdraw) ──
-  function togglePanel(panel) {
-    var depositPanel  = document.getElementById('panel-deposit');
-    var withdrawPanel = document.getElementById('panel-withdraw');
-    var sectionHero   = document.getElementById('section-hero');
-    var sectionHeader = document.getElementById('section-header');
-    var pinNotice     = document.getElementById('section-pin-notice');
+// ══════════════════════════════════════
+// ── PANELS (Deposit / Withdraw)     ──
+// ══════════════════════════════════════
+(function() {
+  var params = new URLSearchParams(window.location.search);
+  var panel = params.get('action_panel');
+  if (panel === 'deposit' || panel === 'withdraw' || panel === 'convert') {
+    setTimeout(function() { togglePanel(panel); }, 100);
+  }
+})();
 
-    if (activePanel === panel) {
-      // Close — show balance hero again
-      depositPanel.classList.remove('open');
-      withdrawPanel.classList.remove('open');
-      sectionHero.style.display = '';
-      sectionHeader.style.display = '';
-      if (pinNotice) pinNotice.style.display = '';
-      activePanel = null;
+function togglePanel(panel) {
+  var depositPanel  = document.getElementById('panel-deposit');
+  var withdrawPanel = document.getElementById('panel-withdraw');
+  var convertPanel  = document.getElementById('panel-convert');
+  var sectionHero   = document.getElementById('section-hero');
+  var sectionHeader = document.getElementById('section-header');
+  var pinNotice     = document.getElementById('section-pin-notice');
+  var sectionTabs   = document.getElementById('section-tabs');
+  var sectionPortfolio = document.getElementById('section-portfolio');
+  var sectionHeroCard  = document.getElementById('section-hero-card');
+
+  if (activePanel === panel) {
+    depositPanel.classList.remove('open');
+    withdrawPanel.classList.remove('open');
+    convertPanel.classList.remove('open');
+    if (sectionHeroCard) sectionHeroCard.style.display = '';
+    if (sectionPortfolio) sectionPortfolio.style.display = '';
+    activePanel = null;
+    return;
+  }
+
+  depositPanel.classList.remove('open');
+  withdrawPanel.classList.remove('open');
+  convertPanel.classList.remove('open');
+  if (sectionHeroCard) sectionHeroCard.style.display = 'none';
+  if (sectionPortfolio) sectionPortfolio.style.display = 'none';
+
+  if (panel === 'deposit') depositPanel.classList.add('open');
+  else if (panel === 'convert') convertPanel.classList.add('open');
+  else withdrawPanel.classList.add('open');
+  activePanel = panel;
+}
+
+function selectDepositMethod(method) {
+  document.getElementById('deposit-cash-section').style.display = method === 'cash' ? 'block' : 'none';
+  document.getElementById('deposit-kripto-section').style.display = method === 'kripto' ? 'block' : 'none';
+  document.getElementById('dep-btn-cash').classList.toggle('selected', method === 'cash');
+  document.getElementById('dep-btn-kripto').classList.toggle('selected', method === 'kripto');
+  if (method === 'kripto') generateDepositQR();
+}
+
+function generateDepositQR() {
+  if (depositQrGenerated) return;
+  var container = document.getElementById('deposit-qr');
+  if (!container) return;
+  var addr = (document.getElementById('deposit-addr-text') || {}).textContent;
+  if (!addr || !addr.trim()) return;
+  addr = addr.trim();
+  // Clear loading spinner
+  container.innerHTML = '';
+  // Generate QR with brand colors
+  new QRCode(container, {
+    text: addr,
+    width: 148,
+    height: 148,
+    colorDark: '#2E2E38',
+    colorLight: '#FFFFFF',
+    correctLevel: QRCode.CorrectLevel.M
+  });
+  depositQrGenerated = true;
+}
+
+function toggleCustomPhone(sel) {
+  var customInput = document.getElementById('wd-lajan-phone-custom');
+  if (sel.value === 'custom') {
+    customInput.style.display = '';
+    customInput.required = true;
+    customInput.name = 'moncash_phone';
+    sel.name = '';
+    customInput.focus();
+  } else {
+    customInput.style.display = 'none';
+    customInput.required = false;
+    customInput.name = 'moncash_phone_custom';
+    sel.name = 'moncash_phone';
+    customInput.value = '';
+  }
+}
+
+var currentType = 'standard';
+function selectWithdrawType(type) {
+  currentType = type;
+  var optStandard  = document.getElementById('opt-standard');
+  var optInstant   = document.getElementById('opt-instant');
+  var instantField = document.getElementById('instant-field');
+
+  if (type === 'instant') {
+    optInstant.classList.add('selected'); optStandard.classList.remove('selected');
+    instantField.value = '1';
+  } else {
+    optStandard.classList.add('selected'); optInstant.classList.remove('selected');
+    instantField.value = '0';
+  }
+  updateFeePreview();
+}
+
+function updateFeePreview() {
+  var amount = parseFloat(document.getElementById('withdraw-amount').value) || 0;
+  var feeLabel = document.getElementById('fee-label');
+  if (amount > 0) {
+    // Flat 2% fee
+    var fee = Math.round(amount * 0.02);
+    feeLabel.textContent = fee + ' HTG frè';
+  } else {
+    feeLabel.textContent = '2% frè';
+  }
+}
+
+// ── Withdraw Category Switcher ──
+var currentWdCategory = 'lajan';
+function switchWithdrawCategory(cat) {
+  if (cat === 'kripto' || cat === 'stok') return; // disabled — withdraw kripto/stòk dezaktive
+  currentWdCategory = cat;
+  ['lajan', 'kripto', 'stok'].forEach(function(c) {
+    var section = document.getElementById('wd-section-' + c);
+    var btn = document.getElementById('wd-cat-' + c);
+    if (section) section.style.display = (c === cat) ? 'block' : 'none';
+    if (btn) { if (c === cat) btn.classList.add('active'); else btn.classList.remove('active'); }
+  });
+}
+
+// ── Crypto Withdraw Asset Selector ──
+var currentCryptoWithdraw = 'usdc';
+var cryptoWithdrawUrls = {
+  usdc: '<%= withdraw_usdc_wallet_path %>',
+  eth:  '<%= withdraw_eth_wallet_path %>',
+  wbtc: '<%= withdraw_wbtc_wallet_path %>'
+};
+var cryptoWithdrawLabels = { usdc: 'USD', eth: 'ETH', wbtc: 'wBTC' };
+function selectCryptoWithdraw(asset) {
+  currentCryptoWithdraw = asset;
+  document.querySelectorAll('.wd-crypto-asset').forEach(function(el) {
+    el.style.borderColor = 'transparent';
+  });
+  var selected = document.getElementById('wd-crypto-' + asset);
+  if (selected) selected.style.borderColor = 'var(--haiti-gold)';
+  var form = document.getElementById('withdraw-crypto-form');
+  if (form) form.action = cryptoWithdrawUrls[asset];
+  var unit = document.getElementById('wd-crypto-unit');
+  if (unit) unit.textContent = cryptoWithdrawLabels[asset];
+  var amountInput = document.getElementById('wd-crypto-amount');
+  if (amountInput) {
+    if (asset === 'usdc') { amountInput.min = '1'; amountInput.step = '0.01'; amountInput.placeholder = 'Montan (USD)'; }
+    else if (asset === 'eth') { amountInput.min = '0.0001'; amountInput.step = '0.000001'; amountInput.placeholder = 'Montan (ETH)'; }
+    else if (asset === 'wbtc') { amountInput.min = '0.00001'; amountInput.step = '0.00000001'; amountInput.placeholder = 'Montan (wBTC)'; }
+  }
+  // Reset to step 1 when switching assets
+  backToWithdrawStep1('kripto');
+}
+
+// ── Stock Withdraw Asset Selector ──
+var currentStockWithdraw = 'tslax';
+var stockWithdrawLabels = { tslax: 'TSLAX', nvdax: 'NVDAX', aaplx: 'AAPLX', coinx: 'COINX', googlx: 'GOOGLX' };
+function selectStockWithdraw(ticker) {
+  currentStockWithdraw = ticker;
+  document.querySelectorAll('.wd-stock-asset').forEach(function(el) {
+    el.style.borderColor = 'transparent';
+  });
+  var selected = document.getElementById('wd-stock-' + ticker);
+  if (selected) selected.style.borderColor = 'var(--haiti-gold)';
+  var tickerField = document.getElementById('wd-stock-ticker');
+  if (tickerField) tickerField.value = ticker;
+  var unit = document.getElementById('wd-stock-unit');
+  if (unit) unit.textContent = stockWithdrawLabels[ticker] || ticker.toUpperCase();
+  backToWithdrawStep1('stok');
+}
+
+// ══════════════════════════════════════
+// ── Withdraw Review (Step 1 → 2)   ──
+// ══════════════════════════════════════
+function showWithdrawReview(section) {
+  if (section === 'lajan') {
+    // Validate amount
+    var amountEl = document.getElementById('withdraw-amount');
+    var amount = parseFloat(amountEl.value);
+    if (!amount || amount < 100 || amount > 50000) {
+      amountEl.focus();
+      amountEl.reportValidity();
       return;
     }
 
-    // Close all first
-    depositPanel.classList.remove('open');
-    withdrawPanel.classList.remove('open');
-
-    // Hide balance hero + header
-    sectionHero.style.display = 'none';
-    sectionHeader.style.display = 'none';
-    if (pinNotice) pinNotice.style.display = 'none';
-
-    // Open selected panel
-    if (panel === 'deposit') {
-      depositPanel.classList.add('open');
-    } else {
-      withdrawPanel.classList.add('open');
-    }
-    activePanel = panel;
-  }
-
-  // ── Quick deposit amounts ──
-  function selectDepositAmount(amount) {
-    var input = document.getElementById('deposit-amount');
-    var chips = document.querySelectorAll('.amount-chip');
-    chips.forEach(function(c) { c.classList.remove('selected'); });
-
-    if (amount > 0) {
-      input.value = amount;
-      event.currentTarget.classList.add('selected');
-    } else {
-      input.value = '';
-      input.focus();
-      document.getElementById('chip-custom').classList.add('selected');
-    }
-  }
-
-  // ── Withdraw type selection (Cash App list) ──
-  var currentType = 'standard';
-
-  function selectWithdrawType(type) {
-    currentType = type;
-    var optStandard  = document.getElementById('opt-standard');
-    var optInstant   = document.getElementById('opt-instant');
-    var instantField = document.getElementById('instant-field');
-    var withdrawBtn  = document.getElementById('withdraw-btn');
-    var feeSummary   = document.getElementById('fee-summary');
-
-    if (type === 'instant') {
-      optInstant.classList.add('selected');
-      optStandard.classList.remove('selected');
-      instantField.value = '1';
-      feeSummary.style.display = 'block';
-      withdrawBtn.innerHTML = '<i class="ri-flashlight-fill me-1"></i>Retire kounye a';
-      withdrawBtn.style.background = 'var(--haiti-charcoal)';
-      withdrawBtn.style.color = 'var(--haiti-gold)';
-    } else {
-      optStandard.classList.add('selected');
-      optInstant.classList.remove('selected');
-      instantField.value = '0';
-      feeSummary.style.display = 'none';
-      withdrawBtn.innerHTML = '<i class="ri-time-line me-1"></i>Retire nan 48 èdtan (Gratis)';
-      withdrawBtn.style.background = 'rgba(93,99,69,0.12)';
-      withdrawBtn.style.color = 'var(--haiti-charcoal)';
-    }
-    updateFeePreview();
-  }
-
-  function updateFeePreview() {
-    var amountInput = document.getElementById('withdraw-amount');
-    var amount = parseFloat(amountInput.value) || 0;
-
-    // 0.8% with 25 HTG minimum
-    var fee = Math.max(amount * 0.008, 25);
-    fee = Math.round(fee * 100) / 100;
-    var total = amount + fee;
-
-    // Update fee label on instant option
-    var feeLabel = document.getElementById('fee-label');
-    if (amount > 0) {
-      feeLabel.textContent = Math.round(fee) + ' HTG frè';
-    } else {
-      feeLabel.textContent = '0.8% frè';
+    // Validate phone
+    var phoneEl = document.getElementById('wd-lajan-phone');
+    var phoneVal = phoneEl.value.trim();
+    if (!phoneVal) {
+      phoneEl.focus();
+      if (phoneEl.reportValidity) phoneEl.reportValidity();
+      return;
     }
 
-    // Update fee summary breakdown
-    document.getElementById('summary-amount').textContent = amount.toLocaleString('fr') + ' HTG';
-    document.getElementById('summary-fee').textContent = Math.round(fee) + ' HTG';
-    document.getElementById('summary-total').textContent = Math.round(total).toLocaleString('fr') + ' HTG';
+    // Populate review summary
+    document.getElementById('wd-review-amount-lajan').textContent = parseInt(amount).toLocaleString('fr') + ' HTG';
+
+    // Masked phone
+    var maskedPhone = phoneVal;
+    if (phoneEl.tagName === 'SELECT') {
+      var opt = phoneEl.options[phoneEl.selectedIndex];
+      maskedPhone = opt.getAttribute('data-masked') || phoneVal;
+    } else if (phoneVal.length === 11) {
+      maskedPhone = '(509) •••• ' + phoneVal.slice(-4);
+    }
+    document.getElementById('wd-review-phone-lajan').textContent = maskedPhone;
+
+    // Withdraw type + fee (flat 2%)
+    document.getElementById('wd-review-type-lajan').textContent = 'Retrè MonCash';
+
+    var feeRow = document.getElementById('wd-review-fee-row');
+    var fee = Math.round(amount * 0.02);
+    document.getElementById('wd-review-fee-lajan').textContent = fee + ' HTG';
+    feeRow.style.display = 'flex';
+    document.getElementById('wd-review-total-lajan').textContent = Math.round(amount + fee).toLocaleString('fr') + ' HTG';
+
+    // Toggle steps
+    document.getElementById('wd-step1-lajan').style.display = 'none';
+    document.getElementById('wd-step2-lajan').style.display = '';
+
+    // Focus PIN
+    setTimeout(function() {
+      var pin = document.getElementById('wd-pin-lajan');
+      if (pin) pin.focus();
+    }, 200);
+
+  } else if (section === 'kripto') {
+    // Validate amount
+    var cryptoAmountEl = document.getElementById('wd-crypto-amount');
+    var cryptoAmount = parseFloat(cryptoAmountEl.value);
+    if (!cryptoAmount || cryptoAmount <= 0) {
+      cryptoAmountEl.focus();
+      cryptoAmountEl.reportValidity();
+      return;
+    }
+
+    // Validate address
+    var addrEl = document.getElementById('wd-crypto-address');
+    var addr = addrEl.value.trim();
+    if (!addr.match(/^0x[0-9a-fA-F]{40}$/)) {
+      addrEl.focus();
+      addrEl.reportValidity();
+      return;
+    }
+
+    // Populate review
+    var label = cryptoWithdrawLabels[currentCryptoWithdraw] || 'USD';
+    document.getElementById('wd-review-asset-kripto').textContent = label;
+    document.getElementById('wd-review-amount-kripto').textContent = cryptoAmount + ' ' + label;
+    document.getElementById('wd-review-address-kripto').textContent = addr.slice(0, 6) + '••••' + addr.slice(-4);
+
+    // Toggle steps
+    document.getElementById('wd-step1-kripto').style.display = 'none';
+    document.getElementById('wd-step2-kripto').style.display = '';
+
+    // Focus PIN
+    setTimeout(function() {
+      var pin = document.getElementById('wd-pin-kripto');
+      if (pin) pin.focus();
+    }, 200);
+
+  } else if (section === 'stok') {
+    // Validate amount
+    var stockAmountEl = document.getElementById('wd-stock-amount');
+    var stockAmount = parseFloat(stockAmountEl.value);
+    if (!stockAmount || stockAmount <= 0) {
+      stockAmountEl.focus();
+      stockAmountEl.reportValidity();
+      return;
+    }
+
+    // Validate address
+    var stockAddrEl = document.getElementById('wd-stock-address');
+    var stockAddr = stockAddrEl.value.trim();
+    if (!stockAddr.match(/^0x[0-9a-fA-F]{40}$/)) {
+      stockAddrEl.focus();
+      stockAddrEl.reportValidity();
+      return;
+    }
+
+    // Populate review
+    var stockLabel = stockWithdrawLabels[currentStockWithdraw] || currentStockWithdraw.toUpperCase();
+    document.getElementById('wd-review-asset-stok').textContent = stockLabel;
+    document.getElementById('wd-review-amount-stok').textContent = stockAmount + ' ' + stockLabel;
+    document.getElementById('wd-review-address-stok').textContent = stockAddr.slice(0, 6) + '••••' + stockAddr.slice(-4);
+
+    // Toggle steps
+    document.getElementById('wd-step1-stok').style.display = 'none';
+    document.getElementById('wd-step2-stok').style.display = '';
+
+    // Focus PIN
+    setTimeout(function() {
+      var pin = document.getElementById('wd-pin-stok');
+      if (pin) pin.focus();
+    }, 200);
+  }
+}
+
+function backToWithdrawStep1(section) {
+  document.getElementById('wd-step2-' + section).style.display = 'none';
+  document.getElementById('wd-step1-' + section).style.display = '';
+  var pin = document.getElementById('wd-pin-' + section);
+  if (pin) pin.value = '';
+}
+
+// ── Deposit Step 1 → Step 2 (Review) ──
+function showDepositReview() {
+  var amount = document.getElementById('deposit-amount');
+  var phone  = document.getElementById('deposit-moncash-phone');
+
+  // Validate amount
+  var val = parseFloat(amount.value);
+  if (!val || val < 131 || val > 327678) {
+    amount.focus();
+    amount.reportValidity();
+    return;
   }
 
-  // ── Double-submit prevention ──
-  function handleDepositSubmit(form) {
-    var btn = document.getElementById('deposit-btn');
+  // Validate phone
+  var phoneVal = phone.value.trim();
+  if (!phoneVal) {
+    phone.focus();
+    if (phone.reportValidity) phone.reportValidity();
+    return;
+  }
+
+  // Fill review summary
+  document.getElementById('review-deposit-amount').textContent = parseInt(val).toLocaleString('fr') + ' HTG';
+
+  // Get masked display for phone
+  var maskedPhone = phoneVal;
+  if (phone.tagName === 'SELECT') {
+    var opt = phone.options[phone.selectedIndex];
+    maskedPhone = opt.getAttribute('data-masked') || phoneVal;
+  } else if (phoneVal.length === 11) {
+    maskedPhone = '(509) •••• ' + phoneVal.slice(-4);
+  }
+  document.getElementById('review-deposit-phone').textContent = maskedPhone;
+
+  // Show step 2, hide step 1
+  document.getElementById('deposit-step-1').style.display = 'none';
+  document.getElementById('deposit-step-2').style.display = '';
+
+  // Focus PIN field
+  setTimeout(function() {
+    var pin = document.getElementById('deposit-pin');
+    if (pin) pin.focus();
+  }, 200);
+}
+
+function backToDepositStep1() {
+  document.getElementById('deposit-step-2').style.display = 'none';
+  document.getElementById('deposit-step-1').style.display = '';
+  document.getElementById('deposit-pin').value = '';
+}
+
+function handleDepositSubmit(form) {
+  var btn = document.getElementById('deposit-btn');
+  if (btn.disabled) return false;
+  btn.disabled = true;
+  ZellusLoader.start('deposit-loader', form, { stepDelay: 3500 });
+  return false;
+}
+
+function copyDepositAddress() {
+  var addr = document.getElementById('deposit-addr-text').textContent.trim();
+  var label = document.getElementById('copy-addr-label');
+  navigator.clipboard.writeText(addr).then(function() {
+    label.textContent = 'Kopye!';
+    setTimeout(function() { label.textContent = 'Kopye'; }, 2000);
+  });
+}
+
+var withdrawForm = document.getElementById('withdraw-form');
+if (withdrawForm) {
+  withdrawForm.addEventListener('submit', function() {
+    var btn = document.getElementById('withdraw-btn');
     if (btn.disabled) return false;
     btn.disabled = true;
     btn.innerHTML = '<i class="ri-loader-4-line me-1 ri-spin"></i>Ap trete...';
-    return true;
+  });
+}
+
+// ══════════════════════════════════════
+// ── CONVERT PANEL                   ──
+// ══════════════════════════════════════
+var cvFromAsset = 'htg';
+var cvToAsset = 'usdc';
+
+// USD rates for all assets (server-rendered)
+var cvUsdRates = {
+  htg:  <%= (@sell_rate || 135.50).to_f.round(4) %>,   // HTG per USD (sell rate)
+  usdc: 1.0,
+  eth:  <%= (@eth_usd_rate || 3500.0).to_f.round(4) %>,  // USD per ETH
+  wbtc: <%= (@btc_usd_rate || 95000.0).to_f.round(4) %>  // USD per wBTC
+};
+var cvBuyRate = <%= (@buy_rate || 135.50).to_f.round(4) %>;  // HTG per USD (buy rate — higher)
+var cvSellRate = <%= (@sell_rate || 135.50).to_f.round(4) %>; // HTG per USD (sell rate — lower)
+
+// Precision per asset
+var cvPrecision = { htg: 2, usdc: 2, eth: 6, wbtc: 8 };
+
+// Convert amount from one asset to another via USD
+function cvConvertAmount(from, to, amount) {
+  if (from === to || amount <= 0) return 0;
+  // Step 1: from → USD
+  var usd;
+  if (from === 'usdc') usd = amount;
+  else if (from === 'htg') usd = amount / cvBuyRate;   // user pays more HTG per USD
+  else usd = amount * cvUsdRates[from];                 // ETH/wBTC × USD rate
+
+  // Step 2: USD → to
+  var result;
+  if (to === 'usdc') result = usd;
+  else if (to === 'htg') result = usd * cvSellRate;     // user gets fewer HTG per USD
+  else result = usd / cvUsdRates[to];                   // USD ÷ asset rate
+
+  return result;
+}
+
+function cvAssetLabel(a) { return a === 'usdc' ? 'USD' : a.toUpperCase(); }
+
+function cvFormatAmount(asset, amount) {
+  var p = cvPrecision[asset] || 2;
+  return parseFloat(amount.toFixed(p));
+}
+
+// Get a human-readable rate string between two assets
+function cvRateString(from, to) {
+  if (from === 'htg' && to === 'usdc') return '1 USD = ' + cvBuyRate.toFixed(2) + ' HTG';
+  if (from === 'usdc' && to === 'htg') return '1 USD = ' + cvSellRate.toFixed(2) + ' HTG';
+  // For crypto pairs, show "1 FROM = X TO"
+  var oneUnit = cvConvertAmount(from, to, 1);
+  return '1 ' + cvAssetLabel(from) + ' = ' + cvFormatAmount(to, oneUnit) + ' ' + cvAssetLabel(to);
+}
+
+function switchConvertCat(side, cat) {
+  // Legacy — no longer needed in HTG+USD only mode
+}
+
+function selectConvertAsset(side, asset) {
+  // Legacy compat — delegate to pickConvertAsset
+  pickConvertAsset(side, asset);
+}
+
+var CV_LOGOS = {
+  htg: '<%= j htg_logo_svg(size: 22) %>',
+  usdc: '<%= j usd_logo(size: 22) %>'
+};
+var CV_LABELS = { htg: 'HTG', usdc: 'USD' };
+var CV_BALS = { htg: '<%= number_to_currency(htg_bal, unit: "", precision: 0) %>', usdc: '<%= number_with_precision(usdc_bal, precision: 2) %>' };
+
+function toggleCvDropdown(side) {
+  var dd = document.getElementById('cv-' + side + '-dropdown');
+  if (dd) dd.style.display = dd.style.display === 'none' ? 'block' : 'none';
+  // Close the other dropdown
+  var other = side === 'from' ? 'to' : 'from';
+  var otherDd = document.getElementById('cv-' + other + '-dropdown');
+  if (otherDd) otherDd.style.display = 'none';
+}
+
+function pickConvertAsset(side, asset, evt) {
+  if (evt) evt.stopPropagation();
+
+  // Update display
+  var logo = document.getElementById('cv-' + side + '-logo');
+  var label = document.getElementById('cv-' + side + '-label');
+  var bal = document.getElementById('cv-' + side + '-bal');
+  if (logo) logo.innerHTML = CV_LOGOS[asset] || '';
+  if (label) label.textContent = CV_LABELS[asset] || asset.toUpperCase();
+  if (bal) bal.textContent = CV_BALS[asset] || '';
+
+  // Close both dropdowns
+  var fromDd = document.getElementById('cv-from-dropdown');
+  var toDd = document.getElementById('cv-to-dropdown');
+  if (fromDd) fromDd.style.display = 'none';
+  if (toDd) toDd.style.display = 'none';
+
+  if (side === 'from') {
+    cvFromAsset = asset;
+    var suffix = document.getElementById('convert-currency-suffix');
+    if (suffix) suffix.textContent = cvAssetLabel(asset);
+  } else {
+    cvToAsset = asset;
   }
 
-  // Same for withdraw form
-  var withdrawForm = document.getElementById('withdraw-form');
-  if (withdrawForm) {
-    withdrawForm.addEventListener('submit', function() {
-      var btn = document.getElementById('withdraw-btn');
-      if (btn.disabled) return false;
-      btn.disabled = true;
-      btn.innerHTML = '<i class="ri-loader-4-line me-1 ri-spin"></i>Ap trete...';
-    });
+  updateConvertDirection();
+  updateConvertPreview();
+}
+
+// Close convert dropdowns on outside click
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('#cv-from-display') && !e.target.closest('#cv-from-dropdown')) {
+    var fd = document.getElementById('cv-from-dropdown');
+    if (fd) fd.style.display = 'none';
   }
+  if (!e.target.closest('#cv-to-display') && !e.target.closest('#cv-to-dropdown')) {
+    var td = document.getElementById('cv-to-dropdown');
+    if (td) td.style.display = 'none';
+  }
+});
+
+function updateConvertDirection() {
+  var fromField = document.getElementById('convert-from-asset');
+  var toField = document.getElementById('convert-to-asset');
+  var unsupported = document.getElementById('cv-unsupported');
+  var continueBtn = document.getElementById('cv-continue-btn');
+  var amountInput = document.getElementById('convert-amount');
+
+  // All pairs are supported (except same asset)
+  var supported = cvFromAsset !== cvToAsset;
+
+  if (unsupported) unsupported.style.display = 'none';  // never show unsupported
+  if (continueBtn) continueBtn.style.display = 'flex';
+  if (amountInput) amountInput.removeAttribute('disabled');
+
+  // Set hidden fields for form submission
+  if (fromField) fromField.value = cvFromAsset;
+  if (toField) toField.value = cvToAsset;
+
+  // Update rate display
+  var rateBox = document.querySelector('#cv-step1 .p-2.rounded-3.mb-3.text-center');
+  if (rateBox) {
+    rateBox.innerHTML = '<span class="small fw-bold" style="color: var(--haiti-olive); font-size: 11px;">' +
+      '<i class="ri-exchange-line me-1"></i>' + cvRateString(cvFromAsset, cvToAsset) +
+      '</span><div id="convert-preview-result" class="fw-black mt-1" style="color: var(--haiti-charcoal); font-size: 14px; display: none;"></div>';
+  }
+}
+
+function updateConvertPreview() {
+  var amount = parseFloat(document.getElementById('convert-amount').value) || 0;
+  var resultEl = document.getElementById('convert-preview-result');
+  if (!resultEl) return;
+
+  if (amount <= 0 || cvFromAsset === cvToAsset) {
+    resultEl.style.display = 'none';
+    return;
+  }
+
+  var converted = cvConvertAmount(cvFromAsset, cvToAsset, amount);
+  var formatted = cvFormatAmount(cvToAsset, converted);
+
+  resultEl.textContent = '≈ ' + formatted + ' ' + cvAssetLabel(cvToAsset);
+  resultEl.style.display = 'block';
+}
+
+function swapConvertDirection() {
+  var oldFrom = cvFromAsset;
+  var oldTo = cvToAsset;
+  pickConvertAsset('from', oldTo);
+  pickConvertAsset('to', oldFrom);
+}
+
+function showConvertReview() {
+  var amount = parseFloat(document.getElementById('convert-amount').value) || 0;
+  if (amount <= 0) {
+    document.getElementById('convert-amount').focus();
+    return;
+  }
+
+  var converted = cvConvertAmount(cvFromAsset, cvToAsset, amount);
+  var formatted = cvFormatAmount(cvToAsset, converted);
+
+  document.getElementById('cv-review-from').textContent = cvAssetLabel(cvFromAsset);
+  document.getElementById('cv-review-to').textContent = cvAssetLabel(cvToAsset);
+  document.getElementById('cv-review-amount').textContent = amount + ' ' + cvAssetLabel(cvFromAsset);
+  document.getElementById('cv-review-rate').textContent = cvRateString(cvFromAsset, cvToAsset);
+  document.getElementById('cv-review-receive').textContent = '≈ ' + formatted + ' ' + cvAssetLabel(cvToAsset);
+
+  document.getElementById('cv-step1').style.display = 'none';
+  document.getElementById('cv-step2').style.display = 'block';
+  var pin = document.getElementById('cv-pin');
+  if (pin) setTimeout(function() { pin.focus(); }, 150);
+}
+
+function backToConvertStep1() {
+  document.getElementById('cv-step2').style.display = 'none';
+  document.getElementById('cv-step1').style.display = 'block';
+  var pin = document.getElementById('cv-pin');
+  if (pin) pin.value = '';
+}
+
+// ── Submit Convert with StepLoader ──
+var convertForm = document.getElementById('convert-form');
+if (convertForm) {
+  convertForm.addEventListener('submit', function(e) {
+    e.preventDefault();
+    ZellusLoader.start('convert-loader', convertForm, { stepDelay: 6000 });
+  });
+}
+
+// ── Live balance auto-refresh (fallback for missed WebSocket messages) ──
+(function() {
+  var lastBalances = null;
+  var REFRESH_INTERVAL = 8000; // 8 seconds
+
+  function fetchBalances() {
+    fetch('/wallet/balances.json', { credentials: 'same-origin' })
+      .then(function(r) { return r.json(); })
+      .then(function(b) {
+        // Only update if balances actually changed
+        var key = JSON.stringify(b);
+        if (lastBalances && key !== lastBalances) {
+          console.log('[Zèllus] 💰 Balance refresh detected change:', b);
+          if (typeof updateBalances === 'function') {
+            updateBalances({ balances: b });
+          }
+        }
+        lastBalances = key;
+      })
+      .catch(function() {});
+  }
+
+  // Poll every 8s while on wallet page
+  var balanceTimer = setInterval(fetchBalances, REFRESH_INTERVAL);
+
+  // Also refresh when tab becomes visible again
+  document.addEventListener('visibilitychange', function() {
+    if (!document.hidden) fetchBalances();
+  });
+
+  // Initial fetch after 2s (catch any missed updates during page load)
+  setTimeout(fetchBalances, 2000);
+})();
 </script>

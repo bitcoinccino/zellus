@@ -1,0 +1,26 @@
+<div class="container py-4" style="max-width: 600px;">
+  <div class="card-base p-4">
+    <%# ── Header ── %>
+    <div class="d-flex align-items-center gap-3 mb-4">
+      <%= link_to business_path, class: "text-decoration-none" do %>
+        <div class="d-flex align-items-center justify-content-center rounded-circle"
+             style="width: 40px; height: 40px; background: rgba(93,99,69,0.08);">
+          <i class="ri-arrow-left-line" style="font-size: 20px; color: var(--haiti-charcoal);"></i>
+        </div>
+      <% end %>
+      <div>
+        <h1 class="h5 fw-black mb-0" style="color: var(--haiti-charcoal);">Modifye Pwodui</h1>
+        <div style="color: var(--haiti-olive); font-size: 12px;"><%= @product.name %> · <%= @business.name %></div>
+      </div>
+    </div>
+
+    <%= render "form" %>
+
+    <%# ── Delete Button ── %>
+    <div class="mt-3 pt-3" style="border-top: 1px solid rgba(93,99,69,0.1);">
+      <%= button_to "Efase Pwodui", business_product_path(@product), method: :delete, class: "btn btn-sm text-danger", style: "font-size: 12px;", data: { turbo_confirm: "Èske ou sèten ou vle efase pwodui sa a?" } do %>
+        <i class="ri-delete-bin-line me-1"></i>Efase Pwodui
+      <% end %>
+    </div>
+  </div>
+</div>

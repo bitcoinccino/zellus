@@ -1,0 +1,67 @@
+<div class="container py-4" style="max-width: 700px;">
+  <div class="card-base p-4">
+
+    <%# ── Header ── %>
+    <div class="d-flex align-items-center gap-3 mb-4">
+      <%= link_to dashboard_business_path, class: "text-decoration-none" do %>
+        <div class="d-flex align-items-center justify-content-center rounded-circle"
+             style="width: 40px; height: 40px; background: rgba(93,99,69,0.08);">
+          <i class="ri-arrow-left-line" style="font-size: 20px; color: var(--haiti-charcoal);"></i>
+        </div>
+      <% end %>
+      <div>
+        <h1 class="h5 fw-black mb-0" style="color: var(--haiti-charcoal);">Peman Biznis</h1>
+        <div style="color: var(--haiti-olive); font-size: 12px;"><%= @business.name %> · <%= @transfers.size %> peman</div>
+      </div>
+    </div>
+
+    <%# ── Payment List ── %>
+    <% if @transfers.any? %>
+      <div style="max-height: 600px; overflow-y: auto; scrollbar-width: thin;">
+        <% @transfers.each do |transfer| %>
+          <div class="d-flex align-items-center justify-content-between py-3" style="border-bottom: 1px solid rgba(93,99,69,0.06);">
+            <div class="d-flex align-items-center gap-3">
+              <div class="d-flex align-items-center justify-content-center rounded-circle"
+                   style="width: 40px; height: 40px; background: rgba(22,101,52,0.08);">
+                <i class="ri-arrow-down-line" style="font-size: 18px; color: #166534;"></i>
+              </div>
+              <div>
+                <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 14px;">
+                  <%= transfer.user&.display_name || "$#{transfer.user&.cashtag}" || "Anonim" %>
+                </div>
+                <div style="color: var(--haiti-olive); font-size: 11px;">
+                  <%= transfer.created_at.strftime("%-d %b %Y, %l:%M %p").strip %>
+                  <% if transfer.note.present? %>
+                    · <span style="color: var(--haiti-charcoal);"><%= truncate(transfer.note, length: 30) %></span>
+                  <% end %>
+                </div>
+                <% if transfer.business_line_items.any? %>
+                  <div style="font-size: 10px; color: var(--haiti-olive); margin-top: 2px;">
+                    <i class="ri-shopping-bag-line me-1"></i>
+                    <%= transfer.business_line_items.map { |li| "#{li.name} ×#{li.quantity}" }.join(", ") %>
+                  </div>
+                <% end %>
+              </div>
+            </div>
+            <div class="text-end">
+              <div class="fw-black" style="color: #166534; font-size: 15px;">
+                +<%= number_with_delimiter(transfer.amount.to_i) %> HTG
+              </div>
+              <div style="font-size: 10px;">
+                <span class="badge rounded-pill" style="background: <%= transfer.completed? ? 'rgba(22,101,52,0.1)' : 'rgba(197,160,89,0.15)' %>; color: <%= transfer.completed? ? '#166534' : '#92700C' %>;">
+                  <%= transfer.status.capitalize %>
+                </span>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    <% else %>
+      <div class="text-center py-5" style="color: var(--haiti-olive); font-size: 13px;">
+        <i class="ri-inbox-line d-block mb-2" style="font-size: 40px; opacity: 0.3;"></i>
+        Pa gen peman ankò. Pataje lyen piblik ou pou kòmanse resevwa!
+      </div>
+    <% end %>
+
+  </div>
+</div>
