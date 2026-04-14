@@ -1,0 +1,54 @@
+sender_deposit_1:
+  wallet: sender_wallet
+  user: sender
+  entry_type: "deposit"
+  asset: "htg"
+  amount: 3000.00
+  balance_after: 3000.00
+  token: "entry_token_001"
+  description: "Depo 3,000 HTG via MonCash"
+  created_at: <%= 3.days.ago.iso8601 %>
+
+sender_deposit_2:
+  wallet: sender_wallet
+  user: sender
+  entry_type: "deposit"
+  asset: "htg"
+  amount: 2000.00
+  balance_after: 5000.00
+  token: "entry_token_002"
+  description: "Depo 2,000 HTG via MonCash"
+  created_at: <%= 1.day.ago.iso8601 %>
+
+sender_usd_deposit:
+  wallet: sender_wallet
+  user: sender
+  entry_type: "deposit"
+  asset: "usd"
+  amount: 100.00
+  balance_after: 100.00
+  token: "entry_token_003"
+  description: "Depo 100 USD"
+  created_at: <%= 2.days.ago.iso8601 %>
+
+sender_transfer_out:
+  wallet: sender_wallet
+  user: sender
+  entry_type: "transfer_out"
+  asset: "htg"
+  amount: 500.00
+  balance_after: 4500.00
+  token: "entry_token_004"
+  description: "Transfè bay $receivergal"
+  created_at: <%= 12.hours.ago.iso8601 %>
+
+sender_withdrawal:
+  wallet: sender_wallet
+  user: sender
+  entry_type: "withdrawal"
+  asset: "htg"
+  amount: 200.00
+  balance_after: 4300.00
+  token: "entry_token_005"
+  description: "Retire instant 200 HTG via MonCash"
+  created_at: <%= 6.hours.ago.iso8601 %>

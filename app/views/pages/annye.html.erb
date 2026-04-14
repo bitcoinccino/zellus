@@ -1,0 +1,336 @@
+<%# ══════════════════════════════════════════════════════ %>
+<%# ──  Ajan Zèllus — Public Agent Directory          ── %>
+<%# ══════════════════════════════════════════════════════ %>
+
+<%# Uses normal container layout with sidebar %>
+
+<%
+  departments = Business::NESTED_ADDRESSES.keys.sort
+  active_filters = [params[:q], params[:department], params[:commune], (params[:open_now] == "1" ? "Ouvè Kounye a" : nil)].compact_blank
+%>
+
+<%# ══════════════════════════════════════ %>
+<%# ── HERO: Sticky Search Chrome       ── %>
+<%# ══════════════════════════════════════ %>
+<div id="annye-hero" style="background: var(--haiti-charcoal); border-radius: 16px; margin-top: 24px; margin-bottom: 16px;">
+  <div class="py-4 px-3 px-md-4">
+
+    <%# ── Title Row ── %>
+    <div class="d-flex align-items-center justify-content-between mb-3">
+      <div>
+        <h1 class="fw-black mb-0" style="color: #fff; font-size: 22px;">
+          <i class="ri-user-follow-line me-2" style="color: var(--haiti-gold);"></i>Ajan Zèllus
+        </h1>
+        <p class="mb-0 d-none d-md-block" style="color: rgba(255,255,255,0.5); font-size: 13px; margin-top: 2px;">
+          Jwenn yon ajan nan zòn ou pou depoze oswa retire lajan kach
+        </p>
+      </div>
+      <%# ── Mobile: Help icon → bottom sheet ── %>
+      <button type="button" class="btn d-lg-none p-0 border-0" onclick="toggleAjanHelp()" style="background: none;">
+        <div class="d-flex align-items-center justify-content-center rounded-circle" style="width: 40px; height: 40px; background: rgba(255,255,255,0.08);">
+          <i class="ri-information-line" style="color: var(--haiti-gold); font-size: 20px;"></i>
+        </div>
+      </button>
+    </div>
+
+    <%# ── Search Bar ── %>
+    <%= form_tag annye_path, method: :get, id: "annye-form" do %>
+      <div class="position-relative mb-3">
+        <i class="ri-search-line position-absolute" style="left: 16px; top: 50%; transform: translateY(-50%); color: rgba(255,255,255,0.35); font-size: 18px; pointer-events: none;"></i>
+        <input type="text" name="q" id="annye-q" value="<%= params[:q] %>"
+               class="form-control bb-dark-field"
+               placeholder="Chèche non ajan..."
+               style="padding-left: 44px; padding-right: 100px; height: 52px; font-size: 15px; border-radius: 14px;"
+               autocomplete="off">
+        <% if params[:q].present? %>
+          <a href="#" id="annye-clear-q" class="position-absolute text-decoration-none" style="right: 64px; top: 50%; transform: translateY(-50%); color: rgba(255,255,255,0.4); font-size: 18px;">
+            <i class="ri-close-circle-fill"></i>
+          </a>
+        <% end %>
+        <button type="submit" class="btn position-absolute fw-bold"
+                style="right: 4px; top: 50%; transform: translateY(-50%); background: var(--haiti-gold); color: var(--haiti-charcoal); height: 44px; border-radius: 12px; padding: 0 18px; font-size: 14px;">
+          <i class="ri-search-line"></i>
+        </button>
+      </div>
+
+      <%# ── Department Chips (mobile: horizontal scroll / desktop: inline) ── %>
+      <div class="d-flex gap-2 pb-1" style="overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none;">
+        <%= link_to annye_path(open_now: params[:open_now], q: params[:q]),
+              class: "flex-shrink-0 text-decoration-none px-3 py-1 rounded-pill fw-bold",
+              style: "font-size: 12px; white-space: nowrap; border: 1.5px solid #{params[:department].blank? ? 'var(--haiti-gold)' : 'rgba(255,255,255,0.15)'}; color: #{params[:department].blank? ? 'var(--haiti-charcoal)' : 'rgba(255,255,255,0.6)'}; background: #{params[:department].blank? ? 'var(--haiti-gold)' : 'transparent'};" do %>
+          Tout
+        <% end %>
+        <% departments.each do |dept| %>
+          <% is_active = params[:department] == dept %>
+          <%= link_to annye_path(department: dept, open_now: params[:open_now], q: params[:q]),
+                class: "flex-shrink-0 text-decoration-none px-3 py-1 rounded-pill fw-bold",
+                style: "font-size: 12px; white-space: nowrap; border: 1.5px solid #{is_active ? 'var(--haiti-gold)' : 'rgba(255,255,255,0.15)'}; color: #{is_active ? 'var(--haiti-charcoal)' : 'rgba(255,255,255,0.6)'}; background: #{is_active ? 'var(--haiti-gold)' : 'transparent'};" do %>
+            <%= dept %>
+          <% end %>
+        <% end %>
+      </div>
+
+      <%# ── Commune sub-filter (shown when department is selected) ── %>
+      <% if params[:department].present? %>
+        <div class="mt-2">
+          <select name="commune" id="annye-commune" class="form-select bb-dark-field"
+                  style="height: 42px; font-size: 13px; border-radius: 12px; max-width: 280px;">
+            <option value="" style="color: #333;">Tout Komin</option>
+          </select>
+        </div>
+      <% end %>
+
+      <%# ── "Ouvè Kounye a" toggle chip ── %>
+      <div class="d-flex align-items-center gap-3 mt-2">
+        <label class="d-flex align-items-center gap-2 flex-shrink-0" style="cursor: pointer;">
+          <input type="checkbox" id="annye-open-now-cb" <%= 'checked' if params[:open_now] == "1" %>
+                 style="accent-color: var(--haiti-gold); width: 16px; height: 16px;">
+          <span style="color: rgba(255,255,255,0.6); font-size: 12px; font-weight: 600; white-space: nowrap;">
+            <i class="ri-time-line me-1" style="color: var(--haiti-gold);"></i>Ouvè Kounye a
+          </span>
+        </label>
+      </div>
+
+      <input type="hidden" name="department" id="annye-dept-hidden" value="<%= params[:department] %>">
+      <input type="hidden" name="open_now" id="annye-open-now-hidden" value="<%= params[:open_now] %>">
+    <% end %>
+  </div>
+</div>
+
+<%# ══════════════════════════════════════ %>
+<%# ── MAIN CONTENT                     ── %>
+<%# ══════════════════════════════════════ %>
+<div class="py-4">
+    <%# ── Results (full width — sidebar removed, app already has main sidebar) ── %>
+    <div>
+
+      <%# ── Active Filters ── %>
+      <% if active_filters.any? %>
+        <div class="d-flex align-items-center gap-2 flex-wrap mb-3">
+          <span style="color: var(--haiti-olive); font-size: 12px;">Filtè:</span>
+          <% active_filters.each do |f| %>
+            <span class="z-badge z-badge-gold"><%= f %></span>
+          <% end %>
+          <%= link_to annye_path, class: "text-decoration-none", style: "color: var(--haiti-olive); font-size: 11px;" do %>
+            <i class="ri-close-circle-line me-1"></i>Retire tout
+          <% end %>
+        </div>
+      <% end %>
+
+      <%# ── Result Count ── %>
+      <div class="mb-3">
+        <span style="color: var(--haiti-olive); font-size: 13px; font-weight: 600;">
+          <%= @businesses.size %> ajan<%= @businesses.size != 1 ? 'yo' : '' %> jwenn
+        </span>
+      </div>
+
+      <% if @businesses.any? %>
+        <%# ── Agent Cards Grid: 1 col mobile, 2 col tablet, 3 col desktop ── %>
+        <div class="row g-3">
+          <% @businesses.each do |biz| %>
+            <div class="col-12 col-md-6 col-xl-4">
+              <div class="card-base z-card-bordered p-4 h-100 d-flex flex-column z-card-hover position-relative">
+
+                <%# ── Open/Closed Badge ── %>
+                <% if biz.open_now? %>
+                  <span class="position-absolute z-badge z-badge-success" style="top: 14px; right: 14px;">
+                    <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #22c55e; animation: pulse-dot 1.5s infinite;"></span>
+                    Ouvè
+                  </span>
+                <% end %>
+
+                <%# ── Avatar + Name ── %>
+                <div class="d-flex align-items-center gap-3 mb-3">
+                  <% if biz.logo.attached? %>
+                    <%= image_tag biz.logo, class: "rounded-circle flex-shrink-0", style: "width: 56px; height: 56px; object-fit: cover; border: 2px solid var(--haiti-gold);" %>
+                  <% else %>
+                    <div class="d-inline-flex align-items-center justify-content-center rounded-circle flex-shrink-0"
+                         style="width: 56px; height: 56px; background: rgba(93,99,69,0.08);">
+                      <i class="ri-user-follow-line" style="font-size: 24px; color: var(--haiti-gold);"></i>
+                    </div>
+                  <% end %>
+                  <div class="min-width-0">
+                    <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 15px; line-height: 1.2;">
+                      <%= biz.name %>
+                    </div>
+                    <div class="d-flex align-items-center gap-1 mt-1">
+                      <span class="z-badge z-badge-success">
+                        <i class="ri-checkbox-circle-fill"></i> Verifye
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <%# ── Location ── %>
+                <% if biz.commune.present? || biz.department.present? %>
+                  <div class="mb-3" style="color: var(--haiti-olive); font-size: 13px;">
+                    <i class="ri-map-pin-2-fill me-1" style="color: var(--haiti-gold);"></i>
+                    <%= [biz.commune, biz.department].compact_blank.join(", ") %>
+                  </div>
+                <% end %>
+
+                <%# ── Service Chips ── %>
+                <div class="d-flex gap-2 flex-wrap mb-3">
+                  <span class="px-2 py-1 rounded-2" style="background: var(--haiti-mint); color: var(--haiti-charcoal); font-size: 11px; font-weight: 600;">
+                    <i class="ri-download-line me-1" style="color: var(--haiti-gold);"></i>Depo
+                  </span>
+                  <span class="px-2 py-1 rounded-2" style="background: var(--haiti-mint); color: var(--haiti-charcoal); font-size: 11px; font-weight: 600;">
+                    <i class="ri-upload-line me-1" style="color: var(--haiti-gold);"></i>Retrè
+                  </span>
+                </div>
+
+                <%# ── CTA ── %>
+                <div class="mt-auto">
+                  <%= link_to public_business_path(biz.slug),
+                        class: "btn w-100 btn-gold rounded-3 d-flex align-items-center justify-content-center gap-2",
+                        style: "height: 48px; font-size: 14px;" do %>
+                    Wè Ajan <i class="ri-arrow-right-s-line" style="font-size: 18px;"></i>
+                  <% end %>
+                </div>
+
+              </div>
+            </div>
+          <% end %>
+        </div>
+      <% else %>
+
+        <%# ── Empty State ── %>
+        <div class="card-base p-5 text-center">
+          <div class="mb-3">
+            <div class="d-inline-flex align-items-center justify-content-center rounded-circle" style="width: 72px; height: 72px; background: rgba(93,99,69,0.06);">
+              <i class="ri-user-follow-line" style="font-size: 32px; color: var(--haiti-olive); opacity: 0.4;"></i>
+            </div>
+          </div>
+          <div class="fw-bold mb-1" style="color: var(--haiti-charcoal); font-size: 16px;">Pa gen ajan nan zòn sa a</div>
+          <p class="mb-3" style="color: var(--haiti-olive); font-size: 13px;">Eseye yon lòt depatman oswa retire filtè yo.</p>
+          <%= link_to annye_path, class: "btn btn-gold rounded-3 px-4", style: "font-size: 13px;" do %>
+            <i class="ri-refresh-line me-1"></i>Wè tout ajan
+          <% end %>
+        </div>
+
+      <% end %>
+    </div>
+</div>
+
+<%# ══════════════════════════════════════ %>
+<%# ── Mobile Help Bottom Sheet         ── %>
+<%# ══════════════════════════════════════ %>
+<div id="ajan-help-backdrop" style="display:none; position:fixed; inset:0; z-index:1049; background:rgba(46,46,56,0.5);" onclick="toggleAjanHelp()"></div>
+<div id="ajan-help-sheet" style="display:none; position:fixed; bottom:0; left:0; right:0; z-index:1050; background:var(--haiti-cream); border-radius:20px 20px 0 0; padding:24px; max-height:80vh; overflow-y:auto;">
+  <div class="z-bottom-sheet-handle"></div>
+  <div class="fw-bold mb-3" style="color: var(--haiti-charcoal); font-size: 16px;">
+    <i class="ri-information-line me-2" style="color: var(--haiti-gold);"></i>Kisa yon Ajan fè?
+  </div>
+  <div style="color: var(--haiti-olive); font-size: 14px; line-height: 2;">
+    <div class="d-flex align-items-start gap-3 mb-2">
+      <div class="d-flex align-items-center justify-content-center rounded-3 flex-shrink-0" style="width: 40px; height: 40px; background: rgba(197,160,89,0.1);">
+        <i class="ri-download-line" style="color: var(--haiti-gold); font-size: 20px;"></i>
+      </div>
+      <div>
+        <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 14px;">Depo Kach</div>
+        <div style="font-size: 12px;">Bay ajan an lajan kach, li mete l nan kont Zèllus ou.</div>
+      </div>
+    </div>
+    <div class="d-flex align-items-start gap-3">
+      <div class="d-flex align-items-center justify-content-center rounded-3 flex-shrink-0" style="width: 40px; height: 40px; background: rgba(197,160,89,0.1);">
+        <i class="ri-upload-line" style="color: var(--haiti-gold); font-size: 20px;"></i>
+      </div>
+      <div>
+        <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 14px;">Retrè Kach</div>
+        <div style="font-size: 12px;">Retire lajan nan kont ou, ajan an ba ou kach.</div>
+      </div>
+    </div>
+  </div>
+  <button type="button" onclick="toggleAjanHelp()" class="btn w-100 mt-4 rounded-3" style="background: var(--haiti-charcoal); color: var(--haiti-gold); height: 48px; font-size: 14px; font-weight: 700;">
+    <i class="ri-check-line me-1"></i>Konprann
+  </button>
+</div>
+
+<%# ══════════════════════════════════════ %>
+<%# ── JavaScript                        ── %>
+<%# ══════════════════════════════════════ %>
+<script>
+(function() {
+  // ── Address cascade: Department → Commune ──
+  var NESTED_ADDRESSES = <%= raw Business::NESTED_ADDRESSES.to_json %>;
+  var communeSelect = document.getElementById('annye-commune');
+  var preselectedCommune = "<%= j(params[:commune].to_s) %>";
+  var currentDept = "<%= j(params[:department].to_s) %>";
+
+  function populateCommunes(dept) {
+    if (!communeSelect) return;
+    communeSelect.innerHTML = '<option value="" style="color:#333;">Tout Komin</option>';
+    if (!dept) return;
+    var arrs = NESTED_ADDRESSES[dept] || {};
+    var communes = {};
+    Object.keys(arrs).forEach(function(arr) {
+      Object.keys(arrs[arr]).forEach(function(com) { communes[com] = true; });
+    });
+    Object.keys(communes).sort().forEach(function(com) {
+      var opt = document.createElement('option');
+      opt.value = com; opt.textContent = com; opt.style.color = '#333';
+      if (com === preselectedCommune) opt.selected = true;
+      communeSelect.appendChild(opt);
+    });
+  }
+
+  // Populate communes on load if department selected
+  if (currentDept) populateCommunes(currentDept);
+
+  // Auto-submit commune change
+  if (communeSelect) {
+    communeSelect.addEventListener('change', function() {
+      document.getElementById('annye-form').submit();
+    });
+  }
+
+  // ── Open Now checkbox (desktop + mobile) ──
+  var form = document.getElementById('annye-form');
+  var openHidden = document.getElementById('annye-open-now-hidden');
+
+  function bindOpenNow(id) {
+    var cb = document.getElementById(id);
+    if (cb && openHidden) {
+      cb.addEventListener('change', function() {
+        openHidden.value = this.checked ? '1' : '';
+        // Sync both checkboxes
+        var other = document.getElementById(id === 'annye-open-now-cb' ? 'annye-open-now-cb-mobile' : 'annye-open-now-cb');
+        if (other) other.checked = this.checked;
+        form.submit();
+      });
+    }
+  }
+  bindOpenNow('annye-open-now-cb');
+  bindOpenNow('annye-open-now-cb-mobile');
+
+  // ── Clear search ──
+  var clearBtn = document.getElementById('annye-clear-q');
+  var qInput = document.getElementById('annye-q');
+  if (clearBtn && qInput) {
+    clearBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      qInput.value = '';
+      form.submit();
+    });
+  }
+})();
+
+// ── Help bottom sheet toggle ──
+function toggleAjanHelp() {
+  var sheet = document.getElementById('ajan-help-sheet');
+  var backdrop = document.getElementById('ajan-help-backdrop');
+  var isOpen = sheet.style.display === 'block';
+  sheet.style.display = isOpen ? 'none' : 'block';
+  backdrop.style.display = isOpen ? 'none' : 'block';
+  document.body.style.overflow = isOpen ? '' : 'hidden';
+}
+</script>
+
+<style>
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+  /* Hide scrollbar on chip row */
+  #annye-hero .d-flex::-webkit-scrollbar { display: none; }
+</style>

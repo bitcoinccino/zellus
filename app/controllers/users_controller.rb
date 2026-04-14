@@ -9,7 +9,7 @@ class UsersController < ApplicationController
     if tag.blank? || !tag.match?(/\A[a-zA-Z0-9]{5,20}\z/)
       render json: { available: false, message: "Dwe 5-20 karaktè alfanimerik." }
     elsif User.where("LOWER(cashtag) = ?", tag).exists?
-      render json: { available: false, message: "Zellustag sa a deja pran." }
+      render json: { available: false, message: "Zèllustag sa a deja pran." }
     else
       render json: { available: true, message: "Disponib!" }
     end
@@ -34,10 +34,13 @@ class UsersController < ApplicationController
     # 2. Partial cashtag match (starts with)
     user ||= others.where("LOWER(cashtag) LIKE ?", "#{q}%").first
 
-    # 3. Email match (starts with, before @)
+    # 3. Business name or slug match
+    user ||= others.joins(:business).where("LOWER(businesses.name) LIKE ? OR LOWER(businesses.slug) LIKE ?", "#{q}%", "#{q}%").first
+
+    # 4. Email match (starts with, before @)
     user ||= others.where("LOWER(email) LIKE ?", "#{q}%").first
 
-    # 4. Phone number match
+    # 5. Phone number match
     user ||= others.where(phone_number: q).first if q.match?(/\A509\d{8}\z/)
 
     unless user
@@ -45,20 +48,55 @@ class UsersController < ApplicationController
       return
     end
 
-    # Find their active MonCash payment method
-    moncash_pm = user.payment_methods.where(active: true, category: "mobile_wallet", provider: "moncash").order(created_at: :desc).first
-    phone = moncash_pm&.account_number || user.phone_number
-
     avatar_url = user.avatar.attached? ? url_for(user.avatar) : nil
+    biz = user.business
 
-    render json: {
-      found: true,
+    results = []
+
+    # Personal account
+    results << {
       user_id: user.id,
       display_name: user.display_name,
       cashtag: user.cashtag,
-      moncash_phone: phone.presence,
-      has_moncash: phone.present?,
-      avatar_url: avatar_url
+      avatar_url: avatar_url,
+      type: "personal",
+      type_label: "Pèsonèl",
+      tier: user.credit_tier,
+      tier_icon: user.tier_icon
+    }
+
+    # Business account (if exists)
+    if biz.present?
+      biz_avatar = biz.logo.attached? ? url_for(biz.logo) : nil
+      results << {
+        user_id: user.id,
+        display_name: biz.name,
+        cashtag: user.cashtag,
+        avatar_url: biz_avatar,
+        type: "business",
+        type_label: "Biznis",
+        business_name: biz.name,
+        business_id: biz.id,
+        biz_slug: biz.slug,
+        tier: user.credit_tier,
+        tier_icon: user.tier_icon
+      }
+    end
+
+    render json: {
+      found: true,
+      results: results,
+      # Keep backwards compat for non-admin callers
+      user_id: user.id,
+      display_name: user.display_name,
+      cashtag: user.cashtag,
+      avatar_url: avatar_url,
+      is_business: biz.present?,
+      business_name: biz&.name,
+      business_id: biz&.id,
+      biz_slug: biz&.slug,
+      tier: user.credit_tier,
+      tier_icon: user.tier_icon
     }
   end
 
@@ -75,7 +113,7 @@ class UsersController < ApplicationController
     )
 
     if current_user.save
-      redirect_to root_path, notice: "Zellustag $#{current_user.cashtag} enstale!"
+      redirect_to root_path, notice: "Zèllustag $#{current_user.cashtag} enstale!"
     else
       render :setup_cashtag, status: :unprocessable_entity
     end

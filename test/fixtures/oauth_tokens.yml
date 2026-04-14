@@ -1,0 +1,39 @@
+sender_full_access:
+  user: sender
+  oauth_client: zellus_partner
+  access_token: "valid_sender_token_001"
+  refresh_token: "refresh_sender_001"
+  scopes: "balance:read transactions:read transfer:create withdraw:create checkout:create"
+  expires_at: <%= 24.hours.from_now.iso8601 %>
+
+sender_readonly:
+  user: sender
+  oauth_client: readonly_partner
+  access_token: "valid_sender_readonly_002"
+  refresh_token: "refresh_sender_002"
+  scopes: "balance:read"
+  expires_at: <%= 24.hours.from_now.iso8601 %>
+
+sender_expired:
+  user: sender
+  oauth_client: zellus_partner
+  access_token: "expired_sender_token_003"
+  refresh_token: "refresh_sender_003"
+  scopes: "balance:read transactions:read transfer:create withdraw:create"
+  expires_at: <%= 1.hour.ago.iso8601 %>
+
+receiver_full_access:
+  user: receiver
+  oauth_client: zellus_partner
+  access_token: "valid_receiver_token_004"
+  refresh_token: "refresh_receiver_004"
+  scopes: "balance:read transactions:read transfer:create withdraw:create checkout:create"
+  expires_at: <%= 24.hours.from_now.iso8601 %>
+
+frozen_user_token:
+  user: frozen_user
+  oauth_client: zellus_partner
+  access_token: "valid_frozen_token_005"
+  refresh_token: "refresh_frozen_005"
+  scopes: "balance:read transactions:read transfer:create withdraw:create"
+  expires_at: <%= 24.hours.from_now.iso8601 %>

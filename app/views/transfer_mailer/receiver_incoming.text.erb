@@ -1,8 +1,8 @@
-<%= @brand_name %> — Ou Gen Lajan!
+<%= @brand_name %> — <%= @sender_name %> Peye W!
 
 Bonjou <%= @transfer.receiver_name %>,
 
-<%= @sender_name %> voye <%= format_htg(@transfer.net_amount) %> ba ou atravè Zèllus!
+<%= @sender_name %> peye w <%= @amount_display %> ak Zèllus!
 
 <% if @transfer.note.present? %>Mesaj: "<%= @transfer.note %>"
 

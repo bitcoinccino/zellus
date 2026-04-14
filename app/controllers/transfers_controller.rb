@@ -1,10 +1,14 @@
 class TransfersController < ApplicationController
+  include ActionView::Helpers::NumberHelper
+  include BonidRecheckable
   before_action :authenticate_user!, except: [:claim, :claim_confirm]
+  before_action :recheck_bonid!, only: [:confirm]
 
   # ── GET /transfers/new ──
   def new
     @transfer = current_user.transfers.new
     @daily_remaining = current_user.daily_transfer_remaining
+    @business = current_user.business
     load_saved_methods
     load_rates
   end
@@ -31,10 +35,21 @@ class TransfersController < ApplicationController
     load_rates
 
     asset_type = params[:asset].to_s
-    asset_type = "htg" unless %w[htg usdc].include?(asset_type)
+    asset_type = "htg" unless %w[htg usd].include?(asset_type)
 
     @transfer = current_user.transfers.new(transfer_params)
     @transfer.asset = asset_type
+
+    # Resolve biz_slug → business_id (prevents IDOR via raw integer IDs)
+    if params[:biz_slug].present?
+      biz = Business.find_by(slug: params[:biz_slug])
+      @transfer.business_id = biz.id if biz
+    end
+
+    # Store tip_amount if provided (from tippable pay pages)
+    if params[:tip_amount].present?
+      @transfer.tip_amount = params[:tip_amount].to_f
+    end
 
     # Resolve receiver from saved method or manual input
     resolve_receiver(@transfer, asset_type)
@@ -76,6 +91,44 @@ class TransfersController < ApplicationController
       return
     end
 
+    # ── BonID Per-Transaction Consent (BEFORE review/PIN step) ──
+    # If the amount exceeds the threshold, request consent from BonID first.
+    # The user must approve on their BonID portal before they can review & confirm.
+    if BonIdService.consent_required?(@transfer)
+      unless current_user.bonid_verified?
+        @transfer.update!(status: :failed, failure_reason: "BonID pa verifye")
+        redirect_to transfer_path(@transfer),
+          alert: "Pou pwoteje kont ou, montan sa a mande yon verifikasyon BonID."
+        return
+      end
+
+      consent_result = BonIdService.request_consent(@transfer)
+
+      if consent_result[:success]
+        @transfer.update!(status: :awaiting_consent)
+
+        BonidConsentRequest.create!(
+          user: current_user,
+          transfer: @transfer,
+          consent_token: consent_result[:consent_token],
+          bonid: current_user.bonid,
+          reference_id: "ZEL-transfer-#{@transfer.token}",
+          amount: @transfer.amount,
+          transaction_type: "p2p_transfer",
+          expires_at: consent_result[:expires_at]
+        )
+
+        redirect_to transfer_path(@transfer),
+          notice: "Tanpri apwouve transfè sa a nan BonID ou. Tcheke imèl ou pou kòd OTP."
+        return
+      else
+        @transfer.update!(status: :failed, failure_reason: "BonID consent endiponib")
+        redirect_to transfer_path(@transfer),
+          alert: "Nou pa t kapab kontakte BonID. Tanpri eseye ankò."
+        return
+      end
+    end
+
     # Redirect to show page for PIN confirmation before payment
     redirect_to transfer_path(@transfer)
   end
@@ -85,6 +138,8 @@ class TransfersController < ApplicationController
     @transfer = find_transfer_for_current_user(params[:id] || params[:token])
     @claim_url = claim_transfer_url(@transfer.token)
     @needs_pin = @transfer.pending? && current_user.transfer_pin_set?
+    @receiver_user = find_receiver_user_for(@transfer)
+    @consent = @transfer.bonid_consent_request
   end
 
   # ── POST /transfers/:token/confirm — PIN verification + initiate payment ──
@@ -103,6 +158,9 @@ class TransfersController < ApplicationController
       return
     end
 
+    # BonID consent was already handled in create — check it's approved
+    @consent_already_approved = @transfer.bonid_consent_request&.approved?
+
     # ── Bank transfer (HTG → Unibank, wallet-funded, admin-processed) ──
     if @transfer.bank_transfer?
       wallet = current_user.ensure_wallet!
@@ -119,6 +177,59 @@ class TransfersController < ApplicationController
           fee: @transfer.fee,
           transfer: @transfer
         )
+
+        # ── BonID Per-Transaction Consent Check (Bank) ──
+        if BonIdService.consent_required?(@transfer) && !@consent_already_approved
+          unless current_user.bonid_verified?
+            WalletService.new(wallet).refund!(
+              amount: @transfer.amount,
+              asset: "htg",
+              reference: @transfer,
+              reason: "BonID obligatwa pou transfè >= #{BonIdService::CONSENT_THRESHOLD.to_i} HTG"
+            )
+            @transfer.update!(status: :failed, failure_reason: "BonID pa verifye")
+            redirect_to transfer_path(@transfer),
+              alert: "Pou pwoteje kont ou, montan sa a mande yon verifikasyon BonID."
+            return
+          end
+
+          consent_result = BonIdService.request_consent(@transfer)
+
+          if consent_result[:success]
+            @transfer.update!(
+              status: :awaiting_consent,
+              funded_at: Time.current,
+              funding_source: "wallet"
+            )
+
+            BonidConsentRequest.create!(
+              user: current_user,
+              transfer: @transfer,
+              consent_token: consent_result[:consent_token],
+              bonid: current_user.bonid,
+              reference_id: "ZEL-transfer-#{@transfer.token}",
+              amount: @transfer.amount,
+              transaction_type: "p2p_transfer",
+              expires_at: consent_result[:expires_at]
+            )
+
+            redirect_to transfer_path(@transfer),
+              notice: "Tanpri apwouve transfè sa a nan BonID ou. Tcheke imèl ou pou kòd OTP."
+            return
+          else
+            WalletService.new(wallet).refund!(
+              amount: @transfer.amount,
+              asset: "htg",
+              reference: @transfer,
+              reason: "BonID consent endiponib — ranbouse #{@transfer.amount.to_i} HTG"
+            )
+            @transfer.update!(status: :failed, failure_reason: "BonID consent endiponib")
+            redirect_to transfer_path(@transfer),
+              alert: "Pou pwoteje kont ou, montan sa a mande yon verifikasyon BonID."
+            return
+          end
+        end
+
         @transfer.update!(
           status: :funded,
           funded_at: Time.current,
@@ -170,7 +281,21 @@ class TransfersController < ApplicationController
         )
 
         # ── BonID Per-Transaction Consent Check ──
-        if BonIdService.consent_required?(@transfer)
+        if BonIdService.consent_required?(@transfer) && !@consent_already_approved
+          unless current_user.bonid_verified?
+            # Refund — user needs BonID first
+            WalletService.new(wallet).refund!(
+              amount: @transfer.amount,
+              asset: "htg",
+              reference: @transfer,
+              reason: "BonID obligatwa pou transfè >= #{BonIdService::CONSENT_THRESHOLD.to_i} HTG"
+            )
+            @transfer.update!(status: :failed, failure_reason: "BonID pa verifye")
+            redirect_to transfer_path(@transfer),
+              alert: "Pou pwoteje kont ou, montan sa a mande yon verifikasyon BonID."
+            return
+          end
+
           consent_result = BonIdService.request_consent(@transfer)
 
           if consent_result[:success]
@@ -195,8 +320,16 @@ class TransfersController < ApplicationController
               notice: "Tanpri apwouve transfè sa a nan BonID ou. Tcheke imèl ou pou kòd OTP."
             return
           else
-            # BonID unavailable — log warning, proceed with normal flow
-            Rails.logger.warn "BonID consent unavailable: #{consent_result[:error]} — proceeding without consent"
+            WalletService.new(wallet).refund!(
+              amount: @transfer.amount,
+              asset: "htg",
+              reference: @transfer,
+              reason: "BonID consent endiponib — ranbouse #{@transfer.amount.to_i} HTG"
+            )
+            @transfer.update!(status: :failed, failure_reason: "BonID consent endiponib")
+            redirect_to transfer_path(@transfer),
+              alert: "Pou pwoteje kont ou, montan sa a mande yon verifikasyon BonID."
+            return
           end
         end
 
@@ -207,8 +340,8 @@ class TransfersController < ApplicationController
           expires_at: 72.hours.from_now
         )
 
-        # Trigger payout
-        TransferPayoutWorker.perform_async(@transfer.id) if @transfer.receiver_phone.present?
+        # Trigger payout (always — worker resolves receiver by cashtag, email, or phone)
+        TransferPayoutWorker.perform_async(@transfer.id)
 
         # Real-time sound notification to receiver
         broadcast_transfer_funded(@transfer)
@@ -234,24 +367,192 @@ class TransfersController < ApplicationController
       return
     end
 
-    # ── Wallet funding (USD via $zellustag) ──
-    if @transfer.usdc_wallet_transfer? && params[:funding_source] == "wallet"
-      wallet = current_user.ensure_wallet!
-      usdc_amount = @transfer.crypto_amount || @transfer.net_amount
+    # ── Business funding (HTG from business account) ──
+    if @transfer.htg_transfer? && params[:funding_source] == "business"
+      business = current_user.business
+      wallet   = current_user.ensure_wallet!
 
-      unless wallet.sufficient_balance?("usdc", usdc_amount)
+      unless business.present? && business.sufficient_htg?(@transfer.amount)
         redirect_to transfer_path(@transfer),
-                    alert: "Balans USD pa sifi. Ou bezwen #{usdc_amount} USD men ou gen #{wallet.usdc_balance} USD."
+                    alert: "Balans biznis pa sifi. Ou bezwen #{@transfer.amount.to_i} HTG men biznis ou gen #{business&.htg_balance.to_i} HTG."
+        return
+      end
+
+      begin
+        WalletService.new(wallet).withdraw_from_business!(
+          business: business,
+          amount: @transfer.amount,
+          asset: "htg"
+        )
+
+        # Re-deposit into wallet so transfer_out! can debit it
+        WalletService.new(wallet).deposit!(
+          amount: @transfer.amount,
+          asset: "htg",
+          description: "Depo depi biznis #{business.name} pou transfè"
+        )
+
+        WalletService.new(wallet).transfer_out!(
+          amount: @transfer.amount,
+          fee: @transfer.fee,
+          transfer: @transfer
+        )
+
+        # ── BonID Per-Transaction Consent Check (Business HTG) ──
+        if BonIdService.consent_required?(@transfer) && !@consent_already_approved
+          unless current_user.bonid_verified?
+            WalletService.new(wallet).refund!(
+              amount: @transfer.amount,
+              asset: "htg",
+              reference: @transfer,
+              reason: "BonID obligatwa pou transfè >= #{BonIdService::CONSENT_THRESHOLD.to_i} HTG"
+            )
+            @transfer.update!(status: :failed, failure_reason: "BonID pa verifye")
+            redirect_to transfer_path(@transfer),
+              alert: "Pou pwoteje kont ou, montan sa a mande yon verifikasyon BonID."
+            return
+          end
+
+          consent_result = BonIdService.request_consent(@transfer)
+
+          if consent_result[:success]
+            @transfer.update!(
+              status: :awaiting_consent,
+              funded_at: Time.current,
+              funding_source: "business"
+            )
+
+            BonidConsentRequest.create!(
+              user: current_user,
+              transfer: @transfer,
+              consent_token: consent_result[:consent_token],
+              bonid: current_user.bonid,
+              reference_id: "ZEL-transfer-#{@transfer.token}",
+              amount: @transfer.amount,
+              transaction_type: "p2p_transfer",
+              expires_at: consent_result[:expires_at]
+            )
+
+            redirect_to transfer_path(@transfer),
+              notice: "Tanpri apwouve transfè sa a nan BonID ou. Tcheke imèl ou pou kòd OTP."
+            return
+          else
+            WalletService.new(wallet).refund!(
+              amount: @transfer.amount,
+              asset: "htg",
+              reference: @transfer,
+              reason: "BonID consent endiponib — ranbouse #{@transfer.amount.to_i} HTG"
+            )
+            @transfer.update!(status: :failed, failure_reason: "BonID consent endiponib")
+            redirect_to transfer_path(@transfer),
+              alert: "Pou pwoteje kont ou, montan sa a mande yon verifikasyon BonID."
+            return
+          end
+        end
+
+        @transfer.update!(
+          status: :funded,
+          funded_at: Time.current,
+          funding_source: "business",
+          expires_at: 72.hours.from_now
+        )
+
+        TransferPayoutWorker.perform_async(@transfer.id)
+        broadcast_transfer_funded(@transfer)
+
+        begin
+          TransferMailer.with(transfer_id: @transfer.id).sender_funded.deliver_later
+          if @transfer.receiver_email.present?
+            TransferMailer.with(transfer_id: @transfer.id).receiver_incoming.deliver_later
+          end
+        rescue => e
+          Rails.logger.error "Transfer email failed [transfer=#{@transfer.id}]: #{e.message}"
+        end
+
+        TransferExpiryWorker.perform_in(73.hours, @transfer.id)
+
+        redirect_to transfer_path(@transfer), notice: "Transfè finansye depi biznis ou! N ap voye lajan bay moun nan."
+      rescue WalletService::InsufficientFundsError
+        redirect_to transfer_path(@transfer), alert: "Balans biznis pa sifi."
+      rescue => e
+        Rails.logger.error "Business transfer funding failed [transfer=#{@transfer.id}]: #{e.message}"
+        redirect_to transfer_path(@transfer), alert: "Erè nan transfè. Tanpri eseye ankò."
+      end
+      return
+    end
+
+    # ── Wallet funding (USD via $zellustag) ──
+    if @transfer.usd_wallet_transfer? && params[:funding_source] == "wallet"
+      wallet = current_user.ensure_wallet!
+      usd_amount = @transfer.crypto_amount || @transfer.net_amount
+
+      unless wallet.sufficient_balance?("usd", usd_amount)
+        redirect_to transfer_path(@transfer),
+                    alert: "Balans USD pa sifi. Ou bezwen #{usd_amount} USD men ou gen #{wallet.usd_balance} USD."
         return
       end
 
       begin
         WalletService.new(wallet).transfer_out!(
-          amount: usdc_amount,
+          amount: usd_amount,
           fee: BigDecimal("0"),
           transfer: @transfer,
-          asset: "usdc"
+          asset: "usd"
         )
+
+        # ── BonID Per-Transaction Consent Check (USD) ──
+        if BonIdService.consent_required?(@transfer) && !@consent_already_approved
+          unless current_user.bonid_verified?
+            # Refund — user needs BonID first
+            WalletService.new(wallet).refund!(
+              amount: usd_amount,
+              asset: "usd",
+              reference: @transfer,
+              reason: "BonID obligatwa pou transfè >= #{BonIdService::CONSENT_THRESHOLD.to_i} HTG"
+            )
+            @transfer.update!(status: :failed, failure_reason: "BonID pa verifye")
+            redirect_to transfer_path(@transfer),
+              alert: "Pou pwoteje kont ou, montan sa a mande yon verifikasyon BonID."
+            return
+          end
+
+          consent_result = BonIdService.request_consent(@transfer)
+
+          if consent_result[:success]
+            @transfer.update!(
+              status: :awaiting_consent,
+              funded_at: Time.current,
+              funding_source: "wallet"
+            )
+
+            BonidConsentRequest.create!(
+              user: current_user,
+              transfer: @transfer,
+              consent_token: consent_result[:consent_token],
+              bonid: current_user.bonid,
+              reference_id: "ZEL-transfer-#{@transfer.token}",
+              amount: usd_amount,
+              transaction_type: "p2p_transfer",
+              expires_at: consent_result[:expires_at]
+            )
+
+            redirect_to transfer_path(@transfer),
+              notice: "Tanpri apwouve transfè sa a nan BonID ou. Tcheke imèl ou pou kòd OTP."
+            return
+          else
+            WalletService.new(wallet).refund!(
+              amount: usd_amount,
+              asset: "usd",
+              reference: @transfer,
+              reason: "BonID consent endiponib — ranbouse #{usd_amount} USD"
+            )
+            @transfer.update!(status: :failed, failure_reason: "BonID consent endiponib")
+            redirect_to transfer_path(@transfer),
+              alert: "Pou pwoteje kont ou, montan sa a mande yon verifikasyon BonID."
+            return
+          end
+        end
+
         @transfer.update!(
           status: :funded,
           funded_at: Time.current,
@@ -279,23 +580,76 @@ class TransfersController < ApplicationController
     end
 
     # ── Wallet funding (USD to external 0x address) ──
-    if @transfer.usdc_address_transfer? && params[:funding_source] == "wallet"
+    if @transfer.usd_address_transfer? && params[:funding_source] == "wallet"
       wallet = current_user.ensure_wallet!
-      usdc_amount = @transfer.crypto_amount || @transfer.net_amount
+      usd_amount = @transfer.crypto_amount || @transfer.net_amount
 
-      unless wallet.sufficient_balance?("usdc", usdc_amount)
+      unless wallet.sufficient_balance?("usd", usd_amount)
         redirect_to transfer_path(@transfer),
-                    alert: "Balans USD pa sifi. Ou bezwen #{usdc_amount} USD men ou gen #{wallet.usdc_balance} USD."
+                    alert: "Balans USD pa sifi. Ou bezwen #{usd_amount} USD men ou gen #{wallet.usd_balance} USD."
         return
       end
 
       begin
         WalletService.new(wallet).transfer_out!(
-          amount: usdc_amount,
+          amount: usd_amount,
           fee: BigDecimal("0"),
           transfer: @transfer,
-          asset: "usdc"
+          asset: "usd"
         )
+
+        # ── BonID Per-Transaction Consent Check (USD address) ──
+        if BonIdService.consent_required?(@transfer) && !@consent_already_approved
+          unless current_user.bonid_verified?
+            WalletService.new(wallet).refund!(
+              amount: usd_amount,
+              asset: "usd",
+              reference: @transfer,
+              reason: "BonID obligatwa pou transfè >= #{BonIdService::CONSENT_THRESHOLD.to_i} HTG"
+            )
+            @transfer.update!(status: :failed, failure_reason: "BonID pa verifye")
+            redirect_to transfer_path(@transfer),
+              alert: "Pou pwoteje kont ou, montan sa a mande yon verifikasyon BonID."
+            return
+          end
+
+          consent_result = BonIdService.request_consent(@transfer)
+
+          if consent_result[:success]
+            @transfer.update!(
+              status: :awaiting_consent,
+              funded_at: Time.current,
+              funding_source: "wallet"
+            )
+
+            BonidConsentRequest.create!(
+              user: current_user,
+              transfer: @transfer,
+              consent_token: consent_result[:consent_token],
+              bonid: current_user.bonid,
+              reference_id: "ZEL-transfer-#{@transfer.token}",
+              amount: usd_amount,
+              transaction_type: "p2p_transfer",
+              expires_at: consent_result[:expires_at]
+            )
+
+            redirect_to transfer_path(@transfer),
+              notice: "Tanpri apwouve transfè sa a nan BonID ou. Tcheke imèl ou pou kòd OTP."
+            return
+          else
+            WalletService.new(wallet).refund!(
+              amount: usd_amount,
+              asset: "usd",
+              reference: @transfer,
+              reason: "BonID consent endiponib — ranbouse #{usd_amount} USD"
+            )
+            @transfer.update!(status: :failed, failure_reason: "BonID consent endiponib")
+            redirect_to transfer_path(@transfer),
+              alert: "Pou pwoteje kont ou, montan sa a mande yon verifikasyon BonID."
+            return
+          end
+        end
+
         @transfer.update!(
           status: :funded,
           funded_at: Time.current,
@@ -342,6 +696,59 @@ class TransfersController < ApplicationController
           transfer: @transfer,
           asset: stock_asset
         )
+
+        # ── BonID Per-Transaction Consent Check (Stock) ──
+        if BonIdService.consent_required?(@transfer) && !@consent_already_approved
+          unless current_user.bonid_verified?
+            WalletService.new(wallet).refund!(
+              amount: stock_amount,
+              asset: stock_asset,
+              reference: @transfer,
+              reason: "BonID obligatwa pou transfè >= #{BonIdService::CONSENT_THRESHOLD.to_i} HTG"
+            )
+            @transfer.update!(status: :failed, failure_reason: "BonID pa verifye")
+            redirect_to transfer_path(@transfer),
+              alert: "Pou pwoteje kont ou, montan sa a mande yon verifikasyon BonID."
+            return
+          end
+
+          consent_result = BonIdService.request_consent(@transfer)
+
+          if consent_result[:success]
+            @transfer.update!(
+              status: :awaiting_consent,
+              funded_at: Time.current,
+              funding_source: "wallet"
+            )
+
+            BonidConsentRequest.create!(
+              user: current_user,
+              transfer: @transfer,
+              consent_token: consent_result[:consent_token],
+              bonid: current_user.bonid,
+              reference_id: "ZEL-transfer-#{@transfer.token}",
+              amount: @transfer.amount,
+              transaction_type: "p2p_transfer",
+              expires_at: consent_result[:expires_at]
+            )
+
+            redirect_to transfer_path(@transfer),
+              notice: "Tanpri apwouve transfè sa a nan BonID ou. Tcheke imèl ou pou kòd OTP."
+            return
+          else
+            WalletService.new(wallet).refund!(
+              amount: stock_amount,
+              asset: stock_asset,
+              reference: @transfer,
+              reason: "BonID consent endiponib — ranbouse #{stock_amount} #{stock_asset.upcase}"
+            )
+            @transfer.update!(status: :failed, failure_reason: "BonID consent endiponib")
+            redirect_to transfer_path(@transfer),
+              alert: "Pou pwoteje kont ou, montan sa a mande yon verifikasyon BonID."
+            return
+          end
+        end
+
         @transfer.update!(
           status: :funded,
           funded_at: Time.current,
@@ -400,6 +807,69 @@ class TransfersController < ApplicationController
     end
   end
 
+  # ── POST /transfers/:token/recheck_consent — Manual BonID API poll (fallback when webhook fails) ──
+  def recheck_consent
+    @transfer = find_transfer_for_current_user(params[:id] || params[:token])
+    consent = @transfer.bonid_consent_request
+
+    unless consent&.pending?
+      redirect_to transfer_path(@transfer)
+      return
+    end
+
+    result = BonIdService.check_consent(consent.consent_token)
+
+    unless result[:success]
+      redirect_to transfer_path(@transfer),
+        alert: "Nou pa t ka verifye estati a ak BonID. Tanpri eseye ankò."
+      return
+    end
+
+    case result[:status]
+    when "approved"
+      consent.update!(status: :approved, signature: result[:signature], decided_at: result[:decided_at])
+
+      if @transfer.awaiting_consent?
+        if @transfer.funded_at.present?
+          @transfer.update!(status: :funded)
+          TransferPayoutWorker.perform_async(@transfer.id)
+          Rails.logger.info "BonID recheck: consent approved for #{@transfer.token} — payout triggered"
+        else
+          @transfer.update!(status: :pending)
+          Rails.logger.info "BonID recheck: consent approved for #{@transfer.token} — awaiting PIN"
+        end
+      end
+
+      redirect_to transfer_path(@transfer), notice: "Konsentisyon BonID apwouve!"
+
+    when "denied"
+      consent.update!(status: :denied, decided_at: result[:decided_at])
+
+      if @transfer.awaiting_consent?
+        @transfer.update!(status: :failed, failure_reason: "Sitwayen refize konsentisyon BonID")
+        refund_held_funds(@transfer, "Konsentisyon BonID refize") if @transfer.funded_at.present?
+        NotificationService.transfer_failed(@transfer)
+      end
+
+      redirect_to transfer_path(@transfer), alert: "Konsentisyon BonID refize."
+
+    when "expired"
+      consent.update!(status: :expired)
+
+      if @transfer.awaiting_consent?
+        @transfer.update!(status: :failed, failure_reason: "Konsentisyon BonID ekspire")
+        refund_held_funds(@transfer, "Konsentisyon BonID ekspire") if @transfer.funded_at.present?
+        NotificationService.transfer_failed(@transfer)
+      end
+
+      redirect_to transfer_path(@transfer), alert: "Konsentisyon BonID ekspire."
+
+    else
+      redirect_to transfer_path(@transfer),
+        notice: "Konsentisyon toujou an kou. Tanpri apwouve nan BonID ou epi eseye ankò."
+    end
+  end
+
   def success
     @transfer = find_transfer_for_current_user(params[:id] || params[:token])
     @claim_url = claim_transfer_url(@transfer.token)
@@ -410,6 +880,47 @@ class TransfersController < ApplicationController
       verified = MoncashService.verify_order(@transfer.moncash_order_id)
 
       if verified
+        # ── BonID Per-Transaction Consent Check (MonCash) ──
+        if BonIdService.consent_required?(@transfer) && !@consent_already_approved
+          unless current_user.bonid_verified?
+            @transfer.update!(status: :failed, failure_reason: "BonID pa verifye")
+            flash.now[:alert] = "Pou pwoteje kont ou, montan sa a mande yon verifikasyon BonID. Kontakte sipò pou ranbousman MonCash."
+            render :show
+            return
+          end
+
+          consent_result = BonIdService.request_consent(@transfer)
+
+          if consent_result[:success]
+            @transfer.update!(
+              status: :awaiting_consent,
+              funded_at: Time.current,
+              funding_source: "moncash",
+              expires_at: 72.hours.from_now
+            )
+
+            BonidConsentRequest.create!(
+              user: current_user,
+              transfer: @transfer,
+              consent_token: consent_result[:consent_token],
+              bonid: current_user.bonid,
+              reference_id: "ZEL-transfer-#{@transfer.token}",
+              amount: @transfer.amount,
+              transaction_type: "p2p_transfer",
+              expires_at: consent_result[:expires_at]
+            )
+
+            flash.now[:notice] = "Peman MonCash konfime! Tanpri apwouve transfè sa a nan BonID ou. Tcheke imèl ou pou kòd OTP."
+            render :show
+            return
+          else
+            @transfer.update!(status: :failed, failure_reason: "BonID consent endiponib")
+            flash.now[:alert] = "Pou pwoteje kont ou, montan sa a mande yon verifikasyon BonID. Kontakte sipò pou ranbousman MonCash."
+            render :show
+            return
+          end
+        end
+
         @transfer.update!(status: :funded, funded_at: Time.current, expires_at: 72.hours.from_now)
 
         if @transfer.htg_transfer?
@@ -468,7 +979,7 @@ class TransfersController < ApplicationController
       return
     end
 
-    phone = params[:receiver_phone].to_s.strip
+    phone = params[:receiver_phone].to_s.gsub(/[^\d]/, '')
     unless phone.match?(/\A509\d{8}\z/)
       flash[:alert] = "Tanpri antre yon nimewo MonCash valid (509 + 8 chif)."
       redirect_to claim_transfer_path(@transfer.token)
@@ -517,12 +1028,23 @@ class TransfersController < ApplicationController
 
     Rails.logger.info "[Zèllus] Broadcasting transfer_received to user #{receiver.id} (#{amount_label})"
 
+    avatar_url = if current_user.avatar.attached?
+                   Rails.application.routes.url_helpers.rails_blob_url(current_user.avatar, only_path: true)
+                 elsif current_user.bonid_photo_url.present?
+                   current_user.bonid_photo_url
+                 end
+
+    # Instant real-time preview — NO sound here because the money hasn't
+    # arrived yet. The TransferPayoutWorker credits the wallet and then
+    # calls NotificationService.transfer_received WITH sound — that's
+    # the authoritative notification when funds actually land.
     NotificationChannel.broadcast_to(
       receiver,
       {
-        title: "#{current_user.display_name} voye ou #{amount_label}",
+        title: "$#{current_user.cashtag || current_user.display_name} peye w #{amount_label}",
         type: "transfer_received",
-        play_sound: true
+        play_sound: false,
+        avatar_url: avatar_url
       }
     )
   rescue => e
@@ -546,14 +1068,14 @@ class TransfersController < ApplicationController
   end
 
   def load_rates
-    @usdc_htg_rate = RateService.buy_rate        # HTG per 1 USDC
+    @usd_htg_rate = RateService.buy_rate        # HTG per 1 USD
     # ETH/BTC/stock rates disabled (HTG + USD only mode)
     @eth_htg_rate  = 0
     @wbtc_htg_rate = 0
     @stock_htg_rates = %w[tslax nvdax aaplx coinx googlx].index_with { |_| 0 }
   rescue => e
     Rails.logger.error "TransfersController rate load failed: #{e.message}"
-    @usdc_htg_rate = 135.50
+    @usd_htg_rate = 135.50
     @eth_htg_rate  = 0
     @wbtc_htg_rate = 0
     @stock_htg_rates = %w[tslax nvdax aaplx coinx googlx].index_with { |_| 0 }
@@ -561,7 +1083,7 @@ class TransfersController < ApplicationController
 
   def exchange_rate_for(asset_type)
     case asset_type
-    when "usdc" then @usdc_htg_rate
+    when "usd" then @usd_htg_rate
     when "eth"  then @eth_htg_rate
     when "wbtc" then @wbtc_htg_rate
     when "tslax", "nvdax", "aaplx", "coinx", "googlx"
@@ -574,9 +1096,9 @@ class TransfersController < ApplicationController
 
   def resolve_receiver(transfer, asset_type)
     # ── Unified lookup: $zellustag, phone, or email ──
-    # Works for HTG, USDC, and stock assets (zellustag lookup enables wallet-to-wallet)
+    # Works for HTG, USD, and stock assets (zellustag lookup enables wallet-to-wallet)
     lookup = params[:receiver_lookup].to_s.strip
-    if lookup.present? && (%w[htg usdc].include?(asset_type) || STOCK_ASSETS.include?(asset_type))
+    if lookup.present? && (%w[htg usd].include?(asset_type) || STOCK_ASSETS.include?(asset_type))
       clean = lookup.delete_prefix("$")
       if clean.match?(/\A509\d{8}\z/) && asset_type == "htg"
         transfer.receiver_phone = clean
@@ -594,6 +1116,9 @@ class TransfersController < ApplicationController
     end
 
     if asset_type == "htg"
+      # ── Cashtag already resolved → wallet-to-wallet, skip phone/bank ──
+      return if transfer.receiver_cashtag.present?
+
       # ── Bank transfer mode ──
       if params[:receiver_mode] == "bank"
         # Saved bank method
@@ -620,10 +1145,10 @@ class TransfersController < ApplicationController
       method_id = params[:moncash_method_id].to_s.strip
       if method_id.present? && method_id != "other"
         method = current_user.payment_methods.active.mobile_wallet.find_by(id: method_id)
-        transfer.receiver_phone = method.account_number if method
+        transfer.receiver_phone = method.account_number.to_s.gsub(/[^\d]/, '') if method
       end
       # Manual phone takes precedence if provided
-      manual_phone = params.dig(:transfer, :receiver_phone).to_s.strip
+      manual_phone = params.dig(:transfer, :receiver_phone).to_s.gsub(/[^\d]/, '')
       transfer.receiver_phone = manual_phone if manual_phone.present?
     elsif transfer.receiver_cashtag.blank?
       # Crypto without $zellustag: fall through to wallet address
@@ -642,12 +1167,12 @@ class TransfersController < ApplicationController
     value = amount.to_f
     return "Antre yon montan valid." if value <= 0
 
-    if @transfer&.asset == "usdc"
+    if @transfer&.asset == "usd"
       # Amount arrives in HTG (frontend converts USD→HTG), convert back to USD for limit check
-      rate = exchange_rate_for("usdc") || 1
-      usdc_value = rate > 0 ? value / rate : value
-      return "Montan minimòm se 1 USD." if usdc_value < 1
-      return "Montan maksimòm se 500 USD pa tranzaksyon." if usdc_value > 500
+      rate = exchange_rate_for("usd") || 1
+      usd_value = rate > 0 ? value / rate : value
+      return "Montan minimòm se 1 USD." if usd_value < 1
+      return "Montan maksimòm se 500 USD pa tranzaksyon." if usd_value > 500
     elsif !@transfer&.crypto_transfer?
       return "Montan minimòm se #{Transfer::SEND_MIN_HTG} HTG." if value < Transfer::SEND_MIN_HTG
       return "Montan maksimòm se #{number_with_delimiter(Transfer::SEND_MAX_HTG)} HTG pa tranzaksyon." if value > Transfer::SEND_MAX_HTG
@@ -658,10 +1183,39 @@ class TransfersController < ApplicationController
 
   def daily_limit_error(amount)
     remaining = current_user.daily_transfer_remaining
-    limit     = User::DAILY_TRANSFER_LIMIT_HTG
+    limit     = current_user.daily_transfer_limit
     return nil if amount.to_f <= remaining
 
     "Ou depase limit jounalye ou (#{number_with_delimiter(limit.to_i)} HTG/jou). Ou ka voye #{number_with_delimiter(remaining.to_i)} HTG ankò jodi a."
+  end
+
+  # Refund held funds to the correct asset wallet (mirrors webhook controller logic)
+  def refund_held_funds(transfer, reason)
+    if transfer.funding_source == "moncash"
+      Rails.logger.warn "MonCash-funded transfer #{transfer.token} denied/expired — requires manual admin refund"
+      return
+    end
+
+    wallet = transfer.user.wallet
+    return unless wallet
+
+    if transfer.usd_wallet_transfer? || transfer.usd_address_transfer?
+      refund_amount = transfer.crypto_amount || transfer.net_amount
+      refund_asset = "usd"
+    elsif transfer.stock_wallet_transfer?
+      refund_amount = transfer.crypto_amount || transfer.net_amount
+      refund_asset = transfer.asset.to_s
+    else
+      refund_amount = transfer.amount
+      refund_asset = "htg"
+    end
+
+    WalletService.new(wallet).refund!(
+      amount: refund_amount,
+      asset: refund_asset,
+      reference: transfer,
+      reason: "#{reason} — ranbouse"
+    )
   end
 
   def create_moncash_payment(amount, order_id)

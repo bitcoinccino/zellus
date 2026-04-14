@@ -5,7 +5,7 @@
     <% creator_name = creator.display_name %>
     <% clean_creator = creator_name.gsub(/[^\p{L}\p{N}\s]/, '').strip %>
     <% creator_initials = clean_creator.present? ? clean_creator.split.map { |w| w[0] }.join.upcase.first(2) : "?" %>
-    <% is_dead = @payment_request.expired? || @payment_request.canceled? || @payment_request.paid? %>
+    <% is_dead = @payment_request.expired? || @payment_request.canceled? || @payment_request.paid? || @payment_request.declined? %>
     <% asset_colors = { "htg" => "var(--haiti-gold)", "usdc" => "#0052FF", "eth" => "#627eea", "wbtc" => "#f7931a" } %>
     <% asset_color = asset_colors[@payment_request.asset] || "var(--haiti-gold)" %>
     <% asset_labels = { "htg" => "Goud", "usdc" => "USD", "eth" => "Ethereum", "wbtc" => "Bitcoin" } %>
@@ -28,6 +28,8 @@
           { icon: "ri-forbid-line", color: "#f87171", bg: "rgba(248,113,113,0.12)", label: "Echwe" }
         when "canceled"
           { icon: "ri-close-circle-line", color: "#f87171", bg: "rgba(248,113,113,0.12)", label: "Anile" }
+        when "declined"
+          { icon: "ri-close-circle-line", color: "#f87171", bg: "rgba(248,113,113,0.12)", label: "Refize" }
         end %>
       <div class="d-inline-flex align-items-center gap-1 px-3 py-1 rounded-pill mb-3"
            style="background: <%= status_cfg[:bg] %>; font-size: 11px; font-weight: 700; color: <%= status_cfg[:color] %>;">
@@ -100,6 +102,8 @@
               Demann sa a deja peye
             <% elsif @payment_request.expired? %>
               Demann sa a ekspire
+            <% elsif @payment_request.declined? %>
+              Demann sa a refize
             <% else %>
               Demann sa a anile
             <% end %>
@@ -147,16 +151,13 @@
             <i class="ri-information-line me-1"></i>Kijan Pou Peye
           </div>
           <div class="small mb-3" style="color: var(--haiti-charcoal);">
-            Achte <%= @payment_request.asset.upcase %> via Zèllus epi voye l bay <%= creator_name %>.
+            Konvèti HTG → <%= @payment_request.asset.upcase %> epi voye l bay <%= creator_name %>.
           </div>
         </div>
-        <%= link_to new_transaction_path(
-              request_token: @payment_request.token,
-              prefill_tab: "buy"
-            ),
+        <%= link_to wallet_path(action_panel: "convert"),
             class: "btn w-100 py-3 fw-bold rounded-4 border-0 d-flex align-items-center justify-content-center gap-2 shadow-sm",
             style: "background: var(--haiti-charcoal); color: #{asset_color}; font-size: 14px; letter-spacing: 0.3px;" do %>
-          <i class="ri-flashlight-fill" style="font-size: 18px;"></i> Achte & Peye <%= @payment_request.asset.upcase %>
+          <i class="ri-exchange-2-line" style="font-size: 18px;"></i> Konvèti & Peye <%= @payment_request.asset.upcase %>
         <% end %>
 
       <% elsif !@pin_set %>
@@ -224,6 +225,12 @@
                   style="background: var(--haiti-gold); color: var(--haiti-charcoal); font-size: 14px; letter-spacing: 0.3px;">
             <i class="ri-send-plane-fill" style="font-size: 18px;"></i> Peye <%= number_with_precision(@payment_request.amount, precision: 2) %> <%= @payment_request.asset.upcase %>
           </button>
+
+          <button type="button" onclick="showDeclinePanel()"
+                  class="btn w-100 py-2 mt-2 fw-bold rounded-4 border-0 d-flex align-items-center justify-content-center gap-2"
+                  style="background: rgba(248,113,113,0.08); color: #f87171; font-size: 12px;">
+            <i class="ri-close-circle-line" style="font-size: 14px;"></i> Refize Demann
+          </button>
         </div>
 
         <%# ── Step 2 — PIN entry (hidden until Peye clicked) ── %>
@@ -249,6 +256,33 @@
             </button>
             <div class="text-center mt-3">
               <a href="#" onclick="hidePayPin(); return false;" class="small fw-bold" style="color: var(--haiti-olive); text-decoration: none;">
+                <i class="ri-arrow-left-line me-1"></i>Retounen
+              </a>
+            </div>
+          <% end %>
+        </div>
+
+        <%# ── Step 3 — Decline panel (hidden until Refize clicked) ── %>
+        <div id="pr-decline-panel" style="display: none;">
+          <%= form_with url: decline_payment_request_path(@payment_request.token), method: :post, local: true do |f| %>
+            <div class="text-center mb-3">
+              <i class="ri-close-circle-line d-block mb-2" style="color: #f87171; font-size: 28px;"></i>
+              <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 14px;">Refize Demann Peman</div>
+              <div class="small mt-1" style="color: var(--haiti-olive);">
+                <%= creator_name %> ap resevwa yon notifikasyon.
+              </div>
+            </div>
+            <textarea name="decline_note" rows="2"
+                      class="form-control rounded-3 mb-3"
+                      style="font-size: 12px; resize: none; border: 2px solid rgba(93,99,69,0.2); background: rgba(93,99,69,0.04);"
+                      placeholder="Rezon (opsyonèl)..."></textarea>
+            <button type="submit"
+                    class="btn w-100 py-3 fw-bold rounded-4 border-0 d-flex align-items-center justify-content-center gap-2 shadow-sm"
+                    style="background: rgba(248,113,113,0.12); color: #f87171; font-size: 14px;">
+              <i class="ri-close-circle-line" style="font-size: 18px;"></i> Konfime Refize
+            </button>
+            <div class="text-center mt-3">
+              <a href="#" onclick="hideDeclinePanel(); return false;" class="small fw-bold" style="color: var(--haiti-olive); text-decoration: none;">
                 <i class="ri-arrow-left-line me-1"></i>Retounen
               </a>
             </div>
@@ -301,10 +335,10 @@
             <% end %>
           <% else %>
             <%# USDC: Buy via Zèllus or deposit ── %>
-            <%= link_to new_transaction_path(prefill_tab: "buy"),
+            <%= link_to wallet_path(action_panel: "convert"),
                 class: "btn w-100 py-3 fw-bold rounded-4 border-0 d-flex align-items-center justify-content-center gap-2 shadow-sm",
                 style: "background: var(--haiti-charcoal); color: #0052FF; font-size: 14px; letter-spacing: 0.3px;" do %>
-              <i class="ri-add-circle-line" style="font-size: 18px;"></i> Achte USD via Zèllus
+              <i class="ri-exchange-2-line" style="font-size: 18px;"></i> Konvèti HTG → USD
             <% end %>
             <%= link_to wallet_path,
                 class: "btn w-100 py-2 fw-bold rounded-4 border-0 d-flex align-items-center justify-content-center gap-2",
@@ -312,8 +346,53 @@
               <i class="ri-wallet-3-line" style="font-size: 14px;"></i> Al nan Pòtfèy
             <% end %>
           <% end %>
+
+          <%# ── Decline button (insufficient balance) ── %>
+          <button type="button" onclick="showDeclinePanel()"
+                  class="btn w-100 py-2 mt-2 fw-bold rounded-4 border-0 d-flex align-items-center justify-content-center gap-2"
+                  style="background: rgba(248,113,113,0.08); color: #f87171; font-size: 12px;">
+            <i class="ri-close-circle-line" style="font-size: 14px;"></i> Refize Demann
+          </button>
         </div>
 
+        <%# ── Decline panel (insufficient balance — same form) ── %>
+        <div id="pr-decline-panel-low" style="display: none;">
+          <%= form_with url: decline_payment_request_path(@payment_request.token), method: :post, local: true do |f| %>
+            <div class="text-center mb-3">
+              <i class="ri-close-circle-line d-block mb-2" style="color: #f87171; font-size: 28px;"></i>
+              <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 14px;">Refize Demann Peman</div>
+              <div class="small mt-1" style="color: var(--haiti-olive);">
+                <%= creator_name %> ap resevwa yon notifikasyon.
+              </div>
+            </div>
+            <textarea name="decline_note" rows="2"
+                      class="form-control rounded-3 mb-3"
+                      style="font-size: 12px; resize: none; border: 2px solid rgba(93,99,69,0.2); background: rgba(93,99,69,0.04);"
+                      placeholder="Rezon (opsyonèl)..."></textarea>
+            <button type="submit"
+                    class="btn w-100 py-3 fw-bold rounded-4 border-0 d-flex align-items-center justify-content-center gap-2 shadow-sm"
+                    style="background: rgba(248,113,113,0.12); color: #f87171; font-size: 14px;">
+              <i class="ri-close-circle-line" style="font-size: 18px;"></i> Konfime Refize
+            </button>
+            <div class="text-center mt-3">
+              <a href="#" onclick="hideDeclinePanelLow(); return false;" class="small fw-bold" style="color: var(--haiti-olive); text-decoration: none;">
+                <i class="ri-arrow-left-line me-1"></i>Retounen
+              </a>
+            </div>
+          <% end %>
+        </div>
+
+      <% end %>
+
+      <%# ── Decline note display ── %>
+      <% if @payment_request.declined? && @payment_request.cancel_note.present? %>
+        <div class="p-3 rounded-3 mt-3" style="background: rgba(248,113,113,0.06); border: 1px solid rgba(248,113,113,0.15);">
+          <div class="d-flex align-items-center gap-2 mb-1">
+            <i class="ri-chat-quote-line" style="color: #f87171; font-size: 14px;"></i>
+            <span class="fw-bold" style="color: #991b1b; font-size: 11px;">Rezon refize</span>
+          </div>
+          <div style="color: var(--haiti-charcoal); font-size: 12px;"><%= @payment_request.cancel_note %></div>
+        </div>
       <% end %>
 
       <%# ── Payer details (if set) ── %>
@@ -368,5 +447,26 @@ function hidePayPin() {
   document.getElementById('pr-pay-summary').style.display = '';
   var input = document.getElementById('pr-pay-pin-input');
   if (input) { input.disabled = true; input.value = ''; }
+}
+
+function showDeclinePanel() {
+  var summary = document.getElementById('pr-pay-summary');
+  var pin = document.getElementById('pr-pay-pin');
+  var panel = document.getElementById('pr-decline-panel') || document.getElementById('pr-decline-panel-low');
+  if (summary) summary.style.display = 'none';
+  if (pin) pin.style.display = 'none';
+  if (panel) panel.style.display = '';
+}
+
+function hideDeclinePanel() {
+  var panel = document.getElementById('pr-decline-panel');
+  if (panel) panel.style.display = 'none';
+  var summary = document.getElementById('pr-pay-summary');
+  if (summary) summary.style.display = '';
+}
+
+function hideDeclinePanelLow() {
+  var panel = document.getElementById('pr-decline-panel-low');
+  if (panel) panel.style.display = 'none';
 }
 </script>

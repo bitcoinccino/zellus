@@ -1,13 +1,6 @@
-<div class="container d-flex justify-content-center align-items-center" style="min-height: 80vh;">
-  <div class="card-base p-4 w-100 shadow-lg" style="max-width: 440px;">
-
-    <%# ── Back Link ── %>
-    <div class="d-flex align-items-center justify-content-between mb-3">
-      <h1 class="h5 fw-black mb-0" style="color: var(--haiti-charcoal);">Detay Tranzaksyon</h1>
-      <%= link_to wallet_path, class: "small text-decoration-none fw-bold", style: "color: var(--haiti-olive);" do %>
-        <i class="ri-arrow-left-line me-1"></i>Pòtfèy
-      <% end %>
-    </div>
+<% content_for :full_width, true %>
+<div class="container d-flex justify-content-center align-items-start py-4" style="min-height: 85vh;">
+  <div class="card-base p-4 w-100" style="max-width: 440px;">
 
     <%# ── Entry Type Header ── %>
     <%
@@ -41,15 +34,54 @@
         { icon: "ri-exchange-2-line", color: "#991b1b", bg: "#fee2e2", border: "#fca5a5", label: "Konvèsyon Sòti" }
       when "conversion_in"
         { icon: "ri-exchange-2-line", color: "#166534", bg: "#dcfce7", border: "#bbf7d0", label: "Konvèsyon Antre" }
+      when "conversion_fee"
+        { icon: "ri-exchange-2-line", color: "#92400e", bg: "#fef3c7", border: "#fde68a", label: "Frè Konvèsyon" }
       else
         { icon: "ri-file-list-line", color: "var(--haiti-olive)", bg: "var(--haiti-mint)", border: "var(--haiti-olive)", label: @entry.entry_type.humanize }
       end
     %>
 
+    <% is_conversion = %w[conversion_in conversion_out conversion_fee].include?(@entry.entry_type) %>
+
+    <% if is_conversion %>
+      <%# ══════════════════════════════════════════════════════ %>
+      <%# ── CONVERSION SHOW PAGE                            ── %>
+      <%# ══════════════════════════════════════════════════════ %>
+      <%
+        time_range = (@entry.created_at - 5.seconds)..(@entry.created_at + 5.seconds)
+        nearby = @wallet.wallet_ledger_entries.where(created_at: time_range)
+        cv_from = nearby.find_by(entry_type: "conversion_out")
+        cv_to   = nearby.find_by(entry_type: "conversion_in")
+        cv_fee  = nearby.find_by(entry_type: "conversion_fee")
+
+        cv_from_prec = cv_from&.asset == "usdc" ? 2 : 2
+        cv_to_prec   = cv_to&.asset == "usdc" ? 2 : 2
+      %>
+
+      <%# ── Header ── %>
+      <div class="text-center mb-4">
+        <div class="d-inline-flex align-items-center justify-content-center mb-3 rounded-circle" style="width: 56px; height: 56px; background: var(--haiti-charcoal);">
+          <i class="ri-exchange-2-line ri-xl" style="color: var(--haiti-gold);"></i>
+        </div>
+        <h2 class="h4 fw-black mb-1" style="color: var(--haiti-charcoal); letter-spacing: -0.5px;">Konvèsyon</h2>
+        <p style="color: var(--haiti-olive); font-size: 11px; font-weight: 700; letter-spacing: 1px;" class="text-uppercase mb-0">
+          <i class="ri-time-line me-1"></i><%= @entry.created_at.strftime("%b %d, %Y · %l:%M %p").strip %>
+        </p>
+      </div>
+
+      <% if cv_from && cv_to %>
+        <%= render partial: "shared/conversion_detail", locals: { cv_from: cv_from, cv_to: cv_to, cv_fee: cv_fee } %>
+      <% end %>
+
+    <% else %>
+      <%# ══════════════════════════════════════════════════════ %>
+      <%# ── STANDARD ENTRY SHOW PAGE                        ── %>
+      <%# ══════════════════════════════════════════════════════ %>
+
+    <!-- Header -->
     <div class="text-center mb-4">
-      <div class="d-inline-flex align-items-center justify-content-center mb-3"
-           style="width: 70px; height: 70px; background-color: <%= entry_config[:color] %>; border-radius: 20px; transform: rotate(-5deg); box-shadow: 4px 4px 0px #2E2E38;">
-        <i class="<%= entry_config[:icon] %> ri-2x text-white" style="transform: rotate(5deg);"></i>
+      <div class="d-inline-flex align-items-center justify-content-center mb-3 rounded-3" style="width: 56px; height: 56px; background-color: <%= entry_config[:color] %>;">
+        <i class="<%= entry_config[:icon] %> ri-xl text-white"></i>
       </div>
       <h2 class="h4 fw-black mb-1 text-uppercase" style="color: #2E2E38; letter-spacing: -0.5px;"><%= entry_config[:label] %></h2>
       <p style="color: #5D6345; font-size: 11px; font-weight: 700; letter-spacing: 1px;" class="text-uppercase mb-0">
@@ -191,6 +223,7 @@
         </tr>
       </table>
     </div>
+    <% end %>
 
     <%# ── Blockchain TX Hash (for USDC deposits/withdrawals) ── %>
     <% tx_hash = @entry.moncash_transaction_id %>
@@ -254,88 +287,6 @@
       </div>
     <% end %>
 
-    <%# ── Conversion Details (for conversion_in / conversion_out) ── %>
-    <% if %w[conversion_in conversion_out].include?(@entry.entry_type) %>
-      <%
-        # Find the paired conversion entry (same wallet, same second, opposite type)
-        paired_type = @entry.entry_type == "conversion_in" ? "conversion_out" : "conversion_in"
-        paired_entry = @wallet.wallet_ledger_entries
-          .where(entry_type: paired_type)
-          .where(created_at: (@entry.created_at - 2.seconds)..(@entry.created_at + 2.seconds))
-          .first
-
-        if @entry.entry_type == "conversion_out"
-          from_entry = @entry
-          to_entry   = paired_entry
-        else
-          from_entry = paired_entry
-          to_entry   = @entry
-        end
-
-        from_precision = case from_entry&.asset
-          when "wbtc" then 8
-          when "eth"  then 6
-          when "usdc" then 2
-          else 2
-        end
-        to_precision = case to_entry&.asset
-          when "wbtc" then 8
-          when "eth"  then 6
-          when "usdc" then 2
-          else 2
-        end
-      %>
-      <% if from_entry && to_entry %>
-        <div class="p-3 mb-3" style="background: rgba(197,160,89,0.08); border-radius: 16px; border: 1.5px solid var(--haiti-gold);">
-          <div class="d-flex align-items-center mb-3">
-            <i class="ri-exchange-2-line me-2" style="color: var(--haiti-gold); font-size: 18px;"></i>
-            <span class="text-uppercase fw-bold" style="color: var(--haiti-charcoal); font-size: 11px; letter-spacing: 0.1em;">Detay Konvèsyon</span>
-          </div>
-
-          <%# ── Visual FROM → TO flow ── %>
-          <div class="d-flex align-items-center justify-content-center gap-2 mb-3">
-            <%# FROM side %>
-            <div class="text-center flex-fill p-2 rounded-3" style="background: rgba(153,27,27,0.06); border: 1px solid rgba(153,27,27,0.15);">
-              <div class="fw-bold text-uppercase mb-1" style="color: #991b1b; font-size: 9px; letter-spacing: 0.5px;">Map Chanje Sa</div>
-              <div class="fw-black" style="color: var(--haiti-charcoal); font-size: 16px;">
-                <%= number_to_currency(from_entry.amount, unit: "", precision: from_precision) %>
-              </div>
-              <span class="badge rounded-pill px-2 py-1 mt-1" style="background: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 10px; font-weight: 800;">
-                <%= from_entry.asset_label %>
-              </span>
-            </div>
-
-            <%# Arrow %>
-            <div style="flex-shrink: 0;">
-              <div class="d-flex align-items-center justify-content-center rounded-circle"
-                   style="width: 32px; height: 32px; background: var(--haiti-charcoal);">
-                <i class="ri-arrow-right-line" style="color: var(--haiti-gold); font-size: 16px;"></i>
-              </div>
-            </div>
-
-            <%# TO side %>
-            <div class="text-center flex-fill p-2 rounded-3" style="background: rgba(22,101,52,0.06); border: 1px solid rgba(22,101,52,0.15);">
-              <div class="fw-bold text-uppercase mb-1" style="color: #166534; font-size: 9px; letter-spacing: 0.5px;">Pou Sa</div>
-              <div class="fw-black" style="color: var(--haiti-charcoal); font-size: 16px;">
-                <%= number_to_currency(to_entry.amount, unit: "", precision: to_precision) %>
-              </div>
-              <span class="badge rounded-pill px-2 py-1 mt-1" style="background: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 10px; font-weight: 800;">
-                <%= to_entry.asset_label %>
-              </span>
-            </div>
-          </div>
-
-          <%# ── Rate info ── %>
-          <% if from_entry.amount.to_f > 0 %>
-            <div class="text-center p-2 rounded-3" style="background: rgba(93,99,69,0.08);">
-              <span class="small fw-bold" style="color: var(--haiti-olive); font-size: 11px;">
-                <i class="ri-exchange-line me-1"></i>1 <%= from_entry.asset_label %> = <%= number_with_precision(to_entry.amount.to_f / from_entry.amount.to_f, precision: to_precision, strip_insignificant_zeros: true) %> <%= to_entry.asset_label %>
-              </span>
-            </div>
-          <% end %>
-        </div>
-      <% end %>
-    <% end %>
 
     <%# ── Reference Link (Transfer, etc.) ── %>
     <% if @entry.reference_type == "Transfer" && @entry.reference_id.present? %>

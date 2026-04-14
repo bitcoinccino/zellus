@@ -9,8 +9,8 @@ class CryptoTransferWorker
 
   # Base Mainnet chain ID
   CHAIN_ID     = 8453
-  # USDC on Base Mainnet (6 decimals)
-  USDC_ADDRESS = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
+  # USD (USD) on Base Mainnet (6 decimals)
+  USD_ADDRESS = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
   # WBTC on Base Mainnet (8 decimals)
   WBTC_ADDRESS = ENV.fetch("WBTC_CONTRACT_ADDRESS", "0x0555E30da8f98308EdB960aa94C0Db47230d2B9c")
   # keccak256("transfer(address,uint256)")[0..3] — fixed ABI selector
@@ -61,9 +61,9 @@ class CryptoTransferWorker
       else
         amount    = (transaction.crypto_amount * 10**6).to_i
         calldata  = build_transfer_calldata(transaction.destination_address, amount)
-        gas_limit = estimate_gas(rpc_url, sender, USDC_ADDRESS, calldata)
+        gas_limit = estimate_gas(rpc_url, sender, USD_ADDRESS, calldata)
         raw_tx = build_and_sign_tx(nonce: nonce, gas_price: gas_price, gas_limit: gas_limit,
-                                    to: USDC_ADDRESS, data: calldata, key: key)
+                                    to: USD_ADDRESS, data: calldata, key: key)
       end
 
       Rails.logger.info "CryptoTransfer: signing tx [tx=#{transaction_id}]"
@@ -71,7 +71,7 @@ class CryptoTransferWorker
       tx_hash = rpc_call(rpc_url, "eth_sendRawTransaction", ["0x#{raw_tx}"])
       raise "RPC returned no tx hash" if tx_hash.blank?
 
-      currency = is_eth ? "ETH" : is_wbtc ? "WBTC" : "USDC"
+      currency = is_eth ? "ETH" : is_wbtc ? "WBTC" : "USD"
       transaction.update!(blockchain_tx_hash: tx_hash, status: :crypto_sent)
       Rails.logger.info "CryptoTransfer: broadcast ok #{currency} [tx=#{transaction_id}]"
 

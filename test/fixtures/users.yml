@@ -1,11 +1,33 @@
-# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+# Users referenced by existing fixtures (transactions, sol_memberships)
+one:
+  email: "one@example.com"
+  encrypted_password: "$2a$04$fakehash000000000000000000000000000000000000000000"
+  cashtag: "userone"
+  payout_preference: "auto"
 
-# This model initially had no columns defined. If you add columns to the
-# model remove the "{}" from the fixture names and add the columns immediately
-# below each fixture, per the syntax in the comments below
-#
-one: {}
-# column: value
-#
-two: {}
-# column: value
+two:
+  email: "two@example.com"
+  encrypted_password: "$2a$04$fakehash111111111111111111111111111111111111111111"
+  cashtag: "usertwo"
+  payout_preference: "auto"
+
+# API test users
+sender:
+  email: "sender@example.com"
+  encrypted_password: "$2a$04$fakehash222222222222222222222222222222222222222222"
+  cashtag: "senderguy"
+  phone_number: "50912345678"
+  payout_preference: "auto"
+
+receiver:
+  email: "receiver@example.com"
+  encrypted_password: "$2a$04$fakehash333333333333333333333333333333333333333333"
+  cashtag: "receivergal"
+  phone_number: "50987654321"
+  payout_preference: "auto"
+
+frozen_user:
+  email: "frozen@example.com"
+  encrypted_password: "$2a$04$fakehash444444444444444444444444444444444444444444"
+  cashtag: "frozenacct"
+  payout_preference: "auto"

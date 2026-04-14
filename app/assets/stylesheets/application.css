@@ -1,10 +1,195 @@
 /*
- * This is a manifest file that'll be compiled into application.css.
- *
- * With Propshaft, assets are served efficiently without preprocessing steps. You can still include
- * application-wide styles in this file, but keep in mind that CSS precedence will follow the standard
- * cascading order, meaning styles declared later in the document or manifest will override earlier ones,
- * depending on specificity.
- *
- * Consider organizing styles into separate files for maintainability.
+ * ══════════════════════════════════════════════════════
+ *  ZÈLLUS Design System — Utility Classes Only
+ *  Base element styles live in layouts/application.html.erb <style>.
+ *  This file adds ONLY new utility classes that don't conflict.
+ * ══════════════════════════════════════════════════════
  */
+
+/* ── Color Utilities ──────────────────────────────── */
+.bg-charcoal { background-color: var(--haiti-charcoal) !important; }
+.bg-olive    { background-color: var(--haiti-olive) !important; }
+.bg-gold     { background-color: var(--haiti-gold) !important; }
+.bg-mint     { background-color: var(--haiti-mint) !important; }
+.bg-cream    { background-color: var(--haiti-cream) !important; }
+
+.text-charcoal { color: var(--haiti-charcoal) !important; }
+.text-olive    { color: var(--haiti-olive) !important; }
+.text-gold     { color: var(--haiti-gold) !important; }
+.text-cream    { color: var(--haiti-cream) !important; }
+
+.border-gold { border-color: var(--haiti-gold) !important; }
+.icon-gold   { color: var(--haiti-gold); }
+
+/* ── Size Utilities ───────────────────────────────── */
+.text-xs { font-size: 0.6875rem; /* 11px */ }
+
+/* ── Card Hover (opt-in only) ─────────────────────── */
+.z-card-hover {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  cursor: pointer;
+}
+.z-card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(46, 46, 56, 0.12);
+}
+
+/* ── Card Border (opt-in only) ────────────────────── */
+.z-card-bordered {
+  border: 1px solid rgba(46, 46, 56, 0.05);
+}
+
+/* ── Hero Section ─────────────────────────────────── */
+.z-hero {
+  background: var(--haiti-charcoal);
+  padding: 28px 24px;
+}
+
+/* ── Badges ───────────────────────────────────────── */
+.z-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 99px;
+  letter-spacing: 0.3px;
+}
+.z-badge-gold {
+  background: rgba(197, 160, 89, 0.15);
+  color: var(--haiti-gold);
+}
+.z-badge-success {
+  background: rgba(34, 197, 94, 0.12);
+  color: #22c55e;
+}
+.z-badge-danger {
+  background: rgba(248, 113, 113, 0.12);
+  color: #f87171;
+}
+
+/* ── Fluid Container ──────────────────────────────── */
+.z-container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+@media (min-width: 768px) {
+  .z-container { padding: 0 24px; }
+}
+
+/* ── Responsive Grid ──────────────────────────────── */
+.z-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: 1fr;
+}
+@media (min-width: 768px) {
+  .z-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (min-width: 1200px) {
+  .z-grid-3 { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* ── Mobile Bottom Nav ────────────────────────────── */
+@media (max-width: 991.98px) {
+  .z-bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 1040;
+    background: var(--haiti-charcoal);
+    border-top: 1px solid rgba(197, 160, 89, 0.12);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 8px 0 max(8px, env(safe-area-inset-bottom));
+  }
+  .z-bottom-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    color: rgba(255, 255, 255, 0.4);
+    text-decoration: none;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 4px 12px;
+    min-width: 56px;
+    transition: color 0.15s ease;
+  }
+  .z-bottom-nav-item i { font-size: 22px; }
+  .z-bottom-nav-item.active,
+  .z-bottom-nav-item:hover { color: var(--haiti-gold); }
+
+  .z-has-bottom-nav {
+    padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* ── Bottom Sheet (mobile overlays) ───────────────── */
+.z-bottom-sheet {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 1050;
+  background: var(--haiti-cream);
+  border-radius: 20px 20px 0 0;
+  padding: 24px;
+  transform: translateY(100%);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  max-height: 80vh;
+  overflow-y: auto;
+}
+.z-bottom-sheet.open { transform: translateY(0); }
+.z-bottom-sheet-handle {
+  width: 36px;
+  height: 4px;
+  background: rgba(46, 46, 56, 0.15);
+  border-radius: 2px;
+  margin: 0 auto 16px;
+}
+.z-bottom-sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1049;
+  background: rgba(46, 46, 56, 0.5);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+.z-bottom-sheet-backdrop.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ── Skeleton Loader ──────────────────────────────── */
+@keyframes z-shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.z-skeleton {
+  background: linear-gradient(90deg, rgba(197,160,89,0.08) 25%, rgba(197,160,89,0.18) 50%, rgba(197,160,89,0.08) 75%);
+  background-size: 200% 100%;
+  animation: z-shimmer 1.5s ease-in-out infinite;
+  border-radius: 8px;
+}
+.z-skeleton-text { height: 14px; margin-bottom: 8px; }
+.z-skeleton-title { height: 22px; width: 60%; margin-bottom: 12px; }
+.z-skeleton-avatar { width: 48px; height: 48px; border-radius: 50%; }
+
+/* ── Selection Color ──────────────────────────────── */
+::selection {
+  background: rgba(197, 160, 89, 0.3);
+  color: var(--haiti-charcoal);
+}
+
+/* ── Scrollbar ────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(93,99,69,0.15); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(93,99,69,0.3); }

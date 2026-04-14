@@ -1,0 +1,107 @@
+<%# ── Activity Card for Notification Feed ── %>
+<%= link_to notification_path(notif),
+    class: "activity-card #{'unread' if notif.unread?}",
+    data: { category: notif.activity_category, source: notif.activity_source } do %>
+
+  <%# ── Avatar / Icon (48px) with category badge ── %>
+  <% cat_color = notif.activity_color %>
+  <% cat_icon = notif.icon_class %>
+  <% actor = notif.actor || notif.user %>
+  <% biz = notif.notifiable.is_a?(Transfer) ? notif.notifiable.business : nil %>
+  <% actor_photo = actor&.avatar&.attached? ? nil : actor&.bonid_photo_url %>
+
+  <% if biz&.logo&.attached? %>
+    <%# ── Business logo takes priority ── %>
+    <div class="notif-avatar" style="border: 2px solid var(--haiti-gold);">
+      <%= image_tag biz.logo %>
+      <div class="category-badge" style="background: <%= cat_color %>;">
+        <i class="<%= cat_icon %>" style="font-size: 9px; color: #fff;"></i>
+      </div>
+    </div>
+  <% elsif actor&.avatar&.attached? %>
+    <div class="notif-avatar" style="border: 2px solid var(--haiti-gold);">
+      <%= image_tag actor.avatar %>
+      <div class="category-badge" style="background: <%= cat_color %>;">
+        <i class="<%= cat_icon %>" style="font-size: 9px; color: #fff;"></i>
+      </div>
+    </div>
+  <% elsif actor.present? && actor_photo.present? %>
+    <div class="notif-avatar" style="border: 2px solid var(--haiti-gold);">
+      <%= image_tag actor_photo %>
+      <div class="category-badge" style="background: <%= cat_color %>;">
+        <i class="<%= cat_icon %>" style="font-size: 9px; color: #fff;"></i>
+      </div>
+    </div>
+  <% elsif actor.present? %>
+    <div class="notif-avatar-initials" style="position: relative;">
+      <span style="font-size: 18px;"><%= actor.tier_icon %></span>
+      <div class="category-badge" style="background: <%= cat_color %>;">
+        <i class="<%= cat_icon %>" style="font-size: 9px; color: #fff;"></i>
+      </div>
+    </div>
+  <% else %>
+    <% colors = Notification::COLOR_MAP[notif.notification_type] || { bg: "rgba(93,99,69,0.1)", fg: "#5D6345" } %>
+    <div class="notif-avatar-icon" style="position: relative; background: <%= colors[:bg] %>;">
+      <i class="<%= cat_icon %>" style="font-size: 24px; color: <%= colors[:fg] %>;"></i>
+    </div>
+  <% end %>
+
+  <%# ── Text Content ── %>
+  <div class="flex-grow-1" style="min-width: 0;">
+    <div class="<%= notif.unread? ? 'fw-bold' : '' %>" style="color: var(--haiti-charcoal); font-size: 13px; line-height: 1.35;">
+      <%= notif.display_title %>
+    </div>
+    <% if notif.body.present? %>
+      <div class="text-truncate" style="color: var(--haiti-olive); font-size: 11px; max-width: 280px; font-style: italic;">
+        "<%= notif.body.truncate(60) %>"
+      </div>
+    <% end %>
+    <div class="d-flex align-items-center gap-2" style="margin-top: 3px;">
+      <% if notif.failed? %>
+        <span class="notif-status-pill failed">Echwe</span>
+      <% end %>
+      <span style="color: var(--haiti-olive); font-size: 10px;">
+        <i class="ri-time-line me-1" style="font-size: 9px;"></i><%= time_ago_in_words(notif.created_at) %> de sa
+      </span>
+      <% if notif.notifiable.is_a?(Transfer) && notif.notifiable.business_id.present? %>
+        <span style="display: inline-flex; align-items: center; gap: 2px; padding: 1px 6px; border-radius: 8px; background: rgba(197,160,89,0.12); color: var(--haiti-gold); font-size: 9px; font-weight: 700;">
+          <i class="ri-store-2-line" style="font-size: 9px;"></i>Biznis
+        </span>
+      <% end %>
+    </div>
+
+    <%# ── Action tags ── %>
+    <% if notif.failed? %>
+      <span class="notif-action-tag retry"><i class="ri-refresh-line"></i> Eseye ankò</span>
+    <% elsif notif.notification_type == "transfer_received" && notif.actor.present? %>
+      <% if notif.thanked? %>
+        <span class="notif-action-tag thanks" style="opacity: 0.5;">
+          <i class="ri-heart-fill"></i> Mèsi voye
+        </span>
+      <% else %>
+        <span class="notif-action-tag thanks js-send-thanks" role="button"
+            data-thanks-url="<%= send_thanks_notification_path(notif) %>"
+            style="cursor: pointer;">
+          <i class="ri-heart-line"></i> Voye di mèsi
+        </span>
+      <% end %>
+    <% elsif notif.notification_type == "payment_request_received" %>
+      <span class="notif-action-tag request"><i class="ri-hand-coin-line"></i> Wè demann</span>
+    <% end %>
+  </div>
+
+  <%# ── Amount on Right ── %>
+  <% amount_text = notif.display_amount %>
+  <% if amount_text.present? %>
+    <div class="notif-amount">
+      <div class="notif-amount-value" style="color: <%= notif.failed? ? '#991b1b' : cat_color %>; <%= 'text-decoration: line-through; opacity: 0.6;' if notif.failed? %>">
+        <% if notif.incoming? && !notif.failed? %>+<% elsif notif.outgoing? && !notif.failed? %>-<% end %><%= amount_text %>
+      </div>
+      <div style="font-size: 9px; color: <%= cat_color %>; font-weight: 600; margin-top: 1px;">
+        <%= notif.activity_label %>
+      </div>
+    </div>
+  <% elsif notif.unread? %>
+    <div style="width: 8px; height: 8px; border-radius: 50%; background: var(--haiti-gold); flex-shrink: 0;"></div>
+  <% end %>
+<% end %>

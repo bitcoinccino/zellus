@@ -8,7 +8,7 @@ class SolEscrowService
   end
 
   # Record a member's contribution into escrow
-  # Called when a PaymentRequest is paid (HTG or USDC)
+  # Called when a PaymentRequest is paid (HTG or USD)
   def deposit!(user:, round:, asset:, amount:, reference: nil)
     ensure_open!
 
@@ -139,9 +139,9 @@ class SolEscrowService
 
   # Close escrow when circle completes (balance should be 0)
   def close!
-    if @escrow.htg_balance > 0 || @escrow.usdc_balance > 0
+    if @escrow.htg_balance > 0 || @escrow.usd_balance > 0
       Rails.logger.warn "SolEscrowService: Fèmen eskwo #{@escrow.id} ak balans rezidyèl " \
-                        "HTG=#{@escrow.htg_balance} USDC=#{@escrow.usdc_balance}"
+                        "HTG=#{@escrow.htg_balance} USD=#{@escrow.usd_balance}"
     end
     @escrow.update!(status: :closed)
   end
@@ -156,7 +156,7 @@ class SolEscrowService
     if asset == "htg"
       @escrow.update!(htg_balance: new_balance)
     else
-      @escrow.update!(usdc_balance: new_balance)
+      @escrow.update!(usd_balance: new_balance)
     end
   end
 end

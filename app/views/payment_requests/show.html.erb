@@ -4,7 +4,7 @@
     <% display_name = @payment_request.payer_name.presence || "Nenpòt moun" %>
     <% clean_name = display_name.gsub(/[^\p{L}\p{N}\s]/, '').strip %>
     <% initials = clean_name.present? ? clean_name.split.map { |w| w[0] }.join.upcase.first(2) : "?" %>
-    <% is_dead = @payment_request.expired? || @payment_request.canceled? %>
+    <% is_dead = @payment_request.expired? || @payment_request.canceled? || @payment_request.declined? %>
     <% asset_colors = { "htg" => "var(--haiti-gold)", "usdc" => "#0052FF", "eth" => "#627eea", "wbtc" => "#f7931a" } %>
     <% asset_color = asset_colors[@payment_request.asset] || "var(--haiti-gold)" %>
 
@@ -28,6 +28,8 @@
           { icon: "ri-forbid-line", color: "#f87171", bg: "rgba(248,113,113,0.12)", label: "Echwe" }
         when "canceled"
           { icon: "ri-close-circle-line", color: "#f87171", bg: "rgba(248,113,113,0.12)", label: "Anile" }
+        when "declined"
+          { icon: "ri-close-circle-line", color: "#f87171", bg: "rgba(248,113,113,0.12)", label: "Refize" }
         end %>
       <div class="d-inline-flex align-items-center gap-1 px-3 py-1 rounded-pill mb-3"
            style="background: <%= status_cfg[:bg] %>; font-size: 11px; font-weight: 700; color: <%= status_cfg[:color] %>;">
@@ -144,6 +146,19 @@
         </div>
       <% end %>
     </div>
+
+    <%# ── Decline note from payer ── %>
+    <% if @payment_request.declined? && @payment_request.cancel_note.present? %>
+      <div class="card-base p-4 mt-3">
+        <div class="d-flex align-items-start gap-2">
+          <i class="ri-chat-quote-line flex-shrink-0" style="color: #f87171; font-size: 18px; margin-top: 1px;"></i>
+          <div>
+            <div class="fw-bold text-uppercase" style="color: #991b1b; font-size: 9px; letter-spacing: 1px; margin-bottom: 3px;">Rezon Refize</div>
+            <div class="fw-semibold" style="color: var(--haiti-charcoal); font-size: 13px; line-height: 1.4;"><%= @payment_request.cancel_note %></div>
+          </div>
+        </div>
+      </div>
+    <% end %>
 
     <%# ══════════════════════════════════════════ %>
     <%# ── RECEIPT CARD                         ── %>

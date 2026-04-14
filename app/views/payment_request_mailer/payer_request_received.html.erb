@@ -1,6 +1,6 @@
 <div style="margin-bottom:20px;">
-  <div style="font-size:15px; font-weight:800; color:#C5A059; margin-bottom:6px;">Ou Gen Yon Demann Peman</div>
-  <div style="font-size:13px; color:#5D6345;"><%= @creator_name %> mande ou lajan ak Zèllus.</div>
+  <div style="font-size:15px; font-weight:800; color:#C5A059; margin-bottom:6px;"><%= @creator_name %> Mande W <%= @amount_display %></div>
+  <div style="font-size:13px; color:#5D6345;"><%= @creator_name %> mande w <%= @amount_display %> ak Zèllus.</div>
 </div>
 
 <div style="background:#E8EDE0; border:2px solid #5D6345; border-radius:14px; padding:16px; margin-bottom:16px; text-align:center;">
@@ -8,7 +8,7 @@
   <div style="color:#C5A059; font-size:28px; font-weight:900; letter-spacing:-1px;"><%= @amount_display %></div>
   <div style="margin-top:4px;">
     <span style="display:inline-block; background:#2E2E38; color:#C5A059; font-size:10px; font-weight:800; padding:3px 10px; border-radius:10px;">
-      <%= @payment_request.asset.upcase %>
+      <%= @payment_request.asset_label %>
     </span>
   </div>
 </div>

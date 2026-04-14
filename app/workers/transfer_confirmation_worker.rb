@@ -83,15 +83,15 @@ class TransferConfirmationWorker
     sender_wallet = transfer.user.wallet
     return unless sender_wallet
 
-    if transfer.usdc_wallet_transfer? || transfer.usdc_address_transfer?
-      usdc_amount = transfer.crypto_amount || transfer.net_amount
+    if transfer.usd_wallet_transfer? || transfer.usd_address_transfer?
+      usd_amount = transfer.crypto_amount || transfer.net_amount
       WalletService.new(sender_wallet).refund!(
-        amount: usdc_amount,
-        asset: "usdc",
+        amount: usd_amount,
+        asset: "usd",
         reference: transfer,
         reason: "Tranzaksyon blockchain echwe — ranbousman otomatik"
       )
-      Rails.logger.info "TransferConfirmation: refunded #{usdc_amount} USDC to sender wallet [transfer=#{transfer.id}]"
+      Rails.logger.info "TransferConfirmation: refunded #{usd_amount} USD to sender wallet [transfer=#{transfer.id}]"
     elsif transfer.htg_transfer?
       WalletService.new(sender_wallet).refund!(
         amount: transfer.amount,

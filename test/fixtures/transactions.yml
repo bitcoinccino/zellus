@@ -6,9 +6,10 @@ one:
   fiat_amount: 9.99
   crypto_amount: 9.99
   exchange_rate: 9.99
-  destination_address: MyString
-  moncash_transaction_id: MyString
-  blockchain_tx_hash: MyString
+  destination_address: "0xabc123"
+  moncash_transaction_id: "mc_tx_fixture_one"
+  blockchain_tx_hash: "0xhash_one"
+  token: "tx_fixture_token_one"
 
 two:
   user: two
@@ -16,6 +17,7 @@ two:
   fiat_amount: 9.99
   crypto_amount: 9.99
   exchange_rate: 9.99
-  destination_address: MyString
-  moncash_transaction_id: MyString
-  blockchain_tx_hash: MyString
+  destination_address: "0xdef456"
+  moncash_transaction_id: "mc_tx_fixture_two"
+  blockchain_tx_hash: "0xhash_two"
+  token: "tx_fixture_token_two"

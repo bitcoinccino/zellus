@@ -1,0 +1,590 @@
+<%# Page Title %>
+<div class="mb-4">
+  <h1 class="h4 fw-bold mb-0" style="color: var(--haiti-charcoal); font-family: 'Space Grotesk', sans-serif;">
+    <i class="ri-dashboard-3-line me-2" style="color: var(--haiti-gold);"></i>Dashboard
+  </h1>
+</div>
+
+<%# ═══════════════════════════════════════════════════════════════════
+    HERO METRIC — Live Pwofi with pulse indicator
+    ═══════════════════════════════════════════════════════════════════ %>
+<div class="card-base p-4 mb-4" style="border: 1px solid rgba(93,99,69,0.12); position: relative; overflow: hidden;" id="hero-profit-card">
+  <div class="d-flex align-items-start justify-content-between">
+    <div>
+      <div class="d-flex align-items-center gap-2 mb-2">
+        <div class="d-flex align-items-center justify-content-center" style="width: 36px; height: 36px; border-radius: 12px; background: rgba(22,101,52,0.08);">
+          <i class="ri-money-dollar-circle-line" style="color: #166534; font-size: 18px;"></i>
+        </div>
+        <span style="color: var(--haiti-olive); font-size: 10px; text-transform: uppercase; letter-spacing: 1px; font-weight: 700;">Pwofi Total</span>
+        <span id="live-indicator" class="d-inline-flex align-items-center gap-1 ms-2" style="font-size: 9px; font-weight: 700; color: #166534; background: rgba(22,101,52,0.08); padding: 2px 8px; border-radius: 12px;">
+          <span style="width: 6px; height: 6px; border-radius: 50%; background: #22c55e; animation: livePulse 2s ease-in-out infinite;"></span>
+          LIVE
+        </span>
+      </div>
+      <div id="live-profit-counter" class="d-flex align-items-baseline gap-3">
+        <div class="d-flex align-items-center gap-2">
+          <%= htg_logo_svg(size: 22) %>
+          <span class="fw-black" style="color: var(--haiti-charcoal); font-family: 'Space Grotesk', sans-serif; font-size: 36px; transition: all 0.3s ease;">
+            <%= number_to_currency(@grand_total_fees, unit: "", precision: 0) %>
+          </span>
+          <span style="color: var(--haiti-olive); font-size: 14px; font-weight: 500;">HTG</span>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <%= usd_logo(size: 18) %>
+          <span style="color: var(--haiti-olive); font-size: 18px; font-weight: 600; font-family: 'Space Grotesk', sans-serif;">
+            $<%= number_to_currency(@grand_total_fees_usd, unit: "", precision: 2) %>
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <%# Per-type breakdown (compact) %>
+    <div class="d-flex gap-2">
+      <div class="rounded-3 p-2 text-center" style="background: rgba(22,101,52,0.06); border: 1px solid rgba(22,101,52,0.1); min-width: 80px;">
+        <div class="d-flex align-items-center justify-content-center gap-1 mb-1">
+          <i class="ri-arrow-down-circle-line" style="color: #166534; font-size: 10px;"></i>
+          <span style="color: #166534; font-size: 8px; text-transform: uppercase; font-weight: 700;">Achte</span>
+        </div>
+        <div style="font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 13px; color: var(--haiti-charcoal);">
+          <%= number_to_currency(@buy_fees, unit: "", precision: 0) %>
+        </div>
+        <div style="font-size: 9px; color: var(--haiti-olive);"><%= @buy_count %> tx</div>
+      </div>
+      <div class="rounded-3 p-2 text-center" style="background: rgba(59,130,246,0.06); border: 1px solid rgba(59,130,246,0.1); min-width: 80px;">
+        <div class="d-flex align-items-center justify-content-center gap-1 mb-1">
+          <i class="ri-arrow-up-circle-line" style="color: #2563eb; font-size: 10px;"></i>
+          <span style="color: #2563eb; font-size: 8px; text-transform: uppercase; font-weight: 700;">Vann</span>
+        </div>
+        <div style="font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 13px; color: var(--haiti-charcoal);">
+          <%= number_to_currency(@sell_fees, unit: "", precision: 0) %>
+        </div>
+        <div style="font-size: 9px; color: var(--haiti-olive);"><%= @sell_count %> tx</div>
+      </div>
+      <div class="rounded-3 p-2 text-center" style="background: rgba(197,160,89,0.08); border: 1px solid rgba(197,160,89,0.15); min-width: 80px;">
+        <div class="d-flex align-items-center justify-content-center gap-1 mb-1">
+          <i class="ri-hand-coin-line" style="color: var(--haiti-gold); font-size: 10px;"></i>
+          <span style="color: var(--haiti-gold); font-size: 8px; text-transform: uppercase; font-weight: 700;">Prè</span>
+        </div>
+        <div style="font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 13px; color: var(--haiti-charcoal);">
+          <%= number_to_currency(@loan_fees, unit: "", precision: 0) %>
+        </div>
+        <div style="font-size: 9px; color: var(--haiti-olive);"><%= @loan_count %> tx</div>
+      </div>
+      <div class="rounded-3 p-2 text-center" style="background: rgba(147,51,234,0.06); border: 1px solid rgba(147,51,234,0.1); min-width: 80px;">
+        <div class="d-flex align-items-center justify-content-center gap-1 mb-1">
+          <i class="ri-swap-line" style="color: #9333ea; font-size: 10px;"></i>
+          <span style="color: #9333ea; font-size: 8px; text-transform: uppercase; font-weight: 700;">Konvèti</span>
+        </div>
+        <div style="font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 13px; color: var(--haiti-charcoal);">
+          <% cv_htg = @conversion_fees_htg + (@conversion_fees_usd * @usd_htg_rate) %>
+          <%= number_to_currency(cv_htg, unit: "", precision: 0) %>
+        </div>
+        <div style="font-size: 9px; color: var(--haiti-olive);"><%= @conversion_fee_count %> tx</div>
+      </div>
+      <div class="rounded-3 p-2 text-center" style="background: rgba(234,88,12,0.06); border: 1px solid rgba(234,88,12,0.1); min-width: 80px;">
+        <div class="d-flex align-items-center justify-content-center gap-1 mb-1">
+          <i class="ri-logout-circle-line" style="color: #ea580c; font-size: 10px;"></i>
+          <span style="color: #ea580c; font-size: 8px; text-transform: uppercase; font-weight: 700;">Retrè</span>
+        </div>
+        <div style="font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 13px; color: var(--haiti-charcoal);">
+          <% wd_htg = @withdraw_fees_htg + (@withdraw_fees_usd * @usd_htg_rate) %>
+          <%= number_to_currency(wd_htg, unit: "", precision: 0) %>
+        </div>
+        <div style="font-size: 9px; color: var(--haiti-olive);"><%= @withdraw_fee_count %> tx</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%# ═══════════════════════════════════════════════════════════════════
+    QUICK KPIs — Compact row
+    ═══════════════════════════════════════════════════════════════════ %>
+<div class="row g-3 mb-4">
+  <div class="col-md-3">
+    <div class="card-base p-3" style="border: 1px solid rgba(93,99,69,0.12);">
+      <div class="d-flex align-items-center gap-2 mb-2">
+        <div class="d-flex align-items-center justify-content-center" style="width: 28px; height: 28px; border-radius: 8px; background: rgba(59,130,246,0.08);">
+          <i class="ri-bar-chart-box-line" style="color: #2563eb; font-size: 14px;"></i>
+        </div>
+        <span style="color: var(--haiti-olive); font-size: 9px; text-transform: uppercase; letter-spacing: 1px; font-weight: 700;">Volim</span>
+      </div>
+      <div class="d-flex align-items-center gap-2 flex-wrap">
+        <div class="d-flex align-items-center gap-1">
+          <%= htg_logo_svg(size: 16) %>
+          <span class="fw-bold" style="color: var(--haiti-charcoal); font-family: 'Space Grotesk', sans-serif; font-size: 18px;">
+            <%= number_to_currency(@total_volume, unit: "", precision: 0) %>
+          </span>
+        </div>
+        <div class="d-flex align-items-center gap-1">
+          <%= usd_logo(size: 14) %>
+          <span style="color: var(--haiti-olive); font-size: 11px; font-weight: 600;">$<%= number_to_currency(@total_volume_usd, unit: "", precision: 2) %></span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card-base p-3" style="border: 1px solid rgba(93,99,69,0.12);">
+      <div class="d-flex align-items-center gap-2 mb-2">
+        <div class="d-flex align-items-center justify-content-center" style="width: 28px; height: 28px; border-radius: 8px; background: rgba(197,160,89,0.12);">
+          <i class="ri-exchange-line" style="color: var(--haiti-gold); font-size: 14px;"></i>
+        </div>
+        <span style="color: var(--haiti-olive); font-size: 9px; text-transform: uppercase; letter-spacing: 1px; font-weight: 700;">TX Trete</span>
+      </div>
+      <div class="fw-bold" style="color: var(--haiti-charcoal); font-family: 'Space Grotesk', sans-serif; font-size: 20px;">
+        <%= @tx_processed %>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card-base p-3" style="border: 1px solid rgba(93,99,69,0.12);">
+      <div class="d-flex align-items-center gap-2 mb-2">
+        <div class="d-flex align-items-center justify-content-center" style="width: 28px; height: 28px; border-radius: 8px; background: rgba(147,51,234,0.08);">
+          <i class="ri-group-line" style="color: #9333ea; font-size: 14px;"></i>
+        </div>
+        <span style="color: var(--haiti-olive); font-size: 9px; text-transform: uppercase; letter-spacing: 1px; font-weight: 700;">Itilizatè</span>
+      </div>
+      <div class="fw-bold" style="color: var(--haiti-charcoal); font-family: 'Space Grotesk', sans-serif; font-size: 20px;">
+        <%= @user_count %>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card-base p-3" style="border: 1px solid rgba(93,99,69,0.12);">
+      <div class="d-flex align-items-center gap-2 mb-2">
+        <div class="d-flex align-items-center justify-content-center" style="width: 28px; height: 28px; border-radius: 8px; background: rgba(197,160,89,0.08);">
+          <i class="ri-hand-coin-line" style="color: var(--haiti-gold); font-size: 14px;"></i>
+        </div>
+        <span style="color: var(--haiti-olive); font-size: 9px; text-transform: uppercase; letter-spacing: 1px; font-weight: 700;">Prè an Atant</span>
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        <span class="fw-bold" style="color: var(--haiti-charcoal); font-family: 'Space Grotesk', sans-serif; font-size: 20px;">
+          <%= @pending_loans_count %>
+        </span>
+        <% if @pending_loans_count > 0 %>
+          <%= link_to admin_bousad_applicants_path, class: "btn btn-sm rounded-pill px-2 py-0 fw-bold", style: "background: #fef3c7; color: #92400e; font-size: 9px;" do %>
+            Wè <i class="ri-arrow-right-s-line"></i>
+          <% end %>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%# ═══════════════════════════════════════════════════════════════════
+    MAIN LAYOUT: Chart (left) + Aksyon + Ticker (right)
+    ═══════════════════════════════════════════════════════════════════ %>
+<div class="row g-4 mb-4">
+
+  <%# ── LEFT: Time-Series Chart ── %>
+  <div class="col-lg-7">
+    <div class="card-base p-4" style="border: 1px solid rgba(93,99,69,0.12);">
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <h3 class="h6 fw-black mb-0" style="color: var(--haiti-charcoal);">
+          <i class="ri-line-chart-line me-2" style="color: var(--haiti-gold);"></i>Pwofi nan Tan
+        </h3>
+        <%# Time range switcher %>
+        <div class="d-flex gap-1" id="chart-range-switcher">
+          <% [
+            { key: "hour", label: "Min" },
+            { key: "day", label: "Jou" },
+            { key: "week", label: "Sem" },
+            { key: "month", label: "Mwa" },
+            { key: "year", label: "An" }
+          ].each do |r| %>
+            <button type="button" class="btn btn-sm rounded-pill px-2 py-0 chart-range-btn <%= 'active' if r[:key] == 'week' %>"
+                    style="font-size: 10px; font-weight: 700;"
+                    data-range="<%= r[:key] %>"
+                    onclick="loadChartData('<%= r[:key] %>')">
+              <%= r[:label] %>
+            </button>
+          <% end %>
+        </div>
+      </div>
+      <div id="profit-chart" style="height: 280px; width: 100%;"></div>
+    </div>
+  </div>
+
+  <%# ── RIGHT: Aksyon an Atant + Live Ticker ── %>
+  <div class="col-lg-5">
+    <%# Aksyon an Atant (Agents + Bank Withdrawals only) %>
+    <% pending_agents_count = @pending_agent_applications.count %>
+    <% pending_bw_count = @pending_bank_withdrawals.count %>
+    <% total_pending = pending_agents_count + pending_bw_count %>
+
+    <div class="card-base p-4 mb-3" style="border: 1px solid rgba(93,99,69,0.12);">
+      <h3 class="h6 fw-black mb-3" style="color: var(--haiti-charcoal);">
+        <i class="ri-alarm-warning-line me-2" style="color: var(--haiti-gold);"></i>Aksyon an Atant
+        <% if total_pending > 0 %>
+          <span class="badge rounded-pill ms-1" style="background: #fef3c7; color: #92400e; font-size: 10px;"><%= total_pending %></span>
+        <% end %>
+      </h3>
+
+      <% if total_pending == 0 %>
+        <div class="text-center py-3" style="color: var(--haiti-olive);">
+          <i class="ri-checkbox-circle-line d-block mb-2" style="font-size: 24px; color: #22c55e; opacity: 0.6;"></i>
+          <div class="small fw-bold">Tout klè</div>
+          <div style="font-size: 10px;">Pa gen aksyon an atant.</div>
+        </div>
+      <% else %>
+
+        <%# ── Agent Applications ── %>
+        <% if pending_agents_count > 0 %>
+          <div class="mb-3 pb-3" style="border-bottom: 1px solid rgba(93,99,69,0.15);">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+              <span class="fw-bold" style="color: var(--haiti-charcoal); font-size: 12px;">
+                <i class="ri-user-location-line me-1" style="color: var(--haiti-gold);"></i>Aplikasyon Ajan
+              </span>
+              <span class="badge rounded-pill" style="background: #fef3c7; color: #92400e; font-size: 10px;"><%= pending_agents_count %></span>
+            </div>
+            <% @pending_agent_applications.each do |biz| %>
+              <div class="d-flex align-items-center justify-content-between p-2 rounded-3 mb-1" style="background: rgba(93,99,69,0.05);">
+                <div class="d-flex align-items-center gap-2">
+                  <% if biz.logo.attached? %>
+                    <%= image_tag biz.logo, style: "width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 2px solid rgba(93,99,69,0.12);" %>
+                  <% else %>
+                    <div style="width: 32px; height: 32px; border-radius: 50%; background: rgba(93,99,69,0.1); display: flex; align-items: center; justify-content: center;">
+                      <i class="ri-store-2-line" style="color: var(--haiti-olive); font-size: 14px;"></i>
+                    </div>
+                  <% end %>
+                  <div>
+                    <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 11px;"><%= biz.name %></div>
+                    <div style="color: var(--haiti-olive); font-size: 9px;">$<%= biz.user.cashtag %></div>
+                  </div>
+                </div>
+                <div class="d-flex gap-1">
+                  <%= button_to admin_approve_agent_path(biz), method: :post,
+                      class: "btn btn-sm border-0 rounded-pill px-2 py-0",
+                      style: "background: #dcfce7; color: #166534; font-size: 10px;",
+                      data: { turbo_confirm: "Apwouve #{biz.name} kòm ajan Zèllus?" } do %>
+                    <i class="ri-check-line"></i>
+                  <% end %>
+                  <%= button_to admin_reject_agent_path(biz), method: :post,
+                      class: "btn btn-sm border-0 rounded-pill px-2 py-0",
+                      style: "background: #fef2f2; color: #991b1b; font-size: 10px;",
+                      data: { turbo_confirm: "Rejte aplikasyon #{biz.name}?" } do %>
+                    <i class="ri-close-line"></i>
+                  <% end %>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        <% end %>
+
+        <%# ── Bank Withdrawals ── %>
+        <% if pending_bw_count > 0 %>
+          <div>
+            <div class="d-flex align-items-center justify-content-between mb-2">
+              <span class="fw-bold" style="color: var(--haiti-charcoal); font-size: 12px;">
+                <i class="ri-bank-line me-1" style="color: var(--haiti-gold);"></i>Retrè Bank
+              </span>
+              <span class="badge rounded-pill" style="background: #fef3c7; color: #92400e; font-size: 10px;"><%= pending_bw_count %></span>
+            </div>
+            <% @pending_bank_withdrawals.each do |bw| %>
+              <div class="p-2 rounded-3 mb-1" style="background: rgba(93,99,69,0.05);">
+                <div class="d-flex align-items-center justify-content-between mb-1">
+                  <div>
+                    <span class="fw-bold" style="color: var(--haiti-charcoal); font-size: 11px;"><%= bw.user.display_name %></span>
+                    <span style="color: var(--haiti-olive); font-size: 10px;">· $<%= bw.user.cashtag %></span>
+                  </div>
+                  <span class="fw-black" style="color: var(--haiti-charcoal); font-size: 12px;"><%= number_to_currency(bw.amount, unit: "", precision: 0) %> HTG</span>
+                </div>
+                <div class="d-flex align-items-center justify-content-between">
+                  <div style="color: var(--haiti-olive); font-size: 9px;">
+                    <%= bw.bank_name %> · <%= bw.masked_account %>
+                    <% if bw.processing? %>
+                      <span class="badge rounded-pill ms-1" style="background: #dbeafe; color: #1d4ed8; font-size: 8px;">Ap Trete</span>
+                    <% end %>
+                  </div>
+                  <div class="d-flex gap-1">
+                    <% if bw.pending? %>
+                      <%= button_to admin_process_bank_withdrawal_path(bw), method: :post,
+                          class: "btn btn-sm border-0 rounded-pill px-2 py-0",
+                          style: "background: #dbeafe; color: #1d4ed8; font-size: 10px;" do %>
+                        <i class="ri-play-circle-line"></i>
+                      <% end %>
+                    <% end %>
+                    <% if bw.processing? %>
+                      <%= form_with(url: admin_complete_bank_withdrawal_path(bw), method: :post, local: true, class: "d-inline-flex align-items-center gap-1") do %>
+                        <input type="text" name="reference_number" placeholder="Ref#" class="form-control form-control-sm border-0 rounded-pill"
+                               style="width: 60px; font-size: 9px; background: #f3f4f6; padding: 2px 8px;">
+                        <button type="submit" class="btn btn-sm border-0 rounded-pill px-2 py-0" style="background: #dcfce7; color: #166534; font-size: 10px;">
+                          <i class="ri-check-line"></i>
+                        </button>
+                      <% end %>
+                    <% end %>
+                    <%= button_to admin_fail_bank_withdrawal_path(bw), method: :post,
+                        class: "btn btn-sm border-0 rounded-pill px-2 py-0",
+                        style: "background: #fef2f2; color: #991b1b; font-size: 10px;",
+                        data: { turbo_confirm: "Anile retrè bank #{bw.amount.to_i} HTG pou #{bw.user.display_name}? Lajan ap ranbouse." } do %>
+                      <i class="ri-close-circle-line"></i>
+                    <% end %>
+                  </div>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        <% end %>
+
+      <% end %>
+    </div>
+
+    <%# ── Live Ticker — Last 5 events ── %>
+    <div class="card-base p-4" style="border: 1px solid rgba(93,99,69,0.12);" id="live-ticker">
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <h3 class="h6 fw-black mb-0" style="color: var(--haiti-charcoal);">
+          <i class="ri-flashlight-line me-2" style="color: var(--haiti-gold);"></i>Dènye Aktivite
+        </h3>
+        <%= link_to admin_activity_path, class: "text-decoration-none d-flex align-items-center gap-1", style: "color: var(--haiti-gold); font-size: 11px; font-weight: 700;" do %>
+          Wè Tout <i class="ri-arrow-right-s-line"></i>
+        <% end %>
+      </div>
+
+      <% if @ticker_items.any? %>
+        <% @ticker_items.each_with_index do |item, idx| %>
+          <div class="d-flex align-items-center gap-2 py-2 ticker-entry" style="<%= idx < @ticker_items.size - 1 ? 'border-bottom: 1px solid rgba(93,99,69,0.08);' : '' %> animation: tickerSlideIn 0.3s ease-out <%= idx * 0.05 %>s both;">
+            <span class="badge rounded-pill" style="background: <%= item.type_bg %>; color: <%= item.type_color %>; font-size: 8px; padding: 2px 6px; min-width: 55px; text-align: center;">
+              <i class="<%= item.type_icon %>" style="font-size: 8px;"></i> <%= item.type_label %>
+            </span>
+            <span class="fw-bold" style="color: var(--haiti-charcoal); font-size: 11px; font-family: 'Space Grotesk', sans-serif;">
+              <%= number_to_currency(item.amount_htg, unit: "", precision: 0) %>
+            </span>
+            <span style="color: var(--haiti-olive); font-size: 10px;">$<%= item.user.cashtag %></span>
+            <span class="ms-auto badge rounded-pill" style="background: <%= item.status_bg %>; color: <%= item.status_color %>; font-size: 8px; padding: 2px 6px;">
+              <%= item.status_label %>
+            </span>
+            <span style="color: var(--haiti-olive); font-size: 9px; white-space: nowrap;"><%= time_ago_in_words(item.created_at) %></span>
+          </div>
+        <% end %>
+      <% else %>
+        <div class="text-center py-3" style="color: var(--haiti-olive);">
+          <div class="small">Pa gen aktivite ankò.</div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<%# ═══════════════════════════════════════════════════════════════════
+    FUND TREASURY — PIN-protected address reveal
+    ═══════════════════════════════════════════════════════════════════ %>
+<div class="card-base p-4 mb-4" style="border: 1px solid rgba(93,99,69,0.12);">
+  <div class="d-flex align-items-center gap-2 mb-3">
+    <div class="d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; border-radius: 10px; background: rgba(59,130,246,0.08);">
+      <i class="ri-safe-2-line" style="color: #2563eb; font-size: 16px;"></i>
+    </div>
+    <span style="color: var(--haiti-olive); font-size: 10px; text-transform: uppercase; letter-spacing: 1px; font-weight: 700;">Trezò USDC (Base)</span>
+    <div class="ms-auto d-flex align-items-center gap-2">
+      <%= usd_logo(size: 18) %>
+      <span id="treasuryCardBalance" class="fw-bold" style="color: var(--haiti-charcoal); font-family: 'Space Grotesk', sans-serif; font-size: 20px;">
+        <span class="placeholder-glow"><span class="placeholder rounded" style="width: 60px; height: 18px; background: rgba(93,99,69,0.15);"></span></span>
+      </span>
+      <span style="color: var(--haiti-olive); font-size: 11px;">USD</span>
+    </div>
+  </div>
+
+  <% if flash[:treasury_address].present? %>
+    <%# ── Revealed address ── %>
+    <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">
+      ADRÈS TREZÒ (BASE MAINNET · USDC SÈLMAN)
+    </label>
+    <div class="d-flex align-items-center gap-2 p-3 rounded-3" style="background: var(--haiti-mint); border: 1.5px solid rgba(93,99,69,0.2);">
+      <i class="ri-wallet-3-line" style="color: var(--haiti-gold); font-size: 18px;"></i>
+      <code id="treasuryAddrText" class="flex-fill" style="font-size: 12px; color: var(--haiti-charcoal); word-break: break-all; font-weight: 600;"><%= flash[:treasury_address] %></code>
+      <button type="button" class="btn btn-sm px-2 py-1" style="background: var(--haiti-gold); color: #fff; border-radius: 8px; font-size: 11px;" onclick="navigator.clipboard.writeText(document.getElementById('treasuryAddrText').textContent).then(function(){document.getElementById('tCopied').style.display='block';setTimeout(function(){document.getElementById('tCopied').style.display='none';},2500);})">
+        <i class="ri-file-copy-line me-1"></i>Kopye
+      </button>
+    </div>
+    <div class="mt-2 d-flex align-items-start gap-2 p-2 rounded-3" style="background: rgba(239,68,68,0.06); border: 1px solid rgba(239,68,68,0.15);">
+      <i class="ri-alarm-warning-line" style="color: #ef4444; font-size: 14px; margin-top: 1px;"></i>
+      <span style="color: #991b1b; font-size: 10px; font-weight: 600; line-height: 1.4;">
+        Voye <strong>USDC sèlman</strong> sou rezo <strong>Base</strong>. Tout lòt token oswa rezo ap pèdi pou tout tan.
+      </span>
+    </div>
+    <%# ── QR Code ── %>
+    <% require 'rqrcode' %>
+    <% qr = RQRCode::QRCode.new(flash[:treasury_address]) %>
+    <% qr_svg = qr.as_svg(module_size: 4, standalone: true, use_path: true, color: "2E2E38", shape_rendering: "crispEdges", viewbox: true).sub(/\A<\?xml[^?]*\?>\s*/, '') %>
+    <div class="text-center mt-3 mb-2">
+      <div class="d-inline-block p-3 rounded-3" style="background: #fff; border: 1.5px solid rgba(93,99,69,0.15); width: 200px;">
+        <%= qr_svg.html_safe %>
+      </div>
+      <div class="mt-2" style="color: var(--haiti-olive); font-size: 10px; font-weight: 600;">
+        Eskane pou kopye adrès trezò a
+      </div>
+    </div>
+    <div id="tCopied" class="mt-2 text-center" style="display: none; color: #166534; font-size: 11px; font-weight: 700;">
+      <i class="ri-checkbox-circle-fill me-1"></i>Adrès kopye!
+    </div>
+    <div class="text-center mt-3">
+      <a href="<%= admin_root_path %>" class="btn btn-sm px-4 py-2" style="background: var(--haiti-charcoal); color: var(--haiti-gold); border-radius: 12px; font-weight: 700; font-size: 12px;">
+        <i class="ri-eye-off-line me-1"></i>Fèmen Adrès
+      </a>
+    </div>
+  <% else %>
+    <%# ── PIN form ── %>
+    <%= form_tag admin_reveal_treasury_path, method: :post, class: "d-flex gap-2 align-items-end" do %>
+      <div>
+        <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">
+          ANTRE PIN POU WÈ ADRÈS TREZÒ
+        </label>
+        <input type="password" name="transfer_pin" maxlength="4" inputmode="numeric" pattern="[0-9]*" required
+               placeholder="••••" class="form-control fw-bold shadow-none text-center"
+               style="background: var(--haiti-mint); border: 1.5px solid rgba(93,99,69,0.2); color: var(--haiti-charcoal); font-size: 18px; letter-spacing: 8px; width: 120px; border-radius: 12px; padding: 10px;"
+               autocomplete="off">
+      </div>
+      <button type="submit" class="btn px-4 py-2"
+              style="background: var(--haiti-charcoal); color: var(--haiti-gold); border-radius: 12px; font-weight: 700; font-size: 12px;">
+        <i class="ri-eye-line me-1"></i>Revele Adrès
+      </button>
+    <% end %>
+  <% end %>
+</div>
+
+<%# ═══════════════════════════════════════════════════════════════════
+    Styles + ApexCharts + System Health JS
+    ═══════════════════════════════════════════════════════════════════ %>
+<style>
+  @keyframes livePulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(1.3); }
+  }
+  @keyframes tickerSlideIn {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .chart-range-btn {
+    background: rgba(93,99,69,0.08);
+    color: var(--haiti-olive);
+    border: none;
+    transition: all 0.2s;
+  }
+  .chart-range-btn.active, .chart-range-btn:hover {
+    background: var(--haiti-charcoal) !important;
+    color: var(--haiti-gold) !important;
+  }
+  .table-hover tbody tr:hover {
+    background-color: rgba(197,160,89,0.04) !important;
+  }
+  .admin-input-field:focus {
+    border-color: var(--haiti-gold) !important;
+    box-shadow: 0 0 0 2px rgba(197,160,89,0.15) !important;
+    background-color: #fff !important;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+</style>
+
+<%# ApexCharts CDN %>
+<script src="https://cdn.jsdelivr.net/npm/apexcharts@3.44.0/dist/apexcharts.min.js"></script>
+
+<script>
+  // ── ApexCharts: Profit Over Time ──
+  var profitChart = null;
+
+  function initChart(data) {
+    var htgSeries = data.series.map(function(d) { return { x: d.x, y: d.htg }; });
+    var usdSeries = data.series.map(function(d) { return { x: d.x, y: d.usd }; });
+
+    var options = {
+      chart: {
+        type: 'area',
+        height: 280,
+        fontFamily: 'Plus Jakarta Sans, sans-serif',
+        toolbar: { show: false },
+        zoom: { enabled: true },
+        animations: { enabled: true, easing: 'easeinout', speed: 600 }
+      },
+      series: [
+        { name: 'HTG', data: htgSeries },
+        { name: 'USD', data: usdSeries }
+      ],
+      colors: ['#5C6B24', '#C5A059'],
+      fill: {
+        type: 'gradient',
+        gradient: { shadeIntensity: 1, opacityFrom: 0.3, opacityTo: 0.05, stops: [0, 100] }
+      },
+      stroke: { curve: 'smooth', width: [2.5, 2] },
+      xaxis: {
+        type: 'datetime',
+        labels: { style: { colors: '#5D6345', fontSize: '10px' } },
+        axisBorder: { show: false },
+        axisTicks: { show: false }
+      },
+      yaxis: [
+        {
+          title: { text: 'HTG', style: { color: '#5C6B24', fontSize: '11px', fontWeight: 700 } },
+          labels: { style: { colors: '#5C6B24', fontSize: '10px' }, formatter: function(v) { return v.toLocaleString(); } }
+        },
+        {
+          opposite: true,
+          title: { text: 'USD', style: { color: '#C5A059', fontSize: '11px', fontWeight: 700 } },
+          labels: { style: { colors: '#C5A059', fontSize: '10px' }, formatter: function(v) { return '$' + v.toFixed(2); } }
+        }
+      ],
+      grid: { borderColor: 'rgba(93,99,69,0.1)', strokeDashArray: 3 },
+      tooltip: {
+        shared: true,
+        x: { format: 'dd MMM yyyy HH:mm' },
+        theme: 'light'
+      },
+      legend: { show: true, position: 'top', horizontalAlign: 'right', fontSize: '11px', fontWeight: 600 },
+      dataLabels: { enabled: false }
+    };
+
+    if (profitChart) {
+      profitChart.updateOptions({
+        series: options.series,
+        xaxis: options.xaxis
+      });
+    } else {
+      profitChart = new ApexCharts(document.querySelector('#profit-chart'), options);
+      profitChart.render();
+    }
+  }
+
+  function loadChartData(range) {
+    // Update active button
+    document.querySelectorAll('.chart-range-btn').forEach(function(btn) {
+      btn.classList.toggle('active', btn.dataset.range === range);
+    });
+
+    var csrfToken = document.querySelector('meta[name="csrf-token"]');
+    fetch('<%= admin_dashboard_chart_data_path %>' + '?range=' + range, {
+      headers: {
+        'Accept': 'application/json',
+        'X-CSRF-Token': csrfToken ? csrfToken.content : ''
+      }
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) { initChart(data); })
+    .catch(function(err) { console.error('Chart load error:', err); });
+  }
+
+  // Load default chart on page load
+  document.addEventListener('DOMContentLoaded', function() {
+    loadChartData('week');
+  });
+
+  // ── System Health (async balances) ──
+  document.addEventListener('DOMContentLoaded', function() {
+    var csrfToken = document.querySelector('meta[name="csrf-token"]');
+    fetch('<%= admin_system_health_path %>', {
+      headers: {
+        'Accept': 'application/json',
+        'X-CSRF-Token': csrfToken ? csrfToken.content : ''
+      }
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      var balEl = document.getElementById('treasuryCardBalance');
+      if (balEl && data.usdc_balance !== undefined) {
+        balEl.innerHTML = parseFloat(data.usdc_balance).toLocaleString(undefined, {maximumFractionDigits: 2});
+      }
+    })
+    .catch(function(err) {
+      console.error('System health error:', err);
+    });
+  });
+</script>

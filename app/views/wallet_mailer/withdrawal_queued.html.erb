@@ -1,5 +1,5 @@
 <div style="margin-bottom:20px;">
-  <div style="font-size:15px; font-weight:800; color:#2E2E38; margin-bottom:6px;">Retrè An Kou</div>
+  <div style="font-size:15px; font-weight:800; color:#2E2E38; margin-bottom:6px;">Ou Retire <%= @amount_display %> (An Kou)</div>
   <div style="font-size:13px; color:#5D6345;">N ap trete retrè MonCash ou.</div>
 </div>
 
@@ -28,7 +28,7 @@
       </td>
     </tr>
     <tr>
-      <td style="color:#5D6345; font-size:12px; font-weight:600;">Frè (<%= @instant ? "1.5% instant" : "1% estanda" %>)</td>
+      <td style="color:#5D6345; font-size:12px; font-weight:600;">Frè (<%= @instant ? "2% instant" : "2%" %>)</td>
       <td style="color:#C5A059; font-weight:700; text-align:right; font-size:12px;">HTG <%= format('%.0f', @fee.to_f) %></td>
     </tr>
   </table>

@@ -287,7 +287,8 @@ Devise.setup do |config|
   config.omniauth :bonid,
     ENV["BONID_OAUTH_CLIENT_ID"],
     ENV["BONID_OAUTH_CLIENT_SECRET"],
-    scope: "openid profile email phone address health identity:verify crime:status"
+    scope: "openid profile email phone address identity:verify",
+    prompt: "consent"
 
   # ==> Warden configuration
   # If you want to use other strategies, that are not supported by Devise, or

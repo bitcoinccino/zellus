@@ -3,22 +3,22 @@ class PaymentRequestMailer < ApplicationMailer
 
   def request_created
     load_payment_request
-    mail(to: @creator.email, subject: "Zèllus: Demann peman kreye (##{@payment_request.id})")
+    mail(to: @creator.email, subject: "Zèllus: Ou voye mande #{@amount_display}")
   end
 
   def request_paid
     load_payment_request
-    mail(to: @creator.email, subject: "Zèllus: Demann peman peye (##{@payment_request.id})")
+    mail(to: @creator.email, subject: "Zèllus: Demann #{@amount_display} peye ✓")
   end
 
   def request_expired
     load_payment_request
-    mail(to: @creator.email, subject: "Zèllus: Demann peman ekspire (##{@payment_request.id})")
+    mail(to: @creator.email, subject: "Zèllus: Demann #{@amount_display} ekspire")
   end
 
   def request_canceled
     load_payment_request
-    mail(to: @creator.email, subject: "Zèllus: Demann peman anile (##{@payment_request.id})")
+    mail(to: @creator.email, subject: "Zèllus: Demann #{@amount_display} anile")
   end
 
   # ── Payer emails ──
@@ -28,7 +28,7 @@ class PaymentRequestMailer < ApplicationMailer
     return unless @payment_request.payer.present?
 
     @payer = @payment_request.payer
-    mail(to: @payer.email, subject: "Zèllus: #{@creator_name} mande ou #{@amount_display}")
+    mail(to: @payer.email, subject: "Zèllus: #{@creator_name} mande w #{@amount_display}")
   end
 
   private
@@ -37,7 +37,7 @@ class PaymentRequestMailer < ApplicationMailer
     @payment_request = PaymentRequest.includes(:user).find(params[:payment_request_id])
     @creator         = @payment_request.user
     @creator_name    = @creator.display_name
-    @brand_name      = "Zèllus"
+    @brand_name      = AppBrand::NAME
     @app_base_url    = ENV["APP_BASE_URL"].to_s.strip
     @share_url       = @app_base_url.present? ? "#{@app_base_url}/r/#{@payment_request.token}" : nil
 

@@ -6,8 +6,8 @@ class WalletsController < ApplicationController
   DEPOSIT_MAX  = 327_678
   WITHDRAW_MIN = 100
   WITHDRAW_MAX = 50_000
-  USDC_WITHDRAW_MIN = BigDecimal("1")
-  USDC_WITHDRAW_MAX = BigDecimal("500")
+  USD_WITHDRAW_MIN = BigDecimal("1")
+  USD_WITHDRAW_MAX = BigDecimal("500")
 
   # ── GET /wallet ──
   def show
@@ -20,6 +20,25 @@ class WalletsController < ApplicationController
     @buy_rate  = RateService.buy_rate   # HTG→USD: user pays this many HTG per USD
     @limit_service = WalletLimitService.new(current_user)
     @business = current_user.business
+
+    # ── Agent application status (for Biznis tab "Vin Ajan" card) ──
+    @agent_status = @business&.agent_status || "none"
+    @agent_eligible = @business&.agent_eligible? || false
+
+    # ── Agent data (if business is an active agent) ──
+    @is_agent = @business&.agent?
+    if @is_agent
+      @agent_float = @business.agent_float_htg
+      @agent_today_count = @business.today_cash_in_count
+      @agent_today_volume = @business.today_cash_in_volume
+      @agent_today_commission = @business.today_commission_earned
+      @agent_total_commission = @business.total_commission_earned
+      @agent_recent_txs = @business.agent_transactions
+                                    .includes(:customer)
+                                    .recent_first
+                                    .limit(10)
+    end
+
     # ETH/BTC/stock rates disabled (HTG + USD only mode)
     @btc_usd_rate = 0
     @eth_usd_rate = 0
@@ -98,7 +117,7 @@ class WalletsController < ApplicationController
   def withdraw
     amount  = params[:amount].to_f
     phone   = params[:moncash_phone].to_s.strip
-    instant = params[:instant] == "1"
+    instant = true  # All MonCash withdrawals are instant
 
     if amount < WITHDRAW_MIN || amount > WITHDRAW_MAX
       redirect_to wallet_path, alert: "Montan retrè dwe ant #{WITHDRAW_MIN} ak #{number_with_delimiter(WITHDRAW_MAX)} HTG."
@@ -118,14 +137,38 @@ class WalletsController < ApplicationController
     fee = instant ? WalletService.calculate_instant_fee(amount) : WalletService.calculate_standard_fee(amount)
     payout = amount - fee  # What user actually receives
 
+    # Pre-check: verify MonCash treasury has enough HTG to cover payout
     begin
-      WalletService.new(@wallet).withdraw!(amount: amount, instant: instant)
+      prefunded = MoncashService.prefunded_balance_info
+      if prefunded[:success]
+        treasury_bal = prefunded[:balance].to_f
+        if treasury_bal < payout
+          redirect_to wallet_path, alert: "Retrè enposib pou kounye a. Trezò platfòm pa gen ase likidite. Tanpri eseye ankò pita."
+          return
+        end
+      else
+        redirect_to wallet_path, alert: "Pa ka verifye trezò MonCash. Tanpri eseye ankò pita."
+        return
+      end
+    rescue => e
+      Rails.logger.error "MonCash prefunded check failed: #{e.message}"
+      redirect_to wallet_path, alert: "Pa ka verifye trezò MonCash. Tanpri eseye ankò pita."
+      return
+    end
+
+    begin
+      source = params[:source].to_s
+      if source == "biznis" && @business.present?
+        WalletService.new(@wallet).withdraw_from_business!(business: @business, amount: amount, instant: instant)
+      else
+        WalletService.new(@wallet).withdraw!(amount: amount, instant: instant)
+      end
 
       if instant
-        WalletWithdrawWorker.perform_async(current_user.id, amount, phone, fee.to_f)
+        WalletWithdrawWorker.perform_async(current_user.id, amount, phone, fee.to_f, source.presence || "personal")
         redirect_to wallet_path, notice: "Retrè instant #{payout.to_i} HTG an kou (frè: #{fee.to_i} HTG). Lajan ap rive nan MonCash ou nan kèk segonn."
       else
-        WalletWithdrawWorker.perform_in(48.hours, current_user.id, amount, phone, fee.to_f)
+        WalletWithdrawWorker.perform_in(48.hours, current_user.id, amount, phone, fee.to_f, source.presence || "personal")
         redirect_to wallet_path, notice: "Retrè #{payout.to_i} HTG pwograme (frè: #{fee.to_i} HTG). Lajan ap rive nan MonCash ou nan 48 èdtan."
       end
 
@@ -143,16 +186,13 @@ class WalletsController < ApplicationController
     end
   end
 
-  # ── POST /wallet/withdraw_usdc ──
-  def withdraw_usdc
-    redirect_to wallet_path, alert: "Retrè kripto dezaktive pou kounye a. Ou ka konvèti USD an Goud epi retire via MonCash."
-    return
-    # --- Disabled: deposit-only crypto model ---
+  # ── POST /wallet/withdraw_usd ──
+  def withdraw_usd
     amount     = BigDecimal(params[:amount].to_s)
     to_address = params[:wallet_address].to_s.strip
 
-    if amount < USDC_WITHDRAW_MIN || amount > USDC_WITHDRAW_MAX
-      redirect_to wallet_path, alert: "Montan retrè USD dwe ant #{USDC_WITHDRAW_MIN} ak #{USDC_WITHDRAW_MAX} USD."
+    if amount < USD_WITHDRAW_MIN || amount > USD_WITHDRAW_MAX
+      redirect_to wallet_path, alert: "Montan retrè USD dwe ant #{USD_WITHDRAW_MIN} ak #{USD_WITHDRAW_MAX} USD."
       return
     end
 
@@ -173,8 +213,13 @@ class WalletsController < ApplicationController
     end
 
     begin
-      WalletService.new(@wallet).withdraw!(amount: amount, asset: "usdc")
-      WalletUsdcWithdrawWorker.perform_async(current_user.id, amount.to_f, to_address)
+      source = params[:source].to_s
+      if source == "biznis" && @business.present?
+        WalletService.new(@wallet).withdraw_from_business!(business: @business, amount: amount, asset: "usd")
+      else
+        WalletService.new(@wallet).withdraw!(amount: amount, asset: "usd")
+      end
+      WalletUsdWithdrawWorker.perform_async(current_user.id, amount.to_f, to_address)
       redirect_to wallet_path, notice: "Retrè #{amount} USD an kou. Tranzaksyon ap trete sou Base."
     rescue WalletService::InsufficientFundsError
       redirect_to wallet_path, alert: "Balans USD pa sifi pou retrè sa a."
@@ -255,9 +300,15 @@ class WalletsController < ApplicationController
     payout = amount - fee
 
     begin
-      entry = WalletService.new(@wallet).withdraw_bank!(
-        amount: amount, fee: fee
-      )
+      source = params[:source].to_s
+      if source == "biznis" && @business.present?
+        WalletService.new(@wallet).withdraw_from_business!(business: @business, amount: amount, asset: "htg", instant: false)
+        entry = @wallet.wallet_ledger_entries.last
+      else
+        entry = WalletService.new(@wallet).withdraw_bank!(
+          amount: amount, fee: fee
+        )
+      end
 
       bank_withdrawal = BankWithdrawal.create!(
         user: current_user,
@@ -309,7 +360,7 @@ class WalletsController < ApplicationController
           type: "balance_update",
           balances: {
             htg:  wallet.htg_balance.to_f.round(2),
-            usdc: wallet.usdc_balance.to_f.round(2),
+            usd: wallet.usd_balance.to_f.round(2),
             eth:  wallet.eth_balance.to_f.round(6),
             wbtc: wallet.wbtc_balance.to_f.round(8)
           },
@@ -328,12 +379,12 @@ class WalletsController < ApplicationController
     if wallet
       render json: {
         htg:  wallet.htg_balance.to_f.round(2),
-        usdc: wallet.usdc_balance.to_f.round(2),
+        usd: wallet.usd_balance.to_f.round(2),
         eth:  wallet.eth_balance.to_f.round(6),
         wbtc: wallet.wbtc_balance.to_f.round(8)
       }
     else
-      render json: { htg: 0, usdc: 0, eth: 0, wbtc: 0 }
+      render json: { htg: 0, usd: 0, eth: 0, wbtc: 0 }
     end
   end
 
@@ -347,7 +398,7 @@ class WalletsController < ApplicationController
 
     # Market data — USD/HTG only
     @market_data = {}
-    %w[usdc].each do |key|
+    %w[usd].each do |key|
       @market_data[key] = RateService.market_data(key)
     end
   end
@@ -361,23 +412,25 @@ class WalletsController < ApplicationController
 
   # ── POST /wallet/convert ──
   def convert
-    from_asset = params[:from_asset].to_s.downcase.strip
-    to_asset   = params[:to_asset].to_s.downcase.strip
-    amount     = BigDecimal(params[:amount].to_s)
+    from_asset   = params[:from_asset].to_s.downcase.strip
+    to_asset     = params[:to_asset].to_s.downcase.strip
+    amount       = BigDecimal(params[:amount].to_s)
+    from_source  = params[:convert_source].to_s.presence || "personal"
+    to_dest      = params[:convert_dest].to_s.presence   || "personal"
 
     unless current_user.verify_transfer_pin(params[:transfer_pin])
       redirect_to wallet_path, alert: "PIN pa kòrèk. Tanpri eseye ankò."
       return
     end
 
-    valid_assets = %w[htg usdc]
+    valid_assets = %w[htg usd]
     unless valid_assets.include?(from_asset) && valid_assets.include?(to_asset) && from_asset != to_asset
       redirect_to wallet_path, alert: "Konvèsyon pa valid."
       return
     end
 
     # Daily swap limit check (USD→HTG only)
-    if from_asset == "usdc" && to_asset == "htg"
+    if from_asset == "usd" && to_asset == "htg"
       limit_svc = WalletLimitService.new(current_user)
       unless limit_svc.swap_allowed?(amount)
         remaining = limit_svc.daily_swap_remaining
@@ -387,11 +440,12 @@ class WalletsController < ApplicationController
     end
 
     result = WalletService.new(@wallet).convert!(
-      amount: amount, from_asset: from_asset, to_asset: to_asset
+      amount: amount, from_asset: from_asset, to_asset: to_asset,
+      source: from_source, dest: to_dest, business: @business
     )
 
-    from_label = from_asset == "usdc" ? "USD" : from_asset.upcase
-    to_label   = to_asset == "usdc" ? "USD" : to_asset.upcase
+    from_label = from_asset == "usd" ? "USD" : from_asset.upcase
+    to_label   = to_asset == "usd" ? "USD" : to_asset.upcase
     fee_note = result[:fee] && result[:fee] > 0 ? " (frè: #{result[:fee]} #{to_label})" : ""
     NotificationService.conversion_completed(current_user, result[:from], from_asset, result[:to], to_asset)
     redirect_to wallet_path,
@@ -420,6 +474,7 @@ class WalletsController < ApplicationController
 
   def load_wallet
     @wallet = current_user.ensure_wallet!
+    @business = current_user.business
   end
 
   def create_moncash_payment(amount, order_id)

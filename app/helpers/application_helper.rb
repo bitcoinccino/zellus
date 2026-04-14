@@ -1,4 +1,26 @@
 module ApplicationHelper
+  # Convert raw technical failure reasons into user-friendly Kreyòl messages
+  def friendly_failure_reason(reason)
+    return "Erè enkoni." if reason.blank?
+
+    r = reason.to_s.downcase
+    if r.include?("transfer amount exceeds balance") || r.include?("insufficient")
+      "Trezò pa gen ase USD pou trete transfè sa a. Lajan ou retounen otomatikman."
+    elsif r.include?("nonce too low") || r.include?("nonce already used")
+      "Erè rezo — tranzaksyon an te deja trete. Tanpri verifye balans ou."
+    elsif r.include?("gas") && r.include?("exceed")
+      "Frè rezo twò wo pou trete transfè sa a kounye a. Eseye ankò pita."
+    elsif r.include?("timeout") || r.include?("timed out")
+      "Koneksyon ak rezo Base te ekspire. Eseye ankò pita."
+    elsif r.include?("reverted") || r.include?("revert")
+      "Tranzaksyon an pa t kapab konplete sou rezo Base. Lajan ou retounen otomatikman."
+    elsif r.include?("consent") || r.include?("bonid")
+      "Verifikasyon BonID obligatwa pou montan sa a."
+    else
+      "Transfè pa t kapab konplete. Kontakte sipò si pwoblèm nan pèsiste."
+    end
+  end
+
   # Returns the correct Basescan URL based on the chain configured in the worker
   def basescan_tx_url(tx_hash)
     base = CryptoTransferWorker::CHAIN_ID == 8453 ? "https://basescan.org" : "https://sepolia.basescan.org"
@@ -78,17 +100,48 @@ module ApplicationHelper
     brand_logo("google.png", alt: "GOOGLX", size: size)
   end
 
+  # Inline currency icon (Remix Icons) — use for labels, badges, input suffixes
+  # currency_icon("htg")       => <i class="ri-money-cny-circle-line"></i>
+  # currency_icon("usd")       => <i class="ri-money-dollar-circle-line"></i>
+  # currency_icon("htg", 14)   => <i ... style="font-size: 14px;"></i>
+  # Currency text label: currency_label("htg") => "HTG", currency_label("usd") => "USD"
+  def currency_label(asset, _size = nil)
+    asset.to_s == "usd" ? "USD" : "HTG"
+  end
+
   # Generate an inline SVG QR code for the given text
   # color: hex without # (default haiti-gold)
-  def qr_svg(text, color: "C5A059")
-    qrcode = RQRCode::QRCode.new(text)
-    qrcode.as_svg(
-      color: color,
-      shape_rendering: "crispEdges",
-      module_size: 4,
-      standalone: true,
-      use_path: true,
-      viewbox: true
-    ).html_safe
+  # size: pixel width/height for the rendered SVG (default 160)
+  def qr_svg(text, color: "000000", size: 200, logo: true)
+    qrcode = RQRCode::QRCode.new(text, level: :h)
+    modules = qrcode.modules
+    mod_count = modules.length
+    quiet = 4 # QR spec quiet zone
+    total = mod_count + quiet * 2
+
+    rects = []
+    modules.each_with_index do |row, r|
+      row.each_with_index do |dark, c|
+        next unless dark
+        rects << %(<rect x="#{c + quiet}" y="#{r + quiet}" width="1" height="1"/>)
+      end
+    end
+
+    svg = %(<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="#{size}" height="#{size}" viewBox="0 0 #{total} #{total}" shape-rendering="crispEdges">) +
+          %(<rect width="#{total}" height="#{total}" fill="white"/>) +
+          %(<g fill="##{color}">#{rects.join}</g>)
+
+    if logo
+      logo_dim = mod_count * 0.14
+      lx = quiet + (mod_count - logo_dim) / 2.0
+      pad = logo_dim * 0.1
+      img_size = logo_dim * 0.8
+      img_url = ActionController::Base.helpers.asset_path('zellus_square.png')
+      svg += %(<rect x="#{lx}" y="#{lx}" width="#{logo_dim}" height="#{logo_dim}" rx="#{logo_dim * 0.18}" fill="white"/>)
+      svg += %(<image href="#{img_url}" xlink:href="#{img_url}" x="#{lx + pad}" y="#{lx + pad}" width="#{img_size}" height="#{img_size}"/>)
+    end
+
+    svg += %(</svg>)
+    svg.html_safe
   end
 end

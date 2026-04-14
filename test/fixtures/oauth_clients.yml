@@ -1,0 +1,27 @@
+zellus_partner:
+  name: "Test Partner App"
+  client_id: "test_client_id_001"
+  client_secret: "test_client_secret_001"
+  redirect_uri: "https://example.com/callback"
+  scopes: "balance:read transactions:read transfer:create withdraw:create checkout:create"
+  active: true
+  webhook_url: "https://partner.example.com/webhooks"
+  webhook_secret: "whsec_test_secret_001"
+  webhook_events:
+    - "transfer.received"
+    - "transfer.completed"
+    - "transfer.failed"
+    - "withdrawal.completed"
+    - "withdrawal.failed"
+    - "checkout.completed"
+    - "checkout.refunded"
+  webhook_active: true
+
+readonly_partner:
+  name: "Balance Checker"
+  client_id: "test_client_id_002"
+  client_secret: "test_client_secret_002"
+  redirect_uri: "https://example.com/callback"
+  scopes: "balance:read"
+  active: true
+  webhook_active: false

@@ -23,14 +23,41 @@
     <%= f.text_field :name, class: "form-control", placeholder: "Ex: Diri ak Pwa", style: "border-color: var(--haiti-olive); font-size: 14px;" %>
   </div>
 
+  <%# ── Currency ── %>
+  <div class="mb-3">
+    <label class="form-label fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;">
+      <i class="ri-coins-line me-1" style="color: var(--haiti-gold);"></i>Lajan
+    </label>
+    <div class="d-flex gap-2">
+      <label class="flex-grow-1">
+        <input type="radio" name="product[asset]" value="htg" class="btn-check" id="product-asset-htg"
+               <%= @product.asset == "htg" || @product.asset.nil? ? "checked" : "" %>>
+        <div class="btn w-100 rounded-3 py-2 text-center"
+             style="font-size: 13px; font-weight: 700; border: 2px solid rgba(93,99,69,0.15);">
+          <i class="ri-money-cny-circle-line me-1"></i>HTG
+        </div>
+      </label>
+      <label class="flex-grow-1">
+        <input type="radio" name="product[asset]" value="usdc" class="btn-check" id="product-asset-usdc"
+               <%= @product.asset == "usdc" ? "checked" : "" %>>
+        <div class="btn w-100 rounded-3 py-2 text-center"
+             style="font-size: 13px; font-weight: 700; border: 2px solid rgba(93,99,69,0.15);">
+          <i class="ri-money-dollar-circle-line me-1"></i>USD
+        </div>
+      </label>
+    </div>
+  </div>
+
   <%# ── Price ── %>
   <div class="mb-3">
     <label class="form-label fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;">
-      <i class="ri-money-dollar-circle-line me-1" style="color: var(--haiti-gold);"></i>Pri (HTG)
+      <i class="ri-money-dollar-circle-line me-1" style="color: var(--haiti-gold);"></i>Pri
     </label>
     <div class="input-group">
       <%= f.number_field :price, class: "form-control", step: 0.01, min: 0, placeholder: "0.00", style: "border-color: var(--haiti-olive); font-size: 14px;" %>
-      <span class="input-group-text" style="background: var(--haiti-cream); font-size: 12px; font-weight: 600;">HTG</span>
+      <span class="input-group-text" id="price-currency-label" style="background: var(--haiti-cream); font-size: 12px; font-weight: 600;">
+        <%= currency_label(@product.asset || "htg") %>
+      </span>
     </div>
   </div>
 
@@ -55,6 +82,41 @@
     <%= f.file_field :image, class: "form-control", accept: "image/*", style: "border-color: var(--haiti-olive); font-size: 13px;" %>
   </div>
 
+  <%# ── Product Type (Good vs Service) ── %>
+  <div class="mb-3">
+    <label class="form-label fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;">
+      <i class="ri-price-tag-3-line me-1" style="color: var(--haiti-gold);"></i>Tip Pwodui
+    </label>
+    <div class="d-flex gap-2">
+      <label class="flex-grow-1">
+        <input type="radio" name="product[product_type]" value="good" class="btn-check" id="product-type-good"
+               <%= @product.product_type == "good" || @product.product_type.nil? ? "checked" : "" %>>
+        <div class="btn w-100 rounded-3 py-2 text-center"
+             style="font-size: 13px; font-weight: 700; border: 2px solid rgba(93,99,69,0.15);">
+          <i class="ri-shopping-bag-line me-1"></i>Machandiz
+        </div>
+      </label>
+      <label class="flex-grow-1">
+        <input type="radio" name="product[product_type]" value="service" class="btn-check" id="product-type-service"
+               <%= @product.product_type == "service" ? "checked" : "" %>>
+        <div class="btn w-100 rounded-3 py-2 text-center"
+             style="font-size: 13px; font-weight: 700; border: 2px solid rgba(93,99,69,0.15);">
+          <i class="ri-service-line me-1"></i>Sevis
+        </div>
+      </label>
+    </div>
+    <div class="form-text" style="font-size: 11px; color: var(--haiti-olive);">Machandiz pèmèt kliyan chwazi kantite. Sevis se toujou 1.</div>
+  </div>
+
+  <%# ── Stock (goods only) ── %>
+  <div class="mb-3" id="stock-field">
+    <label class="form-label fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;">
+      <i class="ri-archive-line me-1" style="color: var(--haiti-gold);"></i>Stòk <span style="color: var(--haiti-olive); font-weight: 400;">(opsyonèl)</span>
+    </label>
+    <%= f.number_field :stock, class: "form-control", min: 0, step: 1, placeholder: "Kite vid = ilimite", style: "border-color: var(--haiti-olive); font-size: 14px;" %>
+    <div class="form-text" style="font-size: 11px; color: var(--haiti-olive);">Konbyen ou genyen. Kite vid pou pa limite kantite.</div>
+  </div>
+
   <%# ── Active Toggle ── %>
   <div class="mb-4">
     <div class="form-check form-switch">
@@ -68,6 +130,34 @@
 
   <%# ── Submit ── %>
   <div class="d-grid">
-    <%= f.submit(@product.new_record? ? "Ajoute Pwodui" : "Anrejistre Chanjman"), class: "btn btn-lg fw-bold py-3 rounded-3", style: "background: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 15px;" %>
+    <%= f.submit (@product.new_record? ? "Ajoute Pwodui" : "Anrejistre Chanjman"), class: "btn btn-lg fw-bold py-3 rounded-3", style: "background: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 15px;" %>
   </div>
 <% end %>
+
+<style>
+  .btn-check:checked + div {
+    background: var(--haiti-gold) !important;
+    border-color: var(--haiti-gold) !important;
+    color: var(--haiti-charcoal) !important;
+  }
+</style>
+
+<script>
+  document.querySelectorAll('input[name="product[asset]"]').forEach(function(radio) {
+    radio.addEventListener('change', function() {
+      var label = document.getElementById('price-currency-label');
+      if (label) label.textContent = this.value === 'usdc' ? 'USD' : 'HTG';
+    });
+  });
+
+  // Show/hide stock field based on product type
+  function toggleStockField() {
+    var isGood = document.getElementById('product-type-good').checked;
+    var stockField = document.getElementById('stock-field');
+    if (stockField) stockField.style.display = isGood ? 'block' : 'none';
+  }
+  document.querySelectorAll('input[name="product[product_type]"]').forEach(function(radio) {
+    radio.addEventListener('change', toggleStockField);
+  });
+  toggleStockField();
+</script>

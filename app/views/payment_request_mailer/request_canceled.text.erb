@@ -1,4 +1,4 @@
-Zèllus — Demann Peman Anile
+Zèllus — Demann <%= @amount_display %> Anile
 
 Bonjou <%= @creator_name %>,
 
@@ -7,7 +7,7 @@ Demann peman ou te anile.
 Detay:
 - Demann #<%= @payment_request.id %>
 - Montan Mande: <%= @amount_display %>
-- Lajan: <%= @payment_request.asset.upcase %>
+- Lajan: <%= @payment_request.asset_label %>
 
 Ou ka kreye yon nouvo demann nenpòt lè.
 

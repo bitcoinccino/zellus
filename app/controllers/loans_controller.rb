@@ -86,26 +86,26 @@ class LoansController < ApplicationController
       )
       redirect_to public_payment_request_path(@payment_request.token)
       
-    elsif asset == "usdc"
-      # USDC Path (Diaspora Friendly)
+    elsif asset == "usd"
+      # USD Path (Diaspora Friendly)
       buy_rate = RateService.buy_rate rescue 135.0
-      usdc_amount = (total_htg / buy_rate).round(6)
-      
+      usd_amount = (total_htg / buy_rate).round(6)
+
       @repayment_tx = current_user.transactions.create!(
-        transaction_type: "sell", # User 'sells' USDC to bank to clear debt
+        transaction_type: "sell", # User 'sells' USD to bank to clear debt
         status: :pending,
         fiat_amount: total_htg,
-        crypto_amount: usdc_amount,
+        crypto_amount: usd_amount,
         failure_reason: "REPAYMENT_LOAN_#{@loan.id}" # Critical tag for the Worker
       )
-      redirect_to transaction_path(@repayment_tx), notice: "Tanpri voye #{usdc_amount} USDC pou n dechaje dèt ou a."
+      redirect_to transaction_path(@repayment_tx), notice: "Tanpri voye #{usd_amount} USD pou n dechaje dèt ou a."
     end
   end
 
   private
 
   def ensure_pionye_status
-    # Tier Gate: Must be Malfini or Fokon
+    # Tier Gate: Must be Malfini or Folkon
     unless current_user.loan_limit > 0
       redirect_to root_path, alert: "Ou bezwen nivo Malfini pou debloke prè Pionye."
     end

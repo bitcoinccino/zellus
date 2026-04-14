@@ -1,0 +1,171 @@
+<%# ── Header ── %>
+<div class="mb-4">
+  <h1 class="h4 fw-black mb-1" style="color: var(--haiti-charcoal);">
+    <i class="ri-bar-chart-2-line me-2" style="color: var(--haiti-gold);"></i>Analitik Ajan
+  </h1>
+  <p class="small mb-0" style="color: var(--haiti-olive);">Pèfòmans ak done tout ajan Zèllus</p>
+</div>
+
+<%# ── Stats Row 1: Agent Counts ── %>
+<div class="row g-3 mb-4">
+  <div class="col-md-3">
+    <div class="card-base p-3 text-center" style="border: 1px solid rgba(22,101,52,0.15); background: linear-gradient(135deg, rgba(240,253,244,0.6), transparent);">
+      <div class="d-flex align-items-center justify-content-center mb-2">
+        <div class="d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; border-radius: 10px; background: rgba(22,101,52,0.1);">
+          <i class="ri-user-star-line" style="color: #166534; font-size: 16px;"></i>
+        </div>
+      </div>
+      <div class="fw-black h4 mb-0" style="color: #166534;"><%= @total_agents %></div>
+      <div class="small fw-bold text-uppercase" style="color: #22c55e; font-size: 10px;">Ajan Aktif</div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card-base p-3 text-center" style="border: 1px solid rgba(197,160,89,0.2); background: linear-gradient(135deg, rgba(197,160,89,0.08), transparent);">
+      <div class="d-flex align-items-center justify-content-center mb-2">
+        <div class="d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; border-radius: 10px; background: rgba(197,160,89,0.12);">
+          <i class="ri-time-line" style="color: var(--haiti-gold); font-size: 16px;"></i>
+        </div>
+      </div>
+      <div class="fw-black h4 mb-0" style="color: var(--haiti-charcoal);"><%= @pending_count %></div>
+      <div class="small fw-bold text-uppercase" style="color: var(--haiti-gold); font-size: 10px;">An Atant</div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card-base p-3 text-center" style="border: 1px solid rgba(29,78,216,0.15); background: linear-gradient(135deg, rgba(219,234,254,0.4), transparent);">
+      <div class="d-flex align-items-center justify-content-center mb-2">
+        <div class="d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; border-radius: 10px; background: rgba(29,78,216,0.1);">
+          <i class="ri-exchange-line" style="color: #1d4ed8; font-size: 16px;"></i>
+        </div>
+      </div>
+      <div class="fw-black h4 mb-0" style="color: #1d4ed8;"><%= number_with_delimiter(@total_transactions) %></div>
+      <div class="small fw-bold text-uppercase" style="color: #3b82f6; font-size: 10px;">Total Tranzaksyon</div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card-base p-3 text-center" style="border: 1px solid rgba(126,34,206,0.12); background: linear-gradient(135deg, rgba(243,232,255,0.5), transparent);">
+      <div class="d-flex align-items-center justify-content-center mb-2">
+        <div class="d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; border-radius: 10px; background: rgba(126,34,206,0.08);">
+          <i class="ri-money-dollar-circle-line" style="color: #7e22ce; font-size: 16px;"></i>
+        </div>
+      </div>
+      <div class="fw-black h4 mb-0" style="color: #7e22ce;">G <%= number_with_delimiter(@total_commission.to_i) %></div>
+      <div class="small fw-bold text-uppercase" style="color: #a855f7; font-size: 10px;">Komisyon Total</div>
+    </div>
+  </div>
+</div>
+
+<%# ── Stats Row 2: Volume + Today ── %>
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <div class="card-base p-4" style="border: 1px solid rgba(93,99,69,0.12);">
+      <div class="small fw-bold text-uppercase mb-2" style="color: var(--haiti-olive); font-size: 10px;">
+        <i class="ri-funds-line me-1"></i>VOLIM TOTAL
+      </div>
+      <div class="fw-black h3 mb-1" style="color: var(--haiti-charcoal); font-family: 'Space Grotesk', sans-serif;">
+        G <%= number_with_delimiter(@total_volume_htg.to_i) %>
+      </div>
+      <div class="small" style="color: var(--haiti-olive);">
+        <span class="fw-bold"><%= number_with_delimiter(@cash_in_count) %></span> cash-in tranzaksyon
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card-base p-4" style="border: 1px solid rgba(93,99,69,0.12);">
+      <div class="small fw-bold text-uppercase mb-2" style="color: var(--haiti-olive); font-size: 10px;">
+        <i class="ri-sun-line me-1"></i>JODI A
+      </div>
+      <div class="fw-black h3 mb-1" style="color: var(--haiti-charcoal); font-family: 'Space Grotesk', sans-serif;">
+        G <%= number_with_delimiter(@today_volume.to_i) %>
+      </div>
+      <div class="small" style="color: var(--haiti-olive);">
+        <span class="fw-bold"><%= @today_transactions %></span> tranzaksyon ·
+        <span class="fw-bold">G <%= number_with_delimiter(@today_commission.to_i) %></span> komisyon
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card-base p-4" style="border: 1px solid rgba(93,99,69,0.12);">
+      <div class="small fw-bold text-uppercase mb-2" style="color: var(--haiti-olive); font-size: 10px;">
+        <i class="ri-percent-line me-1"></i>MWAYÈN KOMISYON
+      </div>
+      <div class="fw-black h3 mb-1" style="color: var(--haiti-charcoal); font-family: 'Space Grotesk', sans-serif;">
+        <% avg = @total_transactions > 0 ? (@total_commission.to_f / @total_transactions).round(0) : 0 %>
+        G <%= number_with_delimiter(avg) %>
+      </div>
+      <div class="small" style="color: var(--haiti-olive);">pa tranzaksyon</div>
+    </div>
+  </div>
+</div>
+
+<%# ── Top Agents ── %>
+<div class="card-base p-4" style="border: 1px solid rgba(93,99,69,0.12);">
+  <h2 class="h6 fw-black mb-3" style="color: var(--haiti-charcoal);">
+    <i class="ri-trophy-line me-2" style="color: var(--haiti-gold);"></i>Top 10 Ajan (pa Volim)
+  </h2>
+
+  <% if @top_agents.any? %>
+    <div class="table-responsive">
+      <table class="table table-sm align-middle mb-0" style="font-size: 13px;">
+        <thead>
+          <tr style="color: var(--haiti-olive); font-size: 10px; text-transform: uppercase; letter-spacing: 1px;">
+            <th>#</th>
+            <th>AJAN</th>
+            <th>LOKASYON</th>
+            <th>TRANZAKSYON</th>
+            <th>VOLIM HTG</th>
+            <th>KOMISYON</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @top_agents.each_with_index do |biz, i| %>
+            <tr>
+              <td>
+                <% rank_colors = { 0 => "#C5A059", 1 => "#9ca3af", 2 => "#b45309" } %>
+                <span class="fw-black" style="color: <%= rank_colors[i] || 'var(--haiti-olive)' %>; font-size: 14px;">
+                  <%= i + 1 %>
+                </span>
+              </td>
+              <td>
+                <div class="d-flex align-items-center gap-2">
+                  <% if biz.logo.attached? %>
+                    <div style="width: 32px; height: 32px; border-radius: 8px; overflow: hidden; border: 1.5px solid var(--haiti-gold);">
+                      <%= image_tag biz.logo, style: "width: 100%; height: 100%; object-fit: cover;" %>
+                    </div>
+                  <% else %>
+                    <div class="d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; border-radius: 8px; background: var(--haiti-mint); border: 1.5px solid var(--haiti-gold);">
+                      <i class="ri-store-2-line" style="color: var(--haiti-gold); font-size: 14px;"></i>
+                    </div>
+                  <% end %>
+                  <div>
+                    <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 12px;"><%= biz.name %></div>
+                    <div style="color: var(--haiti-gold); font-size: 10px; font-weight: 700;">$<%= biz.user.cashtag %></div>
+                  </div>
+                </div>
+              </td>
+              <td class="small" style="color: var(--haiti-olive);"><%= biz.commune.presence || "—" %></td>
+              <td class="fw-bold" style="color: var(--haiti-charcoal);"><%= number_with_delimiter(biz.tx_count) %></td>
+              <td class="fw-bold" style="color: var(--haiti-charcoal); font-family: 'Space Grotesk', sans-serif;">G <%= number_with_delimiter(biz.total_volume.to_i) %></td>
+              <td style="color: #166534; font-weight: 700;">G <%= number_with_delimiter(biz.earned.to_i) %></td>
+              <td>
+                <%= link_to admin_agents_show_path(biz), class: "btn btn-sm fw-bold", style: "background: var(--haiti-mint); color: var(--haiti-charcoal); border-radius: 8px; font-size: 10px;" do %>
+                  <i class="ri-eye-line"></i>
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% else %>
+    <div class="text-center py-4" style="color: var(--haiti-olive);">
+      <i class="ri-bar-chart-2-line d-block mb-2" style="font-size: 36px; opacity: 0.3;"></i>
+      <div class="fw-bold">Pa gen done ankò</div>
+      <p class="small mb-0">Tranzaksyon ajan ap parèt isit la.</p>
+    </div>
+  <% end %>
+</div>
+
+<style>
+  .table > :not(caption) > * > * { background-color: transparent !important; }
+</style>

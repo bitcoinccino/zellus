@@ -1,0 +1,220 @@
+<% content_for :full_width, true %>
+<div class="d-flex justify-content-center" style="min-height: 80vh; padding-top: 32px;">
+  <div class="w-100 px-3" style="max-width: 520px;">
+
+    <%# ── Back Link ── %>
+    <div class="mb-3">
+      <%= link_to notifications_path, class: "small text-decoration-none fw-bold d-inline-flex align-items-center gap-1", style: "color: var(--haiti-olive);" do %>
+        <i class="ri-arrow-left-s-line" style="font-size: 18px;"></i>Notifikasyon
+      <% end %>
+    </div>
+
+    <%# ── Main Card ── %>
+    <div class="card-base p-4">
+
+      <% if @notification.notification_type == "conversion_completed" %>
+        <%# ══════════════════════════════════════════════════════ %>
+        <%# ── CONVERSION — same header as wallet entry page    ── %>
+        <%# ══════════════════════════════════════════════════════ %>
+        <div class="text-center mb-4">
+          <div class="d-inline-flex align-items-center justify-content-center mb-3 rounded-circle" style="width: 56px; height: 56px; background: var(--haiti-charcoal);">
+            <i class="ri-exchange-2-line ri-xl" style="color: var(--haiti-gold);"></i>
+          </div>
+          <h2 class="h4 fw-black mb-1" style="color: var(--haiti-charcoal); letter-spacing: -0.5px;">Konvèsyon</h2>
+          <p style="color: var(--haiti-olive); font-size: 11px; font-weight: 700; letter-spacing: 1px;" class="text-uppercase mb-0">
+            <i class="ri-time-line me-1"></i><%= @notification.created_at.strftime("%b %d, %Y · %l:%M %p").strip %>
+          </p>
+        </div>
+
+        <%
+          wallet = current_user.wallet
+          time_range = (@notification.created_at - 5.seconds)..(@notification.created_at + 5.seconds)
+          nearby = wallet.wallet_ledger_entries.where(created_at: time_range)
+          cv_from = nearby.find_by(entry_type: "conversion_out")
+          cv_to   = nearby.find_by(entry_type: "conversion_in")
+          cv_fee  = nearby.find_by(entry_type: "conversion_fee")
+        %>
+
+        <% if cv_from && cv_to %>
+          <%= render partial: "shared/conversion_detail", locals: { cv_from: cv_from, cv_to: cv_to, cv_fee: cv_fee } %>
+        <% end %>
+
+        <%= link_to wallet_path, class: "btn w-100 rounded-pill py-3 fw-bold", style: "background: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 14px;" do %>
+          <i class="ri-arrow-left-line me-1"></i>Retounen nan Pòtfèy
+        <% end %>
+
+      <% else %>
+        <%# ══════════════════════════════════════════════════════ %>
+        <%# ── GENERIC HEADER (all other notification types)    ── %>
+        <%# ══════════════════════════════════════════════════════ %>
+
+        <%# ── Avatar / Icon ── %>
+        <div class="text-center mb-3">
+          <% if @actor&.avatar&.attached? %>
+            <div class="d-inline-block" style="width: 56px; height: 56px; border-radius: 50%; overflow: hidden; border: 2.5px solid var(--haiti-gold);">
+              <%= image_tag @actor.avatar, style: "width: 100%; height: 100%; object-fit: cover;" %>
+            </div>
+          <% elsif @actor.present? %>
+            <div class="d-inline-flex align-items-center justify-content-center" style="width: 56px; height: 56px; border-radius: 50%; background: var(--haiti-charcoal); border: 2.5px solid var(--haiti-gold);">
+              <span style="font-size: 24px;"><%= @actor.tier_icon %></span>
+            </div>
+          <% else %>
+            <% icon_fg = (@notification.icon_color_style.scan(/color: ([^;]+)/).flatten.first || 'var(--haiti-olive)').strip %>
+            <i class="<%= @notification.icon_class %>" style="font-size: 44px; color: <%= icon_fg %>;"></i>
+          <% end %>
+        </div>
+
+        <%# ── Title ── %>
+        <h5 class="fw-black text-center mb-1" style="color: var(--haiti-charcoal); font-size: 17px; line-height: 1.4;">
+          <%= @notification.display_title %>
+        </h5>
+
+        <%# ── Body / Note ── %>
+        <% if @notification.body.present? %>
+          <p class="text-center mb-2" style="color: var(--haiti-olive); font-size: 13px;">
+            <% if @notification.notification_type == "transfer_failed" %>
+              <%= friendly_failure_reason(@notification.body) %>
+            <% else %>
+              <%= @notification.body %>
+            <% end %>
+          </p>
+        <% end %>
+
+        <%# ── Timestamp ── %>
+        <div class="text-center mb-3">
+          <span class="text-uppercase fw-bold" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">
+            <i class="ri-time-line me-1"></i><%= @notification.created_at.strftime("%b %d, %Y · %l:%M %p").strip %>
+          </span>
+        </div>
+
+        <hr style="border-color: rgba(93,99,69,0.1);">
+
+        <%# ══════════════════════════════════ %>
+        <%# ── DETAIL CARD per notifiable   ── %>
+        <%# ══════════════════════════════════ %>
+
+        <% if @notifiable.is_a?(Transfer) %>
+        <%# ── Transfer Detail ── %>
+        <% xfer = @notifiable %>
+        <div class="rounded-3 p-3 mb-3" style="background: var(--haiti-mint); border: 1px solid rgba(93,99,69,0.12);">
+          <table class="w-100" style="font-size: 13px;">
+            <tr>
+              <td class="fw-bold py-1" style="color: var(--haiti-olive); width: 40%;">Montan</td>
+              <td class="fw-black py-1" style="color: var(--haiti-charcoal);">
+                <% if xfer.htg_transfer? %>
+                  HTG <%= number_with_delimiter(xfer.amount.to_i) %>
+                <% elsif xfer.crypto_amount.present? %>
+                  <%= number_with_precision(xfer.crypto_amount, precision: 2, strip_insignificant_zeros: true) %> <%= xfer.asset_label %>
+                <% else %>
+                  <%= number_with_precision(xfer.amount, precision: 2) %> <%= xfer.asset_label %>
+                <% end %>
+              </td>
+            </tr>
+            <% if xfer.fee.present? && xfer.fee > 0 %>
+              <tr>
+                <td class="fw-bold py-1" style="color: var(--haiti-olive);">Frè</td>
+                <td class="py-1" style="color: var(--haiti-charcoal);">
+                  HTG <%= number_to_currency(xfer.fee, unit: "", precision: 0) %>
+                </td>
+              </tr>
+            <% end %>
+            <% if xfer.receiver_cashtag.present? %>
+              <tr>
+                <td class="fw-bold py-1" style="color: var(--haiti-olive);">Resevè</td>
+                <td class="py-1" style="color: var(--haiti-gold); font-weight: 700;">$<%= xfer.receiver_cashtag %></td>
+              </tr>
+            <% elsif xfer.receiver_phone.present? %>
+              <tr>
+                <td class="fw-bold py-1" style="color: var(--haiti-olive);">Resevè</td>
+                <td class="py-1" style="color: var(--haiti-charcoal);"><%= xfer.receiver_phone %></td>
+              </tr>
+            <% end %>
+            <tr>
+              <td class="fw-bold py-1" style="color: var(--haiti-olive);">Estati</td>
+              <td class="py-1">
+                <% status_colors = { "completed" => "#166534", "failed" => "#991b1b", "pending" => "#92400e", "funded" => "#1d4ed8", "sent" => "#1d4ed8", "expired" => "#854d0e", "refunded" => "#1d4ed8" } %>
+                <% status_labels = { "completed" => "KONPLETE", "failed" => "ECHWE", "pending" => "AP TANN", "funded" => "FINANSE", "sent" => "VOYE", "expired" => "EKSPIRE", "refunded" => "RANBOUSE" } %>
+                <span class="badge rounded-pill px-2" style="background: <%= status_colors[xfer.status] || 'var(--haiti-olive)' %>; color: white; font-size: 10px;">
+                  <%= status_labels[xfer.status] || xfer.status.upcase %>
+                </span>
+              </td>
+            </tr>
+            <% if xfer.note.present? %>
+              <tr>
+                <td class="fw-bold py-1" style="color: var(--haiti-olive);">Nòt</td>
+                <td class="py-1" style="color: var(--haiti-charcoal); font-style: italic;"><%= xfer.note.truncate(100) %></td>
+              </tr>
+            <% end %>
+            <tr>
+              <td class="fw-bold py-1" style="color: var(--haiti-olive);">Dat</td>
+              <td class="py-1" style="color: var(--haiti-charcoal);"><%= xfer.created_at.strftime("%-d %b %Y, %l:%M %p").strip %></td>
+            </tr>
+            <% if xfer.blockchain_tx_hash.present? %>
+              <tr>
+                <td class="fw-bold py-1" style="color: var(--haiti-olive);">TX</td>
+                <td class="py-1">
+                  <% base_url = "https://basescan.org" %>
+                  <a href="<%= base_url %>/tx/<%= xfer.blockchain_tx_hash %>" target="_blank" class="text-decoration-none fw-bold" style="color: var(--haiti-gold); font-size: 11px;">
+                    <%= xfer.blockchain_tx_hash.first(10) %>…
+                    <i class="ri-external-link-line ms-1" style="font-size: 10px;"></i>
+                  </a>
+                </td>
+              </tr>
+            <% end %>
+          </table>
+        </div>
+
+        <%# ── CTA ── %>
+        <%= link_to transfer_path(xfer), class: "btn w-100 rounded-pill py-3 fw-bold", style: "background: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 14px;" do %>
+          <i class="ri-arrow-right-line me-1"></i>Wè Transfè
+        <% end %>
+
+      <% elsif @notifiable.is_a?(PaymentRequest) %>
+        <%# ── Payment Request Detail ── %>
+        <% pr = @notifiable %>
+        <div class="rounded-3 p-3 mb-3" style="background: var(--haiti-mint); border: 1px solid rgba(93,99,69,0.12);">
+          <table class="w-100" style="font-size: 13px;">
+            <tr>
+              <td class="fw-bold py-1" style="color: var(--haiti-olive); width: 40%;">Montan</td>
+              <td class="fw-black py-1" style="color: var(--haiti-charcoal);">
+                <%= pr.htg? ? "HTG #{pr.amount.to_i}" : "#{pr.amount} #{pr.asset == 'usdc' ? 'USD' : pr.asset.upcase}" %>
+              </td>
+            </tr>
+            <% if pr.note.present? %>
+              <tr>
+                <td class="fw-bold py-1" style="color: var(--haiti-olive);">Nòt</td>
+                <td class="py-1" style="color: var(--haiti-charcoal); font-style: italic;"><%= pr.note.truncate(100) %></td>
+              </tr>
+            <% end %>
+            <tr>
+              <td class="fw-bold py-1" style="color: var(--haiti-olive);">Estati</td>
+              <td class="py-1">
+                <% pr_colors = { "paid" => "#166534", "pending" => "#92400e", "expired" => "#854d0e", "canceled" => "#991b1b" } %>
+                <span class="badge rounded-pill px-2" style="background: <%= pr_colors[pr.status] || 'var(--haiti-olive)' %>; color: white; font-size: 10px;">
+                  <%= pr.status.upcase %>
+                </span>
+              </td>
+            </tr>
+            <tr>
+              <td class="fw-bold py-1" style="color: var(--haiti-olive);">Dat</td>
+              <td class="py-1" style="color: var(--haiti-charcoal);"><%= pr.created_at.strftime("%-d %b %Y, %l:%M %p").strip %></td>
+            </tr>
+          </table>
+        </div>
+
+        <%# ── CTA ── %>
+        <%= link_to public_payment_request_path(pr.token), class: "btn w-100 rounded-pill py-3 fw-bold", style: "background: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 14px;" do %>
+          <i class="ri-arrow-right-line me-1"></i>Wè Demann
+        <% end %>
+
+      <% else %>
+        <%# ── Generic (deposit/withdrawal — no notifiable) ── %>
+        <%= link_to wallet_path, class: "btn w-100 rounded-pill py-3 fw-bold", style: "background: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 14px;" do %>
+          <i class="ri-arrow-left-line me-1"></i>Retounen nan Pòtfèy
+        <% end %>
+      <% end %>
+      <% end %><%# end conversion_completed if/else %>
+
+    </div>
+  </div>
+</div>

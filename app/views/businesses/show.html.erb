@@ -19,6 +19,9 @@
               <i class="ri-checkbox-circle-fill me-1"></i><%= @business.active? ? "Aktif" : @business.suspended? ? "Sispann" : "An atant" %>
             </span>
             <span style="color: var(--haiti-olive); font-size: 11px;"><%= @business.category_label %></span>
+            <% if @business.subcategory.present? %>
+              <span style="color: var(--haiti-olive); font-size: 11px; opacity: 0.7;">· <%= @business.subcategory_label %></span>
+            <% end %>
           </div>
         </div>
       </div>
@@ -50,7 +53,7 @@
           <div class="fw-black" style="color: var(--haiti-charcoal); font-size: 18px;">
             <%= (@business.fee_rate * 100).round(1) %>%
           </div>
-          <div style="color: var(--haiti-olive); font-size: 10px; font-weight: 600;">TO FRÈ</div>
+          <div style="color: var(--haiti-olive); font-size: 10px; font-weight: 600;">TO FRE</div>
         </div>
       </div>
     </div>
@@ -58,18 +61,176 @@
     <%# ── Business Details ── %>
     <div class="rounded-3 p-3 mb-4" style="background: rgba(93,99,69,0.04); border: 1px solid rgba(93,99,69,0.1);">
       <% if @business.description.present? %>
-        <div class="mb-2" style="color: var(--haiti-charcoal); font-size: 13px;"><%= @business.description %></div>
+        <div class="mb-3" style="color: var(--haiti-charcoal); font-size: 13px;"><%= @business.description %></div>
       <% end %>
-      <div class="d-flex flex-wrap gap-3" style="font-size: 12px; color: var(--haiti-olive);">
-        <% if @business.commune.present? %>
-          <span><i class="ri-map-pin-line me-1"></i><%= @business.commune %><%= ", #{@business.department}" if @business.department.present? %></span>
-        <% end %>
+
+      <%# ── Mailing Address ── %>
+      <% has_address = [@business.section, @business.address, @business.commune, @business.department].any?(&:present?) %>
+      <% if has_address %>
+        <div class="d-flex gap-2 mb-3" style="font-size: 12px; color: var(--haiti-olive);">
+          <i class="ri-map-pin-line mt-1" style="color: var(--haiti-gold); flex-shrink: 0;"></i>
+          <div style="line-height: 1.6; font-weight: 600; color: var(--haiti-charcoal);">
+            <% if @business.section.present? %>
+              <div><%= @business.section %></div>
+            <% end %>
+            <% if @business.address.present? %>
+              <div><%= @business.address %></div>
+            <% end %>
+            <% if @business.commune.present? || @business.arrondissement.present? %>
+              <div><%= [@business.commune&.upcase, @business.arrondissement].compact_blank.join(", ") %></div>
+            <% end %>
+            <% if @business.department.present? %>
+              <div><%= @business.department %></div>
+            <% end %>
+            <div>HAITI</div>
+          </div>
+        </div>
+      <% end %>
+
+      <%# ── Contact ── %>
+      <div class="d-flex flex-wrap gap-3 mb-2" style="font-size: 12px; color: var(--haiti-olive);">
         <% if @business.phone.present? %>
           <span><i class="ri-phone-line me-1"></i><%= @business.phone %></span>
         <% end %>
+        <% if @business.email.present? %>
+          <span><i class="ri-mail-line me-1"></i><%= @business.email %></span>
+        <% end %>
+        <% if @business.website.present? %>
+          <span><i class="ri-global-line me-1"></i><%= @business.website %></span>
+        <% end %>
         <span><i class="ri-link me-1"></i>b/<%= @business.slug %></span>
       </div>
+
+      <%# ── Social Media ── %>
+      <% social = @business.social_media.is_a?(Hash) ? @business.social_media : {} %>
+      <% if social.values.any?(&:present?) %>
+        <div class="d-flex flex-wrap gap-3" style="font-size: 12px; color: var(--haiti-olive);">
+          <% if social["instagram"].present? %>
+            <span><i class="ri-instagram-line me-1"></i><%= social["instagram"] %></span>
+          <% end %>
+          <% if social["facebook"].present? %>
+            <span><i class="ri-facebook-circle-line me-1"></i><%= social["facebook"] %></span>
+          <% end %>
+          <% if social["whatsapp"].present? %>
+            <span><i class="ri-whatsapp-line me-1"></i><%= social["whatsapp"] %></span>
+          <% end %>
+          <% if social["tiktok"].present? %>
+            <span><i class="ri-tiktok-line me-1"></i><%= social["tiktok"] %></span>
+          <% end %>
+        </div>
+      <% end %>
     </div>
+
+    <%# ── Accepted Currencies ── %>
+    <% currencies = @business.accepted_currencies.reject(&:blank?) rescue [] %>
+    <% if currencies.any? %>
+      <%
+        currency_meta = {
+          "htg"  => { label: "HTG",  icon: "ri-money-cny-circle-line",    color: "#166534" },
+          "usdc" => { label: "USDC", icon: "ri-money-dollar-circle-line", color: "#1d4ed8" },
+          "eth"  => { label: "ETH",  icon: "ri-copper-diamond-line",      color: "#6b21a8" },
+          "wbtc" => { label: "WBTC", icon: "ri-bit-coin-line",            color: "#b45309" }
+        }
+      %>
+      <div class="rounded-3 p-3 mb-4" style="background: rgba(93,99,69,0.04); border: 1px solid rgba(93,99,69,0.1);">
+        <div class="fw-bold mb-2" style="color: var(--haiti-charcoal); font-size: 13px;">
+          <i class="ri-coin-line me-1" style="color: var(--haiti-gold);"></i>Lajan Aksepte
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+          <% currencies.each do |c| %>
+            <% meta = currency_meta[c] || { label: c.upcase, icon: "ri-coin-line", color: "var(--haiti-olive)" } %>
+            <span class="badge rounded-pill px-3 py-2" style="background: rgba(93,99,69,0.08); color: <%= meta[:color] %>; font-size: 12px; font-weight: 700;">
+              <i class="<%= meta[:icon] %> me-1"></i><%= meta[:label] %>
+            </span>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+
+    <%# ── Operating Hours ── %>
+    <% hours_data = begin; JSON.parse(@business.hours.to_s); rescue; nil; end %>
+    <% if hours_data.is_a?(Hash) && hours_data.any? %>
+      <div class="rounded-3 p-3 mb-4" style="background: rgba(93,99,69,0.04); border: 1px solid rgba(93,99,69,0.1);">
+        <div class="fw-bold mb-2" style="color: var(--haiti-charcoal); font-size: 13px;">
+          <i class="ri-time-line me-1" style="color: var(--haiti-gold);"></i>Edtan Ouveti
+        </div>
+        <%
+          day_labels = {
+            "lendi"    => "Lendi",
+            "madi"     => "Madi",
+            "mekredi"  => "Mekredi",
+            "jedi"     => "Jedi",
+            "vandredi" => "Vandredi",
+            "samdi"    => "Samdi",
+            "dimanch"  => "Dimanch"
+          }
+        %>
+        <% day_labels.each do |key, label| %>
+          <% if hours_data[key].present? %>
+            <div class="d-flex justify-content-between py-1" style="font-size: 12px; border-bottom: 1px solid rgba(93,99,69,0.06);">
+              <span style="color: var(--haiti-charcoal); font-weight: 600;"><%= label %></span>
+              <span style="color: var(--haiti-olive);"><%= hours_data[key]["open"] %> – <%= hours_data[key]["close"] %></span>
+            </div>
+          <% end %>
+        <% end %>
+      </div>
+    <% end %>
+
+    <%# ── Payment Tools ── %>
+    <div class="rounded-3 p-3 mb-4" style="background: rgba(93,99,69,0.04); border: 1px solid rgba(93,99,69,0.1);">
+      <div class="fw-bold mb-3" style="color: var(--haiti-charcoal); font-size: 13px;">
+        <i class="ri-tools-line me-1" style="color: var(--haiti-gold);"></i>Zouti Pèman
+      </div>
+      <div class="row g-2">
+        <%# ── QR Kod ── %>
+        <div class="col-4">
+          <%= link_to pay_business_path(@business.slug), target: "_blank", class: "text-decoration-none d-block text-center p-3 rounded-3 h-100", style: "background: rgba(197,160,89,0.08); border: 1px solid rgba(197,160,89,0.15);" do %>
+            <i class="ri-qr-code-line d-block mb-1" style="font-size: 24px; color: var(--haiti-gold);"></i>
+            <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 11px;">QR Kod</div>
+            <div style="color: var(--haiti-olive); font-size: 9px;">Eskane pou peye</div>
+          <% end %>
+        </div>
+        <%# ── Lyen Pèman ── %>
+        <div class="col-4">
+          <%= link_to business_payment_links_path, class: "text-decoration-none d-block text-center p-3 rounded-3 h-100", style: "background: rgba(197,160,89,0.08); border: 1px solid rgba(197,160,89,0.15);" do %>
+            <i class="ri-link d-block mb-1" style="font-size: 24px; color: var(--haiti-gold);"></i>
+            <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 11px;">Lyen Pèman</div>
+            <div style="color: var(--haiti-olive); font-size: 9px;">Pataje sou WhatsApp</div>
+          <% end %>
+        </div>
+        <%# ── Bouton ── %>
+        <div class="col-4">
+          <%= link_to button_business_path, class: "text-decoration-none d-block text-center p-3 rounded-3 h-100", style: "background: rgba(197,160,89,0.08); border: 1px solid rgba(197,160,89,0.15);" do %>
+            <i class="ri-code-s-slash-line d-block mb-1" style="font-size: 24px; color: var(--haiti-gold);"></i>
+            <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 11px;">Bouton</div>
+            <div style="color: var(--haiti-olive); font-size: 9px;">Pou sit entènèt</div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <%# ── QR Code — Peman ── %>
+    <% if @business.slug.present? %>
+      <div class="rounded-3 p-3 mb-4 text-center" style="background: rgba(93,99,69,0.04); border: 1px solid rgba(93,99,69,0.1);">
+        <div class="fw-bold mb-2" style="color: var(--haiti-charcoal); font-size: 13px;">
+          <i class="ri-qr-code-line me-1" style="color: var(--haiti-gold);"></i>QR Code pou Resevwa Peman
+        </div>
+        <div class="d-inline-block p-3 rounded-3 mb-2 position-relative" style="background: white; border: 2px solid var(--haiti-gold);">
+          <%= qr_svg(pay_business_url(@business.slug)) %>
+          <div class="position-absolute top-50 start-50 translate-middle d-flex align-items-center justify-content-center rounded-circle"
+               style="width: 36px; height: 36px; background: white; box-shadow: 0 0 0 2px var(--haiti-gold);">
+            <% if @business.logo.attached? %>
+              <%= image_tag @business.logo, style: "width: 30px; height: 30px; border-radius: 50%; object-fit: cover;" %>
+            <% else %>
+              <i class="<%= @business.category_icon %>" style="font-size: 16px; color: var(--haiti-gold);"></i>
+            <% end %>
+          </div>
+        </div>
+        <div style="color: var(--haiti-olive); font-size: 11px;">
+          Kliyan ka eskane kod sa a pou peye w direkteman.
+        </div>
+      </div>
+    <% end %>
 
     <%# ── Quick Links ── %>
     <div class="d-flex gap-2 mb-4">
@@ -79,8 +240,10 @@
       <%= link_to payments_business_path, class: "btn flex-grow-1 rounded-3 py-2", style: "background: rgba(93,99,69,0.08); color: var(--haiti-charcoal); font-size: 13px; font-weight: 700;" do %>
         <i class="ri-money-dollar-circle-line me-1"></i>Peman
       <% end %>
-      <%= link_to public_business_path(@business.slug), class: "btn flex-grow-1 rounded-3 py-2", style: "background: rgba(93,99,69,0.08); color: var(--haiti-charcoal); font-size: 13px; font-weight: 700;" do %>
-        <i class="ri-pages-line me-1"></i>Paj Piblik
+      <% if @business.slug.present? %>
+        <%= link_to public_business_path(@business.slug), class: "btn flex-grow-1 rounded-3 py-2", style: "background: rgba(93,99,69,0.08); color: var(--haiti-charcoal); font-size: 13px; font-weight: 700;" do %>
+          <i class="ri-pages-line me-1"></i>Paj Piblik
+        <% end %>
       <% end %>
     </div>
 
@@ -114,13 +277,13 @@
                 <% end %>
               </div>
               <div style="color: var(--haiti-olive); font-size: 11px;">
-                <%= number_with_delimiter(product.sold_count) %> vann · <%= number_with_delimiter(product.total_revenue.to_i) %> HTG revni
+                <%= number_with_delimiter(product.sold_count) %> vann · <%= number_with_delimiter(product.total_revenue.to_i) %> <%= currency_label(product.asset || "htg") %> revni
               </div>
             </div>
           </div>
           <div class="d-flex align-items-center gap-2">
             <span class="fw-black" style="color: var(--haiti-charcoal); font-size: 14px;">
-              <%= number_with_delimiter(product.price.to_i) %> <small style="color: var(--haiti-olive);">HTG</small>
+              <%= number_with_delimiter(product.price.to_i) %> <small style="color: var(--haiti-olive);"><%= currency_label(product.asset || "htg") %></small>
             </span>
             <%= link_to edit_business_product_path(product), class: "text-decoration-none" do %>
               <i class="ri-edit-line" style="color: var(--haiti-olive); font-size: 16px;"></i>

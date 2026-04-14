@@ -1,0 +1,101 @@
+<%# Shared conversion detail card
+   Locals: cv_from, cv_to, cv_fee
+%>
+<%
+  fee_same_as_to = cv_fee && cv_fee.amount.to_f > 0 && cv_fee.asset == cv_to.asset
+  has_fee = cv_fee && cv_fee.amount.to_f > 0
+  gross_to = fee_same_as_to ? (cv_to.amount.to_f + cv_fee.amount.to_f) : cv_to.amount.to_f
+
+  from_ctx = cv_from.source_context || "personal"
+  to_ctx   = cv_to.source_context   || "personal"
+  from_ctx_label = from_ctx == "biznis" ? "Biznis" : "Pèsonèl"
+  to_ctx_label   = to_ctx == "biznis"   ? "Biznis" : "Pèsonèl"
+  from_icon = from_ctx == "biznis" ? "ri-store-2-line" : "ri-wallet-3-line"
+  to_icon   = to_ctx == "biznis"   ? "ri-store-2-line" : "ri-wallet-3-line"
+%>
+
+<%# ── FROM → TO amount cards ── %>
+<div class="d-flex align-items-center gap-2 mb-3">
+  <div class="text-center flex-fill p-3 rounded-4" style="background: var(--haiti-charcoal);">
+    <div class="fw-bold text-uppercase mb-1" style="color: rgba(255,255,255,0.4); font-size: 9px; letter-spacing: 0.5px;">Ou Bay</div>
+    <div class="d-flex align-items-center justify-content-center gap-1 mb-1">
+      <%= %w[usd usdc].include?(cv_from.asset) ? usd_logo(size: 20) : htg_logo_svg(size: 20) %>
+      <span class="fw-black" style="color: #fff; font-size: 22px; letter-spacing: -1px;">
+        <%= number_to_currency(cv_from.amount, unit: "", precision: 2) %>
+      </span>
+    </div>
+    <span class="fw-bold" style="color: var(--haiti-gold); font-size: 11px;"><%= cv_from.asset_label %></span>
+    <div class="mt-1" style="font-size: 9px; color: rgba(255,255,255,0.35);">
+      <i class="<%= from_icon %> me-1" style="font-size: 8px;"></i><%= from_ctx_label %> <%= cv_from.asset_label %>
+    </div>
+  </div>
+
+  <div style="flex-shrink: 0;">
+    <div class="d-flex align-items-center justify-content-center rounded-circle" style="width: 32px; height: 32px; background: var(--haiti-charcoal);">
+      <i class="ri-arrow-right-line" style="color: var(--haiti-gold); font-size: 16px;"></i>
+    </div>
+  </div>
+
+  <div class="text-center flex-fill p-3 rounded-4" style="background: var(--haiti-charcoal);">
+    <div class="fw-bold text-uppercase mb-1" style="color: rgba(255,255,255,0.4); font-size: 9px; letter-spacing: 0.5px;">Pou</div>
+    <div class="d-flex align-items-center justify-content-center gap-1 mb-1">
+      <%= %w[usd usdc].include?(cv_to.asset) ? usd_logo(size: 20) : htg_logo_svg(size: 20) %>
+      <span class="fw-black" style="color: #22c55e; font-size: 22px; letter-spacing: -1px;">
+        <%= number_to_currency(gross_to, unit: "", precision: 2) %>
+      </span>
+    </div>
+    <span class="fw-bold" style="color: var(--haiti-gold); font-size: 11px;"><%= cv_to.asset_label %></span>
+    <div class="mt-1" style="font-size: 9px; color: rgba(255,255,255,0.35);">
+      <i class="<%= to_icon %> me-1" style="font-size: 8px;"></i><%= to_ctx_label %> <%= cv_to.asset_label %>
+    </div>
+  </div>
+</div>
+
+<%# ── Source pill ── %>
+<div class="text-center mb-3">
+  <span class="d-inline-flex align-items-center gap-1 px-3 py-1 rounded-pill" style="background: rgba(93,99,69,0.08); font-size: 11px; font-weight: 700; color: var(--haiti-olive);">
+    <i class="ri-exchange-2-line" style="font-size: 10px;"></i>
+    <%= from_ctx_label %> <%= cv_from.asset_label %> → <%= to_ctx_label %> <%= cv_to.asset_label %>
+  </span>
+</div>
+
+<%# ── Details card ── %>
+<%
+  if %w[usd usdc].include?(cv_from.asset)
+    rate_display = gross_to > 0 ? "1 USD = #{number_with_precision(gross_to / cv_from.amount.to_f, precision: 2)} HTG" : nil
+  else
+    rate_display = gross_to > 0 ? "1 USD = #{number_with_precision(cv_from.amount.to_f / gross_to, precision: 2)} HTG" : nil
+  end
+%>
+<div class="p-3 mb-3 rounded-4" style="background: var(--haiti-cream); border: 1.5px solid rgba(93,99,69,0.2);">
+  <div class="d-flex justify-content-between align-items-center small mb-2">
+    <span style="color: var(--haiti-olive);">Montan Brut</span>
+    <span class="fw-bold d-flex align-items-center gap-1" style="color: var(--haiti-charcoal);">
+      <%= %w[usd usdc].include?(cv_to.asset) ? usd_logo(size: 14) : htg_logo_svg(size: 14) %>
+      <%= number_to_currency(gross_to, unit: "", precision: 2) %> <%= cv_to.asset_label %>
+    </span>
+  </div>
+  <% if rate_display %>
+    <div class="d-flex justify-content-between align-items-center small mb-2">
+      <span style="color: var(--haiti-olive);">To</span>
+      <span class="fw-bold" style="color: var(--haiti-charcoal);"><%= rate_display %></span>
+    </div>
+  <% end %>
+  <% if has_fee %>
+    <div class="d-flex justify-content-between align-items-center small mb-2">
+      <span style="color: var(--haiti-olive);">Frè Sèvis (2%)</span>
+      <span class="fw-bold d-flex align-items-center gap-1" style="color: #991b1b;">
+        <%= %w[usd usdc].include?(cv_fee.asset) ? usd_logo(size: 14) : htg_logo_svg(size: 14) %>
+        - <%= number_to_currency(cv_fee.amount, unit: "", precision: 2) %> <%= cv_fee.asset_label %>
+      </span>
+    </div>
+  <% end %>
+  <hr class="my-2" style="border-color: var(--haiti-olive); opacity: 0.15;">
+  <div class="d-flex justify-content-between align-items-center small">
+    <span class="fw-bold" style="color: var(--haiti-charcoal);">Ou Resevwa</span>
+    <span class="fw-black d-flex align-items-center gap-1" style="color: #22c55e;">
+      <%= %w[usd usdc].include?(cv_to.asset) ? usd_logo(size: 14) : htg_logo_svg(size: 14) %>
+      <%= number_to_currency(cv_to.amount, unit: "", precision: 2) %> <%= cv_to.asset_label %>
+    </span>
+  </div>
+</div>

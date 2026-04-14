@@ -43,7 +43,7 @@ class LoanMailer < ApplicationMailer
   def load_loan
     @loan = Transaction.includes(:user).find(params[:loan_id])
     @user = @loan.user
-    @brand_name = "Zèllus Bank"
+    @brand_name = AppBrand::BANK
   end
 
   def format_htg(value)

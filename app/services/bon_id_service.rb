@@ -2,7 +2,7 @@ class BonIdService
   BASE_URLS = {
     "production"  => "https://api.bonid.ht/api/v1",
     "sandbox"     => "https://sandbox.bonid.ht/api/v1",
-    "development" => "http://localhost:3000/api/v1"
+    "development" => "https://elaina-nonorthographical-bromidically.ngrok-free.dev/api/v1"
   }.freeze
 
   def self.base_url
@@ -21,7 +21,13 @@ class BonIdService
 
     if response.success?
       data = JSON.parse(response.body)
-      { success: true, verified: data["verified"] == true, bonid: data["bonid"] }
+      # BonID API nests verified under "verification" object
+      verified = if data["verification"].is_a?(Hash)
+                   data["verification"]["verified"] == true
+                 else
+                   data["verified"] == true
+                 end
+      { success: true, verified: verified, bonid: data["bonid"] }
     else
       handle_error(response)
     end
@@ -104,25 +110,119 @@ class BonIdService
       bonid_verified_at: Time.current,
       bonid_first_name: identity["first_name"],
       bonid_last_name: identity["last_name"],
-      bonid_photo_url: identity["photo_url"]
+      bonid_photo_url: identity["photo_url"],
+      bonid_rechecked_at: Time.current
     )
 
     { success: true, identity: identity }
+  end
+
+  # Re-sync a verified user's BonID data from the API.
+  # Called when user visits their BonID page (throttled to once per hour).
+  # Updates stored fields if BonID data changed (e.g. name change → new prefix).
+  # A 401 from BonID API means partner access was revoked — clears verification.
+  def self.refresh_user!(user)
+    return { success: false, error: "Pa gen BonID." } unless user.bonid.present?
+
+    result = lookup(user.bonid)
+    unless result[:success]
+      # 401/403 = partner access revoked on BonID side → clear ALL verification
+      if (result[:error]&.include?("Otorizasyon") || result[:error]&.include?("401")) && user.bonid.present?
+        old_bonid = user.bonid
+        user.update!(
+          bonid: nil,
+          bonid_verified_at: nil,
+          bonid_first_name: nil,
+          bonid_last_name: nil,
+          bonid_photo_url: nil,
+          bonid_street: nil,
+          bonid_locality: nil,
+          bonid_commune: nil,
+          bonid_department: nil,
+          bonid_country: nil,
+          bonid_blood_type: nil,
+          bonid_rechecked_at: nil
+        )
+        Rails.logger.warn "BonID REVOKED for #{old_bonid} — ALL fields cleared (API auth failure)"
+        return { success: true, changes: { bonid_verified_at: nil }, revoked: true }
+      end
+
+      Rails.logger.warn "BonID refresh failed for #{user.bonid}: #{result[:error]}"
+      return { success: false, error: result[:error] }
+    end
+
+    identity = result[:identity] || {}
+    changes = {}
+
+    # Check if BonID itself changed (prefix update after name change)
+    if result[:bonid].present? && result[:bonid] != user.bonid
+      changes[:bonid] = result[:bonid]
+    end
+
+    # Check identity fields for changes
+    { bonid_first_name: "first_name", bonid_last_name: "last_name", bonid_photo_url: "photo_url" }.each do |col, key|
+      new_val = identity[key]
+      if new_val.present? && new_val != user.send(col)
+        changes[col] = new_val
+      end
+    end
+
+    # Check address fields if present
+    %w[street locality commune department country].each do |field|
+      col = :"bonid_#{field}"
+      new_val = identity[field]
+      if new_val.present? && new_val != user.send(col)
+        changes[col] = new_val
+      end
+    end
+
+    # If verification was revoked on BonID side — clear everything
+    unless result[:verified]
+      changes[:bonid] = nil
+      changes[:bonid_verified_at] = nil
+      changes[:bonid_first_name] = nil
+      changes[:bonid_last_name] = nil
+      changes[:bonid_photo_url] = nil
+      changes[:bonid_street] = nil
+      changes[:bonid_locality] = nil
+      changes[:bonid_commune] = nil
+      changes[:bonid_department] = nil
+      changes[:bonid_country] = nil
+      changes[:bonid_blood_type] = nil
+      changes[:bonid_rechecked_at] = nil
+    end
+
+    changes[:bonid_rechecked_at] = Time.current
+    user.update!(changes)
+
+    Rails.logger.info "BonID refresh for #{user.bonid}: #{changes.keys.reject { |k| k == :bonid_rechecked_at }.join(', ').presence || 'no changes'}"
+    { success: true, changes: changes.except(:bonid_rechecked_at) }
   end
 
   # ══════════════════════════════════════════════════
   # Per-Transaction Consent API
   # ══════════════════════════════════════════════════
 
-  CONSENT_THRESHOLD = BigDecimal(ENV.fetch("BONID_CONSENT_THRESHOLD", "50"))
+  # Threshold in HTG — transfers at or above this require BonID consent.
+  # USD transfers are converted to HTG equivalent (via RateService) before comparison.
+  CONSENT_THRESHOLD = BigDecimal(ENV.fetch("BONID_CONSENT_THRESHOLD", "1000"))
 
   # Should this transfer require BonID consent?
+  # Works for both HTG and USD transfers.
+  # USD amounts are converted to their HTG equivalent using the current rate.
+  # Returns true based on amount alone — caller must handle BonID presence check.
   def self.consent_required?(transfer)
-    return false unless transfer.user&.bonid.present?
-    transfer.amount >= CONSENT_THRESHOLD
+    if transfer.usd_wallet_transfer? || transfer.usd_address_transfer?
+      usd_amount = transfer.crypto_amount || transfer.net_amount || BigDecimal("0")
+      htg_equivalent = usd_amount * RateService.buy_rate.to_d
+      htg_equivalent >= CONSENT_THRESHOLD
+    else
+      transfer.amount >= CONSENT_THRESHOLD
+    end
   end
 
   # Request consent for a transfer — returns consent_token + expiry
+  # Supports both HTG and USD transfers.
   def self.request_consent(transfer)
     user = transfer.user
     return { success: false, error: "Itilizatè pa gen BonID" } unless user&.bonid.present?
@@ -130,17 +230,28 @@ class BonIdService
     reference_id = "ZEL-transfer-#{transfer.token}"
     receiver_label = transfer.receiver_cashtag.present? ? "$#{transfer.receiver_cashtag}" : (transfer.receiver_name.presence || transfer.receiver_phone)
 
+    # Determine currency + amount for the consent payload
+    if transfer.usd_wallet_transfer? || transfer.usd_address_transfer?
+      consent_amount = (transfer.crypto_amount || transfer.net_amount).to_f
+      consent_currency = "USD"
+      description = "Voye #{'%.2f' % consent_amount} USD bay #{receiver_label}"
+    else
+      consent_amount = transfer.amount.to_f
+      consent_currency = "HTG"
+      description = "Voye #{transfer.amount.to_i} HTG bay #{receiver_label}"
+    end
+
     response = connection.post("transaction_consents") do |req|
       req.headers["Content-Type"] = "application/json"
       req.body = {
         bonid: user.bonid,
         transaction_type: "p2p_transfer",
         scopes: ["identity"],
-        amount: transfer.amount.to_f,
-        currency: "HTG",
-        description: "Voye #{transfer.amount.to_i} HTG bay #{receiver_label}",
+        amount: consent_amount,
+        currency: consent_currency,
+        description: description,
         reference_id: reference_id,
-        callback_url: "#{ENV.fetch('APP_HOST', 'http://localhost:3000')}/bonid_consent_webhook"
+        callback_url: "#{ENV.fetch('APP_HOST', 'https://zellus.ht.ngrok.dev')}/bonid_consent_webhook"
       }.to_json
     end
 

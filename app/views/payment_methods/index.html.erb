@@ -1,306 +1,567 @@
 <style>
-  .bb-dark-field {
-    color: #fff !important;
+  .bb-dark-field { color: #fff !important; }
+  .bb-dark-field::placeholder { color: rgba(255,255,255,0.5) !important; opacity: 1; font-weight: 400 !important; }
+
+  /* ── Confirmation Modal ── */
+  .pm-confirm-overlay {
+    position: fixed; inset: 0; z-index: 10000;
+    background: rgba(46,46,56,0.55);
+    backdrop-filter: blur(4px);
+    display: flex; align-items: center; justify-content: center;
+    padding: 20px;
+    animation: pmFadeIn 0.15s ease;
   }
-  .bb-dark-field::placeholder {
-    color: rgba(255, 255, 255, 0.5) !important;
-    opacity: 1;
-    font-weight: 400 !important;
+  @keyframes pmFadeIn { from { opacity: 0; } to { opacity: 1; } }
+  .pm-confirm-card {
+    background: var(--haiti-cream);
+    border-radius: 20px;
+    padding: 28px 24px 20px;
+    max-width: 360px; width: 100%;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+    text-align: center;
+    animation: pmSlideUp 0.2s ease;
   }
-  .bb-dark-select {
-    color: #fff !important;
+  @keyframes pmSlideUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+  .pm-confirm-icon {
+    width: 52px; height: 52px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 14px;
   }
-  .bb-dark-select option {
-    background: #fff;
-    color: #111827;
+  .pm-confirm-icon.danger { background: #fef2f2; }
+  .pm-confirm-icon.danger i { color: #dc2626; font-size: 24px; }
+  .pm-confirm-icon.warning { background: #fffbeb; }
+  .pm-confirm-icon.warning i { color: #d97706; font-size: 24px; }
+  .pm-confirm-icon.info { background: #eff6ff; }
+  .pm-confirm-icon.info i { color: #2563eb; font-size: 24px; }
+  .pm-confirm-title { font-size: 16px; font-weight: 800; color: var(--haiti-charcoal); margin-bottom: 6px; }
+  .pm-confirm-desc { font-size: 12px; color: var(--haiti-olive); margin-bottom: 20px; line-height: 1.5; }
+  .pm-confirm-actions { display: flex; gap: 10px; }
+  .pm-confirm-cancel {
+    flex: 1; padding: 12px; border-radius: 12px;
+    border: 1.5px solid rgba(93,99,69,0.15); background: transparent;
+    font-size: 13px; font-weight: 700; color: var(--haiti-olive);
+    cursor: pointer; transition: background 0.15s;
   }
+  .pm-confirm-cancel:hover { background: rgba(93,99,69,0.06); }
+  .pm-confirm-submit {
+    flex: 1; padding: 12px; border-radius: 12px;
+    border: none; font-size: 13px; font-weight: 700;
+    cursor: pointer; transition: opacity 0.15s;
+  }
+  .pm-confirm-submit:hover { opacity: 0.85; }
+  .pm-confirm-submit.danger { background: #dc2626; color: #fff; }
+  .pm-confirm-submit.warning { background: #d97706; color: #fff; }
+  .pm-confirm-submit.info { background: #2563eb; color: #fff; }
+
+  /* ── Ghost Card System ── */
+  .pm-card {
+    padding: 12px 14px;
+    border-radius: 14px;
+    border: 1.5px solid rgba(93,99,69,0.12);
+    background: rgba(255,255,255,0.5);
+    margin-bottom: 8px;
+    transition: all 0.15s ease;
+  }
+  .pm-card:hover {
+    border-color: rgba(93,99,69,0.2);
+    background: rgba(255,255,255,0.8);
+  }
+  .pm-card:last-child { margin-bottom: 0; }
+
+  /* Default card accent */
+  .pm-card-default {
+    border-color: var(--haiti-gold) !important;
+    background: rgba(197,160,89,0.04) !important;
+    box-shadow: 0 0 0 1px rgba(197,160,89,0.08);
+  }
+  .pm-card-default:hover { background: rgba(197,160,89,0.08) !important; }
+
+  /* Inactive card dimmed */
+  .pm-card-inactive { opacity: 0.55; }
+
+  /* Card icon */
+  .pm-card-icon {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: var(--haiti-mint);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .pm-card-icon i { font-size: 17px; color: var(--haiti-charcoal); }
+  .pm-card-default .pm-card-icon { background: rgba(197,160,89,0.12); }
+  .pm-card-default .pm-card-icon i { color: var(--haiti-gold); }
+
+  /* Status badges */
+  .pm-badge-status {
+    font-size: 9px; font-weight: 700;
+    padding: 3px 8px; border-radius: 6px;
+    letter-spacing: 0.3px;
+    display: inline-flex; align-items: center; gap: 4px;
+  }
+  .pm-badge-active { background: rgba(93,99,69,0.06); color: var(--haiti-olive); }
+  .pm-badge-active::before {
+    content: ''; width: 6px; height: 6px; border-radius: 50%;
+    background: #22c55e; display: inline-block;
+  }
+  .pm-badge-inactive { background: rgba(93,99,69,0.08); color: rgba(93,99,69,0.5); }
+
+  /* Default badge — solid gold medal */
+  .pm-badge-default {
+    display: inline-flex; align-items: center; gap: 3px;
+    font-size: 8px; font-weight: 800; letter-spacing: 0.5px;
+    text-transform: uppercase;
+    padding: 3px 8px; border-radius: 6px;
+    background: var(--haiti-gold); color: var(--haiti-charcoal);
+    flex-shrink: 0;
+  }
+
+  /* Action buttons — 40px touch targets for mobile */
+  .pm-card-actions {
+    display: flex; align-items: center; justify-content: flex-end;
+    gap: 6px; margin-top: 10px; padding-top: 10px;
+    border-top: 1px solid rgba(93,99,69,0.06);
+  }
+  .pm-action-btn {
+    width: 40px; height: 40px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    border: none; background: rgba(93,99,69,0.04);
+    color: var(--haiti-olive); font-size: 17px;
+    cursor: pointer; transition: all 0.15s;
+    padding: 0;
+  }
+  .pm-action-btn:hover { color: var(--haiti-gold); background: rgba(197,160,89,0.08); }
+  .pm-action-star:hover { color: var(--haiti-gold); background: rgba(197,160,89,0.1); }
+  .pm-action-star-active { color: var(--haiti-gold) !important; background: rgba(197,160,89,0.1) !important; }
+  .pm-action-delete { color: var(--haiti-olive); }
+  .pm-action-delete:hover { color: #dc2626 !important; background: #fef2f2 !important; }
+
+  /* Group header pill count */
+  .pm-group-count {
+    font-size: 10px; font-weight: 700;
+    background: rgba(93,99,69,0.08); color: var(--haiti-olive);
+    padding: 2px 8px; border-radius: 10px;
+  }
+
+  /* Add method section */
+  .pm-add-trigger {
+    border: 2px dashed var(--haiti-gold);
+    border-radius: 16px;
+    padding: 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.15s;
+    background: var(--haiti-cream);
+    width: 100%;
+  }
+  .pm-add-trigger:hover {
+    background: rgba(197,160,89,0.06);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(46,46,56,0.06);
+  }
+  .pm-add-trigger i {
+    font-size: 32px; color: var(--haiti-gold);
+    transition: all 0.15s;
+  }
+  .pm-add-trigger:hover i { transform: scale(1.1); }
+
+  /* Provider selector in add panel */
+  .pm-provider-btn {
+    flex: 1;
+    background: rgba(93,99,69,0.06);
+    border: 1.5px solid transparent;
+    border-radius: 12px;
+    padding: 14px 8px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.15s;
+    color: var(--haiti-olive);
+  }
+  .pm-provider-btn:hover { background: rgba(93,99,69,0.1); }
+  .pm-provider-btn.selected {
+    border-color: var(--haiti-gold);
+    background: rgba(197,160,89,0.06);
+    box-shadow: 0 0 0 2px rgba(197,160,89,0.15);
+  }
+
+  /* Form slide-in */
+  .pm-form-panel { animation: pmSlideDown 0.2s ease; }
+  @keyframes pmSlideDown { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
 </style>
 
-<div class="container py-4" style="max-width: 960px;">
+<% content_for :full_width, true %>
+<div class="d-flex justify-content-center" style="min-height: 80vh; padding-top: 32px;">
+  <div class="w-100 px-3" style="max-width: 560px;">
 
-  <%# ── Header ── %>
-  <div class="text-center mb-4">
-    <div class="d-inline-flex align-items-center justify-content-center mb-2 rounded-3"
-      style="width: 48px; height: 48px; background-color: var(--haiti-charcoal);">
-      <i class="ri-bank-card-line ri-lg" style="color: var(--haiti-gold);"></i>
+    <%# ══════════════════════════════════════ %>
+    <%# ── Header                          ── %>
+    <%# ══════════════════════════════════════ %>
+    <div class="mb-4">
+      <%= link_to wallet_path, class: "small text-decoration-none fw-bold d-inline-flex align-items-center gap-1 mb-2",
+          style: "color: var(--haiti-gold);" do %>
+        <i class="ri-arrow-left-line" style="font-size: 16px;"></i>Potfey
+      <% end %>
+      <h1 class="fw-black mb-1" style="color: var(--haiti-charcoal); font-size: 1.75rem; font-family: 'Space Grotesk', sans-serif;">Metod Peman</h1>
+      <p class="small mb-0" style="color: var(--haiti-olive);">Jere kont ou yo pou resevwa ak voye lajan</p>
     </div>
-    <h1 class="h5 fw-black mb-0" style="color: var(--haiti-charcoal);">Metòd Peman</h1>
-    <p class="small mb-0" style="color: var(--haiti-olive);">Anrejistre pòtfèy mobil ak kripto pou peman pi rapid</p>
-  </div>
 
-  <div class="row g-4">
+    <%# ══════════════════════════════════════ %>
+    <%# ── Registered Methods              ── %>
+    <%# ══════════════════════════════════════ %>
 
-    <%# ══════════ LEFT COLUMN: Add Form ══════════ %>
-    <div class="col-lg-5">
-      <div class="card-base p-4 shadow-lg">
-        <div class="small fw-bold text-uppercase mb-3" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">
-          <i class="ri-add-circle-line me-1"></i>Ajoute Metòd Peman
+    <%# ── MonCash Methods ── %>
+    <% if @mobile_wallet_methods.any? %>
+      <div class="card-base p-3 mb-3">
+        <div class="d-flex align-items-center gap-2 mb-3">
+          <%= moncash_logo_svg(size: 24) %>
+          <span class="fw-bold" style="color: var(--haiti-charcoal); font-size: 14px;">MonCash</span>
+          <span class="pm-group-count ms-1">(<%= @mobile_wallet_methods.size %>)</span>
+        </div>
+        <% @mobile_wallet_methods.each do |pm| %>
+          <%= render "method_card", pm: pm %>
+        <% end %>
+      </div>
+    <% end %>
+
+    <%# ── Base USDC Methods ── %>
+    <% if @crypto_wallet_methods.any? %>
+      <div class="card-base p-3 mb-3">
+        <div class="d-flex align-items-center gap-2 mb-3">
+          <%= usd_logo(size: 24) %>
+          <span class="fw-bold" style="color: var(--haiti-charcoal); font-size: 14px;">USD sou Base</span>
+          <span class="pm-group-count ms-1">(<%= @crypto_wallet_methods.size %>)</span>
+        </div>
+        <% @crypto_wallet_methods.each do |pm| %>
+          <%= render "method_card", pm: pm %>
+        <% end %>
+      </div>
+    <% end %>
+
+    <%# ── UniBank Methods ── %>
+    <% if @bank_account_methods.any? %>
+      <div class="card-base p-3 mb-3">
+        <div class="d-flex align-items-center gap-2 mb-3">
+          <%= unibank_logo_svg(size: 24) %>
+          <span class="fw-bold" style="color: var(--haiti-charcoal); font-size: 14px;">UniBank</span>
+          <span class="pm-group-count ms-1">(<%= @bank_account_methods.size %>)</span>
+        </div>
+        <% @bank_account_methods.each do |pm| %>
+          <%= render "method_card", pm: pm %>
+        <% end %>
+      </div>
+    <% end %>
+
+    <%# ── Empty state ── %>
+    <% if @payment_methods.empty? %>
+      <div class="card-base p-5 text-center mb-3">
+        <i class="ri-bank-card-line d-block mb-2" style="font-size: 2.5rem; color: var(--haiti-olive); opacity: 0.3;"></i>
+        <div class="fw-bold small" style="color: var(--haiti-olive);">Ou pa gen metod peman anko</div>
+        <div class="small" style="color: var(--haiti-olive); opacity: 0.6;">Ajoute youn anba a pou komanse</div>
+      </div>
+    <% end %>
+
+    <%# ══════════════════════════════════════ %>
+    <%# ── Add New Method (dashed card)    ── %>
+    <%# ══════════════════════════════════════ %>
+    <div id="pm-add-section" class="mb-4">
+      <%# Trigger — dashed card with + icon %>
+      <button type="button" class="pm-add-trigger" id="pm-add-trigger">
+        <i class="ri-add-circle-fill d-block mb-1"></i>
+        <div class="fw-black" style="font-size: 14px; color: var(--haiti-charcoal); font-family: 'Space Grotesk', sans-serif;">Ajoute Yon Metod Peman</div>
+      </button>
+
+      <%# Expanded panel (hidden by default) %>
+      <div id="pm-add-panel" class="card-base p-4" style="display: none;">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+          <span class="fw-bold" style="color: var(--haiti-charcoal); font-size: 14px;">
+            <i class="ri-add-circle-line me-1" style="color: var(--haiti-gold);"></i>Nouvo Metod
+          </span>
+          <button type="button" id="pm-add-close" class="btn btn-sm border-0 p-1" style="color: var(--haiti-olive); opacity: 0.5; line-height: 1;">
+            <i class="ri-close-line" style="font-size: 18px;"></i>
+          </button>
         </div>
 
+        <%# Provider picker %>
+        <div class="d-flex gap-2 mb-3">
+          <button type="button" class="pm-provider-btn" data-target="form-moncash">
+            <div class="mb-1"><%= moncash_logo_svg(size: 28) %></div>
+            <div class="fw-bold" style="font-size: 11px;">MonCash</div>
+          </button>
+          <button type="button" class="pm-provider-btn" data-target="form-base-usdc">
+            <div class="mb-1"><%= usd_logo(size: 28) %></div>
+            <div class="fw-bold" style="font-size: 11px;">Base USD</div>
+          </button>
+          <button type="button" class="pm-provider-btn" data-target="form-unibank">
+            <div class="mb-1"><%= unibank_logo_svg(size: 28) %></div>
+            <div class="fw-bold" style="font-size: 11px;">UniBank</div>
+          </button>
+        </div>
+
+        <%# Error display %>
         <% if @payment_method.errors.any? %>
-          <div class="alert alert-danger rounded-3 mb-3" style="background: #fdf2f2; border: 1px solid #fca5a5; color: #991b1b; font-size: 12px;">
+          <div class="rounded-3 mb-3 p-3" style="background: #fef2f2; border: 1px solid #fca5a5; color: #991b1b; font-size: 12px;">
             <i class="ri-error-warning-fill me-1"></i><%= @payment_method.errors.full_messages.to_sentence %>
           </div>
         <% end %>
 
-        <%= form_with model: @payment_method, url: payment_methods_path, local: true, class: "d-grid gap-3", id: "new-payment-method-form" do |f| %>
-          <%= f.hidden_field :active, value: true %>
+        <%# ══════════════════════════════════ %>
+        <%# ── MonCash Form                ── %>
+        <%# ══════════════════════════════════ %>
+        <div id="form-moncash" class="pm-form-panel" style="display: none;">
+          <%= form_with model: @payment_method, url: payment_methods_path, local: true, class: "d-grid gap-3" do |f| %>
+            <%= f.hidden_field :category, value: "mobile_wallet" %>
+            <%= f.hidden_field :provider, value: "moncash" %>
+            <%= f.hidden_field :active, value: true %>
 
-          <%# ── Category ── %>
-          <div>
-            <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Kategori</label>
-            <%= f.select :category,
-                  options_for_select([["Pòtfèy Mobil", "mobile_wallet"], ["Pòtfèy Kripto", "crypto_wallet"], ["Kont Bank", "bank_account"]], @payment_method.category || "mobile_wallet"),
-                  {},
-                  { class: "form-select border-0 fw-bold shadow-none p-3 bb-dark-select", id: "payment-method-category",
-                    style: "background-color: var(--haiti-charcoal); color: white;",
-                    onchange: "togglePaymentMethodFields()" } %>
-          </div>
-
-          <%# ── Label ── %>
-          <div>
-            <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">
-              Etikèt <span class="text-lowercase fw-normal">(opsyonèl)</span>
-            </label>
-            <div class="input-group">
-              <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);">
-                <i class="ri-price-tag-3-line"></i>
-              </span>
-              <%= f.text_field :label, placeholder: "egz. MonCash Mwen",
-                  class: "form-control border-0 fw-bold shadow-none p-3 bb-dark-field",
-                  style: "background-color: var(--haiti-charcoal); color: white;" %>
-            </div>
-          </div>
-
-          <%# ── Mobile Wallet Fields ── %>
-          <div id="mobile-wallet-fields">
-            <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Founisè</label>
-            <%= f.select :provider,
-                  options_for_select([["Zèllus", "zellus"], ["MonCash", "moncash"]], @payment_method.provider || "zellus"),
-                  {},
-                  { class: "form-select border-0 fw-bold shadow-none p-3 bb-dark-select", id: "payment-method-provider",
-                    style: "background-color: var(--haiti-charcoal); color: white;",
-                    onchange: "toggleMobileProvider()" } %>
-
-            <%# ── Zèllus: $zellustag ── %>
-            <div id="zellus-fields" class="mt-3">
-              <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">$Zellustag</label>
-              <div class="input-group">
-                <span class="input-group-text border-0 fw-bold" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 16px;">$</span>
-                <%= f.text_field :account_number, placeholder: "nonpa", maxlength: 20, autocomplete: "off",
-                    class: "form-control border-0 fw-bold shadow-none p-3 bb-dark-field",
-                    style: "background-color: var(--haiti-charcoal); color: white;",
-                    id: "payment-method-account-number" %>
-              </div>
-              <div class="small mt-1" style="color: var(--haiti-olive); font-size: 10px;">
-                <i class="ri-flashlight-line me-1"></i>Antre $zellustag resevè a (5-20 karaktè)
-              </div>
-            </div>
-
-            <%# ── MonCash: phone number ── %>
-            <div id="moncash-fields" class="mt-3" style="display: none;">
-              <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Nimewo MonCash</label>
-              <div class="input-group">
-                <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);">
+            <div>
+              <label class="form-label small fw-bold text-uppercase mb-1" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Nimewo MonCash</label>
+              <div class="input-group" style="border: 1.5px solid rgba(46,46,56,0.12); border-radius: 12px; overflow: hidden;">
+                <span class="input-group-text border-0" style="background-color: var(--haiti-mint); color: var(--haiti-gold);">
                   <i class="ri-phone-line"></i>
                 </span>
-                <input type="text" name="payment_method[account_number]" placeholder="50912345678"
-                       class="form-control border-0 fw-bold shadow-none p-3 bb-dark-field"
-                       style="background-color: var(--haiti-charcoal); color: white;"
-                       id="payment-method-moncash-number">
+                <%= f.text_field :account_number, placeholder: "50912345678", inputmode: "tel",
+                    class: "form-control border-0 fw-bold shadow-none p-3",
+                    style: "background-color: var(--haiti-mint); color: var(--haiti-charcoal);" %>
               </div>
               <div class="small mt-1" style="color: var(--haiti-olive); font-size: 10px;">
-                <i class="ri-information-line me-1"></i>Nou nòmalize nan fòma Ayiti (509 + 8 chif).
+                <i class="ri-information-line me-1"></i>509 + 8 chif. Egz: 50937123456
               </div>
             </div>
-          </div>
 
-          <%# ── Crypto Wallet Fields ── %>
-          <div id="crypto-wallet-fields" style="display:none;">
-            <div class="row g-3">
-              <div class="col-6">
-                <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Rezo</label>
-                <%= f.select :network, options_for_select([["Base", "base"]], @payment_method.network || "base"), {},
-                    { class: "form-select border-0 fw-bold shadow-none p-3 bb-dark-select",
-                      style: "background-color: var(--haiti-charcoal); color: white;",
-                      id: "payment-method-network" } %>
-              </div>
-              <div class="col-6">
-                <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Aktif</label>
-                <%# ETH and WBTC hidden (HTG + USD only mode) %>
-                <%= f.select :asset, options_for_select([["USD", "usdc"]], @payment_method.asset || "usdc"), {},
-                    { class: "form-select border-0 fw-bold shadow-none p-3 bb-dark-select",
-                      style: "background-color: var(--haiti-charcoal); color: white;",
-                      id: "payment-method-asset" } %>
-              </div>
+            <div>
+              <label class="form-label small fw-bold text-uppercase mb-1" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">
+                Etikèt <span class="text-lowercase fw-normal">(opsyonèl)</span>
+              </label>
+              <%= f.text_field :label, placeholder: "egz. MonCash Mwen",
+                  class: "form-control border-0 fw-bold shadow-none p-3",
+                  style: "background-color: var(--haiti-mint); color: var(--haiti-charcoal);" %>
             </div>
-            <div class="mt-3">
-              <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Adrès Pòtfèy</label>
-              <div class="input-group">
-                <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);">
+
+            <button type="submit" class="btn w-100 py-3 fw-bold rounded-pill border-0"
+                    style="background-color: var(--haiti-gold); color: var(--haiti-charcoal); font-family: 'Space Grotesk', sans-serif; font-size: 14px; font-weight: 800;">
+              <i class="ri-add-line me-1"></i>Ajoute MonCash
+            </button>
+          <% end %>
+        </div>
+
+        <%# ══════════════════════════════════ %>
+        <%# ── Base USDC Form              ── %>
+        <%# ══════════════════════════════════ %>
+        <div id="form-base-usdc" class="pm-form-panel" style="display: none;">
+          <%= form_with model: @payment_method, url: payment_methods_path, local: true, class: "d-grid gap-3" do |f| %>
+            <%= f.hidden_field :category, value: "crypto_wallet" %>
+            <%= f.hidden_field :provider, value: "base" %>
+            <%= f.hidden_field :network, value: "base" %>
+            <%= f.hidden_field :asset, value: "usdc" %>
+            <%= f.hidden_field :active, value: true %>
+
+            <div>
+              <label class="form-label small fw-bold text-uppercase mb-1" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Adrès Potfey</label>
+              <div class="input-group" style="border: 1.5px solid rgba(46,46,56,0.12); border-radius: 12px; overflow: hidden;">
+                <span class="input-group-text border-0" style="background-color: var(--haiti-mint); color: var(--haiti-gold);">
                   <i class="ri-wallet-3-line"></i>
                 </span>
                 <%= f.text_field :wallet_address, placeholder: "0x...",
-                    class: "form-control border-0 fw-bold shadow-none p-3 bb-dark-field",
-                    style: "background-color: var(--haiti-charcoal); color: white;",
-                    id: "payment-method-wallet-address" %>
+                    class: "form-control border-0 fw-bold shadow-none p-3",
+                    style: "background-color: var(--haiti-mint); color: var(--haiti-charcoal); font-size: 12px;" %>
               </div>
               <div class="small mt-1" style="color: var(--haiti-olive); font-size: 10px;">
-                <i class="ri-information-line me-1"></i>Itilize yon adrès EVM konpatib ak Base.
+                <i class="ri-information-line me-1"></i>Adrès EVM sou rezo Base (0x + 40 karaktè)
               </div>
             </div>
-          </div>
 
-          <%# ── Bank Account Fields ── %>
-          <div id="bank-account-fields" style="display:none;">
-            <div class="mb-3">
-              <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Bank</label>
-              <div class="input-group">
-                <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);">
-                  <i class="ri-bank-line"></i>
-                </span>
-                <input type="text" value="UNIBANK" readonly
-                       class="form-control border-0 fw-bold shadow-none p-3 bb-dark-field"
-                       style="background-color: var(--haiti-charcoal); color: white; opacity: 0.7;">
-                <%= f.hidden_field :provider, value: "unibank", id: "payment-method-bank-provider" %>
-              </div>
+            <div>
+              <label class="form-label small fw-bold text-uppercase mb-1" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">
+                Etikèt <span class="text-lowercase fw-normal">(opsyonèl)</span>
+              </label>
+              <%= f.text_field :label, placeholder: "egz. Base Wallet Mwen",
+                  class: "form-control border-0 fw-bold shadow-none p-3",
+                  style: "background-color: var(--haiti-mint); color: var(--haiti-charcoal);" %>
             </div>
-            <div class="mb-3">
-              <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Nimewo Kont</label>
-              <div class="input-group">
-                <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);">
+
+            <button type="submit" class="btn w-100 py-3 fw-bold rounded-pill border-0"
+                    style="background-color: var(--haiti-gold); color: var(--haiti-charcoal); font-family: 'Space Grotesk', sans-serif; font-size: 14px; font-weight: 800;">
+              <i class="ri-add-line me-1"></i>Ajoute Base USD
+            </button>
+          <% end %>
+        </div>
+
+        <%# ══════════════════════════════════ %>
+        <%# ── UniBank Form                ── %>
+        <%# ══════════════════════════════════ %>
+        <div id="form-unibank" class="pm-form-panel" style="display: none;">
+          <%= form_with model: @payment_method, url: payment_methods_path, local: true, class: "d-grid gap-3" do |f| %>
+            <%= f.hidden_field :category, value: "bank_account" %>
+            <%= f.hidden_field :provider, value: "unibank" %>
+            <%= f.hidden_field :active, value: true %>
+
+            <div>
+              <label class="form-label small fw-bold text-uppercase mb-1" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Nimewo Kont</label>
+              <div class="input-group" style="border: 1.5px solid rgba(46,46,56,0.12); border-radius: 12px; overflow: hidden;">
+                <span class="input-group-text border-0" style="background-color: var(--haiti-mint); color: var(--haiti-gold);">
                   <i class="ri-hashtag"></i>
                 </span>
                 <%= f.text_field :bank_account_number, placeholder: "egz. 175-1021-1750802",
-                    class: "form-control border-0 fw-bold shadow-none p-3 bb-dark-field",
-                    style: "background-color: var(--haiti-charcoal); color: white;",
-                    id: "payment-method-bank-account-number" %>
+                    class: "form-control border-0 fw-bold shadow-none p-3",
+                    style: "background-color: var(--haiti-mint); color: var(--haiti-charcoal);" %>
               </div>
             </div>
+
             <div>
-              <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">
+              <label class="form-label small fw-bold text-uppercase mb-1" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">
                 Non sou Kont <span class="text-lowercase fw-normal">(opsyonèl)</span>
               </label>
-              <div class="input-group">
-                <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);">
-                  <i class="ri-user-line"></i>
-                </span>
-                <%= f.text_field :account_holder_name, placeholder: "egz. Jean Pierre",
-                    class: "form-control border-0 fw-bold shadow-none p-3 bb-dark-field",
-                    style: "background-color: var(--haiti-charcoal); color: white;",
-                    id: "payment-method-account-holder" %>
-              </div>
+              <%= f.text_field :account_holder_name, placeholder: "egz. Jean Pierre",
+                  class: "form-control border-0 fw-bold shadow-none p-3",
+                  style: "background-color: var(--haiti-mint); color: var(--haiti-charcoal);" %>
             </div>
-          </div>
 
-          <%# ── Submit ── %>
-          <div class="mt-1">
-            <%= f.button class: "btn w-100 py-3 fw-bold rounded-4 shadow-sm border-0 d-flex align-items-center justify-content-center gap-2",
-                style: "background-color: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 14px; letter-spacing: 0.5px;" do %>
-              <i class="ri-save-3-line"></i> Anrejistre
-            <% end %>
-          </div>
-        <% end %>
-      </div>
-    </div>
+            <div>
+              <label class="form-label small fw-bold text-uppercase mb-1" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">
+                Etikèt <span class="text-lowercase fw-normal">(opsyonèl)</span>
+              </label>
+              <%= f.text_field :label, placeholder: "egz. Kont Epay Mwen",
+                  class: "form-control border-0 fw-bold shadow-none p-3",
+                  style: "background-color: var(--haiti-mint); color: var(--haiti-charcoal);" %>
+            </div>
 
-    <%# ══════════ RIGHT COLUMN: Registered Methods ══════════ %>
-    <div class="col-lg-7">
-      <div class="card-base p-4 shadow-lg">
-        <div class="small fw-bold text-uppercase mb-3" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">
-          <i class="ri-bank-card-line me-1" style="color: var(--haiti-gold);"></i>Metòd Anrejistre
+            <button type="submit" class="btn w-100 py-3 fw-bold rounded-pill border-0"
+                    style="background-color: var(--haiti-gold); color: var(--haiti-charcoal); font-family: 'Space Grotesk', sans-serif; font-size: 14px; font-weight: 800;">
+              <i class="ri-add-line me-1"></i>Ajoute UniBank
+            </button>
+          <% end %>
         </div>
-
-        <%# ── Mobile Wallets ── %>
-        <div class="small fw-bold text-uppercase mb-2" style="color: rgba(255,255,255,0.5); font-size: 9px; letter-spacing: 0.5px; background-color: var(--haiti-charcoal); padding: 8px 12px; border-radius: 8px;">
-          <i class="ri-smartphone-line me-1" style="color: var(--haiti-gold);"></i>Pòtfèy Mobil
-        </div>
-        <div class="mb-3">
-          <%= render partial: "payment_method_list", locals: { methods: @mobile_wallet_methods, kind: :mobile } %>
-        </div>
-
-        <%# ── Crypto Wallets ── %>
-        <div class="small fw-bold text-uppercase mb-2 mt-3" style="color: rgba(255,255,255,0.5); font-size: 9px; letter-spacing: 0.5px; background-color: var(--haiti-charcoal); padding: 8px 12px; border-radius: 8px;">
-          <i class="ri-wallet-3-line me-1" style="color: var(--haiti-gold);"></i>Pòtfèy Kripto
-        </div>
-        <div class="mb-3">
-          <%= render partial: "payment_method_list", locals: { methods: @crypto_wallet_methods, kind: :crypto } %>
-        </div>
-
-        <%# ── Bank Accounts ── %>
-        <div class="small fw-bold text-uppercase mb-2 mt-3" style="color: rgba(255,255,255,0.5); font-size: 9px; letter-spacing: 0.5px; background-color: var(--haiti-charcoal); padding: 8px 12px; border-radius: 8px;">
-          <i class="ri-bank-line me-1" style="color: var(--haiti-gold);"></i>Kont Bank
-        </div>
-        <%= render partial: "payment_method_list", locals: { methods: @bank_account_methods, kind: :bank } %>
       </div>
     </div>
 
   </div>
-
-  <%# ── Back Link ── %>
-  <div class="text-center mt-4">
-    <%= link_to zellus_path, class: "small text-decoration-none fw-bold", style: "color: var(--haiti-olive);" do %>
-      <i class="ri-arrow-left-line me-1"></i>Retounen nan Zèllus
-    <% end %>
-  </div>
-
 </div>
 
 <script>
-function togglePaymentMethodFields() {
-  var category = document.getElementById('payment-method-category');
-  var mobile = document.getElementById('mobile-wallet-fields');
-  var crypto = document.getElementById('crypto-wallet-fields');
-  var bank   = document.getElementById('bank-account-fields');
-  var wallet = document.getElementById('payment-method-wallet-address');
-  var network = document.getElementById('payment-method-network');
-  var asset = document.getElementById('payment-method-asset');
-  var bankAcct = document.getElementById('payment-method-bank-account-number');
-  var bankHolder = document.getElementById('payment-method-account-holder');
-  var bankProvider = document.getElementById('payment-method-bank-provider');
-  if (!category || !mobile || !crypto || !bank) return;
-
-  var val = category.value;
-  var isMobile = val === 'mobile_wallet';
-  var isCrypto = val === 'crypto_wallet';
-  var isBank   = val === 'bank_account';
-
-  mobile.style.display = isMobile ? '' : 'none';
-  crypto.style.display = isCrypto ? '' : 'none';
-  bank.style.display   = isBank   ? '' : 'none';
-
-  if (wallet) wallet.required = isCrypto;
-  if (network) network.disabled = !isCrypto;
-  if (asset) asset.disabled = !isCrypto;
-  if (bankAcct) bankAcct.required = isBank;
-  if (bankProvider) bankProvider.disabled = !isBank;
-
-  if (isMobile) toggleMobileProvider();
-}
-
-function toggleMobileProvider() {
-  var provider = document.getElementById('payment-method-provider');
-  var zellusFields = document.getElementById('zellus-fields');
-  var moncashFields = document.getElementById('moncash-fields');
-  var zellusInput = document.getElementById('payment-method-account-number');
-  var moncashInput = document.getElementById('payment-method-moncash-number');
-  if (!provider) return;
-
-  var isZellus = provider.value === 'zellus';
-  if (zellusFields) zellusFields.style.display = isZellus ? '' : 'none';
-  if (moncashFields) moncashFields.style.display = isZellus ? 'none' : '';
-
-  if (zellusInput) {
-    zellusInput.disabled = !isZellus;
-    zellusInput.name = isZellus ? 'payment_method[account_number]' : '';
-  }
-  if (moncashInput) {
-    moncashInput.disabled = isZellus;
-    moncashInput.name = isZellus ? '' : 'payment_method[account_number]';
-  }
-}
-
 document.addEventListener('DOMContentLoaded', function() {
-  togglePaymentMethodFields();
+  var trigger = document.getElementById('pm-add-trigger');
+  var panel = document.getElementById('pm-add-panel');
+  var closeBtn = document.getElementById('pm-add-close');
+  var providerBtns = document.querySelectorAll('.pm-provider-btn');
+  var forms = document.querySelectorAll('.pm-form-panel');
+
+  // Toggle add panel
+  if (trigger && panel) {
+    trigger.addEventListener('click', function() {
+      trigger.style.display = 'none';
+      panel.style.display = 'block';
+      panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    });
+  }
+
+  // Close add panel
+  if (closeBtn) {
+    closeBtn.addEventListener('click', function() {
+      panel.style.display = 'none';
+      trigger.style.display = 'block';
+      forms.forEach(function(f) { f.style.display = 'none'; });
+      providerBtns.forEach(function(b) { b.classList.remove('selected'); });
+    });
+  }
+
+  // Provider selection
+  providerBtns.forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var targetId = btn.getAttribute('data-target');
+      var targetForm = document.getElementById(targetId);
+      var isOpen = targetForm && targetForm.style.display !== 'none';
+
+      forms.forEach(function(f) { f.style.display = 'none'; });
+      providerBtns.forEach(function(b) { b.classList.remove('selected'); });
+
+      if (!isOpen && targetForm) {
+        targetForm.style.display = 'block';
+        btn.classList.add('selected');
+        targetForm.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    });
+  });
+
+  // ── Confirmation Modal for toggle & delete ──
+  var iconMap = {
+    danger:  'ri-delete-bin-6-line',
+    warning: 'ri-toggle-line',
+    info:    'ri-toggle-fill'
+  };
+  var btnLabelMap = {
+    danger:  'Wi, Retire',
+    warning: 'Wi, Dezaktive',
+    info:    'Wi, Aktive'
+  };
+
+  document.querySelectorAll('form[data-confirm-msg]').forEach(function(form) {
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      var msg  = form.dataset.confirmMsg;
+      var desc = form.dataset.confirmDesc || '';
+      var type = form.dataset.confirmType || 'warning';
+
+      // Build modal
+      var overlay = document.createElement('div');
+      overlay.className = 'pm-confirm-overlay';
+      overlay.innerHTML =
+        '<div class="pm-confirm-card">' +
+          '<div class="pm-confirm-icon ' + type + '"><i class="' + (iconMap[type] || 'ri-question-line') + '"></i></div>' +
+          '<div class="pm-confirm-title">' + msg + '</div>' +
+          '<div class="pm-confirm-desc">' + desc + '</div>' +
+          '<div class="pm-confirm-actions">' +
+            '<button type="button" class="pm-confirm-cancel">Anile</button>' +
+            '<button type="button" class="pm-confirm-submit ' + type + '">' + (btnLabelMap[type] || 'Konfime') + '</button>' +
+          '</div>' +
+        '</div>';
+
+      document.body.appendChild(overlay);
+
+      // Cancel
+      overlay.querySelector('.pm-confirm-cancel').addEventListener('click', function() {
+        overlay.remove();
+      });
+
+      // Click backdrop to cancel
+      overlay.addEventListener('click', function(ev) {
+        if (ev.target === overlay) overlay.remove();
+      });
+
+      // ESC to cancel
+      var escHandler = function(ev) {
+        if (ev.key === 'Escape') { overlay.remove(); document.removeEventListener('keydown', escHandler); }
+      };
+      document.addEventListener('keydown', escHandler);
+
+      // Confirm — submit the form for real
+      overlay.querySelector('.pm-confirm-submit').addEventListener('click', function() {
+        overlay.remove();
+        // Remove the listener temporarily so it doesn't loop
+        form.removeEventListener('submit', arguments.callee);
+        form.dataset.confirmed = '1';
+        form.submit();
+      });
+    });
+  });
+
+  // ── Toggle inline edit form ──
+  window.toggleEditForm = function(token) {
+    var el = document.getElementById('pm-edit-' + token);
+    if (el) {
+      el.style.display = el.style.display === 'none' ? 'block' : 'none';
+    }
+  };
+
+  // Auto-open on validation error
+  <% if @payment_method.errors.any? %>
+    if (trigger) trigger.style.display = 'none';
+    if (panel) panel.style.display = 'block';
+    <% if @payment_method.mobile_wallet? %>
+      var autoBtn = document.querySelector('[data-target="form-moncash"]');
+    <% elsif @payment_method.crypto_wallet? %>
+      var autoBtn = document.querySelector('[data-target="form-base-usdc"]');
+    <% elsif @payment_method.bank_account? %>
+      var autoBtn = document.querySelector('[data-target="form-unibank"]');
+    <% end %>
+    if (autoBtn) autoBtn.click();
+  <% end %>
 });
 </script>

@@ -1,0 +1,96 @@
+<%# ═══════════════════════════════════════════════════════
+    Admin Sidebar Navigation
+    ═══════════════════════════════════════════════════════ %>
+
+<% active = ->(path) { request.path.start_with?(path) ? "admin-nav-active" : "" } %>
+
+<%# ── HOME ── %>
+<div class="admin-nav-section">
+  <div class="admin-nav-header">HOME</div>
+  <%= link_to admin_root_path, class: "admin-nav-item #{request.path == '/admin' || request.path == '/admin/dashboard' ? 'admin-nav-active' : ''}" do %>
+    <i class="ri-dashboard-3-line"></i> Dashboard
+  <% end %>
+  <div style="margin: 4px 16px 4px; border-top: 1px solid rgba(197,160,89,0.15);"></div>
+  <%= link_to admin_credit_path, class: "admin-nav-item #{active.call('/admin/credit')}" do %>
+    <i class="ri-add-circle-line"></i> Kredite
+  <% end %>
+  <%= link_to admin_invite_codes_path, class: "admin-nav-item #{active.call('/admin/invite_codes')}" do %>
+    <i class="ri-key-2-line"></i> Invite Code
+  <% end %>
+  <%= link_to admin_activity_path, class: "admin-nav-item #{active.call('/admin/activity')}" do %>
+    <i class="ri-pulse-line"></i> Tout Aktivite
+  <% end %>
+</div>
+
+<%# ── ZELLUS AJAN ── %>
+<div class="admin-nav-section">
+  <div class="admin-nav-header">ZELLUS AJAN</div>
+  <%= link_to admin_agents_applicants_path, class: "admin-nav-item #{active.call('/admin/agents/applicants')}" do %>
+    <i class="ri-user-add-line"></i> Aplikan
+  <% end %>
+  <%= link_to admin_agents_analytics_path, class: "admin-nav-item #{active.call('/admin/agents/analytics')}" do %>
+    <i class="ri-bar-chart-2-line"></i> Analitik
+  <% end %>
+  <%= link_to admin_agents_activity_path, class: "admin-nav-item #{active.call('/admin/agents/activity')}" do %>
+    <i class="ri-exchange-line"></i> Aktivite
+  <% end %>
+</div>
+
+<%# ── ZELLUS ITILIZATÈ ── %>
+<div class="admin-nav-section">
+  <div class="admin-nav-header">ZELLUS ITILIZATÈ</div>
+  <%= link_to admin_users_analytics_path, class: "admin-nav-item #{active.call('/admin/users')}" do %>
+    <i class="ri-pie-chart-line"></i> Analitik
+  <% end %>
+</div>
+
+<%# ── ZELLUS BIZNIS ── %>
+<div class="admin-nav-section">
+  <div class="admin-nav-header">ZELLUS BIZNIS</div>
+  <%= link_to admin_businesses_applicants_path, class: "admin-nav-item #{active.call('/admin/businesses/applicants')}" do %>
+    <i class="ri-store-2-line"></i> Aplikan
+  <% end %>
+  <%= link_to admin_businesses_analytics_path, class: "admin-nav-item #{active.call('/admin/businesses/analytics')}" do %>
+    <i class="ri-bar-chart-2-line"></i> Analitik
+  <% end %>
+  <%= link_to admin_businesses_activity_path, class: "admin-nav-item #{active.call('/admin/businesses/activity')}" do %>
+    <i class="ri-exchange-line"></i> Aktivite
+  <% end %>
+</div>
+
+<%# ── ZELLUS BOUSAD ── %>
+<div class="admin-nav-section">
+  <div class="admin-nav-header">ZELLUS BOUSAD</div>
+  <%= link_to admin_bousad_applicants_path, class: "admin-nav-item #{active.call('/admin/bousad/applicants')}" do %>
+    <i class="ri-user-add-line"></i> Aplikan
+  <% end %>
+  <%= link_to admin_bousad_analytics_path, class: "admin-nav-item #{active.call('/admin/bousad/analytics')}" do %>
+    <i class="ri-bar-chart-2-line"></i> Analitik
+  <% end %>
+  <%= link_to admin_bousad_activity_path, class: "admin-nav-item #{active.call('/admin/bousad/activity')}" do %>
+    <i class="ri-exchange-line"></i> Aktivite
+  <% end %>
+</div>
+
+<%# ── PLATFÒM ── %>
+<div class="admin-nav-section">
+  <div class="admin-nav-header">PLATFÒM</div>
+  <%= link_to admin_developers_path, class: "admin-nav-item #{active.call('/admin/developers')}" do %>
+    <i class="ri-code-s-slash-line"></i> Devlopè API
+  <% end %>
+</div>
+
+<%# ── ZELLUS ONET (disabled) ── %>
+<div class="admin-nav-section admin-nav-disabled">
+  <div class="admin-nav-header">ZELLUS ONET <span class="admin-badge-soon">BYENTO</span></div>
+  <span class="admin-nav-item"><i class="ri-user-add-line"></i> Aplikan</span>
+  <span class="admin-nav-item"><i class="ri-exchange-line"></i> Aktivite</span>
+</div>
+
+<%# ── ZELLUS SOL (disabled) ── %>
+<div class="admin-nav-section admin-nav-disabled">
+  <div class="admin-nav-header">ZELLUS SOL <span class="admin-badge-soon">BYENTO</span></div>
+  <span class="admin-nav-item"><i class="ri-user-add-line"></i> Aplikan</span>
+  <span class="admin-nav-item"><i class="ri-bar-chart-2-line"></i> Analitik</span>
+  <span class="admin-nav-item"><i class="ri-exchange-line"></i> Aktivite</span>
+</div>

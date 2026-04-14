@@ -1,0 +1,572 @@
+id,section_name,commune_id,postal_code
+1,1re Section Turgeau,HT0111,HT6113
+2,2e Section Martissant,HT0111,HT6110
+3,3e Section Fontamara,HT0111,HT6110
+4,4e Section Bel-Air,HT0111,HT6111
+5,1re Section Delmas,HT0112,HT6120
+6,2e Section Saint-Martin,HT0112,HT6120
+7,1re Section Morne l'Hôpital,HT0113,HT6130
+8,2e Section Arcachon,HT0113,HT6130
+9,3e Section Côte Plage,HT0113,HT6130
+10,4e Section Procy,HT0113,HT6130
+11,5e Section Coupeau,HT0113,HT6130
+12,6e Section Bouvier,HT0113,HT6130
+13,7e Section Lavalle,HT0113,HT6130
+14,8e Section Berly,HT0113,HT6130
+15,9e Section Bizoton,HT0113,HT6130
+16,10e Section Thor,HT0113,HT6130
+17,11e Section Rivière Froide,HT0113,HT6130
+18,12e Section Malanga,HT0113,HT6130
+19,13e Section Corail Thor,HT0113,HT6130
+20,1re Section Pétion-Ville,HT0114,HT6140
+21,2e Section Juvénat,HT0114,HT6140
+22,3e Section Diègue,HT0114,HT6140
+23,4e Section Bellevue la Montagne,HT0114,HT6140
+24,5e Section Bellevue Chardonnière,HT0114,HT6140
+25,1re Section Nouvelle Place,HT0115,HT6150
+26,2e Section Belle Fontaine,HT0115,HT6150
+27,3e Section Grand Fond,HT0115,HT6150
+28,4e Section Belle Fontaine,HT0115,HT6150
+29,5e Section Grand Fond,HT0115,HT6150
+30,1re Section Carrefour Marassa,HT0116,HT6160
+31,1re Section Cité l'Eternel,HT0117,HT6170
+32,1re Section des Varreux,HT0117,HT6170
+33,1re Section Tabarre,HT0118,HT6180
+34,2e Section Chavannes,HT0118,HT6180
+35,3e Section Clercine,HT0118,HT6180
+36,4e Section Bellevue,HT0118,HT6180
+37,1re Section Dessources,HT0121,HT6210
+38,2e Section Grande Plaine,HT0121,HT6210
+39,3e Section Fond de Boudin,HT0121,HT6210
+40,4e Section Fond de Boudin,HT0121,HT6210
+41,5e Section Palmiste à Vin,HT0121,HT6210
+42,6e Section Orangers,HT0121,HT6210
+43,7e Section Parques,HT0121,HT6210
+44,8e Section Beausejour,HT0121,HT6210
+45,9e Section Citronniers,HT0121,HT6210
+46,10e Section Fond d'Oie,HT0121,HT6210
+47,11e Section Gros Morne,HT0121,HT6210
+48,12e Section Cormiers,HT0121,HT6210
+49,13e Section Petit Harpon,HT0121,HT6210
+50,1re Section Bino,HT0122,HT6220
+51,2e Section Sources Chaudes,HT0122,HT6220
+52,3e Section Tête Boeuf,HT0122,HT6220
+53,4e Section Petit Bois,HT0122,HT6220
+54,5e Section Trou Sable,HT0122,HT6220
+55,6e Section Trou Canari,HT0122,HT6220
+56,7e Section Tête à Boeuf,HT0122,HT6220
+57,1re Section Grande Colline,HT0123,HT6230
+58,2e Section Caracol,HT0123,HT6230
+59,3e Section Fond Jean-Noël,HT0123,HT6230
+60,4e Section Fond Oies,HT0123,HT6230
+61,1re Section Boucassin,HT0131,HT6310
+62,2e Section Croix-des-Bouquets,HT0131,HT6310
+63,3e Section Belle Fontaine,HT0131,HT6310
+64,4e Section Plaisance,HT0131,HT6310
+65,5e Section Varreux,HT0131,HT6310
+66,1re Section Thomazeau,HT0132,HT6320
+67,2e Section Corail Cesselesse,HT0132,HT6320
+68,1re Section Ganthier,HT0133,HT6330
+69,2e Section Mare Roseaux,HT0133,HT6330
+70,1re Section Cornillon,HT0134,HT6340
+71,2e Section Haut Grand Bois,HT0134,HT6340
+72,1re Section Fonds-Verrettes,HT0135,HT6350
+73,2e Section Montagne Noire,HT0135,HT6350
+74,1re Section Boucan Boyer,HT0141,HT6410
+75,2e Section Fond Baptiste,HT0141,HT6410
+76,3e Section Fond Pierre,HT0141,HT6410
+77,4e Section Matheux,HT0141,HT6410
+78,1re Section Source Matelas,HT0142,HT6420
+79,2e Section Fond Verrettes,HT0142,HT6420
+80,1re Section La Gonâve,HT0151,HT6510
+81,2e Section Petite Source,HT0151,HT6510
+82,3e Section Grand Source,HT0151,HT6510
+83,4e Section Trou Louis,HT0151,HT6510
+84,5e Section Picmy,HT0151,HT6510
+85,6e Section Mapou,HT0151,HT6510
+86,1re Section Petite Anse,HT0152,HT6520
+87,2e Section Grande Anse,HT0152,HT6520
+88,1re Section Bas Cap Rouge,HT0211,HT0110
+89,2e Section Fond Tortue,HT0211,HT0110
+90,3e Section Fond Jean Simon,HT0211,HT0110
+91,4e Section Haut Cap Rouge,HT0211,HT0110
+92,5e Section La Seringue,HT0211,HT0110
+93,1re Section Fond Cimetière,HT0212,HT0120
+94,2e Section Ridoré,HT0212,HT0120
+95,1re Section Bas des Grigri,HT0213,HT0130
+96,2e Section La Vanne,HT0213,HT0130
+97,1re Section Passe-Baguette,HT0214,HT0140
+98,2e Section Cocoyer,HT0214,HT0140
+99,1re Section Grande Rivière,HT0221,HT0210
+100,2e Section Bergeau,HT0221,HT0210
+101,3e Section La Hoye,HT0221,HT0210
+102,4e Section Grand Boucan,HT0221,HT0210
+103,1re Section Côtes de Fer,HT0222,HT0220
+104,2e Section Bras Gauche,HT0222,HT0220
+105,1re Section Mapou,HT0231,HT0310
+106,2e Section Bas des Grigri,HT0231,HT0310
+107,1re Section Grand Gosier,HT0232,HT0320
+108,2e Section Salagnac,HT0232,HT0320
+109,1re Section Fond Mellon,HT0233,HT0330
+110,2e Section Savane Dubois,HT0233,HT0330
+111,1re Section Anse-à-Pître,HT0234,HT0340
+112,2e Section Boucan La Mer,HT0234,HT0340
+113,1re Section Bande du Nord,HT0311,HT1110
+114,2e Section Haut du Cap,HT0311,HT1110
+115,3e Section Bas du Cap,HT0311,HT1110
+116,1re Section Morne Rouge,HT0312,HT1120
+117,1re Section Roucou,HT0313,HT1130
+118,2e Section Bayeux,HT0313,HT1130
+119,1re Section Acul du Nord,HT0321,HT1210
+120,2e Section Camp Louise,HT0321,HT1210
+121,3e Section La Soufrière,HT0321,HT1210
+122,1re Section Plaine du Nord,HT0322,HT1220
+123,1re Section Morne Pelé,HT0323,HT1230
+124,2e Section Robillard,HT0323,HT1230
+125,1re Section Grande Rivière du Nord,HT0331,HT1310
+126,2e Section Joli Trou,HT0331,HT1310
+127,1re Section Bahon,HT0332,HT1320
+128,2e Section Montolon,HT0332,HT1320
+129,1re Section Saint-Raphaël,HT0341,HT1410
+130,2e Section Bois Neuf,HT0341,HT1410
+131,1re Section Dondon,HT0342,HT1420
+132,2e Section Haut Maribahoux,HT0342,HT1420
+133,1re Section Ranquitte,HT0343,HT1430
+134,1re Section Pignon,HT0344,HT1440
+135,2e Section Savane Carrée,HT0344,HT1440
+136,1re Section La Victoire,HT0345,HT1450
+137,1re Section Borgne,HT0351,HT1510
+138,2e Section Côte de Fer,HT0351,HT1510
+139,1re Section Margot,HT0352,HT1520
+140,2e Section Molas,HT0352,HT1520
+141,1re Section Limbé,HT0361,HT1610
+142,2e Section Haut Limbé,HT0361,HT1610
+143,1re Section Bas Limbé,HT0362,HT1620
+144,1re Section Plaisance,HT0371,HT1710
+145,2e Section La Plate,HT0371,HT1710
+146,1re Section Pilate,HT0372,HT1720
+147,2e Section Margot,HT0372,HT1720
+148,1re Section Fort-Liberté,HT0411,HT2110
+149,2e Section Haut Fort,HT0411,HT2110
+150,1re Section Ferrier,HT0412,HT2120
+151,1re Section Perches,HT0413,HT2130
+152,1re Section Ouanaminthe,HT0421,HT2210
+153,2e Section Haut Maribahoux,HT0421,HT2210
+154,1re Section Capotille,HT0422,HT2220
+155,1re Section Mont-Organisé,HT0423,HT2230
+156,1re Section Trou du Nord,HT0431,HT2310
+157,2e Section Roche Plate,HT0431,HT2310
+158,1re Section Sainte Suzanne,HT0432,HT2320
+159,1re Section Terrier Rouge,HT0433,HT2330
+160,1re Section Caracol,HT0434,HT2340
+161,1re Section Vallières,HT0441,HT2410
+162,2e Section Grosse Roche,HT0441,HT2410
+163,1re Section Carice,HT0442,HT2420
+164,1re Section Mombin Crochu,HT0443,HT2430
+165,1re Section Pont Tamarin,HT0511,HT4110
+166,2e Section Labranle,HT0511,HT4110
+167,3e Section Poste Métier,HT0511,HT4110
+168,4e Section Bayonnais,HT0511,HT4110
+169,5e Section Petite Rivière,HT0511,HT4110
+170,1re Section Savane Mulâtre,HT0512,HT4120
+171,2e Section Mapou,HT0512,HT4120
+172,1re Section L'Estère,HT0513,HT4130
+173,1re Section Gros-Morne,HT0521,HT4210
+174,2e Section Rivière Mancelle,HT0521,HT4210
+175,3e Section Savane Carrée,HT0521,HT4210
+176,1re Section Terre Neuve,HT0522,HT4220
+177,1re Section Anse Rouge,HT0523,HT4230
+178,1re Section Pont Sonde,HT0531,HT4310
+179,2e Section La Croix,HT0531,HT4310
+180,3e Section Bocozelle,HT0531,HT4310
+181,1re Section Verrettes,HT0532,HT4320
+182,2e Section Désarmes,HT0532,HT4320
+183,3e Section Liancourt,HT0532,HT4320
+184,1re Section La Chapelle,HT0533,HT4330
+185,1re Section Dessalines,HT0541,HT4410
+186,2e Section Paroty,HT0541,HT4410
+187,3e Section Duval,HT0541,HT4410
+188,4e Section Fosse Naboth,HT0541,HT4410
+189,1re Section Petite Rivière de l'Artibonite,HT0542,HT4420
+190,2e Section Médor,HT0542,HT4420
+191,3e Section Labady,HT0542,HT4420
+192,1re Section Grande Saline,HT0543,HT4430
+193,1re Section Desdunes,HT0544,HT4440
+194,2e Section Ouest,HT0544,HT4440
+195,1re Section Saint-Michel de l'Attalaye,HT0551,HT4510
+196,2e Section Camathe,HT0551,HT4510
+197,1re Section Marmelade,HT0552,HT4520
+198,2e Section Platon,HT0552,HT4520
+199,1re Section Hinche,HT0611,HT5110
+200,2e Section Los Palis,HT0611,HT5110
+201,3e Section Marmont,HT0611,HT5110
+202,1re Section Maïssade,HT0612,HT5120
+203,2e Section Rivière Canot,HT0612,HT5120
+204,1re Section Thomonde,HT0613,HT5130
+205,1re Section Cerca Carvajal,HT0614,HT5140
+206,1re Section Mirebalais,HT0621,HT5210
+207,2e Section Sarazin,HT0621,HT5210
+208,1re Section Saut d'Eau,HT0622,HT5220
+209,1re Section Boucan Carré,HT0623,HT5230
+210,1re Section Lascahobas,HT0631,HT5310
+211,2e Section Petit Fond,HT0631,HT5310
+212,1re Section Belladère,HT0632,HT5320
+213,2e Section Baptiste,HT0632,HT5320
+214,1re Section Savanette,HT0633,HT5330
+215,1re Section Cerca La Source,HT0641,HT5410
+216,2e Section Rivière des Bayonnais,HT0641,HT5410
+217,1re Section Thomassique,HT0642,HT5420
+218,1re Section Bourdet,HT0711,HT8110
+219,2e Section Boury,HT0711,HT8110
+220,3e Section Laurent,HT0711,HT8110
+221,4e Section Laborde,HT0711,HT8110
+222,5e Section Carrefour Canon,HT0711,HT8110
+223,6e Section Carrefour Sanon,HT0711,HT8110
+224,1re Section Bergeaud,HT0712,HT8120
+225,2e Section Tête Boeuf,HT0712,HT8120
+226,1re Section Fond Fred,HT0713,HT8130
+227,2e Section Carrefour Zaboka,HT0713,HT8130
+228,1re Section Marceline,HT0714,HT8140
+229,2e Section Beaumont,HT0714,HT8140
+230,1re Section Duchity,HT0715,HT8150
+231,1re Section Madame Joie,HT0716,HT8160
+232,1re Section Bergeau,HT0721,HT8210
+233,2e Section Labrousse,HT0721,HT8210
+234,1re Section Randel,HT0722,HT8220
+235,1re Section Arniquet,HT0723,HT8230
+236,1re Section Vieux Bourg d'Aquin,HT0731,HT8310
+237,2e Section Fond des Blancs,HT0731,HT8310
+238,3e Section Grand Bois,HT0731,HT8310
+239,1re Section Saint Louis du Sud,HT0732,HT8320
+240,1re Section Cavaillon,HT0733,HT8330
+241,2e Section Mare à Coiffe,HT0733,HT8330
+242,1re Section Côteaux,HT0741,HT8410
+243,2e Section Goudin,HT0741,HT8410
+244,1re Section Port-à-Piment,HT0742,HT8420
+245,1re Section Roche à Bâteau,HT0743,HT8430
+246,1re Section Chardonnières,HT0751,HT8510
+247,2e Section Randel,HT0751,HT8510
+248,1re Section Les Anglais,HT0752,HT8520
+249,1re Section Tiburon,HT0753,HT8530
+250,1re Section Basse Voldrogue,HT0811,HT7110
+251,2e Section Haute Voldrogue,HT0811,HT7110
+252,3e Section Fond Rouge,HT0811,HT7110
+253,4e Section Carcasse,HT0811,HT7110
+254,5e Section Sources Chaudes,HT0811,HT7110
+255,1re Section Abricots,HT0812,HT7120
+256,1re Section Bonbon,HT0813,HT7130
+257,1re Section Moron,HT0814,HT7140
+258,1re Section Chambellan,HT0815,HT7150
+259,1re Section Anse d'Hainault,HT0821,HT7210
+260,2e Section Grande Plaine,HT0821,HT7210
+261,1re Section Dame Marie,HT0822,HT7220
+262,1re Section Les Irois,HT0823,HT7230
+263,1re Section Corail,HT0831,HT7310
+264,2e Section Fond Liane,HT0831,HT7310
+265,1re Section Roseaux,HT0832,HT7320
+266,1re Section Beaumont,HT0833,HT7330
+267,1re Section Pestel,HT0834,HT7340
+268,2e Section Tozia,HT0834,HT7340
+269,1re Section Port-de-Paix,HT0911,HT3110
+270,2e Section La Pointe,HT0911,HT3110
+271,1re Section La Tortue,HT0912,HT3120
+272,1re Section Bassin Bleu,HT0913,HT3130
+273,1re Section Chamsolme,HT0914,HT3140
+274,1re Section Saint-Louis du Nord,HT0921,HT3210
+275,1re Section Anse-à-Foleur,HT0922,HT3220
+276,1re Section Môle Saint Nicolas,HT0931,HT3310
+277,1re Section Baie de Henne,HT0932,HT3320
+278,1re Section Bombardopolis,HT0933,HT3330
+279,1re Section Jean Rabel,HT0934,HT3340
+280,2e Section Guinaudée,HT0934,HT3340
+281,1re Section Chalon,HT1011,HT9110
+282,2e Section Fond Deriveau,HT1011,HT9110
+283,3e Section La Colline,HT1011,HT9110
+284,1re Section Petite Rivière de Nippes,HT1012,HT9120
+285,2e Section Passe Lagon,HT1012,HT9120
+286,1re Section Fonds des Nègres,HT1013,HT9130
+287,1re Section Paillant,HT1014,HT9140
+288,1re Section Anse à Veau,HT1021,HT9210
+289,1re Section Petit Trou de Nippes,HT1022,HT9220
+290,1re Section L'Asile,HT1023,HT9230
+291,1re Section Arnaud,HT1024,HT9240
+292,1re Section Plaisance du Sud,HT1025,HT9250
+293,1re Section Baradères,HT1031,HT9310
+294,1re Section Grand-Boucan,HT1032,HT9320
+295,2e Section Rivière de Nippes,HT1032,HT9320
+296,4e Section Juanaria,HT0611,HT5110
+297,5e Section Aguahedionda,HT0611,HT5110
+298,6e Section Los Cacaos,HT0611,HT5110
+299,7e Section Code Negro,HT0611,HT5110
+300,3e Section Riviere Blanche,HT0612,HT5120
+301,4e Section Savane Perdue,HT0612,HT5120
+302,2e Section Casse,HT0613,HT5130
+303,3e Section Baille,HT0613,HT5130
+304,2e Section Los Arroyos,HT0614,HT5140
+305,3e Section Gascogne,HT0621,HT5210
+306,4e Section Grand Chemin,HT0621,HT5210
+307,2e Section La Corne,HT0622,HT5220
+308,3e Section Fond Bleu,HT0622,HT5220
+309,2e Section Bayas,HT0623,HT5230
+310,3e Section Coupe Mardi Gras,HT0623,HT5230
+311,3e Section Juampas,HT0631,HT5310
+312,3e Section Riviere Froide,HT0632,HT5320
+313,4e Section Los Palis,HT0632,HT5320
+314,2e Section Colline des Chaines,HT0633,HT5330
+315,3e Section Los Cacaos,HT0641,HT5410
+316,2e Section La Hoye,HT0642,HT5420
+317,7e Section Simon,HT0711,HT8110
+318,8e Section Fond Cochon,HT0711,HT8110
+319,3e Section Platon,HT0712,HT8120
+320,4e Section Fond Cimetiere,HT0712,HT8120
+321,3e Section Fond Palmiste,HT0713,HT8130
+322,3e Section Rivieres Sales,HT0714,HT8140
+323,4e Section Dubreuil,HT0714,HT8140
+324,2e Section Fond Palmiste,HT0715,HT8150
+325,2e Section Baie des Moustiques,HT0716,HT8160
+326,3e Section Carrefour Zaboca,HT0721,HT8210
+327,4e Section Carenage,HT0721,HT8210
+328,2e Section Carrefour Charles,HT0722,HT8220
+329,2e Section Beloc,HT0723,HT8230
+330,4e Section Macary,HT0731,HT8310
+331,5e Section Fond des Blancs,HT0731,HT8310
+332,2e Section Carrefour des Quatre Chemins,HT0732,HT8320
+333,3e Section Fond Tortue,HT0732,HT8320
+334,3e Section Fond Jean Denis,HT0733,HT8330
+335,4e Section Fond Michel,HT0733,HT8330
+336,3e Section Colombier,HT0741,HT8410
+337,2e Section Paracot,HT0742,HT8420
+338,3e Section Balisiers,HT0742,HT8420
+339,2e Section Grand Fond,HT0743,HT8430
+340,3e Section Debouchette,HT0751,HT8510
+341,4e Section Gayac,HT0751,HT8510
+342,2e Section Tiby,HT0752,HT8520
+343,3e Section Vache Island,HT0752,HT8520
+344,2e Section Melon,HT0753,HT8530
+345,3e Section Grande Colline,HT0753,HT8530
+346,6e Section Grand Bois,HT0811,HT7110
+347,7e Section Latanier,HT0811,HT7110
+348,2e Section Grand Vincent,HT0812,HT7120
+349,3e Section Morne Bijou,HT0812,HT7120
+350,2e Section Fond Lundi,HT0813,HT7130
+351,3e Section Fond Marcel,HT0813,HT7130
+352,2e Section Fond Lagon,HT0814,HT7140
+353,3e Section Fond d'Icaque,HT0814,HT7140
+354,2e Section Fond Cochon,HT0815,HT7150
+355,3e Section Fond d'Icaque,HT0815,HT7150
+356,3e Section Grande Colline,HT0821,HT7210
+357,2e Section Anse Joseph,HT0822,HT7220
+358,3e Section Grande Colline,HT0822,HT7220
+359,2e Section Fond Icaque,HT0823,HT7230
+360,3e Section Grande Colline,HT0823,HT7230
+361,3e Section Fond Lagon,HT0831,HT7310
+362,4e Section Fond Marcel,HT0831,HT7310
+363,2e Section Fond Lundi,HT0832,HT7320
+364,3e Section Fond d'Icaque,HT0832,HT7320
+365,2e Section Fond Palmiste,HT0833,HT7330
+366,3e Section Fond Lagon,HT0833,HT7330
+367,3e Section Fond Cochon,HT0834,HT7340
+368,4e Section Fond d'Icaque,HT0834,HT7340
+369,3e Section La Pointe,HT0911,HT3110
+370,4e Section Petit Paradis,HT0911,HT3110
+371,2e Section Gros Morne,HT0912,HT3120
+372,3e Section Fond Lagon,HT0912,HT3120
+373,2e Section Fond d'Icaque,HT0913,HT3130
+374,3e Section Fond Lundi,HT0913,HT3130
+375,2e Section Fond Marcel,HT0914,HT3140
+376,2e Section Fond Lagon,HT0921,HT3210
+377,3e Section Fond d'Icaque,HT0921,HT3210
+378,2e Section Fond Cochon,HT0922,HT3220
+379,3e Section Fond Lundi,HT0922,HT3220
+380,2e Section Fond d'Icaque,HT0931,HT3310
+381,3e Section Fond Lagon,HT0931,HT3310
+382,2e Section Fond Marcel,HT0932,HT3320
+383,3e Section Fond d'Icaque,HT0932,HT3320
+384,2e Section Fond Lagon,HT0933,HT3330
+385,3e Section Fond Cochon,HT0933,HT3330
+386,3e Section Fond d'Icaque,HT0934,HT3340
+387,4e Section Fond Lundi,HT0934,HT3340
+388,4e Section Fond Cochon,HT1011,HT9110
+389,5e Section Fond Lagon,HT1011,HT9110
+390,3e Section Fond d'Icaque,HT1012,HT9120
+391,4e Section Fond Lundi,HT101 Segmented Response:
+392,3e Section Fond Marcel,HT1013,HT9130
+393,3e Section Fond d'Icaque,HT1013,HT9130
+394,2e Section Fond Lagon,HT1014,HT9140
+395,3e Section Fond Cochon,HT1014,HT9140
+396,2e Section Fond d'Icaque,HT1021,HT9210
+397,3e Section Fond Lundi,HT1021,HT9210
+398,2e Section Fond Marcel,HT1022,HT9220
+399,3e Section Fond d'Icaque,HT1022,HT9220
+400,2e Section Fond Lagon,HT1023,HT9230
+401,3e Section Fond Cochon,HT1023,HT9230
+402,2e Section Fond d'Icaque,HT1024,HT9240
+403,3e Section Fond Lundi,HT1024,HT9240
+404,2e Section Fond Marcel,HT1025,HT9250
+405,3e Section Fond d'Icaque,HT1025,HT9250
+406,2e Section Fond Lagon,HT1031,HT9310
+407,3e Section Fond Cochon,HT1031,HT9310
+408,3e Section Fond d'Icaque,HT1032,HT9320
+409,4e Section Fond Lundi,HT1032,HT9320
+410,5e Section Poste Marchand,HT0111,HT6110
+411,6e Section Saint Martin,HT0111,HT6110
+412,3e Section Cite Militaire,HT0112,HT6120
+413,4e Section Delmas,HT0112,HT6120
+414,14e Section Morne Hercule,HT0113,HT6130
+415,15e Section Martissant,HT0113,HT6130
+416,16e Section Morne Calvaire,HT0113,HT6130
+417,6e Section Thomassin,HT0114,HT6140
+418,7e Section Bellevue,HT0114,HT6140
+419,6e Section Kenscoff,HT0115,HT6150
+420,7e Section Nouvelle Tourraine,HT0115,HT6150
+421,2e Section Mariani,HT0116,HT6160
+422,3e Section Ti Place Cazeau,HT0116,HT6160
+423,3e Section Cite Militaire,HT0117,HT6170
+424,4e Section Cite Soleil,HT0117,HT6170
+425,5e Section Crochus,HT0118,HT6180
+426,6e Section La Fosse,HT0118,HT6180
+427,14e Section Fond Mombin,HT0121,HT6210
+428,15e Section Dufour,HT0121,HT6210
+429,8e Section Fond Mombin,HT0122,HT6220
+430,9e Section Fond Tortue,HT0122,HT6220
+431,5e Section Dufour,HT0123,HT6230
+432,6e Section Fond Mombin,HT0123,HT6230
+433,6e Section Santo,HT0131,HT6310
+434,7e Section Marin,HT0131,HT6310
+435,3e Section Malpasse,HT0132,HT6320
+436,4e Section Fonds Parisien,HT0132,HT6320
+437,3e Section Anse a Pitre,HT0133,HT6330
+438,4e Section Bois d'Orme,HT0133,HT6330
+439,3e Section Boucan Bois Pin,HT0134,HT6340
+440,4e Section Los Palis,HT0134,HT6340
+441,3e Section Boucan Carre,HT0135,HT6350
+442,4e Section Fond Verrettes,HT0135,HT6350
+443,5e Section Fond Verrettes,HT0141,HT6410
+444,6e Section Boucan Carre,HT0141,HT6410
+445,3e Section Fond Baptiste,HT0142,HT6420
+446,4e Section Fond Pierre,HT0142,HT6420
+447,7e Section Anse a Galets,HT0151,HT6510
+448,8e Section Petite Source,HT0151,HT6510
+449,3e Section Pointe a Raquette,HT0152,HT6520
+450,4e Section Grande Anse,HT0152,HT6520
+451,6e Section La Seringue,HT0211,HT0110
+452,7e Section La Gosseline,HT0211,HT0110
+453,3e Section Fond Cimetiere,HT0212,HT0120
+454,4e Section La Fond,HT0212,HT0120
+455,3e Section La Vanne,HT0213,HT0130
+456,4e Section Bas des Grigri,HT0213,HT0130
+457,3e Section Cocoyer,HT0214,HT0140
+458,4e Section Passe-Baguette,HT0214,HT0140
+459,5e Section La Hoye,HT0221,HT0210
+460,6e Section Bergeau,HT0221,HT0210
+461,3e Section Bras Gauche,HT0222,HT0220
+462,4e Section Cotes de Fer,HT0222,HT0220
+463,3e Section Bas des Grigri,HT0231,HT0310
+464,4e Section Mapou,HT0231,HT0310
+465,3e Section Salagnac,HT0232,HT0320
+466,4e Section Grand Gosier,HT0232,HT0320
+467,3e Section Savane Dubois,HT0233,HT0330
+468,4e Section Fond Mellon,HT0233,HT0330
+469,3e Section Boucan La Mer,HT0234,HT0340
+470,4e Section Anse a Pitre,HT0234,HT0340
+471,4e Section Bas du Cap,HT0311,HT1110
+472,5e Section Haut du Cap,HT0311,HT1110
+473,2e Section Morne Rouge,HT0312,HT1120
+474,3e Section Quartier Morin,HT0312,HT1120
+475,3e Section Bayeux,HT0313,HT1130
+476,4e Section Roucou,HT0313,HT1130
+477,4e Section La Soufriere,HT0321,HT1210
+478,5e Section Camp Louise,HT0321,HT1210
+479,2e Section Plaine du Nord,HT0322,HT1220
+480,3e Section Bois Caïman,HT0322,HT1220
+481,3e Section Robillard,HT0323,HT1230
+482,4e Section Morne Pele,HT0323,HT1230
+483,3e Section Joli Trou,HT0331,HT1310
+484,4e Section Grande Riviere du Nord,HT0331,HT1310
+485,3e Section Montolon,HT0332,HT1320
+486,4e Section Bahon,HT0332,HT1320
+487,3e Section Bois Neuf,HT0341,HT1410
+488,4e Section Saint-Raphael,HT0341,HT1410
+489,3e Section Haut Maribahoux,HT0342,HT1420
+490,4e Section Dondon,HT0342,HT1420
+491,2e Section Ranquitte,HT0343,HT1430
+492,3e Section Savane Carree,HT0344,HT1440
+493,4e Section Pignon,HT0344,HT1440
+494,2e Section La Victoire,HT0345,HT1450
+495,3e Section Cote de Fer,HT0351,HT1510
+496,4e Section Borgne,HT0351,HT1510
+497,3e Section Molas,HT0352,HT1520
+498,4e Section Margot,HT0352,HT1520
+499,3e Section Haut Limbe,HT0361,HT1610
+500,4e Section Limbe,HT0361,HT1610
+501,2e Section Bas Limbe,HT0362,HT1620
+502,3e Section La Plate,HT0371,HT1710
+503,4e Section Plaisance,HT0371,HT1710
+504,3e Section Margot,HT0372,HT1720
+505,4e Section Pilate,HT0372,HT1720
+506,3e Section Haut Fort,HT0411,HT2110
+507,4e Section Fort-Liberte,HT0411,HT2110
+508,2e Section Ferrier,HT0412,HT2120
+509,2e Section Perches,HT0413,HT2130
+510,3e Section Haut Maribahoux,HT0421,HT2210
+511,4e Section Ouanaminthe,HT0421,HT2210
+512,2e Section Capotille,HT0422,HT2220
+513,2e Section Mont-Organise,HT0423,HT2230
+514,3e Section Roche Plate,HT0431,HT2310
+515,4e Section Trou du Nord,HT0431,HT2310
+516,2e Section Sainte Suzanne,HT0432,HT2320
+517,2e Section Terrier Rouge,HT0433,HT2330
+518,2e Section Caracol,HT0434,HT2340
+519,3e Section Grosse Roche,HT0441,HT2410
+520,4e Section Vallieres,HT0441,HT2410
+521,2e Section Carice,HT0442,HT2420
+522,2e Section Mombin Crochu,HT0443,HT2430
+523,6e Section Bayonnais,HT0511,HT4110
+524,7e Section Petite Riviere,HT0511,HT4110
+525,3e Section Mapou,HT0512,HT4120
+526,4e Section Savane Mulatre,HT0512,HT4120
+527,2e Section L'Estere,HT0513,HT4130
+528,4e Section Riviere Mancelle,HT0521,HT4210
+529,5e Section Savane Carree,HT0521,HT4210
+530,2e Section Terre Neuve,HT0522,HT4220
+531,2e Section Anse Rouge,HT0523,HT4230
+532,4e Section Bocozelle,HT0531,HT4310
+533,5e Section La Croix,HT0531,HT4310
+534,4e Section Liancourt,HT0532,HT4320
+535,5e Section Desarmes,HT0532,HT4320
+536,2e Section La Chapelle,HT0533,HT4330
+537,5e Section Fosse Naboth,HT0541,HT4410
+538,6e Section Duval,HT0541,HT4410
+539,4e Section Labady,HT0542,HT4420
+540,5e Section Medor,HT0542,HT4420
+541,2e Section Grande Saline,HT0543,HT4430
+542,3e Section Ouest,HT0544,HT4440
+543,4e Section Desdunes,HT0544,HT4440
+544,3e Section Camathe,HT0551,HT4510
+545,4e Section Saint-Michel de l'Attalaye,HT0551,HT4510
+546,3e Section Platon,HT0552,HT4520
+547,4e Section Marmelade,HT0552,HT4520
+548,8e Section Marmont,HT0611,HT5110
+549,9e Section Los Palis,HT0611,HT5110
+550,5e Section Riviere Canot,HT0612,HT5120
+551,6e Section Savane Perdue,HT0612,HT5120
+552,4e Section Baille,HT0613,HT5130
+553,5e Section Casse,HT0613,HT5130
+554,3e Section Los Arroyos,HT0614,HT5140
+555,5e Section Gascogne,HT0621,HT5210
+556,6e Section Grand Chemin,HT0621,HT5210
+557,4e Section Fond Bleu,HT0622,HT5220
+558,5e Section La Corne,HT0622,HT5220
+559,4e Section Coupe Mardi Gras,HT0623,HT5230
+560,5e Section Bayas,HT0623,HT5230
+561,4e Section Juampas,HT0631,HT5310
+562,5e Section Los Palis,HT0632,HT5320
+563,6e Section Riviere Froide,HT0632,HT5320
+564,3e Section Colline des Chaines,HT0633,HT5330
+565,4e Section Los Cacaos,HT0641,HT5410
+566,3e Section La Hoye,HT0642,HT5420
+567,9e Section Fond Cochon,HT0711,HT8110
+568,10e Section Simon,HT0711,HT8110
+569,5e Section Fond Cimetiere,HT0712,HT8120
+570,6e Section Platon,HT0712,HT8120
+571,3e Section Fond Palmiste,HT0713,HT8130

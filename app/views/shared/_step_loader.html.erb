@@ -5,7 +5,7 @@
 <div id="<%= id %>" class="zellus-step-loader" style="display: none;">
   <div class="zsl-card">
     <div class="zsl-icon">
-      <i class="ri-flashlight-fill"></i>
+      <%= image_tag "zellus_square.png", alt: "Zèllus", style: "width: 28px; height: 28px; border-radius: 6px;" %>
     </div>
     <div class="zsl-steps">
       <% steps.each_with_index do |step, i| %>
@@ -19,7 +19,7 @@
       <% end %>
     </div>
     <div class="zsl-secure">
-      <i class="ri-shield-check-fill me-1"></i>Tranzaksyon sekirize
+      <i class="ri-shield-check-fill me-1"></i>Tranzaksyon sekirize pa <img src="<%= asset_path('zellus_square.png') %>" style="width: 14px; height: 14px; vertical-align: -2px; border-radius: 3px;" alt="Zèllus"> Zèllus
     </div>
   </div>
 </div>

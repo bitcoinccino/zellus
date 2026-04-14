@@ -1,0 +1,475 @@
+<%# Page Title %>
+<div class="mb-4 text-center">
+  <h1 class="h4 fw-bold mb-0" style="color: var(--haiti-charcoal); font-family: 'Space Grotesk', sans-serif;">
+    <i class="ri-add-circle-line me-2" style="color: var(--haiti-gold);"></i>Kredite Pòtfèy
+  </h1>
+</div>
+
+<div style="max-width: 520px; margin: 0 auto;">
+
+  <%# ── Mode Toggle: Internal Wallet vs External Base Address ── %>
+  <div class="d-flex gap-2 mb-3">
+    <button type="button" id="mode-internal-btn" onclick="switchCreditMode('internal')"
+            class="btn fw-bold flex-fill rounded-pill border-0 p-2"
+            style="background: var(--haiti-gold); color: var(--haiti-charcoal); font-size: 11px; transition: all 0.2s;">
+      <i class="ri-wallet-3-line me-1"></i>Pòtfèy Entèn
+    </button>
+    <button type="button" id="mode-external-btn" onclick="switchCreditMode('external')"
+            class="btn fw-bold flex-fill rounded-pill border-0 p-2"
+            style="background: var(--haiti-mint); color: var(--haiti-olive); font-size: 11px; border: 1.5px solid rgba(93,99,69,0.2) !important; transition: all 0.2s;">
+      <i class="ri-links-line me-1"></i>Adrès Base Ekstèn
+    </button>
+  </div>
+
+  <%# ════════════════════════════════════════════════════════════
+      INTERNAL WALLET CREDIT (existing)
+  ════════════════════════════════════════════════════════════ %>
+  <div id="credit-internal-section" class="card-base p-4" style="border: 1px solid rgba(93,99,69,0.12);">
+    <%= form_tag admin_credit_wallet_path, method: :post, id: "admin-credit-form" do %>
+      <div class="mb-3">
+        <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">
+          IMÈL OSWA $ZÈLLUSTAG
+        </label>
+        <div class="input-group">
+          <span class="input-group-text" style="background-color: var(--haiti-mint); border: 1.5px solid rgba(93,99,69,0.2); border-right: none; color: var(--haiti-olive);">
+            <i class="ri-search-line" id="admin-lookup-icon"></i>
+          </span>
+          <input type="text" id="admin-lookup-input"
+                 placeholder="Chèche $cashtag oswa imèl..."
+                 class="form-control fw-bold shadow-none p-3"
+                 style="background-color: var(--haiti-mint); border: 1.5px solid rgba(93,99,69,0.2); border-left: none; color: var(--haiti-charcoal); font-size: 13px;"
+                 autocomplete="off" oninput="handleAdminLookup()">
+        </div>
+        <div id="admin-lookup-result" class="mt-2" style="display: none;"></div>
+        <input type="hidden" name="email" id="admin-credit-email">
+      </div>
+
+      <div class="row g-2 mb-3">
+        <div class="col-7">
+          <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">MONTAN</label>
+          <input type="number" name="amount" required min="0.01" step="0.01" placeholder="5.00"
+                 class="form-control fw-bold shadow-none p-3"
+                 style="background-color: var(--haiti-mint); border: 1.5px solid rgba(93,99,69,0.2); color: var(--haiti-charcoal); font-size: 13px;">
+        </div>
+        <div class="col-5">
+          <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">AKTIF</label>
+          <select name="asset" class="form-select fw-bold shadow-none p-3"
+                  style="background-color: var(--haiti-mint); border: 1.5px solid rgba(93,99,69,0.2); color: var(--haiti-charcoal); font-size: 13px;">
+            <option value="usdc">USD</option>
+            <option value="htg">HTG</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">
+          PIN TRANSFÈ
+        </label>
+        <input type="password" name="transfer_pin" required maxlength="6" inputmode="numeric" pattern="[0-9]*" placeholder="••••••"
+               class="form-control fw-bold shadow-none p-3 text-center"
+               style="background-color: var(--haiti-mint); border: 1.5px solid rgba(93,99,69,0.2); color: var(--haiti-charcoal); font-size: 18px; letter-spacing: 8px;">
+      </div>
+
+      <button type="submit" id="admin-credit-btn" class="btn fw-bold w-100 p-3 rounded-pill border-0" disabled
+              style="background: var(--haiti-gold); color: var(--haiti-charcoal); font-size: 13px; opacity: 0.5; transition: all 0.2s;">
+        <i class="ri-add-line me-1"></i>Kredite Kont
+      </button>
+    <% end %>
+  </div>
+
+  <%# ════════════════════════════════════════════════════════════
+      EXTERNAL BASE ADDRESS CREDIT (new)
+  ════════════════════════════════════════════════════════════ %>
+  <div id="credit-external-section" class="card-base p-4" style="border: 1px solid rgba(93,99,69,0.12); display: none;">
+    <%= form_tag admin_credit_external_path, method: :post, id: "admin-external-form" do %>
+
+      <div class="mb-3">
+        <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">
+          ADRÈS WALLET BASE (0x...)
+        </label>
+        <div class="input-group">
+          <span class="input-group-text" style="background-color: var(--haiti-mint); border: 1.5px solid rgba(93,99,69,0.2); border-right: none; color: var(--haiti-olive);">
+            <i class="ri-links-line"></i>
+          </span>
+          <input type="text" name="wallet_address" id="ext-wallet-address" required
+                 placeholder="0x1234...abcd"
+                 class="form-control fw-bold shadow-none p-3"
+                 style="background-color: var(--haiti-mint); border: 1.5px solid rgba(93,99,69,0.2); border-left: none; color: var(--haiti-charcoal); font-size: 13px; font-family: 'Space Mono', monospace;"
+                 autocomplete="off" oninput="validateExtAddress()">
+        </div>
+        <div id="ext-address-feedback" class="mt-1" style="font-size: 10px; display: none;"></div>
+      </div>
+
+      <div class="row g-2 mb-3">
+        <div class="col-7">
+          <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">MONTAN USDC</label>
+          <input type="number" name="amount" required min="0.01" step="0.01" placeholder="5.00"
+                 class="form-control fw-bold shadow-none p-3"
+                 style="background-color: var(--haiti-mint); border: 1.5px solid rgba(93,99,69,0.2); color: var(--haiti-charcoal); font-size: 13px;">
+        </div>
+        <div class="col-5">
+          <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">AKTIF</label>
+          <div class="form-control fw-bold p-3 d-flex align-items-center"
+               style="background-color: var(--haiti-mint); border: 1.5px solid rgba(93,99,69,0.2); color: var(--haiti-charcoal); font-size: 13px; height: 100%;">
+            <img src="https://cryptologos.cc/logos/usd-coin-usdc-logo.svg" style="width: 16px; height: 16px; margin-right: 6px;">
+            USDC
+          </div>
+          <input type="hidden" name="asset" value="usdc">
+        </div>
+      </div>
+
+      <div class="mb-2 p-2 rounded-3" style="background: rgba(197,160,89,0.1); font-size: 10px; color: var(--haiti-olive);">
+        <i class="ri-information-line me-1" style="color: var(--haiti-gold);"></i>
+        Sa a voye USDC sou <strong>Base Mainnet</strong> dirèkteman soti nan trezori a. Asire w adrès la kòrèk — tranzaksyon sou blockchain pa ka anile.
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">
+          PIN TRANSFÈ
+        </label>
+        <input type="password" name="transfer_pin" required maxlength="6" inputmode="numeric" pattern="[0-9]*" placeholder="••••••"
+               class="form-control fw-bold shadow-none p-3 text-center"
+               style="background-color: var(--haiti-mint); border: 1.5px solid rgba(93,99,69,0.2); color: var(--haiti-charcoal); font-size: 18px; letter-spacing: 8px;">
+      </div>
+
+      <button type="submit" id="admin-external-btn" class="btn fw-bold w-100 p-3 rounded-pill border-0" disabled
+              style="background: var(--haiti-gold); color: var(--haiti-charcoal); font-size: 13px; opacity: 0.5; transition: all 0.2s;">
+        <i class="ri-send-plane-fill me-1"></i>Voye sou Base
+      </button>
+    <% end %>
+  </div>
+</div>
+
+<script>
+  // ── Mode toggle: Internal / External ──
+  function switchCreditMode(mode) {
+    var intBtn  = document.getElementById("mode-internal-btn");
+    var extBtn  = document.getElementById("mode-external-btn");
+    var intSec  = document.getElementById("credit-internal-section");
+    var extSec  = document.getElementById("credit-external-section");
+
+    if (mode === "external") {
+      intSec.style.display = "none";
+      extSec.style.display = "block";
+      extBtn.style.background = "var(--haiti-gold)";
+      extBtn.style.color = "var(--haiti-charcoal)";
+      extBtn.style.border = "none";
+      intBtn.style.background = "var(--haiti-mint)";
+      intBtn.style.color = "var(--haiti-olive)";
+      intBtn.style.border = "1.5px solid rgba(93,99,69,0.2)";
+    } else {
+      intSec.style.display = "block";
+      extSec.style.display = "none";
+      intBtn.style.background = "var(--haiti-gold)";
+      intBtn.style.color = "var(--haiti-charcoal)";
+      intBtn.style.border = "none";
+      extBtn.style.background = "var(--haiti-mint)";
+      extBtn.style.color = "var(--haiti-olive)";
+      extBtn.style.border = "1.5px solid rgba(93,99,69,0.2)";
+    }
+  }
+
+  // ── External address validation ──
+  function validateExtAddress() {
+    var input    = document.getElementById("ext-wallet-address");
+    var feedback = document.getElementById("ext-address-feedback");
+    var btn      = document.getElementById("admin-external-btn");
+    var addr     = (input.value || "").trim();
+
+    if (!addr) {
+      feedback.style.display = "none";
+      btn.disabled = true;
+      btn.style.opacity = "0.5";
+      return;
+    }
+
+    var valid = /^0x[0-9a-fA-F]{40}$/.test(addr);
+    var isZero = addr.toLowerCase() === "0x0000000000000000000000000000000000000000";
+
+    feedback.style.display = "block";
+    if (!valid) {
+      feedback.innerHTML = '<span style="color: #991b1b;"><i class="ri-close-circle-line me-1"></i>Fòma adrès pa valid (dwe kòmanse ak 0x + 40 karaktè hex)</span>';
+      btn.disabled = true;
+      btn.style.opacity = "0.5";
+    } else if (isZero) {
+      feedback.innerHTML = '<span style="color: #991b1b;"><i class="ri-close-circle-line me-1"></i>Pa ka voye nan adrès zero</span>';
+      btn.disabled = true;
+      btn.style.opacity = "0.5";
+    } else {
+      feedback.innerHTML = '<span style="color: #166534;"><i class="ri-check-line me-1"></i>Adrès valid · Base Mainnet</span>';
+      btn.disabled = false;
+      btn.style.opacity = "1";
+    }
+  }
+
+  // ── Internal wallet: user lookup ──
+  var _adminLookupTimer = null;
+  var _adminLastQuery = '';
+
+  function handleAdminLookup() {
+    var input = document.getElementById("admin-lookup-input");
+    var resultDiv = document.getElementById("admin-lookup-result");
+    var icon = document.getElementById("admin-lookup-icon");
+    var hiddenEmail = document.getElementById("admin-credit-email");
+    var btn = document.getElementById("admin-credit-btn");
+    var q = (input ? input.value : "").trim();
+
+    hiddenEmail.value = "";
+    btn.disabled = true;
+    btn.style.opacity = "0.5";
+
+    if (_adminLookupTimer) { clearTimeout(_adminLookupTimer); _adminLookupTimer = null; }
+
+    if (!q || q.length < 2) {
+      resultDiv.style.display = 'none';
+      resultDiv.innerHTML = '';
+      icon.className = 'ri-search-line';
+      _adminLastQuery = '';
+      return;
+    }
+
+    if (q === _adminLastQuery) return;
+
+    icon.className = 'ri-loader-4-line ri-spin';
+
+    _adminLookupTimer = setTimeout(function() {
+      _adminLastQuery = q;
+      var csrfToken = document.querySelector('meta[name="csrf-token"]');
+
+      fetch('<%= user_lookup_path %>' + '?q=' + encodeURIComponent(q), {
+        headers: {
+          'Accept': 'application/json',
+          'X-CSRF-Token': csrfToken ? csrfToken.content : ''
+        }
+      })
+      .then(function(r) {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.json();
+      })
+      .then(function(data) {
+        icon.className = 'ri-search-line';
+        resultDiv.style.display = 'block';
+
+        if (data.found) {
+          var items = data.results || [data];
+          var html = '';
+          items.forEach(function(r) {
+            var avatarHtml = r.avatar_url
+              ? '<img src="' + r.avatar_url + '" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--haiti-gold);">'
+              : '<div class="d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; border-radius: 50%; background: var(--haiti-mint); border: 2px solid var(--haiti-gold);"><i class="' + (r.type === 'business' ? 'ri-store-2-line' : 'ri-user-line') + '" style="color: var(--haiti-gold); font-size: 18px;"></i></div>';
+            var tierHtml = r.tier ? '<span class="badge rounded-pill ms-1" style="background: var(--haiti-mint); color: var(--haiti-olive); font-size: 9px; font-weight: 700;">' + (r.tier_icon || '') + ' ' + r.tier + '</span>' : '';
+            var typeIcon = r.type === 'business' ? 'ri-store-2-line' : 'ri-user-line';
+            var typeBadge = r.type_label ? '<span class="badge rounded-pill" style="background: rgba(197,160,89,0.15); color: var(--haiti-gold); font-size: 8px; font-weight: 700;"><i class="' + typeIcon + ' me-1"></i>' + r.type_label + '</span> ' : '';
+            html += '<div class="d-flex align-items-center justify-content-between p-2 rounded-3 mb-1" style="background: rgba(22,101,52,0.08);">' +
+              '<div class="d-flex align-items-center gap-2">' + avatarHtml +
+              '<div><div class="fw-bold d-flex align-items-center gap-1 flex-wrap" style="color: #166534; font-size: 12px;">' + typeBadge + r.display_name + tierHtml + '</div>' +
+              '<div style="color: var(--haiti-olive); font-size: 10px;">$' + r.cashtag + '</div></div></div>' +
+              '<button type="button" class="btn btn-sm fw-bold rounded-pill" style="background: #166534; color: #fff; font-size: 9px; padding: 4px 12px;" ' +
+              'onclick="selectAdminUser(\'' + r.cashtag + '\', \'' + r.display_name.replace(/'/g, "\\'") + '\')"><i class="ri-check-line me-1"></i>Chwazi</button></div>';
+          });
+          resultDiv.innerHTML = html;
+        } else {
+          resultDiv.innerHTML = '<div class="small fw-bold" style="color: #991b1b; font-size: 10px;"><i class="ri-close-circle-line me-1"></i>' + data.message + '</div>';
+        }
+      })
+      .catch(function(err) {
+        icon.className = 'ri-search-line';
+        resultDiv.style.display = 'block';
+        resultDiv.innerHTML = '<div class="small fw-bold" style="color: #991b1b; font-size: 10px;"><i class="ri-close-circle-line me-1"></i>Erè: ' + err.message + '</div>';
+      });
+    }, 300);
+  }
+
+  var _selectedUserName = '';
+
+  function selectAdminUser(cashtag, name) {
+    var input = document.getElementById("admin-lookup-input");
+    var resultDiv = document.getElementById("admin-lookup-result");
+    var hiddenEmail = document.getElementById("admin-credit-email");
+    var btn = document.getElementById("admin-credit-btn");
+
+    hiddenEmail.value = '$' + cashtag;
+    input.value = '$' + cashtag;
+    _selectedUserName = name;
+    btn.disabled = false;
+    btn.style.opacity = "1";
+    resultDiv.innerHTML = '<div class="small fw-bold" style="color: #166534; font-size: 10px;"><i class="ri-check-line me-1"></i>' + name + ' · $' + cashtag + '</div>';
+  }
+
+  // ── Progressive loading on submit ──
+  document.addEventListener("DOMContentLoaded", function() {
+    var form = document.getElementById("admin-credit-form");
+    if (!form) return;
+
+    form.addEventListener("submit", function(e) {
+      e.preventDefault();
+
+      var btn = document.getElementById("admin-credit-btn");
+      var formCard = form.closest(".card-base");
+      var userName = _selectedUserName || document.getElementById("admin-credit-email").value;
+      var amount = form.querySelector('[name="amount"]').value;
+      var asset = form.querySelector('[name="asset"]').value.toUpperCase();
+
+      // Disable button
+      btn.disabled = true;
+      btn.style.opacity = "0.5";
+
+      // Create overlay
+      var overlay = document.createElement("div");
+      overlay.id = "credit-progress-overlay";
+      overlay.style.cssText = "position: absolute; inset: 0; background: var(--haiti-cream); border-radius: 28px; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 32px;";
+      formCard.style.position = "relative";
+      formCard.appendChild(overlay);
+
+      // Start the actual POST immediately in background
+      var formData = new FormData(form);
+      var csrfToken = document.querySelector('meta[name="csrf-token"]');
+      var fetchDone = false;
+      var fetchResp = null;
+      var fetchErr = null;
+
+      fetch(form.action, {
+        method: "POST",
+        headers: { "X-CSRF-Token": csrfToken ? csrfToken.content : "" },
+        body: formData,
+        redirect: "manual"
+      }).then(function(resp) {
+        fetchResp = resp;
+        fetchDone = true;
+      }).catch(function(err) {
+        fetchErr = err;
+        fetchDone = true;
+      });
+
+      var steps = [
+        { icon: "ri-loader-4-line ri-spin", text: "Ranbousman " + amount + " " + asset + " pou " + userName + " komanse...", color: "var(--haiti-olive)" },
+        { icon: "ri-search-eye-line", text: "Zèllus ap cheke si gen ase kòb...", color: "var(--haiti-gold)" },
+        { icon: "ri-checkbox-circle-line", text: "Gen ase pou peye " + userName + "!", color: "#166534" },
+        { icon: "ri-send-plane-fill", text: amount + " " + asset + " ale depoze sou Zèllus " + userName, color: "#166534" }
+      ];
+
+      var stepIndex = 0;
+
+      function showStep() {
+        if (stepIndex >= steps.length) {
+          // Animation done — redirect
+          function doRedirect() {
+            if (fetchResp && fetchResp.headers.get("location")) {
+              window.location.href = fetchResp.headers.get("location");
+            } else {
+              window.location.href = '<%= admin_credit_path %>';
+            }
+          }
+
+          if (fetchDone) {
+            doRedirect();
+          } else {
+            // Wait for fetch to finish
+            var waitInterval = setInterval(function() {
+              if (fetchDone) {
+                clearInterval(waitInterval);
+                doRedirect();
+              }
+            }, 200);
+          }
+          return;
+        }
+
+        var s = steps[stepIndex];
+        overlay.innerHTML =
+          '<div style="text-align: center;">' +
+            '<i class="' + s.icon + '" style="font-size: 36px; color: ' + s.color + '; display: block; margin-bottom: 12px;"></i>' +
+            '<div class="fw-bold" style="color: ' + s.color + '; font-size: 14px;">' + s.text + '</div>' +
+            '<div class="mt-3 d-flex justify-content-center gap-1">' +
+              steps.map(function(_, i) {
+                return '<div style="width: 8px; height: 8px; border-radius: 50%; background: ' + (i <= stepIndex ? 'var(--haiti-gold)' : 'rgba(93,99,69,0.15)') + '; transition: background 0.3s;"></div>';
+              }).join('') +
+            '</div>' +
+          '</div>';
+        overlay.querySelector("div").style.animation = "adminFlashIn 0.3s ease-out";
+
+        stepIndex++;
+        setTimeout(showStep, 2000);
+      }
+
+      showStep();
+    });
+
+    // ── External form submit handler ──
+    var extForm = document.getElementById("admin-external-form");
+    if (extForm) {
+      extForm.addEventListener("submit", function(e) {
+        e.preventDefault();
+
+        var btn = document.getElementById("admin-external-btn");
+        var formCard = extForm.closest(".card-base");
+        var amount = extForm.querySelector('[name="amount"]').value;
+        var addr = extForm.querySelector('[name="wallet_address"]').value.trim();
+        var shortAddr = addr.substring(0, 6) + "..." + addr.substring(addr.length - 4);
+
+        btn.disabled = true;
+        btn.style.opacity = "0.5";
+
+        var overlay = document.createElement("div");
+        overlay.style.cssText = "position: absolute; inset: 0; background: var(--haiti-cream); border-radius: 28px; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 32px;";
+        formCard.style.position = "relative";
+        formCard.appendChild(overlay);
+
+        var formData = new FormData(extForm);
+        var csrfToken = document.querySelector('meta[name="csrf-token"]');
+        var fetchDone = false;
+        var fetchResp = null;
+
+        fetch(extForm.action, {
+          method: "POST",
+          headers: { "X-CSRF-Token": csrfToken ? csrfToken.content : "" },
+          body: formData,
+          redirect: "manual"
+        }).then(function(resp) {
+          fetchResp = resp;
+          fetchDone = true;
+        }).catch(function() {
+          fetchDone = true;
+        });
+
+        var steps = [
+          { icon: "ri-loader-4-line ri-spin", text: "Prepare tranzaksyon " + amount + " USDC...", color: "var(--haiti-olive)" },
+          { icon: "ri-links-line", text: "Konekte ak Base Mainnet...", color: "var(--haiti-gold)" },
+          { icon: "ri-send-plane-fill", text: amount + " USDC ap voye → " + shortAddr, color: "#166534" }
+        ];
+
+        var stepIndex = 0;
+        function showExtStep() {
+          if (stepIndex >= steps.length) {
+            function doRedirect() {
+              if (fetchResp && fetchResp.headers.get("location")) {
+                window.location.href = fetchResp.headers.get("location");
+              } else {
+                window.location.href = '<%= admin_credit_path %>';
+              }
+            }
+            if (fetchDone) { doRedirect(); }
+            else {
+              var wi = setInterval(function() { if (fetchDone) { clearInterval(wi); doRedirect(); } }, 200);
+            }
+            return;
+          }
+          var s = steps[stepIndex];
+          overlay.innerHTML =
+            '<div style="text-align: center;">' +
+              '<i class="' + s.icon + '" style="font-size: 36px; color: ' + s.color + '; display: block; margin-bottom: 12px;"></i>' +
+              '<div class="fw-bold" style="color: ' + s.color + '; font-size: 14px;">' + s.text + '</div>' +
+              '<div class="mt-3 d-flex justify-content-center gap-1">' +
+                steps.map(function(_, i) {
+                  return '<div style="width: 8px; height: 8px; border-radius: 50%; background: ' + (i <= stepIndex ? 'var(--haiti-gold)' : 'rgba(93,99,69,0.15)') + '; transition: background 0.3s;"></div>';
+                }).join('') +
+              '</div>' +
+            '</div>';
+          stepIndex++;
+          setTimeout(showExtStep, 2000);
+        }
+        showExtStep();
+      });
+    }
+  });
+</script>

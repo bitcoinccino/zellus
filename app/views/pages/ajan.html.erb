@@ -1,0 +1,368 @@
+<div class="container py-4" style="max-width: 1060px;">
+
+  <%# ── Back ── %>
+  <a href="javascript:history.back()" class="d-inline-flex align-items-center gap-1 text-decoration-none mb-3" style="color: var(--haiti-olive); font-size: 13px; font-weight: 600;">
+    <i class="ri-arrow-left-s-line" style="font-size: 18px;"></i>Retounen
+  </a>
+
+  <%# ══════════════════════════════════════════════════════ %>
+  <%# ── HERO                                             ── %>
+  <%# ══════════════════════════════════════════════════════ %>
+  <div class="rounded-4 p-4 p-md-5 mb-4 text-center position-relative" style="background: var(--haiti-charcoal);">
+    <div class="mb-3">
+      <img src="<%= asset_path('zellus_square.png') %>" style="width: 56px; height: 56px; border-radius: 14px;" alt="Zellus">
+    </div>
+    <div class="mb-3">
+      <span class="badge rounded-pill px-3 py-2 fw-bold" style="background: var(--haiti-gold); color: var(--haiti-charcoal); font-size: 11px;">
+        <i class="ri-timer-flash-line me-1"></i>Pa gen tann. Pa gen papye.
+      </span>
+    </div>
+    <h1 class="fw-black mb-3" style="font-size: clamp(1.4rem, 3.5vw, 2rem); color: white;">
+      Vin Ajan nan <span style="color: var(--haiti-gold);">20 minit</span>,<br>pa 20 jou.
+    </h1>
+    <p class="mb-4 mx-auto" style="max-width: 480px; color: rgba(255,255,255,0.6); font-size: 14px;">
+      Sevi ak BonID pou w komanse fe kob kounye a. Pa gen tann repwetan Digicel anko.
+    </p>
+    <% if user_signed_in? && current_user.business.present? %>
+      <%= button_to apply_agent_business_path(current_user.business), method: :post,
+          class: "btn fw-bold rounded-3 px-4 py-2",
+          style: "background: var(--haiti-gold); color: #fff; font-size: 14px;",
+          data: { turbo_confirm: "Ou vle aplike pou vin ajan Zèllus?" } do %>
+        <i class="ri-user-location-line me-1"></i>Aplike Kounye a
+      <% end %>
+    <% elsif user_signed_in? %>
+      <%= link_to new_business_path, class: "btn fw-bold rounded-3 px-4 py-2", style: "background: var(--haiti-gold); color: #fff; font-size: 14px;" do %>
+        <i class="ri-store-2-line me-1"></i>Kreye Biznis Dabò
+      <% end %>
+    <% else %>
+      <%= link_to new_user_registration_path, class: "btn fw-bold rounded-3 px-4 py-2", style: "background: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 14px; border: 2px solid var(--haiti-gold);" do %>
+        <i class="ri-user-add-line me-1"></i>Kreye Kont Gratis
+      <% end %>
+    <% end %>
+  </div>
+
+  <%# ══════════════════════════════════════════════════════ %>
+  <%# ── TWO-COLUMN LAYOUT                               ── %>
+  <%# ══════════════════════════════════════════════════════ %>
+  <div class="row g-4">
+
+    <%# ── LEFT COLUMN ── %>
+    <div class="col-lg-7">
+
+      <%# ── Comparison Table: Zellus vs MonCash ── %>
+      <div class="card-base p-4 mb-3" style="border: 2px solid rgba(197,160,89,0.2);">
+        <h5 class="fw-black mb-3" style="color: var(--haiti-charcoal); font-size: 16px;">
+          <i class="ri-scales-3-line me-2" style="color: var(--haiti-gold);"></i>Poukisa Ajan Chwazi Zellus
+        </h5>
+
+        <div class="table-responsive">
+          <table class="table table-borderless mb-0" style="font-size: 13px;">
+            <thead>
+              <tr>
+                <th style="color: var(--haiti-olive); font-weight: 600; font-size: 11px; border-bottom: 2px solid rgba(197,160,89,0.2);"></th>
+                <th class="text-center" style="color: var(--haiti-olive); font-weight: 600; font-size: 11px; border-bottom: 2px solid rgba(197,160,89,0.2);">
+                  <i class="ri-phone-line me-1"></i>MonCash
+                </th>
+                <th class="text-center" style="color: var(--haiti-gold); font-weight: 800; font-size: 11px; border-bottom: 2px solid var(--haiti-gold);">
+                  <i class="ri-flashlight-line me-1"></i>Zellus
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="fw-bold" style="color: var(--haiti-charcoal);">Tan pou Komanse</td>
+                <td class="text-center" style="color: var(--haiti-olive);">Jiska 20 jou</td>
+                <td class="text-center fw-bold" style="color: var(--haiti-charcoal); background: rgba(197,160,89,0.06);">
+                  <i class="ri-flashlight-line me-1" style="color: var(--haiti-gold);"></i>Imedyatman (BonID)
+                </td>
+              </tr>
+              <tr>
+                <td class="fw-bold" style="color: var(--haiti-charcoal);">Depo Minimom</td>
+                <td class="text-center" style="color: var(--haiti-olive);">50,000 HTG</td>
+                <td class="text-center fw-bold" style="color: var(--haiti-charcoal); background: rgba(197,160,89,0.06);">5,000 HTG</td>
+              </tr>
+              <tr>
+                <td class="fw-bold" style="color: var(--haiti-charcoal);">Komisyon</td>
+                <td class="text-center" style="color: var(--haiti-olive);">Nivo / kache</td>
+                <td class="text-center fw-bold" style="color: var(--haiti-charcoal); background: rgba(197,160,89,0.06);">
+                  <span style="color: var(--haiti-gold);">2% fiks</span> (transparan)
+                </td>
+              </tr>
+              <tr>
+                <td class="fw-bold" style="color: var(--haiti-charcoal);">Lajan</td>
+                <td class="text-center" style="color: var(--haiti-olive);">HTG selman</td>
+                <td class="text-center fw-bold" style="color: var(--haiti-charcoal); background: rgba(197,160,89,0.06);">HTG + USD</td>
+              </tr>
+              <tr>
+                <td class="fw-bold" style="color: var(--haiti-charcoal);">Maketing</td>
+                <td class="text-center" style="color: var(--haiti-olive);">Pentire mi ou</td>
+                <td class="text-center fw-bold" style="color: var(--haiti-charcoal); background: rgba(197,160,89,0.06);">
+                  <i class="ri-map-pin-line me-1" style="color: var(--haiti-gold);"></i>Kat Ajan nan App
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <%# ── Signage ── %>
+      <div class="card-base p-4 mb-3" style="border: 2px solid rgba(197,160,89,0.2);">
+        <h5 class="fw-black mb-3" style="color: var(--haiti-charcoal); font-size: 16px;">
+          <i class="ri-image-line me-2" style="color: var(--haiti-gold);"></i>Afich Ou Pre nan 5 Minit
+        </h5>
+        <p class="mb-3" style="color: var(--haiti-olive); font-size: 13px;">
+          Pa tann nou! Enprime afich ou a kounye a epi komanse touche 2%.
+        </p>
+
+        <div class="row g-3 mb-3">
+          <div class="col-4 text-center">
+            <div class="rounded-3 p-3" style="background: rgba(93,99,69,0.04); border: 1px solid rgba(93,99,69,0.08);">
+              <i class="ri-file-paper-2-line d-block mb-2" style="color: var(--haiti-gold); font-size: 28px;"></i>
+              <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 11px;">Afich 8.5x11</div>
+              <div style="color: var(--haiti-olive); font-size: 10px;">"Ajan Zellus Isit la"</div>
+            </div>
+          </div>
+          <div class="col-4 text-center">
+            <div class="rounded-3 p-3" style="background: rgba(93,99,69,0.04); border: 1px solid rgba(93,99,69,0.08);">
+              <i class="ri-qr-code-line d-block mb-2" style="color: var(--haiti-gold); font-size: 28px;"></i>
+              <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 11px;">QR Code Inik</div>
+              <div style="color: var(--haiti-olive); font-size: 10px;">Lye ak $ZellusTag ou</div>
+            </div>
+          </div>
+          <div class="col-4 text-center">
+            <div class="rounded-3 p-3" style="background: rgba(93,99,69,0.04); border: 1px solid rgba(93,99,69,0.08);">
+              <i class="ri-price-tag-3-line d-block mb-2" style="color: var(--haiti-gold); font-size: 28px;"></i>
+              <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 11px;">Etiket Kontwa</div>
+              <div style="color: var(--haiti-olive); font-size: 10px;">"Nou Aksepte Zellus"</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="p-3 rounded-3" style="background: rgba(93,99,69,0.04); border: 1px solid rgba(93,99,69,0.08);">
+          <div class="d-flex align-items-center gap-2">
+            <i class="ri-camera-line" style="color: var(--haiti-gold); font-size: 16px;"></i>
+            <span style="color: var(--haiti-olive); font-size: 12px;">
+              Pran foto afich ou epi telechaje li pou resevwa badj <strong>"Lokasyon Verifye"</strong> sou Kat Ajan nan app la.
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <%# ── Commission Calculator ── %>
+      <div class="card-base p-4 mb-3" style="border: 2px solid rgba(197,160,89,0.2);">
+        <h5 class="fw-black mb-3" style="color: var(--haiti-charcoal); font-size: 16px;">
+          <i class="ri-calculator-line me-2" style="color: var(--haiti-gold);"></i>Kalkile Komisyon Ou
+        </h5>
+        <p class="mb-3" style="color: var(--haiti-olive); font-size: 13px;">Pa gen nivo, pa gen sipriz. 2% sou chak goud.</p>
+
+        <div class="row g-3 align-items-center">
+          <div class="col-md-6">
+            <label class="form-label fw-bold" style="color: var(--haiti-charcoal); font-size: 12px;">Montan Depo (HTG)</label>
+            <input type="number" id="ajan-calc-input" class="form-control form-control-lg rounded-pill text-center fw-bold"
+                   style="border: 2px solid rgba(197,160,89,0.3); font-size: 18px; color: var(--haiti-charcoal);"
+                   value="1000" min="0" step="100">
+          </div>
+          <div class="col-md-6 text-center">
+            <div class="rounded-4 p-3" style="background: rgba(197,160,89,0.08);">
+              <div style="color: var(--haiti-olive); font-size: 11px;" class="mb-1">Ou touche</div>
+              <div class="fw-black" style="color: var(--haiti-gold); font-size: 28px;" id="ajan-calc-result">20 HTG</div>
+              <div style="color: var(--haiti-olive); font-size: 11px;">komisyon imedyatman</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-3 p-3 rounded-3" style="background: rgba(93,99,69,0.04); border: 1px solid rgba(93,99,69,0.08);">
+          <div class="d-flex align-items-center gap-2" style="color: var(--haiti-olive); font-size: 12px;">
+            <i class="ri-bar-chart-grouped-line" style="font-size: 16px;"></i>
+            <span>Si w aksepte <strong id="ajan-calc-daily">5</strong> depo konsa pa jou = <strong id="ajan-calc-monthly" style="color: var(--haiti-gold);">3,000 HTG</strong>/mwa</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <%# ── RIGHT COLUMN (Sticky) ── %>
+    <div class="col-lg-5">
+      <div style="position: sticky; top: 80px;">
+
+        <%# ── Dashboard + CashTag ── %>
+        <div class="card-base p-4 mb-3" style="border: 2px solid rgba(197,160,89,0.2);">
+          <h5 class="fw-black mb-3" style="color: var(--haiti-charcoal); font-size: 16px;">
+            <i class="ri-dashboard-line me-2" style="color: var(--haiti-gold);"></i>Dashboard Ajan
+          </h5>
+          <div class="rounded-3 p-3 mb-3" style="background: var(--haiti-charcoal); color: #fff;">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span style="font-size: 11px; color: rgba(255,255,255,0.6);">Komisyon Jodi a</span>
+              <span class="badge rounded-pill" style="background: rgba(197,160,89,0.2); color: var(--haiti-gold); font-size: 10px;">LIVE</span>
+            </div>
+            <div class="fw-black" style="font-size: 24px; color: var(--haiti-gold);">450 HTG</div>
+            <div style="font-size: 10px; color: rgba(255,255,255,0.5);">6 tranzaksyon</div>
+          </div>
+          <div class="d-flex gap-2">
+            <div class="flex-fill rounded-3 p-2 text-center" style="background: rgba(197,160,89,0.08);">
+              <div style="font-size: 10px; color: var(--haiti-olive);">Semen sa</div>
+              <div class="fw-black" style="color: var(--haiti-charcoal); font-size: 14px;">2,100 HTG</div>
+            </div>
+            <div class="flex-fill rounded-3 p-2 text-center" style="background: rgba(197,160,89,0.08);">
+              <div style="font-size: 10px; color: var(--haiti-olive);">Mwa sa</div>
+              <div class="fw-black" style="color: var(--haiti-charcoal); font-size: 14px;">8,400 HTG</div>
+            </div>
+          </div>
+        </div>
+
+        <%# ── $ZellusTag ── %>
+        <div class="card-base p-4 mb-3" style="border: 2px solid rgba(197,160,89,0.2);">
+          <h5 class="fw-black mb-3" style="color: var(--haiti-charcoal); font-size: 16px;">
+            <i class="ri-at-line me-2" style="color: var(--haiti-gold);"></i>$ZellusTag Ou
+          </h5>
+          <p style="color: var(--haiti-olive); font-size: 13px;" class="mb-3">
+            Chak biznis gen yon $ZellusTag inik. Kliyan jis tape $tag ou pou voye lajan, pa gen nimewo kont pou sonje.
+          </p>
+          <div class="rounded-3 p-3 text-center" style="background: var(--haiti-charcoal);">
+            <span class="fw-black" style="color: var(--haiti-gold); font-size: 20px;">$MaBoutik</span>
+          </div>
+          <div class="mt-3 d-flex align-items-start gap-2">
+            <i class="ri-map-pin-2-line flex-shrink-0" style="color: var(--haiti-gold); font-size: 16px; margin-top: 2px;"></i>
+            <span style="color: var(--haiti-olive); font-size: 12px;">Biznis ou paret sou kat ajan nan app la. Kliyan jwenn ou fasil.</span>
+          </div>
+        </div>
+
+        <%# ── Pwoteje Kob Ou (USD Edge) ── %>
+        <div class="card-base p-4 mb-3" style="border: 2px solid rgba(197,160,89,0.2);">
+          <h5 class="fw-black mb-3" style="color: var(--haiti-charcoal); font-size: 16px;">
+            <i class="ri-shield-star-line me-2" style="color: var(--haiti-gold);"></i>Pwoteje Kob Ou
+          </h5>
+          <p style="color: var(--haiti-olive); font-size: 13px;" class="mb-3">
+            MonCash ba w goud ki pedi vale. Zellus pemet ou touche an USD, lajan ki kenbe vale li.
+          </p>
+          <div class="d-flex flex-column gap-2 mb-3">
+            <div class="d-flex align-items-center gap-2 p-2 rounded-3" style="background: rgba(93,99,69,0.04); border: 1px solid rgba(93,99,69,0.08);">
+              <i class="ri-coin-line" style="color: var(--haiti-gold);"></i>
+              <span style="color: var(--haiti-charcoal); font-size: 12px; font-weight: 600;">USD</span>
+              <span style="color: var(--haiti-olive); font-size: 12px;">Dola dijital, vale estab</span>
+            </div>
+          </div>
+          <div class="rounded-3 p-3 text-center" style="background: var(--haiti-charcoal);">
+            <div style="font-size: 10px; color: rgba(255,255,255,0.5);" class="mb-1">Komisyon an USD</div>
+            <div class="fw-black" style="color: var(--haiti-gold); font-size: 22px;">$0.27</div>
+            <div style="font-size: 10px; color: rgba(255,255,255,0.5);">sou 1,000 HTG depo</div>
+          </div>
+        </div>
+
+        <%# ── Unified Wallet ── %>
+        <div class="card-base p-4 mb-3" style="border: 2px solid rgba(197,160,89,0.2);">
+          <h5 class="fw-black mb-3" style="color: var(--haiti-charcoal); font-size: 16px;">
+            <i class="ri-wallet-3-line me-2" style="color: var(--haiti-gold);"></i>Yon Sel Kont
+          </h5>
+          <p class="mb-3" style="color: var(--haiti-olive); font-size: 13px;">
+            Pa gen bezwen de kont separe. Tout lajan ou nan yon sel potfey.
+          </p>
+          <div class="row g-2 mb-3">
+            <div class="col-4 text-center">
+              <div class="rounded-3 p-2" style="background: rgba(93,99,69,0.04); border: 1px solid rgba(93,99,69,0.08);">
+                <i class="ri-user-location-line d-block mb-1" style="color: var(--haiti-gold); font-size: 20px;"></i>
+                <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 10px;">Komisyon</div>
+              </div>
+            </div>
+            <div class="col-4 text-center">
+              <div class="rounded-3 p-2" style="background: rgba(93,99,69,0.04); border: 1px solid rgba(93,99,69,0.08);">
+                <i class="ri-store-2-line d-block mb-1" style="color: var(--haiti-gold); font-size: 20px;"></i>
+                <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 10px;">Vant</div>
+              </div>
+            </div>
+            <div class="col-4 text-center">
+              <div class="rounded-3 p-2" style="background: rgba(93,99,69,0.04); border: 1px solid rgba(93,99,69,0.08);">
+                <i class="ri-wallet-line d-block mb-1" style="color: var(--haiti-gold); font-size: 20px;"></i>
+                <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 10px;">Pesonel</div>
+              </div>
+            </div>
+          </div>
+          <div class="text-center">
+            <div class="rounded-pill d-inline-block px-3 py-2 fw-bold" style="background: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 12px;">
+              <i class="ri-wallet-3-line me-1"></i>Yon Sel Potfey Zellus
+            </div>
+          </div>
+        </div>
+
+        <%# ── Requirements ── %>
+        <div class="card-base p-4 mb-3" style="border: 2px solid rgba(197,160,89,0.2);">
+          <h5 class="fw-black mb-3" style="color: var(--haiti-charcoal); font-size: 16px;">
+            <i class="ri-checkbox-circle-line me-2" style="color: var(--haiti-gold);"></i>Sa w Bezwen
+          </h5>
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <i class="ri-check-double-line" style="color: #166534;"></i>
+            <span style="color: var(--haiti-olive); font-size: 12px;">Kont Zellus aktif ak BonID verifye</span>
+          </div>
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <i class="ri-check-double-line" style="color: #166534;"></i>
+            <span style="color: var(--haiti-olive); font-size: 12px;">Biznis anrejistre ak logo</span>
+          </div>
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <i class="ri-check-double-line" style="color: #166534;"></i>
+            <span style="color: var(--haiti-olive); font-size: 12px;">Nimewo telefon ak adres fizik</span>
+          </div>
+          <div class="d-flex align-items-center gap-2">
+            <i class="ri-check-double-line" style="color: #166534;"></i>
+            <span style="color: var(--haiti-olive); font-size: 12px;">Depo minimom 5,000 HTG</span>
+          </div>
+        </div>
+
+        <%# ── CTA ── %>
+        <div class="card-base p-4 text-center" style="background: var(--haiti-charcoal); border: 2px solid rgba(197,160,89,0.2);">
+          <h5 class="fw-black mb-2" style="color: var(--haiti-gold); font-size: 16px;">Komanse Kounye a</h5>
+          <p class="mb-3" style="color: rgba(255,255,255,0.6); font-size: 13px;">20 minit. Pa gen papye. Komisyon imedyat.</p>
+          <% if user_signed_in? && current_user.business.present? %>
+            <%= button_to apply_agent_business_path(current_user.business), method: :post,
+                class: "btn fw-bold rounded-3 px-4 py-2",
+                style: "background: var(--haiti-gold); color: #fff; font-size: 14px;",
+                data: { turbo_confirm: "Ou vle aplike pou vin ajan Zèllus?" } do %>
+              <i class="ri-user-location-line me-1"></i>Aplike Kounye a
+            <% end %>
+          <% elsif user_signed_in? %>
+            <%= link_to new_business_path, class: "btn fw-bold rounded-3 px-4 py-2", style: "background: var(--haiti-gold); color: #fff; font-size: 14px;" do %>
+              <i class="ri-store-2-line me-1"></i>Kreye Biznis Dabò
+            <% end %>
+          <% else %>
+            <%= link_to new_user_registration_path, class: "btn fw-bold rounded-3 px-4 py-2", style: "background: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 14px; border: 2px solid var(--haiti-gold);" do %>
+              <i class="ri-user-add-line me-1"></i>Kreye Kont Gratis
+            <% end %>
+          <% end %>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<%# ── Commission Calculator JS ── %>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  const input = document.getElementById("ajan-calc-input");
+  const result = document.getElementById("ajan-calc-result");
+  const daily = document.getElementById("ajan-calc-daily");
+  const monthly = document.getElementById("ajan-calc-monthly");
+
+  if (!input || !result) return;
+
+  function formatHTG(n) {
+    return n.toLocaleString("fr-HT") + " HTG";
+  }
+
+  function calculate() {
+    const amount = Math.max(0, parseInt(input.value) || 0);
+    const commission = Math.round(amount * 0.02);
+    result.textContent = formatHTG(commission);
+
+    if (daily && monthly) {
+      const perDay = 5;
+      const monthlyTotal = commission * perDay * 30;
+      daily.textContent = perDay;
+      monthly.textContent = formatHTG(monthlyTotal);
+    }
+  }
+
+  input.addEventListener("input", calculate);
+  calculate();
+});
+</script>

@@ -14,7 +14,9 @@ class User < ApplicationRecord
   has_many :notifications, dependent: :destroy
   has_one  :wallet, dependent: :destroy
   has_one  :business, dependent: :destroy
+  has_many :oauth_tokens, dependent: :destroy
   has_many :sol_circles_created, class_name: "SolCircle", dependent: :nullify
+  has_many :agent_transactions_as_customer, class_name: "AgentTransaction", foreign_key: :customer_id
   belongs_to :invited_by, class_name: "User", optional: true
   has_many :invitees, class_name: "User", foreign_key: :invited_by_id
   has_one_attached :avatar
@@ -41,7 +43,7 @@ class User < ApplicationRecord
             allow_blank: true,
             uniqueness: { allow_blank: true }
 
-  validates :payout_preference, inclusion: { in: %w[auto htg usdc] }
+  validates :payout_preference, inclusion: { in: %w[auto htg usd] }
 
   # ── Transfer PIN (4-digit, BCrypt-hashed) ──
   def transfer_pin=(raw_pin)
@@ -71,13 +73,14 @@ class User < ApplicationRecord
     wallet&.htg_balance || 0
   end
 
-  def usdc_wallet_balance
-    wallet&.usdc_balance || 0
+  def usd_wallet_balance
+    wallet&.usd_balance || 0
   end
 
   def ensure_wallet!
     w = wallet || create_wallet!
     generate_deposit_address! if deposit_address.blank?
+    create_circle_wallet!     if CryptoProvider.circle? && circle_wallet_id.blank?
     w
   end
 
@@ -86,6 +89,27 @@ class User < ApplicationRecord
     update_column(:deposit_address, addr) if addr.present?
   rescue => e
     Rails.logger.error "User#generate_deposit_address! failed for user=#{id}: #{e.message}"
+  end
+
+  # Provisions a Circle Developer-Controlled wallet for this user.
+  # Safe to call multiple times — no-ops if wallet already exists.
+  def create_circle_wallet!
+    return if circle_wallet_id.present?
+
+    result = CircleService.create_wallet(
+      user_id:         id,
+      idempotency_key: "wallet-#{id}"
+    )
+
+    update_columns(
+      circle_wallet_id:      result[:wallet_id],
+      circle_wallet_address: result[:address]
+    )
+
+    Rails.logger.info "User#create_circle_wallet! user=#{id} wallet=#{result[:wallet_id]} address=#{result[:address]}"
+  rescue => e
+    Rails.logger.error "User#create_circle_wallet! failed for user=#{id}: #{e.message}"
+    # Non-fatal: user can still operate with self-hosted fallback
   end
 
   # ── Daily Transfer Limit (~500 USD) ──
@@ -97,13 +121,17 @@ class User < ApplicationRecord
              .sum(:amount)
   end
 
-  def daily_transfer_remaining
-    [DAILY_TRANSFER_LIMIT_HTG - transfers_today_total, 0].max
+  def daily_transfer_limit
+    daily_transfer_limit_override.presence || DAILY_TRANSFER_LIMIT_HTG
   end
 
-  # Payout preference: auto = use first available, htg = MonCash, usdc = Base wallet
-  def prefers_usdc_payout?
-    payout_preference == "usdc" || (payout_preference == "auto" && payment_methods.active.crypto_wallet.exists?)
+  def daily_transfer_remaining
+    [daily_transfer_limit - transfers_today_total, 0].max
+  end
+
+  # Payout preference: auto = use first available, htg = MonCash, usd = Base wallet
+  def prefers_usd_payout?
+    payout_preference == "usd" || (payout_preference == "auto" && payment_methods.active.crypto_wallet.exists?)
   end
 
   def prefers_htg_payout?
@@ -120,7 +148,7 @@ class User < ApplicationRecord
     "Pijon"   => 100,  # Completed a clean 3-month Sol
     "Toutrèl" => 300,  # Consistent track record
     "Malfini" => 500,  # Proven reliable
-    "Fokon"   => 650   # Apex — years of clean Sols
+    "Folkon"   => 650   # Apex — years of clean Sols
   }.freeze
 
   def credit_tier
@@ -130,7 +158,7 @@ class User < ApplicationRecord
     when 100...300 then "Pijon"
     when 300...500 then "Toutrèl"
     when 500...650 then "Malfini"
-    else                "Fokon"
+    else                "Folkon"
     end
   end
 
@@ -140,7 +168,7 @@ class User < ApplicationRecord
     when "Pijon"    then "🐦"
     when "Toutrèl"  then "🕊️"
     when "Malfini"  then "🦅"
-    when "Fokon"    then "⚡"
+    when "Folkon"    then "⚡"
     end
   end
 
@@ -150,7 +178,7 @@ class User < ApplicationRecord
     "Pijon"   => 0,
     "Toutrèl" => 500,
     "Malfini" => 1_500,
-    "Fokon"   => 2_500
+    "Folkon"   => 2_500
   }.freeze
 
   def loan_limit
@@ -165,7 +193,7 @@ class User < ApplicationRecord
   end
 
   def points_to_next_tier
-    return 0 if credit_tier == "Fokon"
+    return 0 if credit_tier == "Folkon"
 
     target = case credit_tier
              when "Nouvo"   then 100
@@ -194,6 +222,17 @@ class User < ApplicationRecord
     info = auth.info
     bonid_id = info["bonid"] || auth.uid
 
+    # Validate against BonID API to get the canonical BonID.
+    # OAuth uid may differ from the actual BonID (e.g. internal ID vs citizen ID).
+    begin
+      api_result = BonIdService.lookup(bonid_id)
+      if api_result[:success] && api_result[:bonid].present?
+        bonid_id = api_result[:bonid]
+      end
+    rescue => e
+      Rails.logger.warn "BonID API lookup during OAuth failed for #{bonid_id}: #{e.message} — using OAuth value"
+    end
+
     # ── Address fields from BonID ──
     address_attrs = {
       bonid_street:     info["street"],
@@ -208,13 +247,18 @@ class User < ApplicationRecord
       bonid_blood_type: info["blood_type"]
     }.compact
 
-    # Find by BonID, provider+uid, or email
+    # Find by BonID (canonical), provider+uid (may be old format), or email
+    raw_uid = info["bonid"] || auth.uid
     user = find_by(bonid: bonid_id) ||
            find_by(provider: auth.provider, uid: auth.uid) ||
+           (raw_uid != bonid_id ? find_by(bonid: raw_uid) : nil) ||
            find_by(email: info["email"])
 
     if user
-      # Link BonID + update verification fields
+      # User just completed OAuth consent on BonID — trust the callback data.
+      # The consent prompt is forced (prompt: "consent" in devise.rb),
+      # so reaching here means the user explicitly approved.
+      # Revocation is handled separately via webhooks + periodic rechecks.
       unless user.bonid_verified?
         user.update!(
           provider: auth.provider,
@@ -224,6 +268,18 @@ class User < ApplicationRecord
           bonid_first_name: info["first_name"],
           bonid_last_name: info["last_name"],
           bonid_photo_url: normalize_bonid_photo_url(info["image"]),
+          bonid_rechecked_at: Time.current,
+          **address_attrs,
+          **health_attrs
+        )
+        Rails.logger.info "BonID verified for user #{user.id} via OAuth consent (bonid: #{bonid_id})"
+      else
+        # Already verified — just refresh data from BonID
+        user.update!(
+          bonid_first_name: info["first_name"],
+          bonid_last_name: info["last_name"],
+          bonid_photo_url: normalize_bonid_photo_url(info["image"]),
+          bonid_rechecked_at: Time.current,
           **address_attrs,
           **health_attrs
         )
@@ -235,7 +291,7 @@ class User < ApplicationRecord
         raise RegionRestricted, info["commune"]
       end
 
-      # Create new user — will need cashtag setup after
+      # Create new user — OAuth consent was just approved, so mark as verified
       create!(
         provider: auth.provider,
         uid: auth.uid,
@@ -247,6 +303,7 @@ class User < ApplicationRecord
         bonid_first_name: info["first_name"],
         bonid_last_name: info["last_name"],
         bonid_photo_url: normalize_bonid_photo_url(info["image"]),
+        bonid_rechecked_at: Time.current,
         **address_attrs,
         **health_attrs
       )
@@ -290,6 +347,15 @@ class User < ApplicationRecord
 
   def bonid_full_name
     [bonid_first_name, bonid_last_name].compact.join(" ").presence
+  end
+
+  # ── UMA (Universal Money Address) ──
+  def uma_address
+    "#{cashtag}@#{LightsparkConfig::UMA_DOMAIN}"
+  end
+
+  def uma_enabled?
+    uma_enabled && cashtag.present?
   end
 
   # ── Cashtag Identity ──

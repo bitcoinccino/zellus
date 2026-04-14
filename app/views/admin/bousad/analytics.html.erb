@@ -1,0 +1,51 @@
+<%# ── Header ── %>
+<div class="mb-4">
+  <h1 class="h4 fw-black mb-1" style="color: var(--haiti-charcoal);">
+    <i class="ri-bar-chart-2-line me-2" style="color: var(--haiti-gold);"></i>Analitik Bousad
+  </h1>
+  <p class="small mb-0" style="color: var(--haiti-olive);">Estatistik sou prè Pionye</p>
+</div>
+
+<%# ── Stats Row ── %>
+<div class="row g-3 mb-4">
+  <div class="col-md-2">
+    <div class="card-base p-3 text-center">
+      <div class="fw-black h4 mb-0" style="color: var(--haiti-charcoal);"><%= @total_loans %></div>
+      <div class="small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px;">Total Demann</div>
+    </div>
+  </div>
+  <div class="col-md-2">
+    <div class="card-base p-3 text-center">
+      <div class="fw-black h4 mb-0" style="color: #166534;"><%= @approved_loans %></div>
+      <div class="small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px;">Apwouve</div>
+    </div>
+  </div>
+  <div class="col-md-2">
+    <div class="card-base p-3 text-center">
+      <div class="fw-black h4 mb-0" style="color: #E9B44C;"><%= @pending_loans %></div>
+      <div class="small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px;">An Atant</div>
+    </div>
+  </div>
+  <div class="col-md-2">
+    <div class="card-base p-3 text-center">
+      <div class="fw-black h4 mb-0" style="color: #D21034;"><%= @rejected_loans %></div>
+      <div class="small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px;">Rejte</div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card-base p-3 text-center">
+      <div class="fw-black h4 mb-0" style="color: var(--haiti-charcoal);">
+        <%= number_to_currency(@total_disbursed, unit: "", precision: 0) %> HTG
+      </div>
+      <div class="small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px;">
+        Total Debouse · $<%= number_to_currency(@total_disbursed_usd, unit: "", precision: 2) %> USD
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card-base p-5 text-center">
+  <i class="ri-line-chart-line ri-3x mb-3" style="color: var(--haiti-olive); opacity: 0.3;"></i>
+  <p class="fw-bold mb-1" style="color: var(--haiti-charcoal);">Plis analitik ap vini byento</p>
+  <p class="small" style="color: var(--haiti-olive);">Grafik ak tandans prè ap disponib nan pwochen vèsyon an.</p>
+</div>

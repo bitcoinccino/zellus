@@ -1,0 +1,209 @@
+<div class="container py-4" style="max-width: 580px;">
+  <div class="card-base p-4" style="border: 1px solid rgba(93,99,69,0.12);">
+
+    <%# ── Header ── %>
+    <div class="d-flex align-items-center justify-content-between mb-4">
+      <h1 class="h5 fw-black mb-0" style="color: var(--haiti-charcoal);">
+        <i class="ri-link me-2" style="color: var(--haiti-gold);"></i>Lyen Pèman
+      </h1>
+      <div class="d-flex align-items-center gap-2">
+        <%= link_to dashboard_business_path, class: "small text-decoration-none fw-bold", style: "color: var(--haiti-olive);" do %>
+          <i class="ri-arrow-left-line me-1"></i>Retounen
+        <% end %>
+        <%= link_to new_business_payment_link_path, class: "btn btn-sm rounded-pill px-3", style: "background: var(--haiti-gold); color: var(--haiti-charcoal); font-size: 12px; font-weight: 700;" do %>
+          <i class="ri-add-line me-1"></i>Kreye Lyen
+        <% end %>
+      </div>
+    </div>
+
+    <%# ── Stats Summary ── %>
+    <% active_count = @links.select(&:active?).size %>
+    <% total_payments = @links.sum(&:times_paid) %>
+    <div class="d-flex gap-2 mb-4">
+      <div class="flex-grow-1 rounded-3 p-3 text-center" style="background: rgba(197,160,89,0.08); border: 1px solid rgba(197,160,89,0.12);">
+        <div class="fw-black" style="color: var(--haiti-charcoal); font-size: 20px;"><%= @links.size %></div>
+        <div style="color: var(--haiti-olive); font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Total</div>
+      </div>
+      <div class="flex-grow-1 rounded-3 p-3 text-center" style="background: rgba(22,101,52,0.05); border: 1px solid rgba(22,101,52,0.08);">
+        <div class="fw-black" style="color: #166534; font-size: 20px;"><%= active_count %></div>
+        <div style="color: var(--haiti-olive); font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Aktif</div>
+      </div>
+      <div class="flex-grow-1 rounded-3 p-3 text-center" style="background: rgba(29,78,216,0.05); border: 1px solid rgba(29,78,216,0.08);">
+        <div class="fw-black" style="color: #1d4ed8; font-size: 20px;"><%= total_payments %></div>
+        <div style="color: var(--haiti-olive); font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Pèman</div>
+      </div>
+    </div>
+
+    <% if @links.any? %>
+      <% @links.each do |link| %>
+        <div class="rounded-3 mb-3 overflow-hidden" style="border: 1px solid <%= link.active? ? 'rgba(93,99,69,0.10)' : 'rgba(107,114,128,0.10)' %>; background: white;">
+
+          <%# ── Clickable main row ── %>
+          <div class="d-flex align-items-center justify-content-between p-3"
+               style="cursor: pointer;"
+               onclick="if(!event.target.closest('.link-actions')){window.location='<%= business_payment_link_path(link) %>';}"
+          >
+            <div class="d-flex align-items-center gap-3">
+              <%# ── Icon / Product Thumbnail ── %>
+              <% first_img = link.itemized? && link.items.find { |i| i["image_url"].present? }&.dig("image_url") %>
+              <% if first_img %>
+                <img src="<%= first_img %>" style="width: 44px; height: 44px; border-radius: 12px; object-fit: cover; flex-shrink: 0; border: 2px solid rgba(197,160,89,0.15);" alt="">
+              <% else %>
+                <div class="d-flex align-items-center justify-content-center"
+                     style="width: 44px; height: 44px; border-radius: 12px; flex-shrink: 0;
+                            background: <%= link.active? ? 'rgba(197,160,89,0.10)' : 'rgba(107,114,128,0.06)' %>;">
+                  <i class="<%= link.active? ? 'ri-link' : 'ri-link-unlink' %>" style="font-size: 20px; color: <%= link.active? ? 'var(--haiti-gold)' : '#9ca3af' %>;"></i>
+                </div>
+              <% end %>
+
+              <div style="min-width: 0;">
+                <%# ── Amount / Open ── %>
+                <div class="fw-bold d-flex align-items-center flex-wrap gap-1" style="color: var(--haiti-charcoal); font-size: 15px;">
+                  <% if link.amount.present? %>
+                    <%= number_with_delimiter(link.amount.to_i) %> <%= currency_label(link.asset) %>
+                  <% else %>
+                    <span style="color: var(--haiti-olive);">Montan lib</span>
+                  <% end %>
+                </div>
+
+                <%# ── Badges ── %>
+                <div class="d-flex flex-wrap gap-1 mt-1">
+                  <% if link.single_use? %>
+                    <span class="badge rounded-pill" style="background: rgba(197,160,89,0.12); color: var(--haiti-gold); font-size: 9px; font-weight: 600;">Yon sèl fwa</span>
+                  <% end %>
+                  <% if link.allow_tips? %>
+                    <span class="badge rounded-pill" style="background: rgba(197,160,89,0.12); color: var(--haiti-gold); font-size: 9px; font-weight: 600;"><i class="ri-heart-line me-1"></i>Tips</span>
+                  <% end %>
+                  <% if link.itemized? %>
+                    <span class="badge rounded-pill" style="background: rgba(93,99,69,0.08); color: var(--haiti-olive); font-size: 9px; font-weight: 600;"><i class="ri-file-list-3-line me-1"></i><%= link.items.size %> pwodwi</span>
+                  <% end %>
+                </div>
+
+                <%# ── Note ── %>
+                <% if link.note.present? %>
+                  <div class="text-truncate mt-1" style="color: var(--haiti-olive); font-size: 11px; max-width: 260px;"><%= link.note %></div>
+                <% end %>
+
+                <%# ── Meta ── %>
+                <div class="d-flex align-items-center gap-2 mt-1" style="font-size: 10px; color: rgba(93,99,69,0.6);">
+                  <span><%= link.created_at.strftime("%d %b %Y") %></span>
+                  <span>&middot;</span>
+                  <span><%= link.times_paid %> pèman</span>
+                  <% if link.expires_at.present? %>
+                    <span>&middot;</span>
+                    <span><i class="ri-time-line me-1"></i><%= link.expired_now? ? "Ekspire" : "Ekspire #{link.expires_at.strftime('%d %b')}" %></span>
+                  <% end %>
+                </div>
+              </div>
+            </div>
+
+            <%# ── Status Badge ── %>
+            <% status_styles = {
+              "active"   => { bg: "rgba(22,101,52,0.08)", color: "#166534", icon: "ri-checkbox-circle-fill", label: "Aktif" },
+              "paid"     => { bg: "rgba(29,78,216,0.08)", color: "#1d4ed8", icon: "ri-check-double-fill", label: "Peye" },
+              "expired"  => { bg: "rgba(153,27,27,0.08)", color: "#991b1b", icon: "ri-time-fill", label: "Ekspire" },
+              "disabled" => { bg: "rgba(107,114,128,0.08)", color: "#6b7280", icon: "ri-forbid-line", label: "Dezaktive" }
+            } %>
+            <% s = status_styles[link.status] || status_styles["active"] %>
+            <span class="badge rounded-pill px-2 py-1" style="background: <%= s[:bg] %>; color: <%= s[:color] %>; font-size: 10px; font-weight: 600; white-space: nowrap;">
+              <i class="<%= s[:icon] %> me-1" style="font-size: 10px;"></i><%= s[:label] %>
+            </span>
+          </div>
+
+          <%# ── Action bar ── %>
+          <div class="link-actions d-flex align-items-center justify-content-between px-3 py-2"
+               style="background: var(--haiti-charcoal); border-top: 1px solid rgba(255,255,255,0.05);">
+
+            <div class="d-flex align-items-center gap-1">
+              <% if link.active? %>
+                <%# ── Copy Link ── %>
+                <button class="btn btn-sm px-2 py-1 rounded-pill copy-link-btn d-flex align-items-center gap-1"
+                        data-url="<%= public_payment_link_url(link.token) %>"
+                        style="background: rgba(255,255,255,0.08); border: none; color: rgba(255,255,255,0.7); font-size: 11px; font-weight: 600;">
+                  <i class="ri-file-copy-line" style="font-size: 13px;"></i>Kopye
+                </button>
+
+                <%# ── WhatsApp Share ── %>
+                <a href="https://wa.me/?text=<%= ERB::Util.url_encode("Peye mwen sou #{AppBrand::NAME}: " + public_payment_link_url(link.token)) %>"
+                   target="_blank" rel="noopener"
+                   class="btn btn-sm px-2 py-1 rounded-pill d-flex align-items-center gap-1"
+                   style="background: rgba(37,211,102,0.12); border: none; color: #25d366; font-size: 11px; font-weight: 600;">
+                  <i class="ri-whatsapp-line" style="font-size: 13px;"></i>WhatsApp
+                </a>
+              <% end %>
+            </div>
+
+            <div class="d-flex align-items-center gap-1">
+              <%# ── Edit ── %>
+              <%= link_to edit_business_payment_link_path(link),
+                    class: "btn btn-sm px-2 py-1 rounded-pill d-flex align-items-center gap-1",
+                    style: "background: rgba(255,255,255,0.08); border: none; color: rgba(255,255,255,0.7); font-size: 11px; font-weight: 600;" do %>
+                <i class="ri-pencil-line" style="font-size: 13px;"></i>Modifye
+              <% end %>
+
+              <%# ── Toggle Active/Disabled ── %>
+              <% if link.disabled? %>
+                <%= button_to toggle_business_payment_link_path(link), method: :patch,
+                      class: "btn btn-sm px-2 py-1 rounded-pill d-flex align-items-center gap-1",
+                      style: "background: rgba(22,101,52,0.15); border: none; color: #22c55e; font-size: 11px; font-weight: 600;",
+                      data: { turbo_confirm: "Reaktive lyen sa a?" } do %>
+                  <i class="ri-toggle-line" style="font-size: 13px;"></i>Reaktive
+                <% end %>
+              <% else %>
+                <%= button_to toggle_business_payment_link_path(link), method: :patch,
+                      class: "btn btn-sm px-2 py-1 rounded-pill d-flex align-items-center gap-1",
+                      style: "background: rgba(255,255,255,0.08); border: none; color: rgba(255,255,255,0.5); font-size: 11px; font-weight: 600;",
+                      data: { turbo_confirm: "Dezaktive lyen sa a?" } do %>
+                  <i class="ri-toggle-fill" style="font-size: 13px;"></i>Dezaktive
+                <% end %>
+              <% end %>
+
+              <%# ── Delete ── %>
+              <%= button_to business_payment_link_path(link), method: :delete,
+                    class: "btn btn-sm px-2 py-1 rounded-pill d-flex align-items-center gap-1",
+                    style: "background: rgba(153,27,27,0.12); border: none; color: #ef4444; font-size: 11px; font-weight: 600;",
+                    data: { turbo_confirm: "Efase lyen sa a pou tout tan? Aksyon sa a pa ka defèt." } do %>
+                <i class="ri-delete-bin-line" style="font-size: 13px;"></i>Efase
+              <% end %>
+            </div>
+          </div>
+
+        </div>
+      <% end %>
+    <% else %>
+      <%# ── Empty State ── %>
+      <div class="text-center py-5">
+        <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3"
+             style="width: 64px; height: 64px; background: rgba(197,160,89,0.1);">
+          <i class="ri-link" style="font-size: 28px; color: var(--haiti-gold);"></i>
+        </div>
+        <div class="fw-bold mb-1" style="color: var(--haiti-charcoal); font-size: 15px;">Pa gen lyen pèman ankò</div>
+        <div class="mb-3" style="color: var(--haiti-olive); font-size: 12px; max-width: 280px; margin: 0 auto;">
+          Kreye yon lyen pèman pou pataje sou WhatsApp, SMS, oswa imèl. Kliyan ka peye ou dirèkteman.
+        </div>
+        <%= link_to new_business_payment_link_path, class: "btn rounded-pill px-4 py-2", style: "background: var(--haiti-gold); color: var(--haiti-charcoal); font-size: 13px; font-weight: 700;" do %>
+          <i class="ri-add-line me-1"></i>Kreye Premye Lyen Ou
+        <% end %>
+      </div>
+    <% end %>
+
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll('.copy-link-btn').forEach(function(btn) {
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      var url = this.dataset.url;
+      var button = this;
+      navigator.clipboard.writeText(url).then(function() {
+        button.innerHTML = '<i class="ri-check-line" style="font-size: 13px;"></i>Kopye!';
+        button.style.color = '#22c55e';
+        setTimeout(function() {
+          button.innerHTML = '<i class="ri-file-copy-line" style="font-size: 13px;"></i>Kopye';
+          button.style.color = 'rgba(255,255,255,0.7)';
+        }, 2000);
+      });
+    });
+  });
+</script>

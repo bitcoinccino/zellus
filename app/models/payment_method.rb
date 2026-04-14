@@ -4,11 +4,13 @@ class PaymentMethod < ApplicationRecord
   enum :category, { mobile_wallet: "mobile_wallet", crypto_wallet: "crypto_wallet", bank_account: "bank_account" }
   enum :provider, { moncash: "moncash", base: "base", unibank: "unibank" }
   enum :network, { base_network: "base" }, prefix: :network
-  enum :asset, { usdc: "usdc", eth: "eth" }, prefix: :asset
+  enum :asset, { usd: "usd", eth: "eth" }, prefix: :asset
 
   scope :active, -> { where(active: true) }
+  scope :default_method, -> { where(is_default: true) }
 
   before_validation :ensure_token
+  after_save :clear_other_defaults, if: -> { saved_change_to_is_default? && is_default? }
   before_validation :apply_defaults
   before_validation :normalize_account_number, if: :mobile_wallet?
   before_validation :normalize_wallet_address, if: :crypto_wallet?
@@ -68,6 +70,10 @@ class PaymentMethod < ApplicationRecord
     token
   end
 
+  def make_default!
+    update!(is_default: true)
+  end
+
   private
 
   def apply_defaults
@@ -77,16 +83,20 @@ class PaymentMethod < ApplicationRecord
       self.provider ||= "moncash"
       self.network = nil
       self.asset = nil if asset.blank?
+      self.wallet_address = nil if wallet_address.blank?
+      self.bank_account_number = nil if bank_account_number.blank?
     elsif crypto_wallet?
       self.provider ||= "base"
       self.network ||= "base"
-      self.asset ||= "usdc"
+      self.asset ||= "usd"
       self.account_number = nil if account_number.blank?
+      self.bank_account_number = nil if bank_account_number.blank?
     elsif bank_account?
       self.provider ||= "unibank"
       self.network = nil
       self.asset = nil
       self.bank_name ||= "UNIBANK"
+      self.wallet_address = nil if wallet_address.blank?
     end
   end
 
@@ -118,6 +128,11 @@ class PaymentMethod < ApplicationRecord
       candidate = SecureRandom.urlsafe_base64(12)
       break candidate unless self.class.exists?(token: candidate)
     end
+  end
+
+  # When this method becomes default, un-default all others for this user
+  def clear_other_defaults
+    user.payment_methods.where.not(id: id).where(is_default: true).update_all(is_default: false)
   end
 
 end

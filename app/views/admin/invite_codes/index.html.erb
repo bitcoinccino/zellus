@@ -1,0 +1,389 @@
+<%# ── Header ── %>
+<div class="mb-4">
+  <h1 class="h4 fw-black mb-1" style="color: var(--haiti-charcoal);">
+    <i class="ri-key-2-line me-2" style="color: var(--haiti-gold);"></i>Kòd Envitasyon
+  </h1>
+  <p class="small mb-0" style="color: var(--haiti-olive);">Jere aksè nan Zèllus pou Côtes-de-Fer</p>
+</div>
+
+  <%# ── Stats Row ── %>
+  <div class="row g-3 mb-4">
+    <div class="col-md-3">
+      <div class="card-base p-3 text-center" style="border: 1px solid rgba(29,78,216,0.15); background: linear-gradient(135deg, rgba(219,234,254,0.4), transparent);">
+        <div class="d-flex align-items-center justify-content-center mb-2">
+          <div class="d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; border-radius: 10px; background: rgba(29,78,216,0.1);">
+            <i class="ri-key-2-line" style="color: #1d4ed8; font-size: 16px;"></i>
+          </div>
+        </div>
+        <div class="fw-black h4 mb-0" style="color: #1d4ed8;"><%= @invite_codes.count %></div>
+        <div class="small fw-bold text-uppercase" style="color: #3b82f6; font-size: 10px;">Total Kòd</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card-base p-3 text-center" style="border: 1px solid rgba(22,101,52,0.15); background: linear-gradient(135deg, rgba(240,253,244,0.6), transparent);">
+        <div class="d-flex align-items-center justify-content-center mb-2">
+          <div class="d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; border-radius: 10px; background: rgba(22,101,52,0.1);">
+            <i class="ri-checkbox-circle-line" style="color: #166534; font-size: 16px;"></i>
+          </div>
+        </div>
+        <div class="fw-black h4 mb-0" style="color: #166534;"><%= @invite_codes.select(&:available?).count %></div>
+        <div class="small fw-bold text-uppercase" style="color: #22c55e; font-size: 10px;">Disponib</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card-base p-3 text-center" style="border: 1px solid rgba(197,160,89,0.2); background: linear-gradient(135deg, rgba(197,160,89,0.08), transparent);">
+        <div class="d-flex align-items-center justify-content-center mb-2">
+          <div class="d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; border-radius: 10px; background: rgba(197,160,89,0.12);">
+            <i class="ri-refresh-line" style="color: var(--haiti-gold); font-size: 16px;"></i>
+          </div>
+        </div>
+        <div class="fw-black h4 mb-0" style="color: var(--haiti-charcoal);"><%= @invite_codes.sum(&:uses_count) %></div>
+        <div class="small fw-bold text-uppercase" style="color: var(--haiti-gold); font-size: 10px;">Total Itilize</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card-base p-3 text-center" style="border: 1px solid rgba(126,34,206,0.12); background: linear-gradient(135deg, rgba(243,232,255,0.5), transparent);">
+        <div class="d-flex align-items-center justify-content-center mb-2">
+          <div class="d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; border-radius: 10px; background: rgba(126,34,206,0.08);">
+            <i class="ri-user-add-line" style="color: #7e22ce; font-size: 16px;"></i>
+          </div>
+        </div>
+        <div class="fw-black h4 mb-0" style="color: #7e22ce;"><%= @total_signups %></div>
+        <div class="small fw-bold text-uppercase" style="color: #a855f7; font-size: 10px;">Enskri ak Kòd</div>
+      </div>
+    </div>
+  </div>
+
+  <%# ── Generate New Codes ── %>
+  <div class="card-base p-4 mb-4" style="border: 1px solid rgba(93,99,69,0.12);">
+    <h2 class="h6 fw-black mb-3" style="color: var(--haiti-charcoal);">
+      <i class="ri-add-circle-line me-2" style="color: var(--haiti-gold);"></i>Jenere Nouvo Kòd
+    </h2>
+
+    <%= form_tag admin_invite_codes_path, method: :post, class: "row g-3", id: "ic-generate-form" do %>
+      <%# ── Row 1: Location (Depatman → Arondissement → Komin) ── %>
+      <div class="col-md-4">
+        <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px;">
+          <i class="ri-map-pin-line me-1"></i>DEPATMAN
+        </label>
+        <select id="ic-department" class="form-select shadow-none"
+                style="border: 2px solid var(--haiti-olive); background-color: var(--haiti-cream);">
+          <option value="">-- Chwazi depatman --</option>
+          <option value="Nasyonal">Nasyonal (tout peyi)</option>
+          <% @nested_addresses.keys.sort.each do |dept| %>
+            <option value="<%= dept %>" <%= 'selected' if dept == 'Sud-Est' %>><%= dept %></option>
+          <% end %>
+        </select>
+      </div>
+
+      <div class="col-md-4">
+        <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px;">
+          <i class="ri-map-2-line me-1"></i>ARONDISSEMENT
+        </label>
+        <select id="ic-arrondissement" class="form-select shadow-none"
+                style="border: 2px solid var(--haiti-olive); background-color: var(--haiti-cream);">
+          <option value="">-- Chwazi arondissement --</option>
+        </select>
+      </div>
+
+      <div class="col-md-4">
+        <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px;">
+          <i class="ri-community-line me-1"></i>KOMIN
+        </label>
+        <select id="ic-commune" name="invite_code[region]" required class="form-select shadow-none"
+                style="border: 2px solid var(--haiti-olive); background-color: var(--haiti-cream);">
+          <option value="">-- Chwazi komin --</option>
+        </select>
+      </div>
+
+      <%# ── Row 2: Settings ── %>
+      <div class="col-md-3">
+        <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px;">ETIKÈT (OPSYONÈL)</label>
+        <input type="text" name="invite_code[label]" class="form-control shadow-none" placeholder="e.g. Mache Samdi"
+               style="border: 2px solid var(--haiti-olive); background-color: var(--haiti-cream);">
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px;">KANTITE KÒD</label>
+        <input type="number" name="batch_size" value="10" min="1" max="50" class="form-control shadow-none"
+               style="border: 2px solid var(--haiti-olive); background-color: var(--haiti-cream);">
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px;">ITILIZASYON MAX</label>
+        <input type="number" name="invite_code[max_uses]" value="1" min="1" max="1000" class="form-control shadow-none"
+               style="border: 2px solid var(--haiti-olive); background-color: var(--haiti-cream);">
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px;">EKSPIRE (JOU)</label>
+        <input type="number" name="expires_in" value="0" min="0" max="365" class="form-control shadow-none"
+               style="border: 2px solid var(--haiti-olive); background-color: var(--haiti-cream);"
+               placeholder="0 = janm">
+      </div>
+
+      <%# Hidden PIN field (filled by modal) %>
+      <input type="hidden" name="transfer_pin" id="ic-pin-hidden" value="">
+
+      <div class="col-12">
+        <button type="button" id="ic-generate-btn" class="btn fw-bold px-4 py-2" style="background: var(--haiti-charcoal); color: var(--haiti-gold);">
+          <i class="ri-key-2-line me-2"></i>Jenere Kòd
+        </button>
+      </div>
+    <% end %>
+  </div>
+
+  <%# ── PIN Confirmation Modal ── %>
+  <div id="ic-pin-modal" style="display: none; position: fixed; inset: 0; z-index: 9999; background: rgba(46,46,56,0.6); backdrop-filter: blur(4px);">
+    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 360px;">
+      <div class="card-base p-4 text-center" style="border: 2px solid var(--haiti-gold); box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+        <div class="mb-3">
+          <div class="d-inline-flex align-items-center justify-content-center" style="width: 56px; height: 56px; border-radius: 50%; background: rgba(197,160,89,0.12);">
+            <i class="ri-lock-2-line" style="color: var(--haiti-gold); font-size: 28px;"></i>
+          </div>
+        </div>
+        <h3 class="h6 fw-black mb-1" style="color: var(--haiti-charcoal);">Konfime PIN Transfè</h3>
+        <p class="small mb-3" style="color: var(--haiti-olive);">Antre PIN ou pou jenere kòd envitasyon</p>
+        <div id="ic-pin-summary" class="small mb-3 p-2 rounded-3" style="background: rgba(93,99,69,0.06); color: var(--haiti-olive); font-size: 11px;"></div>
+        <input type="password" id="ic-pin-input" maxlength="6" inputmode="numeric" pattern="[0-9]*" placeholder="••••••"
+               class="form-control fw-bold shadow-none text-center mx-auto mb-3"
+               style="width: 180px; border: 2px solid var(--haiti-gold); background-color: var(--haiti-cream); font-size: 22px; letter-spacing: 8px; border-radius: 12px;">
+        <div class="d-flex gap-2 justify-content-center">
+          <button type="button" id="ic-pin-cancel" class="btn fw-bold px-4 py-2 rounded-pill"
+                  style="background: rgba(93,99,69,0.08); color: var(--haiti-olive); font-size: 12px;">
+            Anile
+          </button>
+          <button type="button" id="ic-pin-confirm" class="btn fw-bold px-4 py-2 rounded-pill"
+                  style="background: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 12px;">
+            <i class="ri-check-line me-1"></i>Konfime
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <%# ── Codes Table ── %>
+  <div class="card-base p-4" style="border: 1px solid rgba(93,99,69,0.12);">
+    <h2 class="h6 fw-black mb-3" style="color: var(--haiti-charcoal);">
+      <i class="ri-list-check-2 me-2" style="color: var(--haiti-gold);"></i>Tout Kòd (<%= @invite_codes.count %>)
+    </h2>
+
+    <% if @invite_codes.any? %>
+      <div class="table-responsive">
+        <table class="table table-sm align-middle" style="font-size: 13px;">
+          <thead>
+            <tr style="color: var(--haiti-olive); font-size: 10px; text-transform: uppercase; letter-spacing: 1px;">
+              <th>Kòd</th>
+              <th>Rejyon</th>
+              <th>Etikèt</th>
+              <th>Itilize</th>
+              <th>Estati</th>
+              <th>Ekspire</th>
+              <th>Kreye pa</th>
+              <th>Dat</th>
+              <th class="text-end">AKSYON</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @invite_codes.each do |ic| %>
+              <tr>
+                <td>
+                  <span class="fw-black" style="color: var(--haiti-charcoal); letter-spacing: 1px; font-family: 'Space Grotesk', monospace;">
+                    <%= ic.code %>
+                  </span>
+                </td>
+                <td><span class="badge rounded-pill" style="background: var(--haiti-mint); color: var(--haiti-olive); font-size: 10px;"><%= ic.display_region %></span></td>
+                <td class="small" style="color: var(--haiti-olive);"><%= ic.label || "—" %></td>
+                <td>
+                  <span class="fw-bold" style="color: <%= ic.maxed_out? ? '#991b1b' : 'var(--haiti-charcoal)' %>;">
+                    <%= ic.uses_count %>/<%= ic.max_uses %>
+                  </span>
+                </td>
+                <td>
+                  <% if ic.available? %>
+                    <span class="badge rounded-pill" style="background: #f0fdf4; color: #166534; font-size: 10px;">Disponib</span>
+                  <% elsif !ic.active? %>
+                    <span class="badge rounded-pill" style="background: #fef2f2; color: #991b1b; font-size: 10px;">Dezaktive</span>
+                  <% elsif ic.expired? %>
+                    <span class="badge rounded-pill" style="background: #fef2f2; color: #991b1b; font-size: 10px;">Ekspire</span>
+                  <% else %>
+                    <span class="badge rounded-pill" style="background: #fefce8; color: #854d0e; font-size: 10px;">Plen</span>
+                  <% end %>
+                </td>
+                <td class="small" style="color: var(--haiti-olive);">
+                  <%= ic.expires_at ? ic.expires_at.strftime("%d/%m/%Y") : "Janm" %>
+                </td>
+                <td class="small" style="color: var(--haiti-olive);"><%= ic.creator&.email&.split("@")&.first || "—" %></td>
+                <td class="small" style="color: var(--haiti-olive);"><%= ic.created_at.strftime("%d/%m %H:%M") %></td>
+                <td class="text-end" style="white-space: nowrap;">
+                  <div class="d-inline-flex gap-1">
+                    <%# Activate / Deactivate %>
+                    <% if ic.active? %>
+                      <%= button_to toggle_admin_invite_code_path(ic), method: :post,
+                          class: "btn btn-sm rounded-pill px-2 fw-bold",
+                          style: "background: #fef3c7; color: #92400e; font-size: 9px;",
+                          title: "Dezaktive kòd sa a",
+                          data: { turbo_confirm: "Dezaktive kòd #{ic.code}?" } do %>
+                        <i class="ri-pause-circle-line me-1"></i>Dezaktive
+                      <% end %>
+                    <% else %>
+                      <%= button_to toggle_admin_invite_code_path(ic), method: :post,
+                          class: "btn btn-sm rounded-pill px-2 fw-bold",
+                          style: "background: #f0fdf4; color: #166534; font-size: 9px;",
+                          title: "Aktive kòd sa a" do %>
+                        <i class="ri-play-circle-line me-1"></i>Aktive
+                      <% end %>
+                    <% end %>
+
+                    <%# Expire (only if not already expired) %>
+                    <% unless ic.expired? %>
+                      <%= button_to expire_admin_invite_code_path(ic), method: :post,
+                          class: "btn btn-sm rounded-pill px-2 fw-bold",
+                          style: "background: #fef2f2; color: #991b1b; font-size: 9px;",
+                          title: "Ekspire kòd sa a kounye a",
+                          data: { turbo_confirm: "Ekspire kòd #{ic.code} kounye a?" } do %>
+                        <i class="ri-time-line me-1"></i>Ekspire
+                      <% end %>
+                    <% end %>
+
+                    <%# Delete (only if never used) %>
+                    <% if ic.uses_count == 0 %>
+                      <%= button_to admin_invite_code_path(ic), method: :delete,
+                          class: "btn btn-sm rounded-pill px-2 fw-bold",
+                          style: "background: #991b1b; color: #fff; font-size: 9px;",
+                          title: "Efase kòd sa a",
+                          data: { turbo_confirm: "Efase kòd #{ic.code}? Aksyon sa a pa ka defèt." } do %>
+                        <i class="ri-delete-bin-line"></i>
+                      <% end %>
+                    <% end %>
+                  </div>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    <% else %>
+      <div class="text-center py-4">
+        <i class="ri-key-2-line ri-2x mb-2" style="color: var(--haiti-olive); opacity: 0.3;"></i>
+        <p class="small" style="color: var(--haiti-olive);">Pa gen kòd envitasyon ankò. Jenere premye kòd ou!</p>
+      </div>
+    <% end %>
+  </div>
+
+<style>
+  .table > :not(caption) > * > * { background-color: transparent !important; }
+</style>
+
+<script>
+  // ── Address Hierarchy: Depatman → Arondissement → Komin ──
+  var IC_ADDRESSES = <%= raw @nested_addresses.to_json %>;
+  var icDeptSelect = document.getElementById('ic-department');
+  var icArrSelect = document.getElementById('ic-arrondissement');
+  var icCommuneSelect = document.getElementById('ic-commune');
+
+  function icPopulateArrs(dept) {
+    icArrSelect.innerHTML = '<option value="">-- Chwazi arondissement --</option>';
+    icCommuneSelect.innerHTML = '<option value="">-- Chwazi komin --</option>';
+
+    if (dept === 'Nasyonal') {
+      icArrSelect.disabled = true;
+      icCommuneSelect.innerHTML = '<option value="Nasyonal" selected>Nasyonal (tout peyi)</option>';
+      return;
+    }
+
+    icArrSelect.disabled = false;
+    var arrs = IC_ADDRESSES[dept] || {};
+    Object.keys(arrs).sort().forEach(function(arr) {
+      var opt = document.createElement('option');
+      opt.value = arr;
+      opt.textContent = arr;
+      icArrSelect.appendChild(opt);
+    });
+  }
+
+  function icPopulateCommunes(arr) {
+    icCommuneSelect.innerHTML = '<option value="">-- Chwazi komin --</option>';
+    var dept = icDeptSelect.value;
+    if (!dept || dept === 'Nasyonal') return;
+    var coms = (IC_ADDRESSES[dept] && IC_ADDRESSES[dept][arr]) || {};
+    Object.keys(coms).sort().forEach(function(com) {
+      var opt = document.createElement('option');
+      opt.value = com;
+      opt.textContent = com;
+      icCommuneSelect.appendChild(opt);
+    });
+  }
+
+  if (icDeptSelect) {
+    icDeptSelect.addEventListener('change', function() {
+      icPopulateArrs(this.value);
+    });
+  }
+  if (icArrSelect) {
+    icArrSelect.addEventListener('change', function() {
+      icPopulateCommunes(this.value);
+    });
+  }
+
+  // Auto-populate on page load (default: Sud-Est)
+  if (icDeptSelect && icDeptSelect.value && icDeptSelect.value !== 'Nasyonal') {
+    icPopulateArrs(icDeptSelect.value);
+  }
+
+  // ── PIN Modal Flow ──
+  var icForm = document.getElementById('ic-generate-form');
+  var icModal = document.getElementById('ic-pin-modal');
+  var icPinInput = document.getElementById('ic-pin-input');
+  var icPinHidden = document.getElementById('ic-pin-hidden');
+  var icSummary = document.getElementById('ic-pin-summary');
+
+  document.getElementById('ic-generate-btn').addEventListener('click', function() {
+    // Validate commune is selected
+    if (!icCommuneSelect.value) {
+      icCommuneSelect.focus();
+      return;
+    }
+    // Build summary
+    var commune = icCommuneSelect.value;
+    var batch = icForm.querySelector('[name="batch_size"]').value;
+    var maxUses = icForm.querySelector('[name="invite_code[max_uses]"]').value;
+    icSummary.innerHTML = '<strong>' + batch + ' kòd</strong> pou <strong>' + commune + '</strong> · maks ' + maxUses + ' itilizasyon chak';
+    // Show modal
+    icModal.style.display = 'block';
+    icPinInput.value = '';
+    setTimeout(function() { icPinInput.focus(); }, 100);
+  });
+
+  document.getElementById('ic-pin-cancel').addEventListener('click', function() {
+    icModal.style.display = 'none';
+    icPinInput.value = '';
+  });
+
+  document.getElementById('ic-pin-confirm').addEventListener('click', function() {
+    if (!icPinInput.value || icPinInput.value.length < 4) {
+      icPinInput.style.borderColor = '#D21034';
+      icPinInput.focus();
+      return;
+    }
+    icPinHidden.value = icPinInput.value;
+    icModal.style.display = 'none';
+    icForm.submit();
+  });
+
+  // Submit on Enter in PIN input
+  icPinInput.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      document.getElementById('ic-pin-confirm').click();
+    }
+  });
+
+  // Close modal on backdrop click
+  icModal.addEventListener('click', function(e) {
+    if (e.target === icModal) {
+      icModal.style.display = 'none';
+      icPinInput.value = '';
+    }
+  });
+</script>

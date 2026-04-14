@@ -22,16 +22,16 @@ class WalletService
     @wallet = wallet
   end
 
-  # ── Deposit into wallet (HTG from MonCash, or USDC from transfer) ──
-  def deposit!(amount:, asset: "htg", moncash_transaction_id: nil, reference: nil, description: nil)
+  # ── Deposit into wallet (HTG from MonCash, or USD from transfer) ──
+  def deposit!(amount:, asset: "htg", moncash_transaction_id: nil, reference: nil, description: nil, skip_limits: false)
     validate_amount!(amount)
     ensure_open!
 
-    # Max balance enforcement for USD deposits
-    if asset == "usdc"
+    # Max balance enforcement for USD deposits (skipped for admin credits)
+    if asset == "usd" && !skip_limits
       limit_svc = WalletLimitService.new(@wallet.user)
       if limit_svc.balance_would_exceed?(amount)
-        raise InvalidAmountError, "Depo sa a ta depase limit balans ou (#{limit_svc.max_balance.to_i} USD). Balans aktyèl: #{@wallet.usdc_balance.to_f.round(2)} USD."
+        raise InvalidAmountError, "Depo sa a ta depase limit balans ou (#{limit_svc.max_balance.to_i} USD). Balans aktyèl: #{@wallet.usd_balance.to_f.round(2)} USD."
       end
     end
 
@@ -98,7 +98,7 @@ class WalletService
         asset: asset,
         amount: payout,
         balance_after: running_balance,
-        description: if asset == "usdc"
+        description: if asset == "usd"
                        "Retire #{amount.to_d} USD → adrès ekstèn (Base)"
                      elsif instant
                        "Retire instant #{payout.to_i} HTG via MonCash"
@@ -130,6 +130,55 @@ class WalletService
     end
 
     broadcast_balance_update!(asset)
+  end
+
+  # ── Withdraw from Business account (debits business.total_received or business.usd_balance) ──
+  def withdraw_from_business!(business:, amount:, asset: "htg", instant: false)
+    validate_amount!(amount)
+
+    fee = if asset == "htg"
+            instant ? self.class.calculate_instant_fee(amount) : self.class.calculate_standard_fee(amount)
+          else
+            BigDecimal("0")
+          end
+    payout = amount.to_d - fee
+
+    ActiveRecord::Base.transaction do
+      business.lock!
+
+      if asset == "htg"
+        unless business.sufficient_htg?(amount.to_d)
+          raise InsufficientFundsError, "Balans biznis pa sifi"
+        end
+        business.decrement!(:total_received, amount.to_d)
+      else
+        unless business.sufficient_usd?(amount.to_d)
+          raise InsufficientFundsError, "Balans USD biznis pa sifi"
+        end
+        business.decrement!(:usd_balance, amount.to_d)
+      end
+
+      # Audit trail on user's wallet ledger
+      @wallet.wallet_ledger_entries.create!(
+        user: @wallet.user,
+        entry_type: "withdrawal",
+        asset: asset,
+        amount: payout,
+        balance_after: @wallet.balance_for(asset),
+        description: "Retire #{asset == 'htg' ? "#{payout.to_i} HTG" : "#{amount.to_d} USD"} depi biznis #{business.name}"
+      )
+
+      if fee > 0
+        @wallet.wallet_ledger_entries.create!(
+          user: @wallet.user,
+          entry_type: instant ? "instant_fee" : "fee",
+          asset: asset,
+          amount: fee,
+          balance_after: @wallet.balance_for(asset),
+          description: "Frè retrè biznis (#{asset == 'htg' ? (instant ? '1.5%' : '1%') : '0'})"
+        )
+      end
+    end
   end
 
   # ── Bank withdrawal (1% fee, min 25 HTG) ──
@@ -180,7 +229,7 @@ class WalletService
     broadcast_balance_update!("htg")
   end
 
-  # ── Deduct for a Zellus transfer (sender pays from wallet) ──
+  # ── Deduct for a Zèllus transfer (sender pays from wallet) ──
   def transfer_out!(amount:, fee:, transfer:, asset: "htg")
     validate_amount!(amount)
     ensure_open!
@@ -285,11 +334,11 @@ class WalletService
     broadcast_balance_update!(asset)
   end
 
-  # ── Convert between any assets (HTG, USDC, ETH, wBTC) ──
-  CONVERTIBLE_ASSETS = %w[htg usdc].freeze
-  ASSET_PRECISION = { "htg" => 2, "usdc" => 6, "eth" => 8, "wbtc" => 8 }.freeze
+  # ── Convert between any assets (HTG, USD, ETH, wBTC) ──
+  CONVERTIBLE_ASSETS = %w[htg usd].freeze
+  ASSET_PRECISION = { "htg" => 2, "usd" => 6, "eth" => 8, "wbtc" => 8 }.freeze
 
-  def convert!(amount:, from_asset:, to_asset:)
+  def convert!(amount:, from_asset:, to_asset:, source: "personal", dest: "personal", business: nil)
     from_asset = from_asset.to_s.downcase
     to_asset   = to_asset.to_s.downcase
     validate_amount!(amount)
@@ -298,6 +347,8 @@ class WalletService
     raise InvalidAmountError, "Aktif pa valid" unless CONVERTIBLE_ASSETS.include?(from_asset) && CONVERTIBLE_ASSETS.include?(to_asset)
 
     from_amount = amount.to_d
+    from_biz = source == "biznis" && business.present?
+    to_biz   = dest == "biznis" && business.present?
 
     # Convert via USD as common denominator
     usd_value    = asset_to_usd(from_asset, from_amount)
@@ -314,31 +365,56 @@ class WalletService
 
     ActiveRecord::Base.transaction do
       @wallet.lock!
+      business.lock! if business.present? && (from_biz || to_biz)
 
-      unless @wallet.sufficient_balance?(from_asset, from_amount)
-        raise InsufficientFundsError,
-              "Balans pa sifi: #{@wallet.balance_for(from_asset)} #{asset_label(from_asset)}, bezwen #{from_amount} #{asset_label(from_asset)}"
+      # ── Balance check ──
+      if from_biz
+        col = from_asset == "htg" ? :total_received : :usdc_balance
+        unless business.send(col).to_d >= from_amount
+          raise InsufficientFundsError, "Balans biznis pa sifi"
+        end
+      else
+        unless @wallet.sufficient_balance?(from_asset, from_amount)
+          raise InsufficientFundsError,
+                "Balans pa sifi: #{@wallet.balance_for(from_asset)} #{asset_label(from_asset)}, bezwen #{from_amount} #{asset_label(from_asset)}"
+        end
       end
 
-      # 1. Debit source asset
-      from_remaining = @wallet.balance_for(from_asset) - from_amount
+      # 1. Debit source
+      if from_biz
+        biz_col = from_asset == "htg" ? :total_received : :usdc_balance
+        business.decrement!(biz_col, from_amount)
+        from_remaining = @wallet.balance_for(from_asset)
+      else
+        from_remaining = @wallet.balance_for(from_asset) - from_amount
+      end
+
       @wallet.wallet_ledger_entries.create!(
         user: @wallet.user,
         entry_type: "conversion_out",
         asset: from_asset,
         amount: from_amount,
         balance_after: from_remaining,
+        source_context: source,
         description: "Konvèti #{from_amount} #{asset_label(from_asset)} → #{net_to} #{asset_label(to_asset)}"
       )
 
-      # 2. Credit target asset (net of fee)
-      to_remaining = @wallet.balance_for(to_asset) + net_to
+      # 2. Credit destination (net of fee)
+      if to_biz
+        biz_col = to_asset == "htg" ? :total_received : :usdc_balance
+        business.increment!(biz_col, net_to)
+        to_remaining = @wallet.balance_for(to_asset)
+      else
+        to_remaining = @wallet.balance_for(to_asset) + net_to
+      end
+
       @wallet.wallet_ledger_entries.create!(
         user: @wallet.user,
         entry_type: "conversion_in",
         asset: to_asset,
         amount: net_to,
         balance_after: to_remaining,
+        source_context: dest,
         description: "Resevwa #{net_to} #{asset_label(to_asset)} (konvèsyon)"
       )
 
@@ -350,13 +426,14 @@ class WalletService
           asset: to_asset,
           amount: fee_in_to,
           balance_after: to_remaining,
+          source_context: dest,
           description: "Frè konvèsyon #{(fee_rate * 100).to_f}% (#{fee_in_to} #{asset_label(to_asset)})"
         )
       end
 
-      # 4. Update both balances
-      update_balance!(from_asset, from_remaining)
-      update_balance!(to_asset, to_remaining)
+      # 4. Update personal wallet balances (only if personal account was involved)
+      update_balance!(from_asset, from_remaining) unless from_biz
+      update_balance!(to_asset, to_remaining) unless to_biz
     end
 
     broadcast_balance_update!("#{from_asset},#{to_asset}")
@@ -369,7 +446,7 @@ class WalletService
   # Convert any asset amount to its USD equivalent
   def asset_to_usd(asset, amount)
     case asset
-    when "usdc" then amount
+    when "usd" then amount
     when "htg"  then amount / RateService.buy_rate.to_d   # user pays more HTG per USD
     when "eth"  then amount * RateService.eth_usd_rate.to_d
     when "wbtc" then amount * RateService.btc_usd_rate.to_d
@@ -380,7 +457,7 @@ class WalletService
   # Convert USD amount to target asset
   def usd_to_asset(asset, usd_amount)
     case asset
-    when "usdc" then usd_amount
+    when "usd" then usd_amount
     when "htg"  then usd_amount * RateService.sell_rate.to_d  # user gets fewer HTG per USD
     when "eth"  then usd_amount / RateService.eth_usd_rate.to_d
     when "wbtc" then usd_amount / RateService.btc_usd_rate.to_d
@@ -413,7 +490,7 @@ class WalletService
   end
 
   def asset_label(asset)
-    asset.to_s == "usdc" ? "USD" : asset.to_s.upcase
+    asset.to_s == "usd" ? "USD" : asset.to_s.upcase
   end
 
   # ── Broadcast updated balances via ActionCable (live wallet updates) ──
@@ -425,7 +502,7 @@ class WalletService
       type: "balance_update",
       balances: {
         htg:  @wallet.htg_balance.to_f.round(2),
-        usdc: @wallet.usdc_balance.to_f.round(2),
+        usd: @wallet.usd_balance.to_f.round(2),
         eth:  @wallet.eth_balance.to_f.round(6),
         wbtc: @wallet.wbtc_balance.to_f.round(8)
       },

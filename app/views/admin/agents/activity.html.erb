@@ -1,0 +1,195 @@
+<%# ── Header ── %>
+<div class="mb-4">
+  <h1 class="h4 fw-black mb-1" style="color: var(--haiti-charcoal);">
+    <i class="ri-exchange-line me-2" style="color: var(--haiti-gold);"></i>Aktivite Ajan
+  </h1>
+  <p class="small mb-0" style="color: var(--haiti-olive);">Tout tranzaksyon ajan — cash-in, flòt, ak plis</p>
+</div>
+
+<%= turbo_frame_tag "agent-activity" do %>
+  <%# ── Filter Bar ── %>
+  <div class="card-base p-3 mb-4" style="border: 1px solid rgba(93,99,69,0.12);">
+    <div class="d-flex align-items-center gap-2 flex-wrap">
+      <%# Type filter tabs %>
+      <% types = [
+        { key: nil,              label: "Tout",         icon: "ri-exchange-line" },
+        { key: "cash_in",        label: "Cash In",      icon: "ri-arrow-down-circle-line" },
+        { key: "cash_out",       label: "Cash Out",     icon: "ri-arrow-up-circle-line" },
+        { key: "float_top_up",   label: "Flòt Top Up",  icon: "ri-add-circle-line" },
+        { key: "float_withdraw", label: "Flòt Retrè",   icon: "ri-subtract-line" }
+      ] %>
+      <% current_type = params[:type].presence %>
+      <% types.each do |t| %>
+        <%= link_to admin_agents_activity_path(type: t[:key], status: params[:status], q: params[:q], date: params[:date]),
+            class: "btn btn-sm rounded-pill fw-bold px-3 py-1",
+            style: "font-size: 11px; #{current_type == t[:key] ? 'background: var(--haiti-charcoal); color: var(--haiti-gold);' : 'background: rgba(93,99,69,0.08); color: var(--haiti-olive);'}",
+            data: { turbo_frame: "agent-activity" } do %>
+          <i class="<%= t[:icon] %> me-1" style="font-size: 10px;"></i><%= t[:label] %>
+        <% end %>
+      <% end %>
+
+      <%# Status filter %>
+      <div class="ms-2">
+        <% statuses = [
+          { key: nil,         label: "Tout Estati" },
+          { key: "completed", label: "Konplè" },
+          { key: "pending",   label: "An Atant" },
+          { key: "failed",    label: "Echwe" }
+        ] %>
+        <% current_status = params[:status].presence %>
+        <% statuses.each do |s| %>
+          <%= link_to admin_agents_activity_path(type: params[:type], status: s[:key], q: params[:q], date: params[:date]),
+              class: "btn btn-sm rounded-pill fw-bold px-2 py-1",
+              style: "font-size: 10px; #{current_status == s[:key] ? 'background: var(--haiti-gold); color: var(--haiti-charcoal);' : 'background: transparent; color: var(--haiti-olive);'}",
+              data: { turbo_frame: "agent-activity" } do %>
+            <%= s[:label] %>
+          <% end %>
+        <% end %>
+      </div>
+
+      <%# Search + Date %>
+      <div class="ms-auto d-flex gap-2">
+        <%= form_tag admin_agents_activity_path, method: :get, class: "d-flex gap-2", data: { turbo_frame: "agent-activity" } do %>
+          <input type="hidden" name="type" value="<%= current_type %>">
+          <input type="hidden" name="status" value="<%= current_status %>">
+          <input type="date" name="date" value="<%= params[:date] %>"
+                 class="form-control form-control-sm shadow-none"
+                 style="width: 140px; border: 1.5px solid rgba(93,99,69,0.2); background: var(--haiti-cream); font-size: 11px; border-radius: 20px; padding: 4px 10px;"
+                 onchange="this.form.requestSubmit()">
+          <input type="text" name="q" value="<%= params[:q] %>" placeholder="$cashtag oswa kòd..."
+                 class="form-control form-control-sm shadow-none"
+                 style="width: 180px; border: 1.5px solid rgba(93,99,69,0.2); background: var(--haiti-cream); font-size: 12px; border-radius: 20px; padding: 4px 14px;">
+          <button type="submit" class="btn btn-sm rounded-pill px-3" style="background: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 11px;">
+            <i class="ri-search-line"></i>
+          </button>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <%# ── Transaction Table ── %>
+  <div class="card-base p-0 overflow-hidden" style="border: 1px solid rgba(93,99,69,0.12);">
+    <% if @transactions.any? %>
+      <div class="table-responsive">
+        <table class="table table-hover mb-0 align-middle" style="background-color: var(--haiti-cream); font-size: 13px;">
+          <thead style="font-size: 10px; letter-spacing: 1px; color: var(--haiti-olive); border-bottom: 2px solid var(--haiti-olive);">
+            <tr>
+              <th class="ps-4">AJAN</th>
+              <th>KLIYAN</th>
+              <th>TIP</th>
+              <th>MONTAN HTG</th>
+              <th>KOMISYON</th>
+              <th>ESTATI</th>
+              <th>KÒD</th>
+              <th>DAT</th>
+            </tr>
+          </thead>
+          <tbody class="small">
+            <% @transactions.each do |atx| %>
+              <%
+                type_styles = {
+                  "cash_in"        => { bg: "#f0fdf4", color: "#166534", label: "Cash In",     icon: "ri-arrow-down-circle-line" },
+                  "cash_out"       => { bg: "#fef2f2", color: "#991b1b", label: "Cash Out",    icon: "ri-arrow-up-circle-line" },
+                  "float_top_up"   => { bg: "#dbeafe", color: "#1d4ed8", label: "Flòt Top Up", icon: "ri-add-circle-line" },
+                  "float_withdraw" => { bg: "#fef3c7", color: "#92400e", label: "Flòt Retrè", icon: "ri-subtract-line" }
+                }
+                ts = type_styles[atx.transaction_type] || { bg: "var(--haiti-mint)", color: "var(--haiti-olive)", label: atx.transaction_type, icon: "ri-exchange-line" }
+
+                status_styles = {
+                  "completed" => { bg: "#f0fdf4", color: "#166534", label: "Konplè",   icon: "ri-checkbox-circle-line" },
+                  "pending"   => { bg: "#fef3c7", color: "#92400e", label: "An Atant", icon: "ri-time-line" },
+                  "failed"    => { bg: "#fef2f2", color: "#991b1b", label: "Echwe",    icon: "ri-close-circle-line" },
+                  "disputed"  => { bg: "#fef2f2", color: "#7e22ce", label: "Konteste", icon: "ri-error-warning-line" }
+                }
+                ss = status_styles[atx.status] || { bg: "var(--haiti-mint)", color: "var(--haiti-olive)", label: atx.status, icon: "ri-question-line" }
+              %>
+              <tr style="border-color: rgba(93,99,69,0.1);">
+                <td class="ps-4">
+                  <div class="d-flex align-items-center gap-2">
+                    <% if atx.business.logo.attached? %>
+                      <div style="width: 28px; height: 28px; border-radius: 50%; overflow: hidden; border: 1.5px solid var(--haiti-gold);">
+                        <%= image_tag atx.business.logo, style: "width: 100%; height: 100%; object-fit: cover;" %>
+                      </div>
+                    <% else %>
+                      <div class="d-flex align-items-center justify-content-center" style="width: 28px; height: 28px; border-radius: 50%; background: var(--haiti-mint); border: 1.5px solid var(--haiti-gold);">
+                        <i class="ri-store-2-line" style="color: var(--haiti-gold); font-size: 12px;"></i>
+                      </div>
+                    <% end %>
+                    <div>
+                      <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 11px;"><%= atx.business.name.truncate(18) %></div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <span class="fw-bold" style="color: var(--haiti-gold); font-size: 11px;">$<%= atx.customer&.cashtag || "—" %></span>
+                </td>
+                <td>
+                  <span class="badge rounded-pill fw-bold" style="background: <%= ts[:bg] %>; color: <%= ts[:color] %>; font-size: 9px; padding: 3px 8px;">
+                    <i class="<%= ts[:icon] %> me-1" style="font-size: 9px;"></i><%= ts[:label] %>
+                  </span>
+                </td>
+                <td class="fw-bold" style="color: var(--haiti-charcoal); font-family: 'Space Grotesk', sans-serif; font-size: 13px;">
+                  G <%= number_with_delimiter(atx.amount.to_i) %>
+                </td>
+                <td style="color: #166534; font-weight: 600; font-size: 11px;">
+                  <% if atx.commission_amount.to_i > 0 %>
+                    G <%= number_with_delimiter(atx.commission_amount.to_i) %>
+                  <% else %>
+                    <span style="color: var(--haiti-olive);">—</span>
+                  <% end %>
+                </td>
+                <td>
+                  <span class="badge rounded-pill fw-bold" style="background: <%= ss[:bg] %>; color: <%= ss[:color] %>; font-size: 10px; padding: 3px 8px;">
+                    <i class="<%= ss[:icon] %> me-1" style="font-size: 10px;"></i><%= ss[:label] %>
+                  </span>
+                </td>
+                <td>
+                  <span class="fw-bold" style="color: var(--haiti-gold); font-family: 'Space Grotesk', monospace; font-size: 11px; letter-spacing: 0.5px;">
+                    <%= atx.confirmation_code %>
+                  </span>
+                </td>
+                <td style="color: var(--haiti-olive); font-size: 11px; white-space: nowrap;">
+                  <%= atx.created_at.strftime("%d/%m/%y %H:%M") %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+
+      <%# ── Pagination ── %>
+      <% if @total_pages > 1 %>
+        <div class="d-flex justify-content-center gap-2 p-3" style="border-top: 1px solid rgba(93,99,69,0.1);">
+          <% if @current_page > 1 %>
+            <%= link_to admin_agents_activity_path(type: params[:type], status: params[:status], q: params[:q], date: params[:date], page: @current_page - 1),
+                class: "btn btn-sm rounded-pill px-3", style: "background: rgba(93,99,69,0.08); color: var(--haiti-olive); font-size: 11px;",
+                data: { turbo_frame: "agent-activity" } do %>
+              <i class="ri-arrow-left-s-line"></i> Avan
+            <% end %>
+          <% end %>
+          <span class="d-flex align-items-center px-2" style="color: var(--haiti-olive); font-size: 11px; font-weight: 600;">
+            Paj <%= @current_page %> / <%= @total_pages %>
+          </span>
+          <% if @current_page < @total_pages %>
+            <%= link_to admin_agents_activity_path(type: params[:type], status: params[:status], q: params[:q], date: params[:date], page: @current_page + 1),
+                class: "btn btn-sm rounded-pill px-3", style: "background: rgba(93,99,69,0.08); color: var(--haiti-olive); font-size: 11px;",
+                data: { turbo_frame: "agent-activity" } do %>
+              Apre <i class="ri-arrow-right-s-line"></i>
+            <% end %>
+          <% end %>
+        </div>
+      <% end %>
+    <% else %>
+      <div class="text-center py-5">
+        <i class="ri-exchange-line ri-3x mb-3" style="color: var(--haiti-olive); opacity: 0.3;"></i>
+        <p class="fw-bold mb-1" style="color: var(--haiti-charcoal);">Pa gen aktivite</p>
+        <p class="small" style="color: var(--haiti-olive);">Pa gen rezilta ki matche ak filtè sa a.</p>
+      </div>
+    <% end %>
+  </div>
+<% end %>
+
+<style>
+  .table-hover tbody tr:hover { background-color: rgba(197,160,89,0.04) !important; }
+  .table > :not(caption) > * > * { background-color: transparent !important; }
+</style>

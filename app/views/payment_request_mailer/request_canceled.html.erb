@@ -1,5 +1,5 @@
 <div style="margin-bottom:20px;">
-  <div style="font-size:15px; font-weight:800; color:#991b1b; margin-bottom:6px;">Demann Peman Anile</div>
+  <div style="font-size:15px; font-weight:800; color:#991b1b; margin-bottom:6px;">Demann <%= @amount_display %> Anile</div>
   <div style="font-size:13px; color:#5D6345;">Demann #<%= @payment_request.id %> — <%= @payment_request.updated_at.strftime("%b %d, %Y") %></div>
 </div>
 
@@ -11,7 +11,7 @@
     </tr>
     <tr>
       <td style="color:#991b1b; font-size:12px; font-weight:600; padding-bottom:8px;">Lajan</td>
-      <td style="color:#2E2E38; font-weight:700; text-align:right; padding-bottom:8px;"><%= @payment_request.asset.upcase %></td>
+      <td style="color:#2E2E38; font-weight:700; text-align:right; padding-bottom:8px;"><%= @payment_request.asset_label %></td>
     </tr>
     <% if @payment_request.payer_name.present? %>
       <tr>

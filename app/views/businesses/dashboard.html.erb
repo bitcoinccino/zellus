@@ -30,20 +30,20 @@
         <div class="p-3 rounded-3" style="background: var(--haiti-charcoal);">
           <div style="color: rgba(255,255,255,0.5); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Total Resevwa</div>
           <div class="fw-black" style="color: #22c55e; font-size: 24px;"><%= number_with_delimiter(@business.total_received.to_i) %></div>
-          <div style="color: rgba(255,255,255,0.4); font-size: 11px;">HTG</div>
+          <div style="color: rgba(255,255,255,0.4); font-size: 11px;"><%= currency_label("htg") %></div>
         </div>
       </div>
       <div class="col-6">
         <div class="p-3 rounded-3" style="background: var(--haiti-charcoal);">
           <div style="color: rgba(255,255,255,0.5); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Frè Kolekte</div>
           <div class="fw-black" style="color: var(--haiti-gold); font-size: 24px;"><%= number_with_precision(@business.total_fees_collected, precision: 2) %></div>
-          <div style="color: rgba(255,255,255,0.4); font-size: 11px;">HTG</div>
+          <div style="color: rgba(255,255,255,0.4); font-size: 11px;"><%= currency_label("htg") %></div>
         </div>
       </div>
       <div class="col-6">
         <div class="p-3 rounded-3" style="background: rgba(93,99,69,0.06);">
           <div style="color: var(--haiti-olive); font-size: 10px; font-weight: 700; text-transform: uppercase;">Mwa Sa</div>
-          <div class="fw-black" style="color: var(--haiti-charcoal); font-size: 20px;"><%= number_with_delimiter(@this_month_received.to_i) %> <small style="font-size: 12px;">HTG</small></div>
+          <div class="fw-black" style="color: var(--haiti-charcoal); font-size: 20px;"><%= number_with_delimiter(@this_month_received.to_i) %> <small style="font-size: 12px;"><%= currency_label("htg", 12) %></small></div>
           <div style="color: var(--haiti-olive); font-size: 11px;"><%= @this_month_count %> tranzaksyon</div>
         </div>
       </div>
@@ -55,6 +55,29 @@
         </div>
       </div>
     </div>
+
+    <%# ── QR Code — Peman ── %>
+    <% if @business.slug.present? %>
+      <div class="rounded-3 p-3 mb-4 text-center" style="background: rgba(93,99,69,0.04); border: 1px solid rgba(93,99,69,0.1);">
+        <div class="fw-bold mb-2" style="color: var(--haiti-charcoal); font-size: 13px;">
+          <i class="ri-qr-code-line me-1" style="color: var(--haiti-gold);"></i>QR Code pou Resevwa Peman
+        </div>
+        <div class="d-inline-block p-3 rounded-3 mb-2 position-relative" style="background: white; border: 2px solid var(--haiti-gold);">
+          <%= qr_svg(pay_business_url(@business.slug)) %>
+          <div class="position-absolute top-50 start-50 translate-middle d-flex align-items-center justify-content-center rounded-circle"
+               style="width: 36px; height: 36px; background: white; box-shadow: 0 0 0 2px var(--haiti-gold);">
+            <% if @business.logo.attached? %>
+              <%= image_tag @business.logo, style: "width: 30px; height: 30px; border-radius: 50%; object-fit: cover;" %>
+            <% else %>
+              <i class="<%= @business.category_icon %>" style="font-size: 16px; color: var(--haiti-gold);"></i>
+            <% end %>
+          </div>
+        </div>
+        <div style="color: var(--haiti-olive); font-size: 11px;">
+          Enprime e mete sou kontwa ou. Kliyan eskane pou peye.
+        </div>
+      </div>
+    <% end %>
 
     <%# ── Top Products ── %>
     <% if @top_products.any? %>
@@ -68,7 +91,7 @@
               <span class="fw-black text-center" style="width: 24px; color: var(--haiti-gold); font-size: 14px;"><%= idx + 1 %></span>
               <span class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;"><%= product.name %></span>
             </div>
-            <span style="color: var(--haiti-olive); font-size: 12px; font-weight: 600;"><%= number_with_delimiter(product.total_revenue.to_i) %> HTG</span>
+            <span style="color: var(--haiti-olive); font-size: 12px; font-weight: 600;"><%= number_with_delimiter(product.total_revenue.to_i) %> <%= currency_label("htg") %></span>
           </div>
         <% end %>
       </div>
@@ -97,7 +120,7 @@
               </div>
             </div>
             <div class="text-end">
-              <div class="fw-black" style="color: #166534; font-size: 14px;">+<%= number_with_delimiter(transfer.amount.to_i) %> HTG</div>
+              <div class="fw-black" style="color: #166534; font-size: 14px;">+<%= number_with_delimiter(transfer.amount.to_i) %> <%= currency_label("htg") %></div>
             </div>
           </div>
         <% end %>

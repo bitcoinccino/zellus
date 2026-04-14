@@ -1,0 +1,275 @@
+<%# ── Header ── %>
+<div class="mb-4">
+  <h1 class="h4 fw-black mb-1" style="color: var(--haiti-charcoal);">
+    <i class="ri-code-s-slash-line me-2" style="color: var(--haiti-gold);"></i>Devlopè API
+  </h1>
+  <p class="small mb-0" style="color: var(--haiti-olive);">Jere kliyan OAuth, webhook, ak entegrasyon API</p>
+</div>
+
+<%# ── Stats Row ── %>
+<div class="row g-3 mb-4">
+  <div class="col-md-3">
+    <div class="card-base p-3 text-center" style="border: 1px solid rgba(29,78,216,0.15); background: linear-gradient(135deg, rgba(219,234,254,0.4), transparent);">
+      <div class="d-flex align-items-center justify-content-center mb-2">
+        <div class="d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; border-radius: 10px; background: rgba(29,78,216,0.1);">
+          <i class="ri-apps-line" style="color: #1d4ed8; font-size: 16px;"></i>
+        </div>
+      </div>
+      <div class="fw-black h4 mb-0" style="color: #1d4ed8;"><%= @total_clients %></div>
+      <div class="small fw-bold text-uppercase" style="color: #3b82f6; font-size: 10px;">Total Kliyan</div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card-base p-3 text-center" style="border: 1px solid rgba(22,101,52,0.15); background: linear-gradient(135deg, rgba(240,253,244,0.6), transparent);">
+      <div class="d-flex align-items-center justify-content-center mb-2">
+        <div class="d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; border-radius: 10px; background: rgba(22,101,52,0.1);">
+          <i class="ri-webhook-line" style="color: #166534; font-size: 16px;"></i>
+        </div>
+      </div>
+      <div class="fw-black h4 mb-0" style="color: #166534;"><%= @active_webhooks %></div>
+      <div class="small fw-bold text-uppercase" style="color: #22c55e; font-size: 10px;">Webhook Aktif</div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card-base p-3 text-center" style="border: 1px solid rgba(197,160,89,0.2); background: linear-gradient(135deg, rgba(197,160,89,0.08), transparent);">
+      <div class="d-flex align-items-center justify-content-center mb-2">
+        <div class="d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; border-radius: 10px; background: rgba(197,160,89,0.12);">
+          <i class="ri-send-plane-line" style="color: var(--haiti-gold); font-size: 16px;"></i>
+        </div>
+      </div>
+      <div class="fw-black h4 mb-0" style="color: var(--haiti-charcoal);"><%= @deliveries_today %></div>
+      <div class="small fw-bold text-uppercase" style="color: var(--haiti-gold); font-size: 10px;">Delivre Jodi</div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card-base p-3 text-center" style="border: 1px solid rgba(126,34,206,0.12); background: linear-gradient(135deg, rgba(243,232,255,0.5), transparent);">
+      <div class="d-flex align-items-center justify-content-center mb-2">
+        <div class="d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; border-radius: 10px; background: rgba(126,34,206,0.08);">
+          <i class="ri-error-warning-line" style="color: #7e22ce; font-size: 16px;"></i>
+        </div>
+      </div>
+      <div class="fw-black h4 mb-0" style="color: #7e22ce;"><%= @failure_rate %>%</div>
+      <div class="small fw-bold text-uppercase" style="color: #a855f7; font-size: 10px;">To Echèk (7j)</div>
+    </div>
+  </div>
+</div>
+
+<%# ── Create New Client ── %>
+<div class="card-base p-4 mb-4" style="border: 1px solid rgba(93,99,69,0.12);">
+  <h2 class="h6 fw-black mb-3" style="color: var(--haiti-charcoal);">
+    <i class="ri-add-circle-line me-2" style="color: var(--haiti-gold);"></i>Kreye Nouvo Kliyan API
+  </h2>
+
+  <%= form_tag admin_developers_path, method: :post, class: "row g-3", id: "dev-create-form" do %>
+    <div class="col-md-4">
+      <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px;">
+        <i class="ri-building-line me-1"></i>NON KLIYAN
+      </label>
+      <input type="text" name="oauth_client[name]" required class="form-control shadow-none" placeholder="e.g. Pwodui Lakay"
+             style="border: 2px solid var(--haiti-olive); background-color: var(--haiti-cream);">
+    </div>
+
+    <div class="col-md-4">
+      <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px;">
+        <i class="ri-links-line me-1"></i>REDIRECT URI
+      </label>
+      <input type="url" name="oauth_client[redirect_uri]" required class="form-control shadow-none" placeholder="https://example.com/callback"
+             style="border: 2px solid var(--haiti-olive); background-color: var(--haiti-cream);">
+    </div>
+
+    <div class="col-md-4">
+      <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px;">
+        <i class="ri-shield-keyhole-line me-1"></i>SCOPES
+      </label>
+      <input type="text" name="oauth_client[scopes]" class="form-control shadow-none"
+             placeholder="profile email balance:read transfer:create"
+             style="border: 2px solid var(--haiti-olive); background-color: var(--haiti-cream);">
+      <div class="form-text" style="font-size: 9px; color: var(--haiti-olive);">Separe pa espas</div>
+    </div>
+
+    <%# Hidden PIN field (filled by modal) %>
+    <input type="hidden" name="transfer_pin" id="dev-pin-hidden" value="">
+
+    <div class="col-12">
+      <button type="button" id="dev-create-btn" class="btn fw-bold px-4 py-2" style="background: var(--haiti-charcoal); color: var(--haiti-gold);">
+        <i class="ri-add-line me-2"></i>Kreye Kliyan
+      </button>
+    </div>
+  <% end %>
+</div>
+
+<%# ── PIN Confirmation Modal ── %>
+<div id="dev-pin-modal" style="display: none; position: fixed; inset: 0; z-index: 9999; background: rgba(46,46,56,0.6); backdrop-filter: blur(4px);">
+  <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 360px;">
+    <div class="card-base p-4 text-center" style="border: 2px solid var(--haiti-gold); box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+      <div class="mb-3">
+        <div class="d-inline-flex align-items-center justify-content-center" style="width: 56px; height: 56px; border-radius: 50%; background: rgba(197,160,89,0.12);">
+          <i class="ri-lock-2-line" style="color: var(--haiti-gold); font-size: 28px;"></i>
+        </div>
+      </div>
+      <h3 class="h6 fw-black mb-1" style="color: var(--haiti-charcoal);">Konfime PIN Transfè</h3>
+      <p class="small mb-3" style="color: var(--haiti-olive);">Antre PIN ou pou kreye kliyan API</p>
+      <input type="password" id="dev-pin-input" maxlength="6" inputmode="numeric" pattern="[0-9]*" placeholder="••••••"
+             class="form-control fw-bold shadow-none text-center mx-auto mb-3"
+             style="width: 180px; border: 2px solid var(--haiti-gold); background-color: var(--haiti-cream); font-size: 22px; letter-spacing: 8px; border-radius: 12px;">
+      <div class="d-flex gap-2 justify-content-center">
+        <button type="button" id="dev-pin-cancel" class="btn fw-bold px-4 py-2 rounded-pill"
+                style="background: rgba(93,99,69,0.08); color: var(--haiti-olive); font-size: 12px;">
+          Anile
+        </button>
+        <button type="button" id="dev-pin-confirm" class="btn fw-bold px-4 py-2 rounded-pill"
+                style="background: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 12px;">
+          <i class="ri-check-line me-1"></i>Konfime
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%# ── Clients Table ── %>
+<div class="card-base p-4" style="border: 1px solid rgba(93,99,69,0.12);">
+  <h2 class="h6 fw-black mb-3" style="color: var(--haiti-charcoal);">
+    <i class="ri-list-check-2 me-2" style="color: var(--haiti-gold);"></i>Tout Kliyan API (<%= @total_clients %>)
+  </h2>
+
+  <% if @clients.any? %>
+    <div class="table-responsive">
+      <table class="table table-sm align-middle" style="font-size: 13px;">
+        <thead>
+          <tr style="color: var(--haiti-olive); font-size: 10px; text-transform: uppercase; letter-spacing: 1px;">
+            <th>Non</th>
+            <th>Client ID</th>
+            <th>Scopes</th>
+            <th>Webhook</th>
+            <th>Delivre</th>
+            <th>Estati</th>
+            <th>Kreye</th>
+            <th class="text-end">AKSYON</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @clients.each do |client| %>
+            <tr>
+              <td>
+                <span class="fw-black" style="color: var(--haiti-charcoal);">
+                  <%= client.name %>
+                </span>
+              </td>
+              <td>
+                <code class="small" style="color: var(--haiti-olive); font-size: 11px;"><%= client.client_id.first(12) %>…</code>
+              </td>
+              <td>
+                <% client.requested_scopes.first(3).each do |scope| %>
+                  <span class="badge rounded-pill" style="background: var(--haiti-mint); color: var(--haiti-olive); font-size: 9px;"><%= scope %></span>
+                <% end %>
+                <% if client.requested_scopes.size > 3 %>
+                  <span class="badge rounded-pill" style="background: rgba(93,99,69,0.08); color: var(--haiti-olive); font-size: 9px;">+<%= client.requested_scopes.size - 3 %></span>
+                <% end %>
+              </td>
+              <td>
+                <% if client.webhook_active? && client.webhook_url.present? %>
+                  <span class="badge rounded-pill" style="background: #f0fdf4; color: #166534; font-size: 10px;">
+                    <i class="ri-checkbox-circle-fill me-1"></i>Aktif
+                  </span>
+                <% else %>
+                  <span class="badge rounded-pill" style="background: rgba(93,99,69,0.06); color: var(--haiti-olive); font-size: 10px;">Inaktif</span>
+                <% end %>
+              </td>
+              <td class="small" style="color: var(--haiti-olive);">
+                <%= client.webhook_deliveries.size %>
+              </td>
+              <td>
+                <% if client.active? %>
+                  <span class="badge rounded-pill" style="background: #f0fdf4; color: #166534; font-size: 10px;">Aktif</span>
+                <% else %>
+                  <span class="badge rounded-pill" style="background: #fef2f2; color: #991b1b; font-size: 10px;">Inaktif</span>
+                <% end %>
+              </td>
+              <td class="small" style="color: var(--haiti-olive);"><%= client.created_at.strftime("%d/%m/%Y") %></td>
+              <td class="text-end">
+                <%= link_to admin_developer_path(client), class: "btn btn-sm rounded-pill px-3 fw-bold",
+                    style: "background: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 10px;" do %>
+                  <i class="ri-eye-line me-1"></i>Wè
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% else %>
+    <div class="text-center py-4">
+      <i class="ri-code-s-slash-line ri-2x mb-2" style="color: var(--haiti-olive); opacity: 0.3;"></i>
+      <p class="small" style="color: var(--haiti-olive);">Pa gen kliyan API ankò. Kreye premye kliyan ou!</p>
+    </div>
+  <% end %>
+</div>
+
+<%# ── OpenAPI Spec Link ── %>
+<div class="card-base p-3 mt-4 d-flex align-items-center justify-content-between" style="border: 1px solid rgba(93,99,69,0.12);">
+  <div>
+    <i class="ri-file-code-line me-2" style="color: var(--haiti-gold);"></i>
+    <span class="fw-bold small" style="color: var(--haiti-charcoal);">OpenAPI Spec (v1)</span>
+    <span class="small ms-2" style="color: var(--haiti-olive);">Dokimantasyon API pou SDK ak kliyan</span>
+  </div>
+  <a href="/api/v1/openapi.yaml" target="_blank" class="btn btn-sm rounded-pill px-3 fw-bold"
+     style="background: rgba(29,78,216,0.08); color: #1d4ed8; font-size: 10px;">
+    <i class="ri-download-line me-1"></i>Telechaje YAML
+  </a>
+</div>
+
+<style>
+  .table > :not(caption) > * > * { background-color: transparent !important; }
+</style>
+
+<script>
+  // ── PIN Modal Flow ──
+  var devForm = document.getElementById('dev-create-form');
+  var devModal = document.getElementById('dev-pin-modal');
+  var devPinInput = document.getElementById('dev-pin-input');
+  var devPinHidden = document.getElementById('dev-pin-hidden');
+
+  document.getElementById('dev-create-btn').addEventListener('click', function() {
+    // Validate required fields
+    var nameInput = devForm.querySelector('[name="oauth_client[name]"]');
+    var uriInput = devForm.querySelector('[name="oauth_client[redirect_uri]"]');
+    if (!nameInput.value.trim() || !uriInput.value.trim()) {
+      nameInput.reportValidity();
+      return;
+    }
+    // Show modal
+    devModal.style.display = 'block';
+    devPinInput.value = '';
+    setTimeout(function() { devPinInput.focus(); }, 100);
+  });
+
+  document.getElementById('dev-pin-cancel').addEventListener('click', function() {
+    devModal.style.display = 'none';
+    devPinInput.value = '';
+  });
+
+  document.getElementById('dev-pin-confirm').addEventListener('click', function() {
+    if (!devPinInput.value || devPinInput.value.length < 4) {
+      devPinInput.style.borderColor = '#D21034';
+      devPinInput.focus();
+      return;
+    }
+    devPinHidden.value = devPinInput.value;
+    devModal.style.display = 'none';
+    devForm.submit();
+  });
+
+  devPinInput.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      document.getElementById('dev-pin-confirm').click();
+    }
+  });
+
+  devModal.addEventListener('click', function(e) {
+    if (e.target === devModal) {
+      devModal.style.display = 'none';
+      devPinInput.value = '';
+    }
+  });
+</script>

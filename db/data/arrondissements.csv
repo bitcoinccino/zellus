@@ -1,0 +1,43 @@
+id,arrondissement_name,department_id,postal_code_prefix
+1,Port-au-Prince,1,HT611
+2,Léogâne,1,HT621
+3,Croix-Des-Bouquets,1,HT631
+4,Arcahaie,1,HT641
+5,La Gonâve,1,HT651
+6,Jacmel,2,HT011
+7,Bainet,2,HT021
+8,Belle-Anse,2,HT031
+9,Cap-Haïtien,3,HT111
+10,Acul du Nord,3,HT121
+11,Grande Rivière du Nord,3,HT131
+12,Saint-Raphaël,3,HT141
+13,Borgne,3,HT151
+14,Limbé,3,HT161
+15,Plaisance,3,HT171
+16,Fort-Liberté,4,HT211
+17,Ouanaminthe,4,HT221
+18,Trou du Nord,4,HT231
+19,Vallières,4,HT241
+20,Gonaïves,5,HT411
+21,Gros-Morne,5,HT421
+22,Saint-Marc,5,HT431
+23,Dessalines,5,HT441
+24,Saint-Michel de l'Attalaye,5,HT451
+25,Hinche,6,HT511
+26,Mirebalais,6,HT521
+27,Lascahobas,6,HT531
+28,Cerca-la-Source,6,HT541
+29,Les Cayes,7,HT811
+30,Port-Salut,7,HT821
+31,Aquin,7,HT831
+32,Côteaux,7,HT841
+33,Chardonnières,7,HT851
+34,Jérémie,8,HT711
+35,Anse d'Hainault,8,HT721
+36,Corail,8,HT731
+37,Port-de-Paix,9,HT311
+38,Saint-Louis du Nord,9,HT321
+39,Môle Saint-Nicolas,9,HT331
+40,Miragoâne,10,HT911
+41,Anse-à-Veau,10,HT921
+42,Baradères,10,HT931

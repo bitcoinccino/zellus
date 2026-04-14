@@ -52,6 +52,13 @@ gem "redis"
 # QR Code generation
 gem "rqrcode"
 
+# Time-series data grouping for analytics
+gem "groupdate"
+
+# PDF generation (Agent Kit, receipts)
+gem "prawn", "~> 2.5"
+gem "prawn-table", "~> 0.2"
+
 # For Security & Environment variables
 gem "dotenv-rails", groups: [:development, :test]
 gem "lockbox"
@@ -90,5 +97,7 @@ group :test do
   # Use system testing [https://guides.rubyonrails.org/testing.html#system-testing]
   gem "capybara"
   gem "selenium-webdriver"
+  # Pin minitest to 5.x — minitest 6.0 broke run() arity for Rails 8.0.x
+  gem "minitest", "~> 5.25"
 end
 gem 'connection_pool', '2.4.1'

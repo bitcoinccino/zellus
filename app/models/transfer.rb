@@ -22,7 +22,7 @@ class Transfer < ApplicationRecord
 
   has_one :bonid_consent_request, dependent: :destroy
 
-  enum :asset, { htg: "htg", usdc: "usdc", eth: "eth", wbtc: "wbtc", tslax: "tslax", nvdax: "nvdax", aaplx: "aaplx", coinx: "coinx", googlx: "googlx" }
+  enum :asset, { htg: "htg", usd: "usd", eth: "eth", wbtc: "wbtc", tslax: "tslax", nvdax: "nvdax", aaplx: "aaplx", coinx: "coinx", googlx: "googlx" }
 
   # ── Platform fee (centralized in FeeService) ──
 
@@ -52,7 +52,7 @@ class Transfer < ApplicationRecord
             allow_blank: true
 
   validates :receiver_cashtag,
-            format: { with: /\A[a-zA-Z0-9]{5,20}\z/, message: "dwe yon Zellustag valid" },
+            format: { with: /\A[a-zA-Z0-9]{5,20}\z/, message: "dwe yon Zèllustag valid" },
             allow_blank: true
 
   validate :receiver_destination_present
@@ -71,8 +71,16 @@ class Transfer < ApplicationRecord
     htg?
   end
 
+  def usdc_wallet_transfer?
+    usd? && !bank_transfer? && receiver_wallet_address.blank?
+  end
+
+  def usdc_address_transfer?
+    usd? && receiver_wallet_address.present?
+  end
+
   def crypto_transfer?
-    usdc? || eth? || wbtc? || tslax? || nvdax? || aaplx? || coinx? || googlx?
+    usd? || eth? || wbtc? || tslax? || nvdax? || aaplx? || coinx? || googlx?
   end
 
   def stock_transfer?
@@ -84,7 +92,7 @@ class Transfer < ApplicationRecord
   end
 
   def asset_label
-    asset.to_s.upcase
+    asset.to_s == "usd" ? "USD" : asset.to_s.upcase
   end
 
   def wallet_funded?
@@ -111,12 +119,12 @@ class Transfer < ApplicationRecord
     end
   end
 
-  def usdc_wallet_transfer?
-    usdc? && receiver_cashtag.present? && receiver_wallet_address.blank?
+  def usd_wallet_transfer?
+    usd? && receiver_cashtag.present? && receiver_wallet_address.blank?
   end
 
-  def usdc_address_transfer?
-    usdc? && receiver_wallet_address.present? && receiver_cashtag.blank?
+  def usd_address_transfer?
+    usd? && receiver_wallet_address.present? && receiver_cashtag.blank?
   end
 
   def stock_wallet_transfer?

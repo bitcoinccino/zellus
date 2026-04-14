@@ -5,10 +5,10 @@ class SolEscrowAccount < ApplicationRecord
   enum :status, { open: 0, held: 1, closed: 2 }
 
   validates :htg_balance, numericality: { greater_than_or_equal_to: 0 }
-  validates :usdc_balance, numericality: { greater_than_or_equal_to: 0 }
+  validates :usd_balance, numericality: { greater_than_or_equal_to: 0 }
 
   def balance_for(asset)
-    asset == "htg" ? htg_balance : usdc_balance
+    asset == "htg" ? htg_balance : usd_balance
   end
 
   def sufficient_balance?(asset, amount)

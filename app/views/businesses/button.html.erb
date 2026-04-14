@@ -1,0 +1,208 @@
+<div class="container py-4" style="max-width: 580px;">
+  <div class="card-base p-4" style="border: 1px solid rgba(93,99,69,0.12);">
+
+    <%# ── Header ── %>
+    <div class="d-flex align-items-center justify-content-between mb-4">
+      <h1 class="h5 fw-black mb-0" style="color: var(--haiti-charcoal);">
+        <i class="ri-code-s-slash-line me-2" style="color: var(--haiti-gold);"></i><%= AppBrand::NAME %> Button
+      </h1>
+      <%= link_to dashboard_business_path, class: "small text-decoration-none fw-bold", style: "color: var(--haiti-olive);" do %>
+        <i class="ri-arrow-left-line me-1"></i>Retounen
+      <% end %>
+    </div>
+
+    <div style="color: var(--haiti-olive); font-size: 13px; line-height: 1.6; margin-bottom: 20px;">
+      Ajoute yon bouton pèman sou sit entènèt ou. Kliyan klike sou bouton an epi yo ale dirèkteman sou paj pèman <%= AppBrand::NAME %> ou.
+    </div>
+
+    <%# ── Currency ── %>
+    <div class="mb-3">
+      <label class="small fw-bold text-uppercase mb-1" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">LAJAN</label>
+      <div class="d-flex gap-2" id="currency-toggle">
+        <button type="button" class="btn flex-grow-1 rounded-3 py-3 d-flex align-items-center justify-content-center gap-2 currency-btn active" data-asset="htg"
+                style="font-size: 13px; font-weight: 700; background: var(--haiti-gold); color: var(--haiti-charcoal); border: 2px solid var(--haiti-gold);">
+          <%= image_tag "htg.svg", style: "width: 20px; height: 20px; border-radius: 50%;", alt: "HTG" %>
+          HTG
+        </button>
+        <button type="button" class="btn flex-grow-1 rounded-3 py-3 d-flex align-items-center justify-content-center gap-2 currency-btn" data-asset="usdc"
+                style="font-size: 13px; font-weight: 700; background: transparent; color: var(--haiti-olive); border: 2px solid rgba(93,99,69,0.15);">
+          <%= image_tag "usd.svg", style: "width: 20px; height: 20px; border-radius: 50%;", alt: "USD" %>
+          USD
+        </button>
+      </div>
+    </div>
+
+    <%# ── Amount ── %>
+    <div class="mb-3">
+      <label class="small fw-bold text-uppercase mb-1" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">
+        MONTAN <span style="font-weight: 400; text-transform: none;">(kite vid pou kliyan chwazi)</span>
+      </label>
+      <div class="input-group">
+        <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);">
+          <i class="ri-money-dollar-circle-line"></i>
+        </span>
+        <input type="number" id="btn-amount" class="form-control border-0 fw-bold shadow-none p-3 bb-dark-field"
+               style="background-color: var(--haiti-charcoal); color: white; font-size: 14px;"
+               placeholder="Pa egzanp: 500" step="0.01" min="1">
+      </div>
+    </div>
+
+    <%# ── Note ── %>
+    <div class="mb-4">
+      <label class="small fw-bold text-uppercase mb-1" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">
+        NÒT <span style="font-weight: 400; text-transform: none;">(opsyonèl)</span>
+      </label>
+      <div class="input-group">
+        <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);">
+          <i class="ri-sticky-note-line"></i>
+        </span>
+        <input type="text" id="btn-note" class="form-control border-0 fw-bold shadow-none p-3 bb-dark-field"
+               style="background-color: var(--haiti-charcoal); color: white; font-size: 13px;"
+               placeholder="Pa egzanp: Peman pou livrezon manje" maxlength="280">
+      </div>
+    </div>
+
+    <%# ── Live Preview ── %>
+    <div class="rounded-4 p-4 mb-4 text-center" style="background: var(--haiti-charcoal); border: 1px solid rgba(197,160,89,0.15);">
+      <label class="small fw-bold text-uppercase mb-1 d-block" style="color: rgba(255,255,255,0.4); font-size: 10px; letter-spacing: 1px;">
+        <i class="ri-eye-line me-1"></i>APÈSI (KLIYAN PRAL WÈ SA)
+      </label>
+      <div class="mb-3" style="color: rgba(255,255,255,0.25); font-size: 10px;">Klike pou teste</div>
+
+      <div id="button-preview" class="mb-3">
+        <a href="<%= pay_business_url(@business.slug) %>" target="_blank" rel="noopener" id="preview-btn"
+           style="display: inline-flex; align-items: center; gap: 10px; padding: 16px 32px; background: var(--haiti-gold); color: var(--haiti-charcoal); font-family: -apple-system, BlinkMacSystemFont, sans-serif; font-size: 17px; font-weight: 800; border-radius: 14px; text-decoration: none; border: none; transition: all 0.2s; box-shadow: 0 4px 16px rgba(197,160,89,0.3);">
+          <%= image_tag "zellus_square.png", style: "width: 22px; height: 22px; border-radius: 5px;" %>
+          <span id="preview-text"><%= AppBrand::PAY %></span>
+        </a>
+      </div>
+
+      <div style="font-size: 11px; color: rgba(255,255,255,0.5);">
+        <i class="ri-checkbox-circle-fill me-1" style="color: #22c55e;"></i>Kliyan peye 0% — machann peye <%= (@business.fee_rate * 100).round(1) %>% sèlman <span style="opacity: 0.5;">(pa gen lòt frais)</span>
+      </div>
+    </div>
+
+    <%# ── Test Button ── %>
+    <div class="text-center mb-4">
+      <a href="<%= pay_business_url(@business.slug) %>" target="_blank" rel="noopener" class="btn btn-sm rounded-pill px-4 py-2"
+         style="background: rgba(93,99,69,0.08); color: var(--haiti-olive); font-size: 12px; font-weight: 600; border: 1px solid rgba(93,99,69,0.15);">
+        <i class="ri-external-link-line me-2"></i>Teste paj pèman an nan yon nouvo tab
+      </a>
+    </div>
+
+    <%# ── Embed Code ── %>
+    <div class="mb-4">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <label class="small fw-bold text-uppercase mb-0" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">
+          <i class="ri-code-s-slash-line me-1"></i>KÒD POU ENTEGRE
+        </label>
+        <button id="copy-embed" class="btn btn-sm rounded-pill px-3"
+                style="background: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 11px; font-weight: 700;">
+          <i class="ri-file-copy-line me-1"></i>Kopye
+        </button>
+      </div>
+      <pre id="embed-code" class="rounded-3 p-3 mb-0" style="background: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 11px; overflow-x: auto; white-space: pre-wrap; word-break: break-all;"><%= "<script src=\"#{business_button_js_url(@business.slug)}\"" %> data-asset="htg"></script></pre>
+    </div>
+
+    <%# ── Simple HTML Link ── %>
+    <div class="mb-0">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <label class="small fw-bold text-uppercase mb-0" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">
+          <i class="ri-links-line me-1"></i>OSWA ITILIZE YON LYEN SENP
+        </label>
+        <button id="copy-link" class="btn btn-sm rounded-pill px-3"
+                style="background: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 11px; font-weight: 700;">
+          <i class="ri-file-copy-line me-1"></i>Kopye
+        </button>
+      </div>
+      <pre id="link-code" class="rounded-3 p-3 mb-0" style="background: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 11px; overflow-x: auto; white-space: pre-wrap; word-break: break-all;"><%= "<a href=\"#{pay_business_url(@business.slug)}\">#{AppBrand::PAY}</a>" %></pre>
+    </div>
+
+  </div>
+</div>
+
+<style>
+  .bb-dark-field::placeholder { color: rgba(255,255,255,0.35) !important; }
+  .bb-dark-field::-webkit-calendar-picker-indicator { filter: invert(1); }
+  .input-group { border-radius: 12px; overflow: hidden; }
+</style>
+
+<script>
+  (function() {
+    var slug = '<%= @business.slug %>';
+    var jsUrl = '<%= business_button_js_url(@business.slug) %>';
+    var payUrl = '<%= pay_business_url(@business.slug) %>';
+    var brandPay = '<%= AppBrand::PAY %>';
+    var previewBtn = document.getElementById('preview-btn');
+
+    var amountEl = document.getElementById('btn-amount');
+    var noteEl = document.getElementById('btn-note');
+    var embedCode = document.getElementById('embed-code');
+    var linkCode = document.getElementById('link-code');
+    var activeAsset = 'htg';
+
+    // Currency toggle
+    document.querySelectorAll('.currency-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        activeAsset = this.dataset.asset;
+
+        document.querySelectorAll('.currency-btn').forEach(function(b) {
+          b.style.background = 'transparent';
+          b.style.borderColor = 'rgba(93,99,69,0.15)';
+          b.style.color = 'var(--haiti-olive)';
+        });
+
+        this.style.background = 'var(--haiti-gold)';
+        this.style.borderColor = 'var(--haiti-gold)';
+        this.style.color = 'var(--haiti-charcoal)';
+
+        updateCode();
+      });
+    });
+
+    function updateCode() {
+      var amount = amountEl.value;
+      var note = noteEl.value;
+
+      // Update preview link
+      var previewParams = [];
+      if (amount) previewParams.push('amount=' + encodeURIComponent(amount));
+      if (activeAsset !== 'htg') previewParams.push('asset=' + encodeURIComponent(activeAsset));
+      if (note) previewParams.push('note=' + encodeURIComponent(note));
+      previewBtn.href = payUrl + (previewParams.length ? '?' + previewParams.join('&') : '');
+
+      // Build script tag
+      var attrs = '';
+      if (amount) attrs += ' data-amount="' + amount + '"';
+      if (activeAsset !== 'htg') attrs += ' data-asset="' + activeAsset + '"';
+      if (note) attrs += ' data-note="' + note + '"';
+      embedCode.textContent = '<script src="' + jsUrl + '"' + (attrs || ' data-asset="htg"') + '><\/script>';
+
+      // Build simple link
+      var params = [];
+      if (amount) params.push('amount=' + encodeURIComponent(amount));
+      if (activeAsset !== 'htg') params.push('asset=' + encodeURIComponent(activeAsset));
+      if (note) params.push('note=' + encodeURIComponent(note));
+      var url = payUrl + (params.length ? '?' + params.join('&') : '');
+      linkCode.textContent = '<a href="' + url + '">' + brandPay + '</a>';
+    }
+
+    amountEl.addEventListener('input', updateCode);
+    noteEl.addEventListener('input', updateCode);
+
+    // Copy buttons
+    document.getElementById('copy-embed').addEventListener('click', function() {
+      navigator.clipboard.writeText(embedCode.textContent);
+      this.innerHTML = '<i class="ri-check-line me-1"></i>Kopye!';
+      var btn = this;
+      setTimeout(function() { btn.innerHTML = '<i class="ri-file-copy-line me-1"></i>Kopye'; }, 2000);
+    });
+
+    document.getElementById('copy-link').addEventListener('click', function() {
+      navigator.clipboard.writeText(linkCode.textContent);
+      this.innerHTML = '<i class="ri-check-line me-1"></i>Kopye!';
+      var btn = this;
+      setTimeout(function() { btn.innerHTML = '<i class="ri-file-copy-line me-1"></i>Kopye'; }, 2000);
+    });
+  })();
+</script>

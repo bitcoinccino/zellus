@@ -180,9 +180,9 @@
                 </div>
               </div>
 
-              <%# ── Zellustag ── %>
+              <%# ── Zèllustag ── %>
               <div class="mb-3">
-                <label class="small fw-bold text-uppercase mb-1" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">ZELLUSTAG</label>
+                <label class="small fw-bold text-uppercase mb-1" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">ZÈLLUSTAG</label>
                 <div class="input-group">
                   <span class="input-group-text border-0 fw-bold" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 16px;">$</span>
                   <%= f.text_field :cashtag, placeholder: "nonpa", maxlength: 20, autocomplete: "off", id: "user_cashtag",
@@ -268,7 +268,7 @@
                 N'ap konekte ou ak BonID pou verifye identite'w
               </p>
               <div style="font-size: 11px; color: var(--haiti-olive); opacity: 0.7;">
-                <i class="ri-shield-check-fill me-1" style="color: var(--haiti-gold);"></i>Koneksyon sekirize
+                <i class="ri-shield-check-fill me-1" style="color: var(--haiti-gold);"></i>Koneksyon sekirize pa <img src="<%= asset_path('zellus_square.png') %>" style="width: 14px; height: 14px; vertical-align: -2px; border-radius: 3px;" alt="Zèllus"> Zèllus
               </div>
             </div>
             <style>@keyframes bonidSpin { to { transform: rotate(360deg); } }</style>
@@ -316,9 +316,8 @@
 
       <%# ── Col 1: Zèllus ── %>
       <div class="col-lg-3 col-md-6">
-        <div class="d-flex align-items-center gap-2 mb-3">
-          <%= image_tag "Zellus_logo.svg", size: "28x28", alt: "Zèllus" %>
-          <span class="fw-black" style="color: #fff; font-size: 17px; letter-spacing: 1px;">Zèllus</span>
+        <div class="mb-3">
+          <%= image_tag "zellus_square.png", size: "32x32", alt: "Zèllus", style: "border-radius: 8px;" %>
         </div>
         <p style="color: rgba(255,255,255,0.6); font-size: 13px; line-height: 1.6;">
           Libète finansyè ou kòmanse isit la.
@@ -346,30 +345,38 @@
         <h6 class="fw-black text-uppercase mb-3" style="color: var(--haiti-gold); font-size: 11px; letter-spacing: 1.5px;">Pwodui</h6>
         <ul class="list-unstyled" style="font-size: 13px;">
           <li class="mb-2">
+            <%= link_to zellus_info_path, class: "text-decoration-none", style: "color: rgba(255,255,255,0.7);" do %>
+              <i class="ri-send-plane-fill me-1" style="font-size: 12px;"></i>Zèllus Pay
+            <% end %>
+          </li>
+          <li class="mb-2">
+            <%= link_to annye_path, class: "text-decoration-none", style: "color: rgba(255,255,255,0.7);" do %>
+              <i class="ri-store-2-fill me-1" style="font-size: 12px;"></i>Zèllus Biznis
+            <% end %>
+          </li>
+          <li class="mb-2">
+            <%= link_to ajan_info_path, class: "text-decoration-none", style: "color: rgba(255,255,255,0.7);" do %>
+              <i class="ri-user-location-fill me-1" style="font-size: 12px;"></i>Zèllus Ajan
+            <% end %>
+          </li>
+          <%# ── Zèllus Sòl / Bousad / Onèt Byento — re-enable when ready to deploy ── %>
+          <% if false %>
+          <li class="mb-2">
             <%= link_to priosol_info_path, class: "text-decoration-none", style: "color: rgba(255,255,255,0.7);" do %>
-              <i class="ri-group-fill me-1" style="font-size: 12px;"></i>Sòl
+              <i class="ri-loop-right-fill me-1" style="font-size: 12px;"></i>Zèllus Sòl <span class="badge-soon">Byento</span>
             <% end %>
           </li>
           <li class="mb-2">
             <%= link_to priobousad_info_path, class: "text-decoration-none", style: "color: rgba(255,255,255,0.7);" do %>
-              <i class="ri-hand-coin-fill me-1" style="font-size: 12px;"></i>Bousad
+              <i class="ri-hand-coin-fill me-1" style="font-size: 12px;"></i>Zèllus Bousad <span class="badge-soon">Byento</span>
             <% end %>
           </li>
           <li class="mb-2">
             <%= link_to prionet_info_path, class: "text-decoration-none", style: "color: rgba(255,255,255,0.7);" do %>
-              <i class="ri-line-chart-fill me-1" style="font-size: 12px;"></i>Onèt
+              <i class="ri-medal-fill me-1" style="font-size: 12px;"></i>Zèllus Onèt <span class="badge-soon">Byento</span>
             <% end %>
           </li>
-          <li class="mb-2">
-            <%= link_to zellus_info_path, class: "text-decoration-none", style: "color: rgba(255,255,255,0.7);" do %>
-              <i class="ri-flashlight-fill me-1" style="font-size: 12px;"></i>Voye e Resevwa Lajan
-            <% end %>
-          </li>
-          <li class="mb-2">
-            <%= link_to new_business_path, class: "text-decoration-none", style: "color: rgba(255,255,255,0.7);" do %>
-              <i class="ri-store-2-fill me-1" style="font-size: 12px;"></i>Zèllus pou Biznis
-            <% end %>
-          </li>
+          <% end %>
         </ul>
       </div>
 

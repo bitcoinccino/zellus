@@ -3,8 +3,14 @@
   .bb-dark-field::placeholder { color: rgba(255,255,255,0.5) !important; opacity:1; font-weight:400 !important; }
 </style>
 
-<div class="container d-flex justify-content-center align-items-start py-3" style="min-height: 80vh;">
-  <div class="card-base p-4 w-100" style="max-width: 420px;">
+<% wallet = current_user.ensure_wallet! %>
+<% pr_htg_bal = wallet.htg_balance.to_f %>
+<% pr_usdc_bal = wallet.usdc_balance.to_f %>
+
+<% content_for :full_width, true %>
+<div class="d-flex justify-content-center" style="min-height: 80vh; padding-top: 32px;">
+  <div class="w-100 px-3" style="max-width: 560px;">
+    <div class="card-base p-4">
 
     <% if @payment_request.errors.any? %>
       <div class="alert alert-danger rounded-3 mb-3" style="background: #fdf2f2; border: 1px solid #fca5a5; color: #991b1b; font-size: 12px;">
@@ -22,13 +28,13 @@
         <%= form_with(url: set_pin_transfers_path, method: :post, local: true) do |f| %>
           <div class="mb-3">
             <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">PIN (4 chif)</label>
-            <div class="input-group">
-              <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);">
+            <div class="input-group" style="border: 1.5px solid rgba(46,46,56,0.12); border-radius: 12px; overflow: hidden;">
+              <span class="input-group-text border-0" style="background-color: var(--haiti-mint); color: var(--haiti-gold);">
                 <i class="ri-lock-2-line"></i>
               </span>
               <input type="password" name="transfer_pin" class="form-control border-0 fw-bold shadow-none p-3 bb-dark-field text-center"
                      maxlength="4" pattern="\d{4}" inputmode="numeric" placeholder="• • • •" required
-                     style="background-color: var(--haiti-charcoal); color: white; letter-spacing: 10px;">
+                     style="background-color: var(--haiti-mint); color: var(--haiti-charcoal); letter-spacing: 10px;">
             </div>
           </div>
           <%= f.button class: "btn w-100 py-3 fw-bold rounded-4 shadow-sm border-0 d-flex align-items-center justify-content-center gap-2",
@@ -66,37 +72,50 @@
           <% current_asset = @payment_request.asset || 'htg' %>
           <button type="button" id="pr-asset-toggle" onclick="toggleAssetDropdown()"
                   class="d-flex align-items-center justify-content-between w-100 p-3 rounded-3 border-0"
-                  style="background-color: var(--haiti-charcoal); cursor: pointer;">
+                  style="background-color: var(--haiti-mint); border: 1px solid rgba(46,46,56,0.1); cursor: pointer;">
             <div class="d-flex align-items-center gap-2" id="pr-asset-display">
               <%= htg_logo_svg(size: 24) %>
               <div>
-                <span class="fw-bold" style="color: #fff; font-size: 14px;">HTG</span>
-                <span style="color: rgba(255,255,255,0.4); font-size: 11px; margin-left: 4px;">Goud Ayisyen</span>
+                <span class="fw-bold" style="color: var(--haiti-charcoal); font-size: 14px;">HTG</span>
+                <span style="color: var(--haiti-olive); font-size: 11px; margin-left: 4px;">Goud Ayisyen</span>
               </div>
             </div>
             <i class="ri-arrow-down-s-line" style="color: var(--haiti-gold); font-size: 18px;" id="pr-asset-arrow"></i>
           </button>
 
           <%# ── Dropdown list ── %>
-          <div id="pr-asset-dropdown" style="display: none; position: absolute; top: 100%; left: 0; right: 0; z-index: 20; margin-top: 4px; max-height: 320px; overflow-y: auto; border-radius: 12px; background: var(--haiti-charcoal); border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 12px 32px rgba(0,0,0,0.5);">
+          <div id="pr-asset-dropdown" style="display: none; position: absolute; top: 100%; left: 0; right: 0; z-index: 20; margin-top: 4px; max-height: 320px; overflow-y: auto; border-radius: 12px; background: var(--haiti-cream); border: 1px solid rgba(46,46,56,0.1); box-shadow: 0 12px 32px rgba(46,46,56,0.15);">
 
             <%# ── Lajan group (HTG + USD only mode) ── %>
-            <div class="px-3 pt-2 pb-1" style="font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: rgba(255,255,255,0.3);">Lajan</div>
+            <div class="px-3 pt-2 pb-1" style="font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--haiti-olive);">Lajan</div>
             <% [
-              { key: "htg", label: "HTG", sub: "Goud Ayisyen", logo: :htg_logo_svg },
-              { key: "usdc", label: "USD", sub: "Dola Ameriken", logo: :usd_logo }
+              { key: "htg", label: "HTG", sub: "Goud Ayisyen", logo: :htg_logo_svg, bal: pr_htg_bal },
+              { key: "usdc", label: "USD", sub: "Dola Ameriken", logo: :usd_logo, bal: pr_usdc_bal }
             ].each do |a| %>
-              <button type="button" onclick="selectPrAsset('<%= a[:key] %>', this)"
+              <% has_balance = a[:bal] > 0 %>
+              <button type="button" <%= "onclick=selectPrAsset('#{a[:key]}',this)".html_safe if has_balance %>
                       class="d-flex align-items-center gap-2 w-100 px-3 py-2 border-0 pr-asset-item"
                       data-key="<%= a[:key] %>" data-label="<%= a[:label] %>" data-sub="<%= a[:sub] %>"
-                      style="background: transparent; cursor: pointer;"
-                      onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'">
+                      style="background: transparent; cursor: <%= has_balance ? 'pointer' : 'default' %>; <%= 'opacity: 0.35;' unless has_balance %>"
+                      <%= 'disabled' unless has_balance %>
+                      onmouseover="<%= "this.style.background='rgba(255,255,255,0.06)'" if has_balance %>" onmouseout="this.style.background='transparent'">
                 <%= send(a[:logo], size: 24) %>
                 <div class="flex-grow-1 text-start">
-                  <span class="fw-bold" style="color: #fff; font-size: 13px;"><%= a[:label] %></span>
+                  <span class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;"><%= a[:label] %></span>
                   <span style="color: rgba(255,255,255,0.4); font-size: 10px; margin-left: 4px;"><%= a[:sub] %></span>
+                  <div style="font-size: 10px; font-weight: 700; <%= has_balance ? 'color: rgba(255,255,255,0.5);' : 'color: #fca5a5;' %>">
+                    <% if has_balance %>
+                      Balans: <%= a[:key] == "htg" ? number_with_delimiter(a[:bal].to_i) + " HTG" : format('%.2f', a[:bal]) + " USD" %>
+                    <% else %>
+                      Balans vid
+                    <% end %>
+                  </div>
                 </div>
-                <i class="ri-check-line pr-asset-check" style="color: var(--haiti-gold); font-size: 16px; display: <%= current_asset == a[:key] ? 'inline' : 'none' %>;"></i>
+                <% if has_balance %>
+                  <i class="ri-check-line pr-asset-check" style="color: var(--haiti-gold); font-size: 16px; display: <%= current_asset == a[:key] ? 'inline' : 'none' %>;"></i>
+                <% else %>
+                  <i class="ri-lock-line" style="color: rgba(255,255,255,0.2); font-size: 14px;"></i>
+                <% end %>
               </button>
             <% end %>
 
@@ -110,16 +129,16 @@
           <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">
             <i class="ri-money-dollar-circle-line me-1"></i>Konbyen
           </label>
-          <div class="input-group">
-            <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);">
+          <div class="input-group" style="border: 1.5px solid rgba(46,46,56,0.12); border-radius: 12px; overflow: hidden;">
+            <span class="input-group-text border-0" style="background-color: var(--haiti-mint); color: var(--haiti-gold);">
               <i class="ri-money-dollar-circle-line"></i>
             </span>
             <%= f.number_field :amount, step: "0.01", min: "0.01", placeholder: "0.00", id: "pr-amount",
-                class: "form-control border-0 fw-bold shadow-none p-3 bb-dark-field",
-                style: "background-color: var(--haiti-charcoal); color: white; font-size: 20px;",
+                class: "form-control border-0 fw-bold shadow-none p-3",
+                style: "background-color: var(--haiti-mint); color: var(--haiti-charcoal); font-size: 20px;",
                 required: true %>
             <span class="input-group-text border-0 fw-bold" id="pr-currency-suffix"
-                  style="background-color: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 13px;">
+                  style="background-color: var(--haiti-mint); color: var(--haiti-charcoal); font-size: 13px;">
               HTG
             </span>
           </div>
@@ -130,13 +149,13 @@
           <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">
             <i class="ri-user-search-line me-1"></i>Kiyès W'ap Mande
           </label>
-          <div class="input-group">
-            <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);">
+          <div class="input-group" style="border: 1.5px solid rgba(46,46,56,0.12); border-radius: 12px; overflow: hidden;">
+            <span class="input-group-text border-0" style="background-color: var(--haiti-mint); color: var(--haiti-gold);">
               <i class="ri-search-line" id="pr-search-icon"></i>
             </span>
             <%= f.text_field :payer_name, placeholder: "$zellustag...",
-                class: "form-control border-0 fw-bold shadow-none p-3 bb-dark-field",
-                style: "background-color: var(--haiti-charcoal); color: white;",
+                class: "form-control border-0 fw-bold shadow-none p-3",
+                style: "background-color: var(--haiti-mint); color: var(--haiti-charcoal);",
                 id: "pr-payer-input", autocomplete: "off" %>
           </div>
           <div id="pr-search-result" class="mt-1" style="display: none;"></div>
@@ -148,13 +167,13 @@
           <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">
             <i class="ri-price-tag-3-line me-1"></i>Poukisa
           </label>
-          <div class="input-group">
-            <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);">
+          <div class="input-group" style="border: 1.5px solid rgba(46,46,56,0.12); border-radius: 12px; overflow: hidden;">
+            <span class="input-group-text border-0" style="background-color: var(--haiti-mint); color: var(--haiti-gold);">
               <i class="ri-price-tag-3-line"></i>
             </span>
             <%= f.text_field :note, placeholder: "Ou pat peye byè a yè swa", maxlength: 140,
-                class: "form-control border-0 fw-bold shadow-none p-3 bb-dark-field",
-                style: "background-color: var(--haiti-charcoal); color: white;" %>
+                class: "form-control border-0 fw-bold shadow-none p-3",
+                style: "background-color: var(--haiti-mint); color: var(--haiti-charcoal);" %>
           </div>
           <div class="text-end mt-1" style="font-size: 9px; color: var(--haiti-olive);">
             <span id="pr-note-count">0</span>/140
@@ -168,7 +187,7 @@
         <div class="mt-2">
           <button type="button" onclick="openPrPinModal()"
               class="btn w-100 py-3 fw-bold rounded-4 shadow-sm border-0 d-flex align-items-center justify-content-center gap-2"
-              style="background-color: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 14px; letter-spacing: 0.5px;">
+              style="background-color: var(--haiti-gold); color: var(--haiti-charcoal); font-family: 'Space Grotesk', sans-serif; font-size: 14px; font-weight: 800; letter-spacing: 0.5px;">
             <i class="ri-mail-send-fill"></i> Konfime Demann
           </button>
         </div>
@@ -181,6 +200,7 @@
       <% end %>
     </div>
 
+    </div><%# /card-base %>
   </div>
 </div>
 
@@ -189,12 +209,12 @@
 <%# ══════════════════════════════════════════ %>
 <% if current_user.transfer_pin_set? %>
   <div id="pr-pin-modal" style="display:none; position:fixed; inset:0; z-index:1050; background:rgba(0,0,0,0.6); backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); align-items:center; justify-content:center; padding:1rem;">
-    <div class="card-base p-4 w-100 shadow-lg" style="max-width: 420px;">
+    <div class="card-base p-4 w-100 shadow-lg" style="max-width: 560px;">
 
       <div class="text-center mb-3">
         <div class="d-inline-flex align-items-center justify-content-center mb-2 rounded-3"
-          style="width: 48px; height: 48px; background-color: var(--haiti-charcoal);">
-          <i class="ri-lock-2-fill ri-lg" style="color: var(--haiti-gold);"></i>
+          style="width: 48px; height: 48px; background-color: var(--haiti-gold);">
+          <i class="ri-lock-2-fill ri-lg" style="color: var(--haiti-charcoal);"></i>
         </div>
         <h2 class="h6 fw-black mb-0" style="color: var(--haiti-charcoal);">Revize Demann</h2>
       </div>
@@ -218,20 +238,20 @@
       <%# ── PIN Input ── %>
       <div class="mb-3">
         <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">PIN Transfè (4 chif)</label>
-        <div class="input-group">
-          <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);">
+        <div class="input-group" style="border: 1.5px solid rgba(46,46,56,0.12); border-radius: 12px; overflow: hidden;">
+          <span class="input-group-text border-0" style="background-color: var(--haiti-mint); color: var(--haiti-gold);">
             <i class="ri-lock-2-line"></i>
           </span>
           <input type="password" id="pr-pin-modal-input"
                  class="form-control border-0 fw-bold shadow-none p-3 bb-dark-field text-center"
                  maxlength="4" pattern="\d{4}" inputmode="numeric" placeholder="• • • •" autocomplete="off"
-                 style="background-color: var(--haiti-charcoal); color: white; letter-spacing: 12px; font-size: 1.4rem;">
+                 style="background-color: var(--haiti-mint); color: var(--haiti-charcoal); letter-spacing: 12px; font-size: 1.4rem;">
         </div>
       </div>
 
       <button type="button" onclick="submitPrWithPin()" id="pr-submit-btn"
           class="btn w-100 py-3 fw-bold rounded-4 shadow-sm border-0 d-flex align-items-center justify-content-center gap-2"
-          style="background-color: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 14px; letter-spacing: 0.5px;">
+          style="background-color: var(--haiti-gold); color: var(--haiti-charcoal); font-family: 'Space Grotesk', sans-serif; font-size: 14px; font-weight: 800; letter-spacing: 0.5px;">
         <i class="ri-send-plane-fill"></i> Voye Demann
       </button>
 
@@ -300,8 +320,8 @@ function selectPrAsset(key, btnEl) {
   var logoEl = btnEl.querySelector('span');
   var logoHtml = logoEl ? logoEl.outerHTML : '';
   display.innerHTML = logoHtml +
-    '<div><span class="fw-bold" style="color: #fff; font-size: 14px;">' + label + '</span>' +
-    '<span style="color: rgba(255,255,255,0.4); font-size: 11px; margin-left: 4px;">' + sub + '</span></div>';
+    '<div><span class="fw-bold" style="color: var(--haiti-charcoal); font-size: 14px;">' + label + '</span>' +
+    '<span style="color: var(--haiti-olive); font-size: 11px; margin-left: 4px;">' + sub + '</span></div>';
 
   closeAssetDropdown();
 }

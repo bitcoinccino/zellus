@@ -1,0 +1,181 @@
+<div class="container py-4" style="max-width: 480px;">
+  <div class="card-base p-4" style="border: 1px solid rgba(93,99,69,0.12);">
+
+    <%# ── Header ── %>
+    <div class="d-flex align-items-center justify-content-between mb-4">
+      <h1 class="h5 fw-black mb-0" style="color: var(--haiti-charcoal);">
+        <i class="ri-link me-2" style="color: var(--haiti-gold);"></i>Detay Lyen
+      </h1>
+      <%= link_to business_payment_links_path, class: "small text-decoration-none fw-bold", style: "color: var(--haiti-olive);" do %>
+        <i class="ri-arrow-left-line me-1"></i>Retounen
+      <% end %>
+    </div>
+
+    <%# ── Status Badge ── %>
+    <% status_styles = {
+      "active"   => { bg: "rgba(22,101,52,0.08)", color: "#166534", label: "Aktif", icon: "ri-checkbox-circle-fill" },
+      "paid"     => { bg: "rgba(29,78,216,0.08)", color: "#1d4ed8", label: "Peye", icon: "ri-check-double-fill" },
+      "expired"  => { bg: "rgba(153,27,27,0.08)", color: "#991b1b", label: "Ekspire", icon: "ri-time-fill" },
+      "disabled" => { bg: "rgba(107,114,128,0.08)", color: "#6b7280", label: "Dezaktive", icon: "ri-close-circle-fill" }
+    } %>
+    <% s = status_styles[@link.status] || status_styles["active"] %>
+    <div class="text-center mb-4">
+      <span class="badge rounded-pill px-3 py-2" style="background: <%= s[:bg] %>; color: <%= s[:color] %>; font-size: 12px;">
+        <i class="<%= s[:icon] %> me-1"></i><%= s[:label] %>
+      </span>
+    </div>
+
+    <%# ── Amount ── %>
+    <div class="text-center mb-4">
+      <% if @link.amount.present? %>
+        <div class="fw-black" style="font-size: 32px; color: var(--haiti-charcoal);">
+          <%= number_with_delimiter(@link.amount.to_i) %> <span style="font-size: 18px;"><%= currency_label(@link.asset, 18) %></span>
+        </div>
+      <% else %>
+        <div class="fw-bold" style="font-size: 18px; color: var(--haiti-olive);">Montan lib</div>
+      <% end %>
+      <% if @link.single_use? %>
+        <span class="badge rounded-pill mt-1" style="background: rgba(197,160,89,0.15); color: var(--haiti-gold); font-size: 10px;">Yon sèl fwa</span>
+      <% end %>
+      <% if @link.allow_tips? %>
+        <span class="badge rounded-pill mt-1" style="background: rgba(197,160,89,0.15); color: var(--haiti-gold); font-size: 10px;"><i class="ri-heart-line me-1"></i>Tips</span>
+      <% end %>
+    </div>
+
+    <%# ── Items Breakdown ── %>
+    <% if @link.itemized? %>
+      <div class="mb-3 p-3 rounded-3" style="background: rgba(93,99,69,0.06); border: 1px dashed rgba(93,99,69,0.2);">
+        <div class="fw-bold text-uppercase mb-2" style="font-size: 10px; color: var(--haiti-olive); letter-spacing: 0.5px;">
+          <i class="ri-file-list-3-line me-1" style="color: var(--haiti-gold);"></i>Atik (<%= @link.items.size %>)
+        </div>
+        <% @link.items.each do |item| %>
+          <div class="d-flex align-items-center gap-2 py-2" style="border-bottom: 1px solid rgba(0,0,0,0.04); font-size: 12px;">
+            <% if item["image_url"].present? %>
+              <img src="<%= item["image_url"] %>" style="width: 36px; height: 36px; border-radius: 8px; object-fit: cover; flex-shrink: 0;" alt="">
+            <% else %>
+              <div class="d-flex align-items-center justify-content-center" style="width: 36px; height: 36px; border-radius: 8px; background: rgba(93,99,69,0.08); flex-shrink: 0;">
+                <i class="ri-shopping-bag-line" style="font-size: 14px; color: var(--haiti-olive);"></i>
+              </div>
+            <% end %>
+            <div class="flex-grow-1">
+              <span class="fw-bold" style="color: var(--haiti-charcoal);"><%= item["name"] %></span>
+              <span style="color: var(--haiti-olive);"> x<%= item["quantity"] %></span>
+            </div>
+            <span class="fw-bold" style="color: var(--haiti-charcoal); white-space: nowrap;">
+              <%= number_with_delimiter((item["quantity"].to_i * item["unit_price"].to_f).round(2)) %> <%= currency_label(@link.asset) %>
+            </span>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+
+    <%# ── Note ── %>
+    <% if @link.note.present? %>
+      <div class="mb-3 p-3 rounded-3" style="background: rgba(93,99,69,0.04);">
+        <div class="fw-bold mb-1" style="font-size: 10px; color: var(--haiti-olive); text-transform: uppercase; letter-spacing: 0.5px;">
+          <i class="ri-sticky-note-line me-1"></i>Nòt
+        </div>
+        <div style="font-size: 13px; color: var(--haiti-charcoal);"><%= @link.note %></div>
+      </div>
+    <% end %>
+
+    <%# ── Meta Info ── %>
+    <div class="mb-4 p-3 rounded-3" style="background: rgba(93,99,69,0.04);">
+      <div class="d-flex justify-content-between mb-2" style="font-size: 12px;">
+        <span style="color: var(--haiti-olive);">Kreye</span>
+        <span class="fw-bold" style="color: var(--haiti-charcoal);"><%= @link.created_at.strftime("%d %b %Y, %H:%M") %></span>
+      </div>
+      <div class="d-flex justify-content-between mb-2" style="font-size: 12px;">
+        <span style="color: var(--haiti-olive);">Pèman resevwa</span>
+        <span class="fw-bold" style="color: var(--haiti-charcoal);"><%= @link.times_paid %></span>
+      </div>
+      <% if @link.expires_at.present? %>
+        <div class="d-flex justify-content-between mb-2" style="font-size: 12px;">
+          <span style="color: var(--haiti-olive);">Ekspirasyon</span>
+          <span class="fw-bold" style="color: <%= @link.expired_now? ? '#991b1b' : 'var(--haiti-charcoal)' %>;">
+            <%= @link.expires_at.strftime("%d %b %Y, %H:%M") %>
+            <%= @link.expired_now? ? "(ekspire)" : "" %>
+          </span>
+        </div>
+      <% end %>
+      <div class="d-flex justify-content-between" style="font-size: 12px;">
+        <span style="color: var(--haiti-olive);">Token</span>
+        <span class="fw-bold" style="color: var(--haiti-olive); font-size: 11px; font-family: monospace;"><%= @link.token %></span>
+      </div>
+    </div>
+
+    <%# ── Shareable Link ── %>
+    <% if @link.active? %>
+      <div class="mb-3 p-3 rounded-3" style="background: rgba(197,160,89,0.06); border: 1px solid rgba(197,160,89,0.15);">
+        <div class="fw-bold mb-2" style="font-size: 10px; color: var(--haiti-olive); text-transform: uppercase; letter-spacing: 0.5px;">
+          <i class="ri-share-line me-1" style="color: var(--haiti-gold);"></i>Lyen pou pataje
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <input type="text" readonly value="<%= public_payment_link_url(@link.token) %>" id="share-url-input"
+                 class="form-control" style="font-size: 11px; border: 1px solid rgba(93,99,69,0.15); border-radius: 8px; background: white; padding: 6px 10px;">
+          <button type="button" id="copy-url-btn" onclick="copyShareUrl()"
+                  class="btn btn-sm px-3 rounded-pill" style="background: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 11px; font-weight: 700; white-space: nowrap;">
+            <i class="ri-file-copy-line me-1"></i>Kopye
+          </button>
+        </div>
+      </div>
+
+      <%# ── QR Code ── %>
+      <div class="rounded-3 p-3 mb-3 text-center" style="background: rgba(93,99,69,0.04); border: 1px solid rgba(93,99,69,0.1);">
+        <div class="fw-bold mb-2" style="color: var(--haiti-charcoal); font-size: 13px;">
+          <i class="ri-qr-code-line me-1" style="color: var(--haiti-gold);"></i>Eskane pou Peye
+        </div>
+        <div class="d-inline-block p-3 rounded-3 mb-2 position-relative" style="background: white; border: 2px solid var(--haiti-gold);">
+          <%= qr_svg(public_payment_link_url(@link.token)) %>
+          <div class="position-absolute top-50 start-50 translate-middle d-flex align-items-center justify-content-center rounded-circle"
+               style="width: 36px; height: 36px; background: white; box-shadow: 0 0 0 2px var(--haiti-gold);">
+            <% if @business.logo.attached? %>
+              <%= image_tag @business.logo, style: "width: 30px; height: 30px; border-radius: 50%; object-fit: cover;" %>
+            <% else %>
+              <i class="<%= @business.category_icon %>" style="font-size: 16px; color: var(--haiti-gold);"></i>
+            <% end %>
+          </div>
+        </div>
+      </div>
+
+      <%# ── Action Buttons ── %>
+      <div class="d-flex gap-2 mb-3">
+        <a href="https://wa.me/?text=<%= ERB::Util.url_encode("Peye mwen sou Zèllus: " + public_payment_link_url(@link.token)) %>"
+           target="_blank" rel="noopener" class="btn flex-grow-1 rounded-pill py-2"
+           style="background: #25d366; color: white; font-size: 12px; font-weight: 700;">
+          <i class="ri-whatsapp-line me-1"></i>WhatsApp
+        </a>
+        <%= link_to edit_business_payment_link_path(@link), class: "btn flex-grow-1 rounded-pill py-2",
+            style: "background: rgba(93,99,69,0.08); color: var(--haiti-charcoal); font-size: 12px; font-weight: 700; border: 1px solid rgba(93,99,69,0.15);" do %>
+          <i class="ri-pencil-line me-1"></i>Modifye
+        <% end %>
+      </div>
+    <% end %>
+
+    <%# ── Disable Button ── %>
+    <% if @link.active? %>
+      <%= button_to business_payment_link_path(@link), method: :delete,
+            class: "btn w-100 rounded-pill py-2",
+            style: "background: rgba(153,27,27,0.06); color: #991b1b; font-size: 12px; font-weight: 700; border: 1px solid rgba(153,27,27,0.12);",
+            data: { turbo_confirm: "Dezaktive lyen sa a?" } do %>
+        <i class="ri-delete-bin-line me-1"></i>Dezaktive lyen sa a
+      <% end %>
+    <% end %>
+
+  </div>
+</div>
+
+<script>
+function copyShareUrl() {
+  var input = document.getElementById('share-url-input');
+  var btn = document.getElementById('copy-url-btn');
+  navigator.clipboard.writeText(input.value).then(function() {
+    btn.innerHTML = '<i class="ri-check-line me-1"></i>Kopye!';
+    btn.style.background = '#166534';
+    setTimeout(function() {
+      btn.innerHTML = '<i class="ri-file-copy-line me-1"></i>Kopye';
+      btn.style.background = 'var(--haiti-charcoal)';
+    }, 2000);
+  });
+}
+</script>

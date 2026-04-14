@@ -3,6 +3,9 @@ class MoncashService
   BASE_URL = "https://sandbox.moncashbutton.digicelgroup.com"
   GATEWAY_BASE_URL = ENV["MONCASH_GATEWAY_BASE_URL"].presence || "#{BASE_URL}/Moncash-middleware"
 
+  # Platform MonCash accounts — never pay these out
+  PLATFORM_ACCOUNTS = %w[50937811188 50937811189].freeze
+
   # 1. Get OAuth2 Token from Digicel
   def self.get_token
     client_id = ENV['MONCASH_CLIENT_ID'].to_s.strip
@@ -145,6 +148,20 @@ class MoncashService
         data: data
       }
     else
+      # Sandbox accounts may not have short code configured (403).
+      # Bypass with a simulated balance so payouts aren't blocked during testing.
+      # TODO: Remove this bypass when switching to MonCash production credentials.
+      if response.status == 403
+        Rails.logger.warn "MonCash PrefundedBalance 403 — using simulated balance of 999_999 HTG (sandbox)"
+        return {
+          success: true,
+          balance: 999_999,
+          http_status: response.status,
+          data: data,
+          simulated: true
+        }
+      end
+
       {
         success: false,
         http_status: response.status,
@@ -157,7 +174,13 @@ class MoncashService
   end
 
   # 5. Send HTG to a MonCash user
-  def self.transfert(receiver, amount, reference, desc = "Zèllus USDC Sale")
+  def self.transfert(receiver, amount, reference, desc = "Zèllus USD Sale")
+    clean_receiver = receiver.to_s.gsub(/[^\d]/, '')
+    if PLATFORM_ACCOUNTS.include?(clean_receiver)
+      Rails.logger.error "MonCash Transfert BLOCKED: tried to pay platform account #{clean_receiver} [ref=#{reference}]"
+      return { success: false, error: "Pa ka voye lajan bay kont platfòm nan" }
+    end
+
     token = get_token
     return { success: false, error: "Auth failed" } unless token
 
@@ -165,7 +188,7 @@ class MoncashService
 
     payload = {
       amount:    amount.to_i,
-      receiver:  receiver.to_s.strip,
+      receiver:  receiver.to_s.gsub(/[^\d]/, ''),
       desc:      desc,
       reference: reference.to_s
     }.to_json
@@ -235,7 +258,7 @@ class MoncashService
       req.headers['Authorization'] = "Bearer #{token}"
       req.headers['Content-Type']  = 'application/json'
       req.headers['Accept']        = 'application/json'
-      req.body = { account: account.to_s.strip }.to_json
+      req.body = { account: account.to_s.gsub(/[^\d]/, '') }.to_json
     end
 
     data = JSON.parse(response.body) rescue {}

@@ -1,6 +1,6 @@
 <div style="margin-bottom:20px;">
-  <div style="font-size:15px; font-weight:800; color:#2E2E38; margin-bottom:6px;">Lajan Ou Depoze ✓</div>
-  <div style="font-size:13px; color:#5D6345;">Transfè #<%= @transfer.id %> — <%= @transfer.created_at.strftime("%b %d, %Y %l:%M %p").strip %></div>
+  <div style="font-size:15px; font-weight:800; color:#2E2E38; margin-bottom:6px;">Ou Peye <%= @receiver_display %> ~ <%= @amount_display %></div>
+  <div style="font-size:13px; color:#5D6345;">Transfè #<%= @transfer.token %> — <%= @transfer.created_at.strftime("%b %d, %Y %l:%M %p").strip %></div>
 </div>
 
 <div style="background:#E8EDE0; border:2px solid #5D6345; border-radius:14px; padding:16px; margin-bottom:16px;">
@@ -19,20 +19,10 @@
       <td colspan="2" style="border-top:1px dashed #5D6345; padding-top:10px;"></td>
     </tr>
     <tr>
-      <td style="color:#2E2E38; font-size:13px; font-weight:900; text-transform:uppercase;">Moun Nan Ap Resevwa</td>
+      <td style="color:#2E2E38; font-size:13px; font-weight:900; text-transform:uppercase;">Moun ou peye ya:<br><span style="font-size:10px; font-weight:400; color:#5D6345; text-transform:none;"><%= @receiver_type %></span></td>
       <td style="color:#C5A059; font-size:18px; font-weight:900; text-align:right;"><%= @net_display %></td>
     </tr>
   </table>
-</div>
-
-<div style="background:#fff; border:1px solid #d9d6c4; border-radius:12px; padding:12px; margin-bottom:16px;">
-  <div style="color:#5D6345; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-bottom:6px;">Resevè</div>
-  <div style="color:#2E2E38; font-size:13px; font-weight:600;">
-    <%= @transfer.receiver_name.presence || @receiver_display %>
-  </div>
-  <% if @transfer.receiver_name.present? && @receiver_display != "—" %>
-    <div style="color:#5D6345; font-size:11px; margin-top:2px;"><%= @receiver_display %></div>
-  <% end %>
 </div>
 
 <% if @is_usdc_wallet %>

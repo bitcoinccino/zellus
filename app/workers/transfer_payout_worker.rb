@@ -7,7 +7,7 @@ class TransferPayoutWorker
 
   # Base Mainnet
   CHAIN_ID     = 8453
-  USDC_ADDRESS = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
+  USD_ADDRESS = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
   WBTC_ADDRESS = ENV.fetch("WBTC_CONTRACT_ADDRESS", "0x236aa50979D5f3De3Bd1Eeb40E81137F22ab794b")
   TRANSFER_SELECTOR = "a9059cbb"
 
@@ -17,6 +17,20 @@ class TransferPayoutWorker
     # Only process funded or claimed transfers
     return unless transfer.funded? || transfer.claimed?
 
+    # Acquire DB lock to prevent duplicate payouts from concurrent retries
+    transfer.with_lock do
+      # Re-check status under lock — another worker may have completed it
+      transfer.reload
+      return unless transfer.funded? || transfer.claimed?
+
+      dispatch_payout(transfer)
+    end
+  end
+
+  private
+
+  def dispatch_payout(transfer)
+
     # Bank transfers are admin-processed — skip automatic payout
     if transfer.bank_transfer?
       Rails.logger.info "TransferPayout: bank transfer=#{transfer.id} skipped (admin-processed)"
@@ -25,8 +39,8 @@ class TransferPayoutWorker
 
     if transfer.htg_transfer?
       process_htg_payout(transfer)
-    elsif transfer.usdc_wallet_transfer?
-      process_usdc_wallet_payout(transfer)
+    elsif transfer.usd_wallet_transfer?
+      process_usd_wallet_payout(transfer)
     elsif transfer.stock_wallet_transfer?
       process_stock_wallet_payout(transfer)
     else
@@ -34,16 +48,16 @@ class TransferPayoutWorker
     end
 
   rescue => e
-    Rails.logger.error "TransferPayout error [transfer=#{transfer_id}]: #{e.message}"
+    Rails.logger.error "TransferPayout error [transfer=#{transfer.id}]: #{e.message}"
     begin
-      transfer&.update!(status: :failed, failure_reason: e.message) if transfer && !transfer.completed?
-    rescue
-      nil
+      if transfer && !transfer.completed?
+        mark_failed_and_refund!(transfer, e.message)
+      end
+    rescue => refund_err
+      Rails.logger.error "TransferPayout: refund also failed [transfer=#{transfer.id}]: #{refund_err.message}"
     end
     raise
   end
-
-  private
 
   # ── HTG: MonCash Payout ──────────────────────────────────────────────────
 
@@ -69,8 +83,15 @@ class TransferPayoutWorker
         Rails.logger.info "TransferPayout: #{transfer.net_amount} HTG credited to wallet of user=#{receiver_user.id} [transfer=#{transfer.id}]"
         return
       rescue => e
+        # If receiver was found by cashtag, don't fall through to MonCash —
+        # MonCash phone on the transfer is likely the sender's, not the receiver's.
+        if transfer.receiver_cashtag.present?
+          mark_failed_and_refund!(transfer, "Pa ka kredite pòtfèy #{transfer.receiver_cashtag}: #{e.message}")
+          Rails.logger.error "TransferPayout: wallet credit failed for cashtag user=#{receiver_user.id}, NOT falling to MonCash [transfer=#{transfer.id}]: #{e.message}"
+          return
+        end
         Rails.logger.warn "TransferPayout: wallet credit failed for user=#{receiver_user.id}, falling back to MonCash [transfer=#{transfer.id}]: #{e.message}"
-        # Fall through to MonCash payout
+        # Fall through to MonCash payout only for phone-based transfers
       end
     end
 
@@ -79,6 +100,27 @@ class TransferPayoutWorker
     # Need receiver phone to send MonCash
     if transfer.receiver_phone.blank?
       Rails.logger.info "TransferPayout: transfer=#{transfer.id} waiting for receiver to claim (no phone)"
+      return
+    end
+
+    # Pre-check: verify MonCash treasury has enough HTG
+    begin
+      prefunded = MoncashService.prefunded_balance_info
+      if prefunded[:success]
+        treasury_bal = prefunded[:balance].to_f
+        if treasury_bal < transfer.net_amount.to_f
+          mark_failed_and_refund!(transfer, "Trezò MonCash pa gen ase likidite (#{treasury_bal.to_i} HTG disponib, bezwen #{transfer.net_amount.to_i} HTG)")
+          Rails.logger.error "TransferPayout: treasury insufficient [transfer=#{transfer.id}]: #{treasury_bal} < #{transfer.net_amount}"
+          return
+        end
+      else
+        mark_failed_and_refund!(transfer, "Pa ka verifye trezò MonCash: #{prefunded[:error]}")
+        Rails.logger.error "TransferPayout: treasury check failed [transfer=#{transfer.id}]: #{prefunded[:error]}"
+        return
+      end
+    rescue => e
+      mark_failed_and_refund!(transfer, "Erè trezò MonCash: #{e.message}")
+      Rails.logger.error "TransferPayout: treasury check error [transfer=#{transfer.id}]: #{e.message}"
       return
     end
 
@@ -177,22 +219,24 @@ class TransferPayoutWorker
 
   # ── Mark transfer failed and refund sender's wallet if wallet-funded ──
   def mark_failed_and_refund!(transfer, reason)
-    transfer.update!(status: :failed, failure_reason: reason)
+    # Use update_columns to bypass model validations — the transfer may
+    # have invalid data (e.g. missing wallet address) that blocks update!
+    transfer.update_columns(status: "failed", failure_reason: reason.to_s.truncate(500))
     notify_sender_failed(transfer)
 
     if transfer.wallet_funded?
       begin
         sender_wallet = transfer.user.wallet
         if sender_wallet
-          if transfer.usdc_wallet_transfer? || transfer.usdc_address_transfer?
-            usdc_amount = transfer.crypto_amount || transfer.net_amount
+          if transfer.usd_wallet_transfer? || transfer.usd_address_transfer?
+            usd_amount = transfer.crypto_amount || transfer.net_amount
             WalletService.new(sender_wallet).refund!(
-              amount: usdc_amount,
-              asset: "usdc",
+              amount: usd_amount,
+              asset: "usd",
               reference: transfer,
-              reason: "Transfè USDC echwe — ranbousman otomatik"
+              reason: "Transfè USD echwe — ranbousman otomatik"
             )
-            Rails.logger.info "TransferPayout: refunded #{usdc_amount} USDC to sender wallet [transfer=#{transfer.id}]"
+            Rails.logger.info "TransferPayout: refunded #{usd_amount} USD to sender wallet [transfer=#{transfer.id}]"
           elsif transfer.stock_wallet_transfer?
             stock_asset  = transfer.asset.to_s
             stock_amount = transfer.crypto_amount || transfer.net_amount
@@ -218,26 +262,26 @@ class TransferPayoutWorker
     end
   end
 
-  # ── USDC Wallet-to-Wallet (via $zellustag) ───────────────────────────────
+  # ── USD Wallet-to-Wallet (via $zellustag) ───────────────────────────────
 
-  def process_usdc_wallet_payout(transfer)
+  def process_usd_wallet_payout(transfer)
     receiver_user = find_receiver_user(transfer)
 
     unless receiver_user.present?
       mark_failed_and_refund!(transfer, "Resevè $#{transfer.receiver_cashtag} pa jwenn")
-      Rails.logger.error "TransferPayout: USDC wallet receiver not found [transfer=#{transfer.id}]"
+      Rails.logger.error "TransferPayout: USD wallet receiver not found [transfer=#{transfer.id}]"
       return
     end
 
     begin
       receiver_wallet = receiver_user.ensure_wallet!
-      usdc_amount = transfer.crypto_amount || transfer.net_amount
+      usd_amount = transfer.crypto_amount || transfer.net_amount
 
       WalletService.new(receiver_wallet).transfer_in!(
-        amount: usdc_amount,
+        amount: usd_amount,
         transfer: transfer,
         sender_user: transfer.user,
-        asset: "usdc"
+        asset: "usd"
       )
 
       transfer.update!(
@@ -250,10 +294,10 @@ class TransferPayoutWorker
       notify_receiver_completed(transfer)
       award_invite_points_if_first!(receiver_user, transfer)
 
-      Rails.logger.info "TransferPayout: #{usdc_amount} USDC credited to wallet of user=#{receiver_user.id} [transfer=#{transfer.id}]"
+      Rails.logger.info "TransferPayout: #{usd_amount} USD credited to wallet of user=#{receiver_user.id} [transfer=#{transfer.id}]"
     rescue => e
-      Rails.logger.error "TransferPayout: USDC wallet credit failed [transfer=#{transfer.id}]: #{e.message}"
-      mark_failed_and_refund!(transfer, "Echèk kredi pòtfèy USDC: #{e.message}")
+      Rails.logger.error "TransferPayout: USD wallet credit failed [transfer=#{transfer.id}]: #{e.message}"
+      mark_failed_and_refund!(transfer, "Echèk kredi pòtfèy USD: #{e.message}")
     end
   end
 
@@ -297,9 +341,79 @@ class TransferPayoutWorker
     end
   end
 
-  # ── Crypto: Send USDC/ETH/WBTC from Treasury ────────────────────────────
+  # ── Crypto: Send USD/ETH/WBTC ──────────────────────────────────────────
+  #
+  # Routes through Circle when available, falls back to self-hosted treasury.
+  # Circle internal transfers (wallet→wallet) are instant and gas-free.
 
   def process_crypto_payout(transfer)
+    if CryptoProvider.circle? && transfer.asset.to_s == "usd"
+      process_crypto_payout_circle(transfer)
+    else
+      process_crypto_payout_self_hosted(transfer)
+    end
+  end
+
+  def process_crypto_payout_circle(transfer)
+    sender = transfer.user
+    unless sender.circle_wallet_id.present?
+      Rails.logger.info "TransferPayout: sender user=#{sender.id} has no Circle wallet, falling back to self-hosted [transfer=#{transfer.id}]"
+      return process_crypto_payout_self_hosted(transfer)
+    end
+
+    amount = transfer.crypto_amount || transfer.net_amount
+    unless amount.present? && amount > 0
+      transfer.update!(status: :failed, failure_reason: "Pa gen montan kripto")
+      notify_sender_failed(transfer)
+      return
+    end
+
+    idempotency_key = "transfer-#{transfer.id}"
+
+    # Speed hack: if receiver also has a Circle wallet, use internal transfer
+    # (instant, zero gas, no blockchain hit)
+    receiver_user = find_receiver_user(transfer)
+    if receiver_user&.circle_wallet_id.present?
+      result = CircleService.internal_transfer(
+        from_wallet_id:  sender.circle_wallet_id,
+        to_wallet_id:    receiver_user.circle_wallet_id,
+        amount:          amount,
+        idempotency_key: idempotency_key
+      )
+    else
+      # External send — must have a valid address
+      begin
+        EthAddressValidator.validate!(transfer.receiver_wallet_address)
+      rescue EthAddressValidator::InvalidAddressError => e
+        transfer.update!(status: :failed, failure_reason: e.message)
+        notify_sender_failed(transfer)
+        return
+      end
+
+      result = CircleService.send_usd(
+        from_wallet_id:  sender.circle_wallet_id,
+        to_address:      transfer.receiver_wallet_address,
+        amount:          amount,
+        idempotency_key: idempotency_key
+      )
+    end
+
+    if result[:success]
+      transfer.update!(
+        status: :sent,
+        blockchain_tx_hash: result[:transaction_id]
+      )
+      Rails.logger.info "TransferPayout: Circle USD send ok [transfer=#{transfer.id}] tx=#{result[:transaction_id]}"
+      TransferConfirmationWorker.perform_in(15.seconds, transfer.id)
+    else
+      Rails.logger.error "TransferPayout: Circle send failed [transfer=#{transfer.id}]: #{result[:error]}"
+      # Fall back to self-hosted on Circle failure
+      Rails.logger.info "TransferPayout: falling back to self-hosted [transfer=#{transfer.id}]"
+      process_crypto_payout_self_hosted(transfer)
+    end
+  end
+
+  def process_crypto_payout_self_hosted(transfer)
     require 'digest/keccak'
     require 'openssl'
 
@@ -344,9 +458,9 @@ class TransferPayoutWorker
       else
         amount_units = (transfer.crypto_amount * 10**6).to_i
         calldata     = build_transfer_calldata(transfer.receiver_wallet_address, amount_units)
-        gas_limit    = estimate_gas(rpc_url, sender, USDC_ADDRESS, calldata)
+        gas_limit    = estimate_gas(rpc_url, sender, USD_ADDRESS, calldata)
         raw_tx = build_and_sign_tx(nonce: nonce, gas_price: gas_price, gas_limit: gas_limit,
-                                    to: USDC_ADDRESS, data: calldata, key: key)
+                                    to: USD_ADDRESS, data: calldata, key: key)
       end
 
       Rails.logger.info "TransferPayout: signing #{asset.upcase} tx [transfer=#{transfer.id}]"
@@ -543,13 +657,18 @@ class TransferPayoutWorker
   def notify_sender_completed(transfer)
     TransferMailer.with(transfer_id: transfer.id).sender_completed.deliver_later
     NotificationService.transfer_completed(transfer)
+    WebhookService.dispatch("transfer.completed", user: transfer.user, payload: webhook_transfer_payload(transfer))
   rescue => e
     Rails.logger.error "Transfer sender_completed notification failed [transfer=#{transfer.id}]: #{e.message}"
   end
 
   def notify_receiver_completed(transfer)
-    # In-app notification works even without email
+    # Play sound HERE — this runs when funds actually land in the wallet.
+    # The controller's earlier broadcast was a silent preview (play_sound: false).
     NotificationService.transfer_received(transfer)
+
+    receiver_user = find_receiver_user(transfer)
+    WebhookService.dispatch("transfer.received", user: receiver_user, payload: webhook_transfer_payload(transfer)) if receiver_user
 
     return if transfer.receiver_email.blank?
     TransferMailer.with(transfer_id: transfer.id).receiver_completed.deliver_later
@@ -560,7 +679,21 @@ class TransferPayoutWorker
   def notify_sender_failed(transfer)
     TransferMailer.with(transfer_id: transfer.id).sender_failed.deliver_later
     NotificationService.transfer_failed(transfer)
+    WebhookService.dispatch("transfer.failed", user: transfer.user, payload: webhook_transfer_payload(transfer))
   rescue => e
     Rails.logger.error "Transfer sender_failed notification failed [transfer=#{transfer.id}]: #{e.message}"
+  end
+
+  def webhook_transfer_payload(transfer)
+    {
+      token: transfer.token,
+      status: transfer.status,
+      amount: transfer.amount.to_s,
+      fee: transfer.fee.to_s,
+      net_amount: transfer.net_amount.to_s,
+      asset: transfer.asset,
+      receiver: transfer.receiver_display,
+      created_at: transfer.created_at.iso8601
+    }
   end
 end

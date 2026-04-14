@@ -4,11 +4,19 @@ class PaymentRequest < ApplicationRecord
   belongs_to :payment_method, optional: true
   belongs_to :sol_round, optional: true
 
-  enum :status, { active: "active", paid: "paid", expired: "expired", canceled: "canceled" }
-  enum :asset, { htg: "htg", usdc: "usdc", eth: "eth", wbtc: "wbtc", tslax: "tslax", nvdax: "nvdax", aaplx: "aaplx", coinx: "coinx", googlx: "googlx" }
+  enum :status, { active: "active", paid: "paid", expired: "expired", canceled: "canceled", declined: "declined" }
+  enum :asset, { htg: "htg", usd: "usd", eth: "eth", wbtc: "wbtc", tslax: "tslax", nvdax: "nvdax", aaplx: "aaplx", coinx: "coinx", googlx: "googlx" }
 
   before_validation :ensure_token
   after_update :fulfill_sol_contribution, if: -> { saved_change_to_status? && paid? && sol_round_id.present? }
+
+  def to_param
+    token
+  end
+
+  def asset_label
+    asset.to_s == "usd" ? "USD" : asset.to_s.upcase
+  end
 
   validates :token, presence: true, uniqueness: true
   validates :asset, presence: true
@@ -104,7 +112,7 @@ class PaymentRequest < ApplicationRecord
     round = sol_round
     circle = round.sol_circle
 
-    # Only create one contribution per user per round (they may pay HTG or USDC — first one wins)
+    # Only create one contribution per user per round (they may pay HTG or USD — first one wins)
     return if round.sol_contributions.exists?(user_id: user_id)
 
     SolContribution.create!(
@@ -122,7 +130,7 @@ class PaymentRequest < ApplicationRecord
       reference: self
     )
 
-    # Cancel the other payment option (if they paid HTG, cancel USDC and vice versa)
+    # Cancel the other payment option (if they paid HTG, cancel USD and vice versa)
     PaymentRequest.where(sol_round: round, user_id: user_id, status: :active)
                   .where.not(id: id)
                   .update_all(status: "canceled")

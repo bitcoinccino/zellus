@@ -1,0 +1,252 @@
+<%# ── Back link ── %>
+<div class="mb-4">
+  <%= link_to admin_activity_path(type: params[:back_type], q: params[:back_q], date: params[:back_date]),
+      class: "text-decoration-none d-inline-flex align-items-center gap-1",
+      style: "color: var(--haiti-olive); font-size: 12px; font-weight: 600;" do %>
+    <i class="ri-arrow-left-s-line" style="font-size: 16px;"></i>Retounen nan Aktivite
+  <% end %>
+</div>
+
+<% record = @item.record %>
+<% user = @item.user %>
+
+<div class="row g-4">
+  <%# ── Left: Detail Card ── %>
+  <div class="col-lg-7">
+    <div class="card-base p-4">
+      <%# Header with type + status %>
+      <div class="d-flex align-items-center justify-content-between mb-4">
+        <div class="d-flex align-items-center gap-2">
+          <span class="badge rounded-pill fw-bold" style="background: <%= @item.type_bg %>; color: <%= @item.type_color %>; font-size: 11px; padding: 5px 12px;">
+            <i class="<%= @item.type_icon %> me-1"></i><%= @item.type_label %>
+          </span>
+          <span class="badge rounded-pill fw-bold" style="background: <%= @item.status_bg %>; color: <%= @item.status_color %>; font-size: 11px; padding: 5px 12px;">
+            <i class="<%= @item.status_icon %> me-1"></i><%= @item.status_label %>
+          </span>
+        </div>
+        <span style="color: var(--haiti-olive); font-size: 11px;">
+          <i class="ri-time-line me-1"></i><%= @item.created_at.strftime("%d/%m/%Y %H:%M:%S") %>
+        </span>
+      </div>
+
+      <%# Amount hero %>
+      <div class="text-center mb-4 py-3 rounded-3" style="background: rgba(93,99,69,0.04); border: 1px solid rgba(93,99,69,0.1);">
+        <div class="fw-black" style="color: var(--haiti-charcoal); font-family: 'Space Grotesk', sans-serif; font-size: 32px;">
+          <%= number_to_currency(@item.amount_htg, unit: "", precision: 2) %> <span style="font-size: 16px; font-weight: 500;">HTG</span>
+        </div>
+        <div style="color: var(--haiti-olive); font-size: 14px; font-weight: 600;">
+          ≈ $<%= number_to_currency(@item.amount_usd, unit: "", precision: 2) %> USD
+        </div>
+      </div>
+
+      <%# Detail rows %>
+      <div class="mb-0">
+        <% detail_rows = [] %>
+
+        <% if @item.reference.present? %>
+          <% detail_rows << { label: "Referans", value: @item.reference } %>
+        <% end %>
+
+        <%# Transaction-specific details %>
+        <% if @item.activity_type == "transaction" %>
+          <% detail_rows << { label: "Tip Tranzaksyon", value: @item.type_label } %>
+          <% if record.crypto_currency.present? %>
+            <% detail_rows << { label: "Kripto", value: "#{record.crypto_amount} #{record.crypto_currency.upcase}" } %>
+          <% end %>
+          <% if record.fee_amount.present? && record.fee_amount > 0 %>
+            <% detail_rows << { label: "Frè", value: "#{number_to_currency(record.fee_amount, unit: '', precision: 2)} HTG" } %>
+          <% end %>
+          <% if record.blockchain_tx_hash.present? %>
+            <% detail_rows << { label: "Blockchain TX", value: record.blockchain_tx_hash.truncate(24), link: basescan_tx_url(record.blockchain_tx_hash) } %>
+          <% end %>
+          <% if record.loan_request? %>
+            <% detail_rows << { label: "Rezon Prè", value: record.loan_purpose_label } if record.loan_purpose.present? %>
+            <% detail_rows << { label: "Dire", value: record.repayment_term_label } if record.repayment_term_weeks.present? %>
+            <% detail_rows << { label: "Total Ranbousman", value: "#{number_to_currency(record.loan_total_repayable, unit: '', precision: 0)} HTG" } if record.loan_total_repayable.present? %>
+            <% detail_rows << { label: "Garanti", value: record.collateral_description } if record.collateral_description.present? %>
+            <% detail_rows << { label: "Dat Limit", value: record.loan_due_date&.strftime("%d/%m/%Y") } if record.loan_due_date.present? %>
+          <% end %>
+          <% if record.failure_reason.present? %>
+            <% detail_rows << { label: "Rezon Echèk", value: record.friendly_failure_reason, danger: true } %>
+          <% end %>
+
+        <%# Transfer-specific details %>
+        <% elsif @item.activity_type == "transfer" %>
+          <% detail_rows << { label: "Resevè", value: record.receiver_display } %>
+          <% detail_rows << { label: "Aktif", value: record.asset_label } %>
+          <% if record.fee.present? && record.fee > 0 %>
+            <% detail_rows << { label: "Frè", value: "#{number_to_currency(record.fee, unit: '', precision: 2)} HTG" } %>
+          <% end %>
+          <% detail_rows << { label: "Nòt", value: record.note } if record.note.present? %>
+          <% if record.respond_to?(:confirmation_code) && record.confirmation_code.present? %>
+            <% detail_rows << { label: "Kòd Konfimasyon", value: record.confirmation_code } %>
+          <% end %>
+          <% detail_rows << { label: "Ekspire", value: record.expires_at&.strftime("%d/%m/%Y %H:%M") } if record.expires_at.present? %>
+
+        <%# Bank Withdrawal-specific details %>
+        <% elsif @item.activity_type == "bank_withdrawal" %>
+          <% detail_rows << { label: "Bank", value: record.bank_name } %>
+          <% detail_rows << { label: "Kont", value: record.masked_account } %>
+          <% if record.respond_to?(:reference_number) && record.reference_number.present? %>
+            <% detail_rows << { label: "Ref#", value: record.reference_number } %>
+          <% end %>
+          <% if record.respond_to?(:admin_note) && record.admin_note.present? %>
+            <% detail_rows << { label: "Nòt Admin", value: record.admin_note, danger: true } %>
+          <% end %>
+        <% end %>
+
+        <% detail_rows.each do |row| %>
+          <div class="d-flex align-items-center justify-content-between py-2" style="border-bottom: 1px solid rgba(93,99,69,0.08);">
+            <span style="color: var(--haiti-olive); font-size: 11px; font-weight: 600;"><%= row[:label] %></span>
+            <% if row[:link] %>
+              <a href="<%= row[:link] %>" target="_blank" class="fw-bold text-decoration-none" style="color: #1d4ed8; font-size: 12px;">
+                <%= row[:value] %> <i class="ri-external-link-line ms-1" style="font-size: 10px;"></i>
+              </a>
+            <% elsif row[:danger] %>
+              <span class="fw-bold" style="color: #D21034; font-size: 12px;"><%= row[:value] %></span>
+            <% else %>
+              <span class="fw-bold" style="color: var(--haiti-charcoal); font-size: 12px;"><%= row[:value] %></span>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <%# ── Right: User Card + Actions ── %>
+  <div class="col-lg-5">
+    <%# User Info %>
+    <div class="card-base p-4 mb-3">
+      <h3 class="h6 fw-black mb-3" style="color: var(--haiti-charcoal);">
+        <i class="ri-user-line me-2" style="color: var(--haiti-gold);"></i>Itilizatè
+      </h3>
+      <div class="d-flex align-items-center gap-3">
+        <% if user.avatar.attached? %>
+          <%= image_tag user.avatar, style: "width: 56px; height: 56px; border-radius: 50%; object-fit: cover; border: 2px solid rgba(93,99,69,0.12);" %>
+        <% else %>
+          <div style="width: 56px; height: 56px; border-radius: 50%; background: rgba(93,99,69,0.08); display: flex; align-items: center; justify-content: center;">
+            <i class="ri-user-line" style="color: var(--haiti-olive); font-size: 24px;"></i>
+          </div>
+        <% end %>
+        <div>
+          <div class="fw-black" style="color: var(--haiti-charcoal); font-size: 16px;">$<%= user.cashtag %></div>
+          <div style="color: var(--haiti-olive); font-size: 11px;"><%= user.email %></div>
+          <div class="d-flex align-items-center gap-2 mt-1">
+            <span class="badge rounded-pill" style="background: rgba(93,99,69,0.08); color: var(--haiti-olive); font-size: 10px;">
+              <%= user.tier_icon %> <%= user.credit_tier %> · <%= user.credit_score %>/800
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <%# Contextual Actions %>
+    <div class="card-base p-4">
+      <h3 class="h6 fw-black mb-3" style="color: var(--haiti-charcoal);">
+        <i class="ri-flashlight-line me-2" style="color: var(--haiti-gold);"></i>Aksyon
+      </h3>
+
+      <% if @item.activity_type == "transaction" %>
+        <%# TX actions based on status %>
+        <% if record.status.in?(%w[paid failed]) && record.blockchain_tx_hash.blank? %>
+          <div class="mb-2">
+            <%= button_to admin_retry_transaction_path(record), method: :post,
+                class: "btn fw-bold w-100 py-2",
+                style: "background: #dbeafe; color: #1d4ed8; border-radius: 12px; font-size: 12px;",
+                data: { turbo_confirm: "Re-eseye tranzaksyon #{record.token}?" } do %>
+              <i class="ri-refresh-line me-1"></i>Re-eseye Tranzaksyon
+            <% end %>
+          </div>
+        <% end %>
+
+        <% if record.sell? && record.payout_failed? %>
+          <div class="mb-2">
+            <%= button_to admin_retry_payout_path(record), method: :post,
+                class: "btn fw-bold w-100 py-2",
+                style: "background: #fff7ed; color: #c2410c; border-radius: 12px; font-size: 12px;",
+                data: { turbo_confirm: "Re-eseye peman MonCash pou #{record.token}?" } do %>
+              <i class="ri-bank-card-line me-1"></i>Re-eseye Peman MonCash
+            <% end %>
+          </div>
+        <% end %>
+
+        <% if record.loan_request? && record.pending? %>
+          <div class="mb-2">
+            <%= button_to admin_approve_bousad_path(record.token), method: :post,
+                class: "btn fw-bold w-100 py-2",
+                style: "background: #166534; color: #fff; border-radius: 12px; font-size: 12px;",
+                data: { turbo_confirm: "Apwouve prè #{number_to_currency(record.fiat_amount, unit: '', precision: 0)} HTG?" } do %>
+              <i class="ri-check-line me-1"></i>Apwouve Prè
+            <% end %>
+          </div>
+          <div class="mb-2">
+            <%= button_to admin_reject_bousad_path(record.token), method: :post,
+                class: "btn fw-bold w-100 py-2",
+                style: "background: #D21034; color: #fff; border-radius: 12px; font-size: 12px;",
+                data: { turbo_confirm: "Rejte demann prè sa a?" } do %>
+              <i class="ri-close-line me-1"></i>Rejte Prè
+            <% end %>
+          </div>
+        <% end %>
+
+        <% if record.blockchain_tx_hash.present? %>
+          <div class="mb-2">
+            <a href="<%= basescan_tx_url(record.blockchain_tx_hash) %>" target="_blank"
+               class="btn fw-bold w-100 py-2 text-decoration-none"
+               style="background: rgba(93,99,69,0.08); color: var(--haiti-olive); border-radius: 12px; font-size: 12px;">
+              <i class="ri-external-link-line me-1"></i>Wè sou Blockchain
+            </a>
+          </div>
+        <% end %>
+
+      <% elsif @item.activity_type == "bank_withdrawal" %>
+        <% if record.pending? %>
+          <div class="mb-2">
+            <%= button_to admin_process_bank_withdrawal_path(record), method: :post,
+                class: "btn fw-bold w-100 py-2",
+                style: "background: #dbeafe; color: #1d4ed8; border-radius: 12px; font-size: 12px;" do %>
+              <i class="ri-play-circle-line me-1"></i>Komanse Trete
+            <% end %>
+          </div>
+        <% end %>
+
+        <% if record.processing? %>
+          <div class="mb-2">
+            <%= form_with(url: admin_complete_bank_withdrawal_path(record), method: :post, local: true) do %>
+              <div class="input-group mb-2">
+                <input type="text" name="reference_number" placeholder="Nimewo referans bank..."
+                       class="form-control shadow-none"
+                       style="border: 1.5px solid rgba(93,99,69,0.2); background: var(--haiti-cream); font-size: 12px; border-radius: 12px 0 0 12px;">
+                <button type="submit" class="btn fw-bold"
+                        style="background: #166534; color: #fff; border-radius: 0 12px 12px 0; font-size: 12px;">
+                  <i class="ri-check-line me-1"></i>Fini
+                </button>
+              </div>
+            <% end %>
+          </div>
+        <% end %>
+
+        <% if record.pending? || record.processing? %>
+          <div class="mb-2">
+            <%= button_to admin_fail_bank_withdrawal_path(record), method: :post,
+                class: "btn fw-bold w-100 py-2",
+                style: "background: #fef2f2; color: #D21034; border-radius: 12px; font-size: 12px;",
+                data: { turbo_confirm: "Anile retrè bank #{record.amount.to_i} HTG? Lajan ap ranbouse." } do %>
+              <i class="ri-close-circle-line me-1"></i>Anile ak Ranbouse
+            <% end %>
+          </div>
+        <% end %>
+      <% end %>
+
+      <%# No actions available %>
+      <% if @item.activity_type == "transfer" || (@item.activity_type == "transaction" && record.completed?) || (@item.activity_type == "bank_withdrawal" && record.completed?) %>
+        <% unless record.respond_to?(:blockchain_tx_hash) && record.blockchain_tx_hash.present? %>
+          <div class="text-center py-3" style="color: var(--haiti-olive);">
+            <i class="ri-checkbox-circle-line d-block mb-2" style="font-size: 24px; color: #22c55e; opacity: 0.5;"></i>
+            <div class="small fw-bold">Pa gen aksyon disponib</div>
+          </div>
+        <% end %>
+      <% end %>
+    </div>
+  </div>
+</div>

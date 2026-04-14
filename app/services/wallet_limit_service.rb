@@ -25,7 +25,7 @@ class WalletLimitService
   # ── Daily swap: sum of today's USD→HTG conversion_out entries ──
   def daily_swap_used
     @wallet.wallet_ledger_entries
-      .where(entry_type: "conversion_out", asset: "usdc")
+      .where(entry_type: "conversion_out", asset: "usd")
       .where("created_at >= ?", haiti_today)
       .sum(:amount)
   end
@@ -40,7 +40,7 @@ class WalletLimitService
 
   # ── Max wallet balance ──
   def balance_would_exceed?(additional_usd)
-    (@wallet.usdc_balance + additional_usd.to_d) > limits[:max_balance_usd]
+    (@wallet.usd_balance + additional_usd.to_d) > limits[:max_balance_usd]
   end
 
   def max_balance

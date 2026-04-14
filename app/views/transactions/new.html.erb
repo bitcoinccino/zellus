@@ -115,14 +115,11 @@
   .crypto-dropdown-item.active { background: rgba(197,160,89,0.15); }
 </style>
 
-<div class="container" style="min-height: 80vh; padding-top: 40px; padding-bottom: 40px;">
-  <div class="row justify-content-center align-items-start g-4">
-
-    <%# Left: Currency Guide hidden (HTG + USD only mode — only one crypto so guide unnecessary) %>
-
-    <%# ── Right: Buy Form ── %>
-    <div class="col-lg-5">
-    <div class="card-base p-4 w-100" style="max-width: 420px; margin: 0 auto;">
+<% content_for :full_width, true %>
+<div class="d-flex justify-content-center" style="min-height: 80vh; padding-top: 32px; padding-bottom: 40px;">
+  <div class="w-100 px-3" style="max-width: 560px;">
+    <div class="card-base p-4">
+      <div class="p-3 rounded-4" style="background: var(--haiti-cream); border: 1.5px solid rgba(93,99,69,0.2);">
     <% if @request_prefill_context.present? %>
       <div class="p-3 mb-3 rounded-4" style="background-color: rgba(197,160,89,0.12); border: 1px solid rgba(197,160,89,0.55);">
         <div class="small fw-bold text-uppercase mb-1" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">
@@ -148,14 +145,13 @@
 
     <!-- ── BUY FORM ────────────────────────────────────────────────── -->
     <div id="tab-buy">
-      <div class="text-center mb-4">
-        <div class="d-inline-flex align-items-center justify-content-center mb-3 rounded-3"
-          style="width: 56px; height: 56px; background-color: var(--haiti-charcoal);">
-          <i class="ri-arrow-down-circle-fill ri-xl" style="color: var(--haiti-gold);"></i>
-        </div>
-        <h1 class="h5 fw-black mb-0" id="buy-header-title" style="color: var(--haiti-charcoal);">Achte USD ak HTG</h1>
-        <p class="small mb-0" id="buy-header-subtitle" style="color: var(--haiti-olive);">Peye ak MonCash · Resevwa sou Zèllus</p>
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <div class="fw-black" id="buy-header-title" style="color: var(--haiti-charcoal); font-size: 18px;">Achte Dola Ameriken</div>
+        <%= link_to wallet_path, class: "btn btn-sm p-0", style: "color: var(--haiti-olive);" do %>
+          <i class="ri-close-line" style="font-size: 20px;"></i>
+        <% end %>
       </div>
+      <p class="mb-3" id="buy-header-subtitle" style="color: var(--haiti-olive); font-size: 12px; line-height: 1.5;">Konvèti HTG → USD</p>
 
       <%= form_with(url: transactions_path, method: :post, local: true, class: "row g-3", id: "buy-crypto-form") do |f| %>
         <input type="hidden" name="transaction_type" value="buy">
@@ -300,34 +296,38 @@
           </div>
         </div>
 
-        <!-- ── Step 2: Summary (hidden until "Achte" is clicked) ── -->
+        <!-- ── Step 2: Review + PIN (like Konvèti) ── -->
         <div id="buy-summary-section" style="display: none;">
-          <!-- Rate badge (outside card) -->
+          <!-- Rate badge -->
           <div class="text-center mb-2">
             <span class="small fw-bold" id="buy-summary-rate" style="color: var(--haiti-olive); font-size: 11px;">—</span>
           </div>
 
           <!-- Order Summary -->
-          <div class="p-3 rounded-4 mb-3" style="background-color: var(--haiti-charcoal);">
-            <div class="small fw-bold text-uppercase mb-2" style="color: var(--haiti-gold); font-size: 10px; letter-spacing: 1px;">
-              <i class="ri-file-list-3-line me-1"></i> Rezime Lòd
+          <div class="rounded-3 p-3 mb-3" style="background: rgba(197,160,89,0.08);">
+            <div class="small fw-bold mb-2" style="color: var(--haiti-charcoal);">
+              <i class="ri-file-list-3-line me-1" style="color: var(--haiti-gold);"></i>Rezime Acha
             </div>
-            <div class="d-flex justify-content-between align-items-center mb-2">
-              <span class="small" style="color: rgba(255,255,255,0.6); font-size: 11px;">Ou peye</span>
-              <span class="fw-bold" id="buy-summary-pay" style="color: #fff; font-size: 13px;">—</span>
+            <div class="d-flex justify-content-between small mb-1">
+              <span style="color: var(--haiti-olive);">Ou peye</span>
+              <span id="buy-summary-pay" class="fw-bold" style="color: var(--haiti-charcoal);">—</span>
             </div>
-            <div class="d-flex justify-content-between align-items-center mb-2">
-              <span class="small" style="color: rgba(255,255,255,0.6); font-size: 11px;"><img src="<%= asset_path('moncash.svg') %>" width="14" height="14" style="vertical-align: -2px; margin-right: 3px;">Ak MonCash Ou</span>
-              <span class="fw-bold" id="buy-summary-moncash" style="color: rgba(255,255,255,0.8); font-size: 11px;">—</span>
+            <div class="d-flex justify-content-between small mb-1">
+              <span style="color: var(--haiti-olive);">Frè Sèvis (2%)</span>
+              <span id="buy-summary-fee" class="fw-bold" style="color: #dc2626;">—</span>
             </div>
-            <hr style="border-color: rgba(255,255,255,0.15); margin: 8px 0;">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-              <span class="small" style="color: rgba(255,255,255,0.6); font-size: 11px;">Pou resevwa</span>
-              <span class="fw-black" id="buy-summary-receive" style="color: var(--haiti-gold); font-size: 16px;">—</span>
+            <div class="d-flex justify-content-between small mb-1">
+              <span style="color: var(--haiti-olive);"><%= image_tag "moncash.svg", size: "14x14", style: "vertical-align: -2px; margin-right: 3px; border-radius: 3px;" %>Ak MonCash</span>
+              <span id="buy-summary-moncash" class="fw-bold" style="color: var(--haiti-charcoal);">—</span>
             </div>
-            <div class="d-flex justify-content-between align-items-start">
-              <span class="small" style="color: rgba(255,255,255,0.6); font-size: 11px;"><i class="ri-wallet-3-line me-1"></i>Sou Pòtfèy</span>
-              <span class="fw-bold text-end" id="buy-summary-dest" style="color: rgba(255,255,255,0.8); font-size: 10px; max-width: 200px; word-break: break-all;">—</span>
+            <div class="d-flex justify-content-between small mb-1">
+              <span style="color: var(--haiti-olive);"><i class="ri-wallet-3-line me-1"></i>Sou Pòtfèy</span>
+              <span id="buy-summary-dest" class="fw-bold text-end" style="color: var(--haiti-charcoal); max-width: 200px; word-break: break-all; font-size: 10px;">—</span>
+            </div>
+            <hr class="my-2" style="border-color: var(--haiti-olive); opacity: 0.15;">
+            <div class="d-flex justify-content-between small">
+              <span class="fw-bold" style="color: var(--haiti-charcoal);">Ou pral resevwa</span>
+              <span id="buy-summary-receive" class="fw-black" style="color: #22c55e;">—</span>
             </div>
           </div>
 
@@ -338,71 +338,50 @@
             </span>
           </div>
 
-          <!-- Kontinye button -->
-          <button type="button" onclick="buyShowPin()"
-              class="btn w-100 py-3 fw-bold rounded-4 shadow-sm border-0 d-flex align-items-center justify-content-center gap-2"
-              style="background-color: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 14px; letter-spacing: 0.5px;">
-            <i class="ri-arrow-right-line"></i> Kontinye
-          </button>
-
-          <!-- Back link -->
-          <div class="text-center mt-3">
-            <a href="#" onclick="buyGoBack(); return false;" class="small fw-bold" style="color: var(--haiti-olive); text-decoration: none;">
-              <i class="ri-arrow-left-line me-1"></i>Retounen
-            </a>
-          </div>
-        </div>
-
-        <!-- ── Step 3: PIN (hidden until "Kontinye" is clicked) ── -->
-        <div id="buy-pin-section" style="display: none;">
           <% if current_user.transfer_pin_set? %>
-            <div class="p-4 rounded-4 mb-3 text-center" style="background-color: var(--haiti-charcoal);">
-              <i class="ri-lock-password-line d-block mb-2" style="color: var(--haiti-gold); font-size: 28px;"></i>
-              <div class="small fw-bold text-uppercase mb-3" style="color: var(--haiti-gold); font-size: 10px; letter-spacing: 1px;">
-                Antre Kòd PIN
-              </div>
+            <!-- PIN input inline -->
+            <div class="input-group mb-3">
+              <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);"><i class="ri-lock-password-line"></i></span>
               <input type="password" name="transfer_pin" id="buy-pin-input"
-                     class="form-control border-0 fw-bold shadow-none p-3 bb-dark-field rounded-3 mx-auto"
-                     placeholder="• • • •" maxlength="4" pattern="\d{4}" required inputmode="numeric" disabled
-                     style="background-color: rgba(255,255,255,0.1); color: white; letter-spacing: 12px; text-align: center; font-size: 24px; max-width: 200px;">
+                     class="form-control border-0 fw-bold shadow-none p-3 bb-dark-field"
+                     placeholder="PIN" maxlength="4" pattern="\d{4}" inputmode="numeric"
+                     style="background-color: var(--haiti-charcoal); color: white; letter-spacing: 8px; text-align: center;">
             </div>
 
-            <button type="button"
-                class="btn w-100 py-3 fw-bold rounded-4 shadow-sm border-0 d-flex align-items-center justify-content-center gap-2"
-                style="background-color: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 14px; letter-spacing: 0.5px;"
-                onclick="ZellusLoader.start('buy-loader', document.getElementById('buy-crypto-form'));">
-              <i class="ri-flashlight-fill"></i> Konfime Achte
-            </button>
+            <div class="d-flex gap-2">
+              <button type="button" onclick="buyGoBack()" class="btn flex-shrink-0 fw-bold rounded-pill border-0 px-3"
+                      style="background: rgba(93,99,69,0.1); color: var(--haiti-charcoal); font-size: 14px; padding: 14px 16px;">
+                <i class="ri-arrow-left-line"></i>
+              </button>
+              <button type="button"
+                  class="btn flex-grow-1 fw-bold rounded-pill border-0 d-flex align-items-center justify-content-center gap-2"
+                  style="background: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 15px; padding: 14px 24px; letter-spacing: 0.3px;"
+                  onclick="var p=document.getElementById('buy-pin-input'); if(!p||!p.value.match(/^\d{4}$/)){p.focus();p.classList.add('is-invalid');return;} p.classList.remove('is-invalid'); ZellusLoader.start('buy-loader', document.getElementById('buy-crypto-form'));">
+                <i class="ri-shopping-cart-line" style="font-size: 18px;"></i>Achte Kounye a
+              </button>
+            </div>
 
             <%= render "shared/step_loader", id: "buy-loader", steps: [
               "N'ap verifye balans ou...",
               "N'ap bloke to a pou ou...",
               "N'ap trete tranzaksyon an...",
-              "Acha USD fèt ak siksè ✓"
+              "Acha USD fèt ak siksè"
             ] %>
           <% else %>
-            <div class="p-4 rounded-4 mb-3 text-center" style="background: rgba(197,160,89,0.12); border: 1px solid rgba(197,160,89,0.55);">
-              <i class="ri-lock-line d-block mb-2" style="color: var(--haiti-gold); font-size: 28px;"></i>
-              <span class="small" style="color: var(--haiti-charcoal); font-size: 11px;">
-                Ou dwe <%= link_to "kreye yon PIN", new_transfer_path, style: "color: var(--haiti-gold); font-weight: 700;" %> anvan ou ka achte.
-              </span>
+            <div class="text-center py-3" style="color: var(--haiti-olive);">
+              <i class="ri-lock-line ri-2x mb-2 d-block" style="color: var(--haiti-gold);"></i>
+              <div class="small">Ou dwe <%= link_to "kreye yon PIN", new_transfer_path, style: "color: var(--haiti-gold); font-weight: 700;" %> anvan ou ka achte.</div>
             </div>
           <% end %>
-
-          <div class="text-center mt-3">
-            <a href="#" onclick="buyPinGoBack(); return false;" class="small fw-bold" style="color: var(--haiti-olive); text-decoration: none;">
-              <i class="ri-arrow-left-line me-1"></i>Retounen
-            </a>
-          </div>
         </div>
       <% end %>
     </div>
 
   </div>
-  </div><%# col-lg-5 %>
-
-  </div><%# row %>
-</div><%# container %>
+  </div><%# inner bordered card %>
+  </div><%# card-base %>
+  </div>
+</div>
 
 <script>
 const BUY_USDC_RATE_HTG  = <%= (@buy_exchange_rate || 135.5).to_f.round(2) %>;
@@ -441,6 +420,12 @@ var CRYPTO_META = {
   aaplx:  { label: 'AAPLX',  sub: 'Apple' },
   coinx:  { label: 'COINX',  sub: 'Coinbase' },
   googlx: { label: 'GOOGLX', sub: 'Alphabet' }
+};
+
+var CRYPTO_LOGOS = {
+  usdc:   '<%= asset_path("usd.svg") %>',
+  wbtc:   '<%= asset_path("wbtc-on-base.svg") %>',
+  eth:    '<%= asset_path("eth-base.svg") %>'
 };
 
 function toggleBuyCryptoDD() {
@@ -510,9 +495,11 @@ function handleBuyClick() {
   const htgAmount = parseFloat(document.querySelector('#tab-buy [name="fiat_amount"]').value) || 0;
   const rate = getBuyRate(buySel);
   const crypto = (CRYPTO_META[buySel] || {}).label || buySel.toUpperCase();
-  const cryptoAmount = rate > 0 ? htgAmount / rate : 0;
-
+  var feeAmount = (htgAmount * 0.02);
+  const netHtg = htgAmount - feeAmount;
+  const cryptoAmount = rate > 0 ? netHtg / rate : 0;
   document.getElementById('buy-summary-pay').textContent = htgAmount.toLocaleString() + ' HTG';
+  document.getElementById('buy-summary-fee').textContent = '- ' + feeAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' HTG';
   document.getElementById('buy-summary-rate').textContent = '1 ' + crypto + ' = ' + rate.toLocaleString() + ' HTG';
   document.getElementById('buy-summary-receive').textContent = '≈ ' + cryptoAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 }) + ' ' + crypto;
 
@@ -548,8 +535,13 @@ function handleBuyClick() {
   }
 
   // Update header to review mode
-  document.getElementById('buy-header-title').textContent = 'Revize Lòd Ou';
-  document.getElementById('buy-header-subtitle').textContent = htgAmount.toLocaleString() + ' HTG → ' + cryptoAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 }) + ' ' + crypto;
+  var cryptoLogo = CRYPTO_LOGOS[buySel] || '';
+  document.getElementById('buy-header-title').textContent = 'Revize Acha';
+  document.getElementById('buy-header-subtitle').innerHTML =
+    '<img src="<%= asset_path("htg.svg") %>" width="20" height="20" style="vertical-align: -3px; margin-right: 4px;">' +
+    htgAmount.toLocaleString() + ' HTG → ' +
+    (cryptoLogo ? '<img src="' + cryptoLogo + '" width="20" height="20" style="vertical-align: -3px; margin-right: 4px;">' : '') +
+    cryptoAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 }) + ' ' + crypto;
 
   // Hide form fields, show summary step
   document.getElementById('buy-form-fields').style.display = 'none';
@@ -557,32 +549,16 @@ function handleBuyClick() {
   document.getElementById('tab-buy').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
-function buyShowPin() {
-  var buyPin = document.getElementById('buy-pin-input');
-  if (buyPin) buyPin.disabled = false;
-  document.getElementById('buy-summary-section').style.display = 'none';
-  document.getElementById('buy-pin-section').style.display = '';
-  document.getElementById('tab-buy').scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
-
 function buyGoBack() {
-  document.getElementById('buy-pin-section').style.display = 'none';
   var buyPin = document.getElementById('buy-pin-input');
-  if (buyPin) { buyPin.disabled = true; buyPin.value = ''; }
+  if (buyPin) { buyPin.value = ''; }
 
   // Restore header
-  document.getElementById('buy-header-title').textContent = 'Achte USD ak HTG';
-  document.getElementById('buy-header-subtitle').textContent = 'Peye ak MonCash · Resevwa sou Zèllus';
+  document.getElementById('buy-header-title').textContent = 'Achte Dola Ameriken';
+  document.getElementById('buy-header-subtitle').innerHTML = 'Konvèti HTG → USD';
 
   document.getElementById('buy-summary-section').style.display = 'none';
   document.getElementById('buy-form-fields').style.display = '';
-}
-
-function buyPinGoBack() {
-  var buyPin = document.getElementById('buy-pin-input');
-  if (buyPin) { buyPin.disabled = true; buyPin.value = ''; }
-  document.getElementById('buy-pin-section').style.display = 'none';
-  document.getElementById('buy-summary-section').style.display = '';
 }
 
 function fillBuyWalletFromSaved() {

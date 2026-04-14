@@ -1,4 +1,4 @@
-Zèllus — Demann Peman Ekspire
+Zèllus — Demann <%= @amount_display %> Ekspire
 
 Bonjou <%= @creator_name %>,
 
@@ -7,7 +7,7 @@ Demann peman ou ekspire paske li pa t resevwa peman anvan dat limit la.
 Detay:
 - Demann #<%= @payment_request.id %>
 - Montan Mande: <%= @amount_display %>
-- Lajan: <%= @payment_request.asset.upcase %>
+- Lajan: <%= @payment_request.asset_label %>
 <% if @payment_request.expires_at.present? %>- Dat Ekspirasyon: <%= @payment_request.expires_at.strftime("%b %d, %Y %l:%M %p").strip %><% end %>
 
 Ou ka kreye yon nouvo demann si ou bezwen.

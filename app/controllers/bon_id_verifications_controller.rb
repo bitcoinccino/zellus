@@ -1,7 +1,21 @@
 class BonIdVerificationsController < ApplicationController
+  include BonidRecheckable
   before_action :authenticate_user!
 
   def show
+    # Always recheck with BonID API (throttled to 15min in concern)
+    recheck_bonid!
+    current_user.reload
+
+    # Full data refresh if still verified and stale (hourly)
+    if current_user.bonid_verified? &&
+       (current_user.bonid_rechecked_at.nil? || current_user.bonid_rechecked_at < 1.hour.ago)
+      result = BonIdService.refresh_user!(current_user)
+      if result[:success] && result[:changes].present?
+        current_user.reload
+        flash.now[:notice] = "Enfòmasyon BonID ou ajou."
+      end
+    end
   end
 
   def create

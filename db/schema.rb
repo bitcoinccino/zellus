@@ -10,9 +10,10 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_03_10_085509) do
+ActiveRecord::Schema[8.0].define(version: 2026_03_29_100000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
+  enable_extension "pgcrypto"
 
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
@@ -40,6 +41,45 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_10_085509) do
     t.bigint "blob_id", null: false
     t.string "variation_digest", null: false
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
+  end
+
+  create_table "agent_transactions", force: :cascade do |t|
+    t.bigint "business_id", null: false
+    t.bigint "customer_id", null: false
+    t.bigint "wallet_ledger_entry_id"
+    t.decimal "amount", precision: 15, scale: 2, null: false
+    t.string "currency", default: "HTG", null: false
+    t.string "transaction_type", null: false
+    t.decimal "commission_rate", precision: 5, scale: 4, null: false
+    t.decimal "commission_amount", precision: 15, scale: 2, null: false
+    t.string "status", default: "pending", null: false
+    t.string "confirmation_code", null: false
+    t.string "idempotency_key"
+    t.text "notes"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["business_id", "created_at"], name: "index_agent_transactions_on_business_id_and_created_at"
+    t.index ["business_id"], name: "index_agent_transactions_on_business_id"
+    t.index ["confirmation_code"], name: "index_agent_transactions_on_confirmation_code", unique: true
+    t.index ["customer_id", "created_at"], name: "index_agent_transactions_on_customer_id_and_created_at"
+    t.index ["customer_id"], name: "index_agent_transactions_on_customer_id"
+    t.index ["idempotency_key"], name: "index_agent_transactions_on_idempotency_key", unique: true, where: "(idempotency_key IS NOT NULL)"
+    t.index ["status"], name: "index_agent_transactions_on_status"
+    t.index ["transaction_type"], name: "index_agent_transactions_on_transaction_type"
+    t.index ["wallet_ledger_entry_id"], name: "index_agent_transactions_on_wallet_ledger_entry_id"
+  end
+
+  create_table "api_idempotency_keys", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "idempotency_key", null: false
+    t.string "request_path", null: false
+    t.integer "response_status"
+    t.text "response_body"
+    t.datetime "locked_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id", "idempotency_key"], name: "index_api_idempotency_keys_on_user_id_and_idempotency_key", unique: true
+    t.index ["user_id"], name: "index_api_idempotency_keys_on_user_id"
   end
 
   create_table "bank_withdrawals", force: :cascade do |t|
@@ -88,6 +128,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_10_085509) do
     t.datetime "expires_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.jsonb "biometric_verification"
     t.index ["consent_token"], name: "index_bonid_consent_requests_on_consent_token", unique: true
     t.index ["reference_id"], name: "index_bonid_consent_requests_on_reference_id", unique: true
     t.index ["transfer_id"], name: "index_bonid_consent_requests_on_transfer_id"
@@ -105,6 +146,25 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_10_085509) do
     t.datetime "updated_at", null: false
     t.index ["product_id"], name: "index_business_line_items_on_product_id"
     t.index ["transfer_id"], name: "index_business_line_items_on_transfer_id"
+  end
+
+  create_table "business_payment_links", force: :cascade do |t|
+    t.bigint "business_id", null: false
+    t.string "token", null: false
+    t.decimal "amount", precision: 15, scale: 2
+    t.string "asset", default: "htg", null: false
+    t.string "note", limit: 280
+    t.string "status", default: "active", null: false
+    t.boolean "single_use", default: false, null: false
+    t.integer "times_paid", default: 0, null: false
+    t.datetime "expires_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.boolean "allow_tips", default: false, null: false
+    t.jsonb "items", default: []
+    t.index ["business_id", "status"], name: "index_business_payment_links_on_business_id_and_status"
+    t.index ["business_id"], name: "index_business_payment_links_on_business_id"
+    t.index ["token"], name: "index_business_payment_links_on_token", unique: true
   end
 
   create_table "businesses", force: :cascade do |t|
@@ -132,9 +192,53 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_10_085509) do
     t.datetime "updated_at", null: false
     t.decimal "tax_rate", precision: 5, scale: 4, default: "0.0"
     t.string "subcategory"
+    t.decimal "usdc_balance", precision: 30, scale: 18, default: "0.0", null: false
+    t.string "email"
+    t.string "website"
+    t.jsonb "social_media", default: {}
+    t.string "hours"
+    t.string "arrondissement"
+    t.string "section"
+    t.boolean "is_agent", default: false, null: false
+    t.datetime "agent_activated_at"
+    t.decimal "agent_commission_rate", precision: 5, scale: 4, default: "0.02", null: false
+    t.decimal "total_commission_earned", precision: 15, scale: 2, default: "0.0", null: false
+    t.string "agent_status", default: "none", null: false
+    t.text "agent_rejected_reason"
+    t.datetime "agent_applied_at"
+    t.boolean "signage_verified", default: false, null: false
+    t.boolean "tippable", default: false, null: false
+    t.index ["agent_status"], name: "index_businesses_on_agent_status"
+    t.index ["is_agent"], name: "index_businesses_on_is_agent"
     t.index ["slug"], name: "index_businesses_on_slug", unique: true
     t.index ["status"], name: "index_businesses_on_status"
     t.index ["user_id"], name: "index_businesses_on_user_id"
+  end
+
+  create_table "checkout_sessions", force: :cascade do |t|
+    t.bigint "oauth_client_id"
+    t.string "token", null: false
+    t.string "status", default: "pending", null: false
+    t.decimal "amount", precision: 15, scale: 2, null: false
+    t.string "currency", default: "htg", null: false
+    t.text "description"
+    t.jsonb "metadata", default: {}, null: false
+    t.string "success_url", null: false
+    t.string "cancel_url"
+    t.string "receiver_cashtag", null: false
+    t.bigint "payer_id"
+    t.bigint "transfer_id"
+    t.string "failure_reason"
+    t.datetime "expires_at", null: false
+    t.datetime "completed_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.datetime "refunded_at"
+    t.index ["oauth_client_id"], name: "index_checkout_sessions_on_oauth_client_id"
+    t.index ["payer_id"], name: "index_checkout_sessions_on_payer_id"
+    t.index ["status"], name: "index_checkout_sessions_on_status"
+    t.index ["token"], name: "index_checkout_sessions_on_token", unique: true
+    t.index ["transfer_id"], name: "index_checkout_sessions_on_transfer_id"
   end
 
   create_table "exchange_rates", force: :cascade do |t|
@@ -172,11 +276,50 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_10_085509) do
     t.datetime "read_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.uuid "public_id", default: -> { "gen_random_uuid()" }, null: false
+    t.string "token", null: false
     t.index ["actor_id"], name: "index_notifications_on_actor_id"
     t.index ["notifiable_type", "notifiable_id"], name: "index_notifications_on_notifiable"
+    t.index ["public_id"], name: "index_notifications_on_public_id", unique: true
+    t.index ["token"], name: "index_notifications_on_token", unique: true
     t.index ["user_id", "created_at"], name: "index_notifications_on_user_id_and_created_at"
     t.index ["user_id", "read_at"], name: "index_notifications_on_user_id_and_read_at"
     t.index ["user_id"], name: "index_notifications_on_user_id"
+  end
+
+  create_table "oauth_clients", force: :cascade do |t|
+    t.string "name"
+    t.string "client_id"
+    t.string "client_secret"
+    t.string "redirect_uri"
+    t.text "scopes"
+    t.boolean "active", default: true, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "webhook_url"
+    t.string "webhook_secret"
+    t.string "webhook_events", default: [], array: true
+    t.boolean "webhook_active", default: false
+    t.index ["client_id"], name: "index_oauth_clients_on_client_id", unique: true
+  end
+
+  create_table "oauth_tokens", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.bigint "oauth_client_id", null: false
+    t.string "access_token"
+    t.string "refresh_token"
+    t.string "authorization_code"
+    t.text "scopes"
+    t.datetime "expires_at"
+    t.datetime "revoked_at"
+    t.datetime "code_expires_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["access_token"], name: "index_oauth_tokens_on_access_token", unique: true
+    t.index ["authorization_code"], name: "index_oauth_tokens_on_authorization_code", unique: true
+    t.index ["oauth_client_id"], name: "index_oauth_tokens_on_oauth_client_id"
+    t.index ["refresh_token"], name: "index_oauth_tokens_on_refresh_token", unique: true
+    t.index ["user_id"], name: "index_oauth_tokens_on_user_id"
   end
 
   create_table "payment_methods", force: :cascade do |t|
@@ -195,6 +338,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_10_085509) do
     t.string "bank_name"
     t.string "account_holder_name"
     t.string "token", null: false
+    t.boolean "is_default", default: false, null: false
     t.index ["token"], name: "index_payment_methods_on_token", unique: true
     t.index ["user_id", "active"], name: "index_payment_methods_on_user_id_and_active"
     t.index ["user_id", "category", "provider"], name: "index_payment_methods_on_user_id_and_category_and_provider"
@@ -245,6 +389,9 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_10_085509) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "token", null: false
+    t.string "asset", default: "htg", null: false
+    t.string "product_type", default: "good", null: false
+    t.integer "stock"
     t.index ["business_id", "active"], name: "index_products_on_business_id_and_active"
     t.index ["business_id", "sold_count"], name: "index_products_on_business_id_and_sold_count"
     t.index ["business_id"], name: "index_products_on_business_id"
@@ -374,6 +521,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_10_085509) do
     t.decimal "loan_interest_rate", precision: 5, scale: 4, default: "0.0"
     t.decimal "loan_total_repayable", precision: 12, scale: 2
     t.string "token", null: false
+    t.index ["blockchain_tx_hash"], name: "index_transactions_on_blockchain_tx_hash"
     t.index ["token"], name: "index_transactions_on_token", unique: true
     t.index ["user_id"], name: "index_transactions_on_user_id"
   end
@@ -411,6 +559,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_10_085509) do
     t.bigint "business_id"
     t.decimal "subtotal", precision: 12, scale: 2
     t.decimal "tax_amount", precision: 12, scale: 2
+    t.decimal "tip_amount", precision: 15, scale: 2, default: "0.0"
     t.index ["business_id"], name: "index_transfers_on_business_id"
     t.index ["status"], name: "index_transfers_on_status"
     t.index ["token"], name: "index_transfers_on_token", unique: true
@@ -469,11 +618,20 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_10_085509) do
     t.string "bonid_country"
     t.string "bonid_blood_type"
     t.datetime "bonid_rechecked_at"
+    t.string "circle_wallet_id"
+    t.string "circle_wallet_address"
+    t.decimal "daily_transfer_limit_override"
+    t.boolean "uma_enabled", default: true, null: false
+    t.string "lightspark_customer_id"
+    t.index "lower((cashtag)::text)", name: "index_users_on_lower_cashtag"
     t.index ["bonid"], name: "index_users_on_bonid", unique: true, where: "(bonid IS NOT NULL)"
     t.index ["cashtag"], name: "index_users_on_cashtag", unique: true
+    t.index ["circle_wallet_address"], name: "index_users_on_circle_wallet_address", unique: true, where: "(circle_wallet_address IS NOT NULL)"
+    t.index ["circle_wallet_id"], name: "index_users_on_circle_wallet_id", unique: true, where: "(circle_wallet_id IS NOT NULL)"
     t.index ["deposit_address"], name: "index_users_on_deposit_address", unique: true, where: "(deposit_address IS NOT NULL)"
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["invite_code_id"], name: "index_users_on_invite_code_id"
+    t.index ["lightspark_customer_id"], name: "index_users_on_lightspark_customer_id", unique: true, where: "(lightspark_customer_id IS NOT NULL)"
     t.index ["phone_number"], name: "index_users_on_phone_number", unique: true, where: "(phone_number IS NOT NULL)"
     t.index ["provider", "uid"], name: "index_users_on_provider_and_uid", unique: true, where: "(provider IS NOT NULL)"
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
@@ -493,7 +651,12 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_10_085509) do
     t.datetime "updated_at", null: false
     t.string "asset", default: "htg", null: false
     t.string "token", null: false
+    t.string "circle_transfer_id"
+    t.string "lightspark_payment_id"
+    t.string "source_context"
+    t.index ["circle_transfer_id"], name: "index_wallet_ledger_entries_on_circle_transfer_id", unique: true, where: "(circle_transfer_id IS NOT NULL)"
     t.index ["entry_type"], name: "index_wallet_ledger_entries_on_entry_type"
+    t.index ["lightspark_payment_id"], name: "idx_wallet_ledger_lightspark_payment_uniq", unique: true, where: "(lightspark_payment_id IS NOT NULL)"
     t.index ["moncash_transaction_id"], name: "idx_wallet_ledger_moncash_tx_uniq", unique: true, where: "(moncash_transaction_id IS NOT NULL)"
     t.index ["reference_type", "reference_id"], name: "index_wallet_ledger_entries_on_reference_type_and_reference_id"
     t.index ["token"], name: "index_wallet_ledger_entries_on_token", unique: true
@@ -520,8 +683,30 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_10_085509) do
     t.index ["user_id"], name: "index_wallets_on_user_id", unique: true
   end
 
+  create_table "webhook_deliveries", force: :cascade do |t|
+    t.bigint "oauth_client_id", null: false
+    t.string "event", null: false
+    t.string "delivery_id", null: false
+    t.json "payload", null: false
+    t.integer "response_status"
+    t.text "response_body"
+    t.integer "attempts", default: 0
+    t.string "status", default: "pending"
+    t.datetime "delivered_at"
+    t.datetime "next_retry_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["delivery_id"], name: "index_webhook_deliveries_on_delivery_id", unique: true
+    t.index ["oauth_client_id", "event"], name: "index_webhook_deliveries_on_oauth_client_id_and_event"
+    t.index ["oauth_client_id"], name: "index_webhook_deliveries_on_oauth_client_id"
+  end
+
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "agent_transactions", "businesses"
+  add_foreign_key "agent_transactions", "users", column: "customer_id"
+  add_foreign_key "agent_transactions", "wallet_ledger_entries"
+  add_foreign_key "api_idempotency_keys", "users"
   add_foreign_key "bank_withdrawals", "users"
   add_foreign_key "bank_withdrawals", "wallet_ledger_entries"
   add_foreign_key "bank_withdrawals", "wallets"
@@ -529,10 +714,16 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_10_085509) do
   add_foreign_key "bonid_consent_requests", "users"
   add_foreign_key "business_line_items", "products"
   add_foreign_key "business_line_items", "transfers"
+  add_foreign_key "business_payment_links", "businesses"
   add_foreign_key "businesses", "users"
+  add_foreign_key "checkout_sessions", "oauth_clients"
+  add_foreign_key "checkout_sessions", "transfers"
+  add_foreign_key "checkout_sessions", "users", column: "payer_id"
   add_foreign_key "invite_codes", "users", column: "creator_id"
   add_foreign_key "notifications", "users"
   add_foreign_key "notifications", "users", column: "actor_id"
+  add_foreign_key "oauth_tokens", "oauth_clients"
+  add_foreign_key "oauth_tokens", "users"
   add_foreign_key "payment_methods", "users"
   add_foreign_key "payment_requests", "payment_methods"
   add_foreign_key "payment_requests", "sol_rounds"
@@ -560,4 +751,5 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_10_085509) do
   add_foreign_key "wallet_ledger_entries", "users"
   add_foreign_key "wallet_ledger_entries", "wallets"
   add_foreign_key "wallets", "users"
+  add_foreign_key "webhook_deliveries", "oauth_clients"
 end

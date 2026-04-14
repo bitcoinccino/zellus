@@ -1,15 +1,15 @@
 class WalletMailer < ApplicationMailer
-  # ── Deposit confirmed (USDC or HTG) ──
+  # ── Deposit confirmed (USD or HTG) ──
   def deposit_confirmed
     load_common
     @tx_hash = params[:tx_hash]
     basescan_base = CryptoTransferWorker::CHAIN_ID == 8453 ? "https://basescan.org" : "https://sepolia.basescan.org"
     @basescan_url = @tx_hash.present? ? "#{basescan_base}/tx/#{@tx_hash}" : nil
 
-    mail(to: @user.email, subject: "Zèllus: Depo #{@amount_display} konfime!")
+    mail(to: @user.email, subject: "Zèllus: Ou depoze #{@amount_display} ✓")
   end
 
-  # ── USDC withdrawal sent on-chain ──
+  # ── USD withdrawal sent on-chain ──
   def withdrawal_sent
     load_common
     @tx_hash    = params[:tx_hash]
@@ -18,10 +18,10 @@ class WalletMailer < ApplicationMailer
     @basescan_url = @tx_hash.present? ? "#{basescan_base}/tx/#{@tx_hash}" : nil
     @address_short = @to_address.present? ? "#{@to_address[0..5]}...#{@to_address[-4..]}" : "—"
 
-    mail(to: @user.email, subject: "Zèllus: Retrè #{@amount_display} voye!")
+    mail(to: @user.email, subject: "Zèllus: Ou retire #{@amount_display} ✓")
   end
 
-  # ── USDC withdrawal failed + refunded ──
+  # ── USD withdrawal failed + refunded ──
   def withdrawal_failed
     load_common
     @reason = params[:reason].to_s.truncate(200)
@@ -36,7 +36,7 @@ class WalletMailer < ApplicationMailer
     @instant = params[:instant]
     @fee     = params[:fee] || 0
 
-    mail(to: @user.email, subject: "Zèllus: Retrè #{@amount_display} an kou")
+    mail(to: @user.email, subject: "Zèllus: Ou retire #{@amount_display} (an kou)")
   end
 
   # ── Bank withdrawal queued (pending admin processing) ──
@@ -47,7 +47,7 @@ class WalletMailer < ApplicationMailer
     @account_holder = params[:account_holder]
     @fee          = params[:fee] || 0
 
-    mail(to: @user.email, subject: "Zèllus: Retrè bank #{@amount_display} an kou")
+    mail(to: @user.email, subject: "Zèllus: Ou retire #{@amount_display} bank (an kou)")
   end
 
   # ── Bank withdrawal completed by admin ──
@@ -57,7 +57,7 @@ class WalletMailer < ApplicationMailer
     @bank_account     = params[:bank_account]
     @reference_number = params[:reference_number]
 
-    mail(to: @user.email, subject: "Zèllus: Retrè bank #{@amount_display} fini!")
+    mail(to: @user.email, subject: "Zèllus: Retrè bank #{@amount_display} fini ✓")
   end
 
   # ── Bank withdrawal failed + refunded ──
@@ -77,7 +77,7 @@ class WalletMailer < ApplicationMailer
     @amount = params[:amount]
     @asset  = params[:asset] || "htg"
     @amount_display = case @asset.to_s.downcase
-                      when "usdc"
+                      when "usd"
                         "#{format('%.2f', @amount.to_f)} USD"
                       when "eth"
                         "#{format('%.6f', @amount.to_f)} ETH"

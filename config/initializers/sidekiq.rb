@@ -27,7 +27,7 @@ if defined?(Sidekiq)
 
       # Crypto deposit monitors — require treasury key
       if ENV['TREASURY_PRIVATE_KEY'].present?
-        schedule_unique.call(UsdcDepositMonitorWorker, 10)
+        schedule_unique.call(UsdDepositMonitorWorker, 10)
         schedule_unique.call(EthDepositMonitorWorker, 20)
         schedule_unique.call(WbtcDepositMonitorWorker, 30)
       end

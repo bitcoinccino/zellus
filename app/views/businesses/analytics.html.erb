@@ -54,11 +54,11 @@
               </span>
               <div>
                 <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;"><%= product.name %></div>
-                <div style="color: var(--haiti-olive); font-size: 11px;"><%= product.sold_count %> vann · <%= number_with_delimiter(product.price.to_i) %> HTG/inite</div>
+                <div style="color: var(--haiti-olive); font-size: 11px;"><%= product.sold_count %> vann · <%= number_with_delimiter(product.price.to_i) %> <%= currency_label(product.asset || "htg") %>/inite</div>
               </div>
             </div>
             <div class="fw-black" style="color: var(--haiti-charcoal); font-size: 14px;">
-              <%= number_with_delimiter(product.total_revenue.to_i) %> <small style="color: var(--haiti-olive);">HTG</small>
+              <%= number_with_delimiter(product.total_revenue.to_i) %> <small style="color: var(--haiti-olive);"><%= currency_label("htg") %></small>
             </div>
           </div>
         <% end %>
@@ -80,11 +80,11 @@
       </div>
       <div class="d-flex justify-content-between align-items-center mb-2">
         <span style="color: var(--haiti-olive); font-size: 12px;">Total Frè Kolekte</span>
-        <span class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;"><%= number_with_precision(@business.total_fees_collected, precision: 2) %> HTG</span>
+        <span class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;"><%= number_with_precision(@business.total_fees_collected, precision: 2) %> <%= currency_label("htg") %></span>
       </div>
       <div class="d-flex justify-content-between align-items-center">
         <span style="color: var(--haiti-olive); font-size: 12px;">Total Volim</span>
-        <span class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;"><%= number_with_delimiter(@business.total_received.to_i) %> HTG</span>
+        <span class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;"><%= number_with_delimiter(@business.total_received.to_i) %> <%= currency_label("htg") %></span>
       </div>
     </div>
 

@@ -74,8 +74,8 @@ class SolOrchestrator
       status: :collecting
     )
 
-    # Generate dual payment requests (HTG + USDC) for everyone EXCEPT the recipient
-    htg_amount, usdc_amount = sol_contribution_amounts
+    # Generate dual payment requests (HTG + USD) for everyone EXCEPT the recipient
+    htg_amount, usd_amount = sol_contribution_amounts
 
     @circle.sol_memberships.active_members.where.not(user_id: recipient.id).each do |membership|
       htg_pr = PaymentRequest.create!(
@@ -90,9 +90,9 @@ class SolOrchestrator
       PaymentRequest.create!(
         user: membership.user,
         sol_round: new_round,
-        amount: usdc_amount,
-        asset: "usdc",
-        note: "Sol #{@circle.name}: Wonn #{next_number} (USDC)",
+        amount: usd_amount,
+        asset: "usd",
+        note: "Sol #{@circle.name}: Wonn #{next_number} (USD)",
         expires_at: GRACE_PERIOD_HOURS.hours.from_now
       )
 
@@ -109,13 +109,13 @@ class SolOrchestrator
 
     if @circle.htg?
       htg_amount  = @circle.amount
-      usdc_amount = (@circle.amount / rate).round(2)
+      usd_amount = (@circle.amount / rate).round(2)
     else
-      usdc_amount = @circle.amount
+      usd_amount = @circle.amount
       htg_amount  = (@circle.amount * rate).round(2)
     end
 
-    [htg_amount, usdc_amount]
+    [htg_amount, usd_amount]
   end
 
   # ── Payment Verification ────────────────────────────────────────
@@ -196,31 +196,31 @@ class SolOrchestrator
     crypto_wallet = user.payment_methods.active.crypto_wallet.first
     moncash_method = user.payment_methods.active.moncash.first
 
-    if user.prefers_usdc_payout? && crypto_wallet&.wallet_address.present?
-      send_usdc_payout(user, htg_amount, crypto_wallet)
+    if user.prefers_usd_payout? && crypto_wallet&.wallet_address.present?
+      send_usd_payout(user, htg_amount, crypto_wallet)
     elsif user.prefers_htg_payout? && moncash_method&.account_number.present?
       send_htg_payout(htg_amount, moncash_method)
     elsif crypto_wallet&.wallet_address.present?
-      # Fallback: user prefers HTG but has no MonCash — send USDC instead
-      send_usdc_payout(user, htg_amount, crypto_wallet)
+      # Fallback: user prefers HTG but has no MonCash — send USD instead
+      send_usd_payout(user, htg_amount, crypto_wallet)
     elsif moncash_method&.account_number.present?
-      # Fallback: user prefers USDC but has no wallet — send HTG instead
+      # Fallback: user prefers USD but has no wallet — send HTG instead
       send_htg_payout(htg_amount, moncash_method)
     else
       Rails.logger.error "SolOrchestrator: Itilizatè #{user.id} pa gen okenn metòd peman disponib"
     end
   end
 
-  def send_usdc_payout(user, htg_amount, crypto_wallet)
+  def send_usd_payout(user, htg_amount, crypto_wallet)
     rate = RateService.sell_rate
-    usdc_amount = (htg_amount / rate).round(6)
+    usd_amount = (htg_amount / rate).round(6)
 
     tx = Transaction.create!(
       user: user,
       transaction_type: "buy",
-      crypto_currency: "usdc",
+      crypto_currency: "usd",
       fiat_amount: htg_amount,
-      crypto_amount: usdc_amount,
+      crypto_amount: usd_amount,
       exchange_rate: rate,
       fee_amount: 0,
       destination_address: crypto_wallet.wallet_address,
@@ -228,7 +228,7 @@ class SolOrchestrator
     )
 
     CryptoTransferWorker.perform_async(tx.id)
-    Rails.logger.info "SolOrchestrator: USDC peman #{usdc_amount} -> #{crypto_wallet.masked_wallet_address}"
+    Rails.logger.info "SolOrchestrator: USD peman #{usd_amount} -> #{crypto_wallet.masked_wallet_address}"
   end
 
   def send_htg_payout(htg_amount, moncash_method)

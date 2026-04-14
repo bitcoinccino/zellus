@@ -37,9 +37,9 @@ class TransactionsController < ApplicationController
       render :new, status: :unprocessable_entity
       return
     end
-    # HTG + USD only mode: force all transactions to USDC
-    @sell_crypto     = "usdc"
-    @buy_crypto      = "usdc"
+    # HTG + USD only mode: force all transactions to USD
+    @sell_crypto     = "usd"
+    @buy_crypto      = "usd"
     # Block non-USD assets
     requested_buy  = params[:crypto_currency].to_s
     requested_sell = params[:sell_crypto_currency].to_s
@@ -65,7 +65,7 @@ class TransactionsController < ApplicationController
 
       # Sell flow: user specifies crypto amount, we calculate HTG payout
       crypto_amount      = params[:crypto_amount_sell].to_f
-      sell_currency_sym  = @sell_crypto == "wbtc" ? :wbtc : :usdc
+      sell_currency_sym  = @sell_crypto == "wbtc" ? :wbtc : :usd
       if sell_amount_limit_error(crypto_amount, @sell_crypto).present?
         flash.now[:alert] = sell_amount_limit_error(crypto_amount, @sell_crypto)
         @initial_exchange_tab = "sell"
@@ -253,9 +253,9 @@ class TransactionsController < ApplicationController
 
   # --- NEW: ZÈLLUS LOAN REPAYMENT LOGIC ---
   if @transaction.loan_request? || @transaction.failure_reason&.include?("REPAYMENT_LOAN_")
-    # Check if they used USDC (Sovereign Bonus) or HTG
-    is_usdc = @transaction.failure_reason&.include?("USDC") || @transaction.sell?
-    flash[:repayment_points] = is_usdc ? 60 : 50
+    # Check if they used USD (Sovereign Bonus) or HTG
+    is_usd = @transaction.failure_reason&.include?("USD") || @transaction.sell?
+    flash[:repayment_points] = is_usd ? 60 : 50
     flash[:show_rank_modal] = true
   end
   # ------------------------------------------
@@ -422,7 +422,7 @@ end
     nil
   end
 
-  def sell_amount_limit_error(amount, crypto = "usdc")
+  def sell_amount_limit_error(amount, crypto = "usd")
     value = amount.to_f
     if crypto == "wbtc"
       label = "WBTC"

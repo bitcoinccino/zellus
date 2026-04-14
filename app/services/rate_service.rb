@@ -23,7 +23,7 @@ class RateService
 
   # Unified CMC slugs for all assets (crypto + stocks)
   CMC_SLUGS = {
-    "usdc"   => "usd-coin",
+    "usd"    => "usd-coin",
     "btc"    => "bitcoin",
     "eth"    => "ethereum",
     "tslax"  => "tesla-tokenized-stock-xstock",
@@ -36,7 +36,7 @@ class RateService
   class << self
     FETCHED_AT_CACHE_KEY = "rates/usd_htg_fetched_at".freeze
 
-    # ── USD/HTG rates (for USDC) ─────────────────────────────────────
+    # ── USD/HTG rates ─────────────────────────────────────
     def buy_rate
       apply_margin(usd_htg_rate, buy_margin_percent, direction: :add)
     end

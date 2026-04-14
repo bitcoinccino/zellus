@@ -41,161 +41,305 @@
   else                            "color: var(--haiti-olive); background: rgba(93,99,69,0.1);"
   end %>
 
-<div class="container d-flex justify-content-center align-items-start py-3" style="min-height: 80vh; background: var(--haiti-cream);">
-  <div class="w-100" style="max-width: 420px;">
+<% receiver_label = if @transfer.bank_transfer?
+    @transfer.receiver_bank_name || "UNIBANK"
+  elsif @transfer.business.present?
+    @transfer.business.name.truncate(18)
+  elsif @transfer.receiver_cashtag.present?
+    "$#{@transfer.receiver_cashtag}"
+  elsif @transfer.receiver_phone.present?
+    "•••#{@transfer.receiver_phone.last(4)}"
+  else
+    @transfer.receiver_display.truncate(16)
+  end %>
 
-    <%# ── Back Link ── %>
+<div class="container d-flex justify-content-center align-items-start py-4" style="min-height: 80vh;">
+  <div class="w-100" style="max-width: 460px;">
+
+    <%# ── 1. Back Link ── %>
     <div class="mb-3">
-      <%= link_to wallet_path, class: "small text-decoration-none fw-bold", style: "color: var(--haiti-olive);" do %>
-        <i class="ri-arrow-left-line me-1"></i>Retounen nan Pòtfèy
+      <%= link_to wallet_path, class: "small text-decoration-none fw-bold d-inline-flex align-items-center gap-1", style: "color: var(--haiti-olive);" do %>
+        <i class="ri-arrow-left-line" style="font-size: 16px;"></i>Retounen nan Pòtfèy
       <% end %>
     </div>
 
     <%# ══════════════════════════════════════════ %>
-    <%# ── SENDER → AMOUNT → RECEIVER FLOW     ── %>
+    <%# ── 2. HERO CARD — Amount as focal point ── %>
     <%# ══════════════════════════════════════════ %>
-    <div class="rounded-4" style="background: var(--haiti-cream); overflow: hidden;">
-    <div class="p-4" style="background: var(--haiti-charcoal);">
+    <div class="rounded-4 overflow-hidden mb-3">
+      <div class="px-4 pt-4 pb-3" style="background: var(--haiti-charcoal);">
 
-      <%# ── Flow: Sender → Amount → Receiver ── %>
-      <div class="d-flex align-items-center justify-content-between mb-3">
-
-        <%# ── Sender ── %>
-        <div class="text-center" style="width: 80px;">
-          <div class="d-flex align-items-center justify-content-center rounded-circle mx-auto mb-1"
-               style="width: 48px; height: 48px; border: 2px solid rgba(255,255,255,0.15); overflow: hidden; background: rgba(255,255,255,0.08);">
-            <% if current_user.avatar.attached? %>
-              <%= image_tag current_user.avatar, style: "width: 100%; height: 100%; object-fit: cover;" %>
-            <% else %>
-              <span class="fw-black" style="color: rgba(255,255,255,0.6); font-size: 18px;"><%= sender_initial %></span>
-            <% end %>
-          </div>
-          <div class="fw-bold text-truncate" style="color: rgba(255,255,255,0.5); font-size: 10px;">Ou</div>
-        </div>
-
-        <%# ── Arrow + Amount ── %>
-        <div class="text-center flex-grow-1 px-2">
-          <i class="ri-arrow-right-line" style="color: rgba(255,255,255,0.15); font-size: 20px;"></i>
-          <div class="fw-black" style="color: #22c55e; font-size: 36px; letter-spacing: -2px; line-height: 1;">
+        <%# ── Amount (XL focal point) ── %>
+        <div class="text-center mb-2">
+          <div class="fw-black" style="color: #22c55e; font-size: 48px; letter-spacing: -2.5px; line-height: 1;">
             <% if @transfer.usdc_wallet_transfer? %>
-              <%= number_with_precision(@transfer.crypto_amount || @transfer.net_amount, precision: 2, strip_insignificant_zeros: true) %>
+              <%= number_with_precision(@transfer.crypto_amount || @transfer.net_amount, precision: 2, strip_insignificant_zeros: true) %><span style="font-size: 14px; font-weight: 400; color: rgba(255,255,255,0.35); letter-spacing: 0.5px; vertical-align: super; margin-left: 4px;">USD</span>
             <% elsif @transfer.crypto_transfer? && @transfer.crypto_amount.present? %>
-              <%= number_with_precision(@transfer.crypto_amount, precision: @transfer.asset == "wbtc" ? 8 : (@transfer.asset == "eth" ? 8 : 6), strip_insignificant_zeros: true) %>
+              <%= number_with_precision(@transfer.crypto_amount, precision: @transfer.asset == "wbtc" ? 8 : (@transfer.asset == "eth" ? 8 : 6), strip_insignificant_zeros: true) %><span style="font-size: 14px; font-weight: 400; color: rgba(255,255,255,0.35); letter-spacing: 0.5px; vertical-align: super; margin-left: 4px;"><%= @transfer.asset_label %></span>
             <% else %>
-              <%= number_with_delimiter(number_with_precision(@transfer.amount, precision: 0)) %>
-            <% end %>
-          </div>
-          <div class="fw-bold" style="color: rgba(255,255,255,0.4); font-size: 12px; margin-top: 2px;">
-            <% if @transfer.usdc_wallet_transfer? %>
-              USD <span style="font-size: 10px;">&asymp; <%= number_to_currency(@transfer.amount, unit: "", precision: 0) %> HTG</span>
-            <% elsif @transfer.crypto_transfer? && @transfer.crypto_amount.present? %>
-              <%= @transfer.asset_label %>
-            <% else %>
-              HTG
-            <% end %>
-          </div>
-          <i class="ri-arrow-right-line" style="color: rgba(255,255,255,0.15); font-size: 20px;"></i>
-        </div>
-
-        <%# ── Receiver ── %>
-        <div class="text-center" style="width: 80px;">
-          <div class="d-flex align-items-center justify-content-center rounded-circle mx-auto mb-1"
-               style="width: 48px; height: 48px; border: 2px solid var(--haiti-gold); background: rgba(197,160,89,0.15);">
-            <% if @transfer.bank_transfer? %>
-              <i class="ri-bank-line" style="color: var(--haiti-gold); font-size: 20px;"></i>
-            <% else %>
-              <span class="fw-black" style="color: var(--haiti-gold); font-size: 18px;"><%= receiver_initial %></span>
-            <% end %>
-          </div>
-          <div class="fw-bold text-truncate" style="color: var(--haiti-gold); font-size: 10px;">
-            <% if @transfer.bank_transfer? %>
-              <%= @transfer.receiver_bank_name || "UNIBANK" %>
-            <% elsif @transfer.receiver_cashtag.present? %>
-              $<%= @transfer.receiver_cashtag %>
-            <% elsif @transfer.receiver_phone.present? %>
-              •••<%= @transfer.receiver_phone.last(4) %>
-            <% else %>
-              <%= @transfer.receiver_display.truncate(12) %>
+              <%= number_with_delimiter(number_with_precision(@transfer.amount, precision: 0)) %><span style="font-size: 14px; font-weight: 400; color: rgba(255,255,255,0.35); letter-spacing: 0.5px; vertical-align: super; margin-left: 4px;">HTG</span>
             <% end %>
           </div>
         </div>
-      </div>
 
-      <%# ── Status Pill (centered) ── %>
-      <div class="text-center">
-        <span class="badge rounded-pill fw-bold px-3 py-1" style="<%= pill_style %> font-size: 10px; letter-spacing: 0.5px;">
-          <i class="<%= status_icon %> me-1"></i><%= status_title %>
-        </span>
-        <% if status_sub.present? %>
-          <div class="mt-1" style="color: rgba(255,255,255,0.4); font-size: 10px;"><%= status_sub %></div>
+        <%# ── Sender → Receiver (inline compact) ── %>
+        <div class="text-center mb-3">
+          <span class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill" style="background: rgba(255,255,255,0.06);">
+            <span class="fw-bold" style="color: rgba(255,255,255,0.5); font-size: 12px;">Ou Peye</span>
+            <i class="ri-arrow-right-s-line" style="color: rgba(255,255,255,0.2); font-size: 14px;"></i>
+            <span class="fw-bold" style="color: var(--haiti-gold); font-size: 12px;">
+              <% if @transfer.bank_transfer? %>
+                <i class="ri-bank-line me-1" style="font-size: 11px;"></i>
+              <% elsif @transfer.business.present? %>
+                <i class="ri-store-2-fill me-1" style="font-size: 11px;"></i>
+              <% end %>
+              <%= receiver_label %>
+            </span>
+          </span>
+        </div>
+
+        <%# ── Status Pill ── %>
+        <div class="text-center">
+          <span class="badge rounded-pill fw-bold px-3 py-1" style="<%= pill_style %> font-size: 11px; letter-spacing: 0.5px;">
+            <i class="<%= status_icon %> me-1"></i><%= status_title %>
+          </span>
+          <% if status_sub.present? && !@transfer.awaiting_consent? %>
+            <div class="mt-2" style="color: rgba(255,255,255,0.4); font-size: 11px;"><%= status_sub %></div>
+          <% end %>
+        </div>
+
+        <%# ── Note (inline in hero if present) ── %>
+        <% if @transfer.note.present? %>
+          <div class="text-center mt-3 pt-3" style="border-top: 1px solid rgba(255,255,255,0.06);">
+            <div class="d-inline-flex align-items-center gap-2" style="max-width: 100%;">
+              <i class="ri-chat-quote-line flex-shrink-0" style="color: var(--haiti-gold); font-size: 14px;"></i>
+              <span style="color: rgba(255,255,255,0.5); font-size: 12px; line-height: 1.4;"><%= @transfer.note %></span>
+            </div>
+          </div>
         <% end %>
+
       </div>
     </div>
 
-    <div class="p-4">
-
-    <%# ── Failure Reason ── %>
+    <%# ══════════════════════════════════════════ %>
+    <%# ── 3. FAILURE REASON                    ── %>
+    <%# ══════════════════════════════════════════ %>
     <% if @transfer.failed? && @transfer.failure_reason.present? %>
-      <div class="rounded-3 mb-3 d-flex align-items-center gap-2 p-3" style="background: #fdf2f2; border: 1px solid #fca5a5; color: #991b1b; font-size: 12px; font-weight: 600;">
-        <i class="ri-error-warning-fill" style="font-size: 16px; flex-shrink: 0;"></i><%= @transfer.failure_reason %>
-      </div>
-    <% end %>
-
-    <%# ══════════════════════════════════════════ %>
-    <%# ── NOTE CARD                            ── %>
-    <%# ══════════════════════════════════════════ %>
-    <% if @transfer.note.present? %>
-      <div class="d-flex align-items-start gap-2 p-3 rounded-3 mb-3" style="background: white; border: 1px solid rgba(93,99,69,0.12);">
-        <i class="ri-chat-quote-line flex-shrink-0" style="color: var(--haiti-gold); font-size: 18px; margin-top: 1px;"></i>
-        <div>
-          <div class="fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 9px; letter-spacing: 1px; margin-bottom: 2px;">Pou Kisa</div>
-          <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;"><%= @transfer.note %></div>
-        </div>
-      </div>
-    <% end %>
-
-    <%# ── Business Card ── %>
-    <% if @transfer.business.present? %>
-      <div class="p-3 rounded-3 mb-3 d-flex align-items-center gap-3" style="background: rgba(197,160,89,0.1); border: 1.5px solid var(--haiti-gold);">
-        <% if @transfer.business.logo.attached? %>
-          <%= image_tag @transfer.business.logo.variant(resize_to_fill: [44, 44]), class: "rounded-circle",
-              style: "width: 44px; height: 44px; object-fit: cover; border: 2px solid var(--haiti-gold); flex-shrink: 0;" %>
+      <div class="rounded-3 mb-3 p-3" style="background: #fdf2f2; border: 1px solid #fca5a5;">
+        <% case @transfer.failure_reason %>
+        <% when "BonID consent endiponib" %>
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <i class="ri-shield-check-line" style="font-size: 18px; color: #991b1b; flex-shrink: 0;"></i>
+            <span style="color: #991b1b; font-size: 13px; font-weight: 700;">Verifikasyon BonID pa t ka fèt</span>
+          </div>
+          <p style="color: #7f1d1d; font-size: 12px; margin: 0 0 8px 0; line-height: 1.5;">
+            Transfè sa a depase limit ki mande apwobasyon BonID, men sistèm nan pa t ka kontakte BonID pou verifye. <strong>Lajan ou retounen nan pòtfèy ou.</strong>
+          </p>
+          <div class="d-flex align-items-center gap-1 mb-2" style="color: #065f46; font-size: 11px; font-weight: 600;">
+            <i class="ri-checkbox-circle-fill" style="font-size: 14px;"></i> Ranbouse: <%= @transfer.amount.to_i %> HTG retounen nan pòtfèy
+          </div>
+          <%= link_to new_transfer_path(receiver_lookup: @transfer.receiver_cashtag.presence || @transfer.receiver_phone, amount: @transfer.amount.to_i), class: "btn btn-sm px-3 py-2", style: "background: var(--haiti-gold); color: #fff; border-radius: 10px; font-weight: 700; font-size: 11px;" do %>
+            <i class="ri-refresh-line me-1"></i>Eseye Ankò
+          <% end %>
+        <% when "BonID pa verifye" %>
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <i class="ri-shield-user-line" style="font-size: 18px; color: #991b1b; flex-shrink: 0;"></i>
+            <span style="color: #991b1b; font-size: 13px; font-weight: 700;">BonID obligatwa pou montan sa a</span>
+          </div>
+          <p style="color: #7f1d1d; font-size: 12px; margin: 0 0 8px 0; line-height: 1.5;">
+            Pou pwoteje kont ou, transfè >= <%= BonIdService::CONSENT_THRESHOLD.to_i %> HTG mande verifikasyon BonID. <strong>Lajan ou retounen nan pòtfèy ou.</strong>
+          </p>
+          <div class="d-flex align-items-center gap-1 mb-2" style="color: #065f46; font-size: 11px; font-weight: 600;">
+            <i class="ri-checkbox-circle-fill" style="font-size: 14px;"></i> Ranbouse: <%= @transfer.amount.to_i %> HTG retounen nan pòtfèy
+          </div>
+          <%= link_to bonid_verification_path, class: "btn btn-sm px-3 py-2", style: "background: var(--haiti-gold); color: #fff; border-radius: 10px; font-weight: 700; font-size: 11px;" do %>
+            <i class="ri-shield-check-line me-1"></i>Verifye BonID Ou
+          <% end %>
         <% else %>
-          <div class="d-flex align-items-center justify-content-center rounded-circle"
-               style="width: 44px; height: 44px; background: var(--haiti-charcoal); flex-shrink: 0;">
-            <i class="<%= @transfer.business.category_icon %>" style="color: var(--haiti-gold); font-size: 20px;"></i>
+          <div class="d-flex align-items-center gap-2" style="color: #991b1b; font-size: 12px; font-weight: 600;">
+            <i class="ri-error-warning-fill" style="font-size: 16px; flex-shrink: 0;"></i><%= friendly_failure_reason(@transfer.failure_reason) %>
           </div>
         <% end %>
-        <div>
-          <div class="fw-black" style="color: var(--haiti-charcoal); font-size: 14px;"><%= @transfer.business.name %></div>
-          <span class="badge rounded-pill px-2 py-1" style="background: var(--haiti-mint); color: var(--haiti-olive); font-size: 9px; font-weight: 700;">
-            <i class="ri-store-2-fill me-1"></i>Peman Zèllus
-          </span>
-        </div>
       </div>
     <% end %>
 
-    <%# ── Line Items Receipt (business payments) ── %>
+    <%# ══════════════════════════════════════════ %>
+    <%# ── 4. BONID CONSENT BLOCK (redesigned)  ── %>
+    <%# ══════════════════════════════════════════ %>
+    <% if @transfer.awaiting_consent? %>
+      <% consent = @transfer.bonid_consent_request %>
+      <div id="bonid-consent-block" class="rounded-4 mb-3 overflow-hidden" style="border: 1.5px solid rgba(0,32,159,0.2);">
+
+        <%# ── Header ── %>
+        <div class="text-center py-3 px-4" style="background: linear-gradient(135deg, #00209F 0%, #0035d4 100%);">
+          <div class="d-flex align-items-center justify-content-center gap-2 mb-1">
+            <i class="ri-shield-check-fill" style="font-size: 20px; color: #fff;"></i>
+            <span class="fw-bold" style="color: #fff; font-size: 15px; letter-spacing: 0.3px;">Konsentisyon BonID</span>
+          </div>
+        </div>
+
+        <%# ── Body ── %>
+        <div class="p-4" style="background: #f8faff;">
+
+          <%# Single clear instruction ── %>
+          <div class="text-center mb-3">
+            <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3" style="width: 48px; height: 48px; background: rgba(0,32,159,0.08);">
+              <i class="ri-mail-check-line" style="font-size: 22px; color: #00209F;"></i>
+            </div>
+            <div class="fw-bold mb-1" style="color: #0c4a6e; font-size: 14px; line-height: 1.4;">
+              Tcheke imèl ou pou kòd 6 chif epi apwouve nan BonID
+            </div>
+            <div style="color: #64748b; font-size: 11px; line-height: 1.4;">
+              Apre apwovasyon, transfè a ap kontinye otomatikman
+            </div>
+          </div>
+
+          <%# Countdown timer (prominent) ── %>
+          <% if consent&.expires_at %>
+            <div class="mb-3 p-3 rounded-3" style="background: rgba(0,32,159,0.04);">
+              <div id="consent-countdown-bar" style="height: 6px; border-radius: 3px; background: rgba(0,32,159,0.1); overflow: hidden;">
+                <div id="consent-countdown-fill" style="height: 100%; background: #00209F; border-radius: 3px; transition: width 1s linear; width: 100%;"></div>
+              </div>
+              <div class="text-center mt-2">
+                <i class="ri-timer-line" style="font-size: 13px; color: #00209F;"></i>
+                <span id="consent-timer" class="fw-bold" style="font-size: 13px; color: #00209F;">Ap kalkile...</span>
+              </div>
+            </div>
+          <% end %>
+
+          <%# Spinner + waiting state ── %>
+          <div class="text-center mb-3" id="consent-spinner-wrap">
+            <div class="d-inline-flex align-items-center gap-2 px-3 py-2 rounded-pill" style="background: rgba(0,32,159,0.06);">
+              <div class="spinner-border spinner-border-sm" style="color: #00209F; width: 14px; height: 14px; border-width: 2px;" role="status" id="consent-spinner">
+                <span class="visually-hidden">Ap chaje...</span>
+              </div>
+              <span style="font-size: 11px; font-weight: 600; color: #00209F;">Ap tann repons...</span>
+            </div>
+          </div>
+
+          <%# Status message (updated by JS) ── %>
+          <div id="consent-status-msg" class="text-center fw-bold rounded-3 p-3" style="font-size: 13px; display: none;"></div>
+
+          <%# Hidden step3 icon anchor for JS compatibility ── %>
+          <div id="consent-step3-icon" style="display: none;"><i></i></div>
+
+          <%# Full-width recheck button ── %>
+          <div class="text-center">
+            <div style="font-size: 10px; color: #94a3b8; margin-bottom: 8px;">Ou deja apwouve nan BonID men paj la pa mete ajou?</div>
+            <%= button_to recheck_consent_transfer_path(@transfer), method: :post,
+                class: "btn w-100 py-3 fw-bold rounded-3 border-0 d-flex align-items-center justify-content-center gap-2",
+                style: "background: #00209F; color: #fff; font-size: 14px; letter-spacing: 0.3px;",
+                data: { turbo: false } do %>
+              <i class="ri-shield-check-line"></i> Tcheke Estati BonID
+            <% end %>
+          </div>
+        </div>
+      </div>
+
+      <script>
+        (function() {
+          var pollUrl = '<%= consent_status_transfer_path(@transfer) %>';
+          <% if consent&.expires_at %>
+            var expiresAt = new Date('<%= consent.expires_at.iso8601 %>').getTime();
+            var createdAt = new Date('<%= consent.created_at.iso8601 %>').getTime();
+            var totalMs = expiresAt - createdAt;
+
+            function updateCountdown() {
+              var now = Date.now();
+              var remaining = expiresAt - now;
+              if (remaining <= 0) {
+                document.getElementById('consent-timer').textContent = 'Ekspire';
+                document.getElementById('consent-timer').style.color = '#991b1b';
+                document.getElementById('consent-countdown-fill').style.width = '0%';
+                document.getElementById('consent-countdown-fill').style.background = '#ef4444';
+                return;
+              }
+              var pct = Math.max(0, (remaining / totalMs) * 100);
+              document.getElementById('consent-countdown-fill').style.width = pct + '%';
+              if (pct < 20) {
+                document.getElementById('consent-countdown-fill').style.background = '#ef4444';
+                document.getElementById('consent-timer').style.color = '#991b1b';
+              } else if (pct < 40) {
+                document.getElementById('consent-countdown-fill').style.background = '#f59e0b';
+                document.getElementById('consent-timer').style.color = '#92400e';
+              }
+              var mins = Math.floor(remaining / 60000);
+              var secs = Math.floor((remaining % 60000) / 1000);
+              document.getElementById('consent-timer').textContent = mins + ':' + (secs < 10 ? '0' : '') + secs + ' rete';
+            }
+            updateCountdown();
+            setInterval(updateCountdown, 1000);
+          <% end %>
+
+          var interval = setInterval(function() {
+            fetch(pollUrl).then(function(r) { return r.json(); }).then(function(data) {
+              if (data.status === 'approved') {
+                clearInterval(interval);
+                document.getElementById('consent-spinner-wrap').style.display = 'none';
+                var icon3 = document.getElementById('consent-step3-icon');
+                if (icon3) { icon3.style.background = '#16a34a'; icon3.querySelector('i').style.color = '#fff'; }
+                var msg = document.getElementById('consent-status-msg');
+                msg.style.display = 'block';
+                msg.style.color = '#166534';
+                msg.style.background = '#dcfce7';
+                msg.innerHTML = '<i class="ri-checkbox-circle-fill me-1"></i> Konsentisyon apwouve! Ap prepare revizyon...';
+                setTimeout(function() { window.location.reload(); }, 1500);
+              } else if (data.status === 'denied') {
+                clearInterval(interval);
+                document.getElementById('consent-spinner-wrap').style.display = 'none';
+                var msg = document.getElementById('consent-status-msg');
+                msg.style.display = 'block';
+                msg.style.color = '#991b1b';
+                msg.style.background = '#fee2e2';
+                msg.innerHTML = '<i class="ri-close-circle-fill me-1"></i> Konsentisyon refize. Lajan ranbouse.';
+                setTimeout(function() { window.location.reload(); }, 2000);
+              } else if (data.status === 'expired') {
+                clearInterval(interval);
+                document.getElementById('consent-spinner-wrap').style.display = 'none';
+                var msg = document.getElementById('consent-status-msg');
+                msg.style.display = 'block';
+                msg.style.color = '#854d0e';
+                msg.style.background = '#fefce8';
+                msg.innerHTML = '<i class="ri-time-line me-1"></i> Konsentisyon ekspire. Lajan ranbouse.';
+                setTimeout(function() { window.location.reload(); }, 2000);
+              }
+            }).catch(function() {});
+          }, 4000);
+        })();
+      </script>
+    <% end %>
+
+    <%# ══════════════════════════════════════════ %>
+    <%# ── 5. BUSINESS BADGE + LINE ITEMS       ── %>
+    <%# ══════════════════════════════════════════ %>
+    <% if @transfer.business.present? %>
+      <div class="text-center mb-3">
+        <span class="badge rounded-pill px-3 py-2" style="background: rgba(197,160,89,0.12); color: var(--haiti-charcoal); font-size: 11px; font-weight: 700; border: 1px solid var(--haiti-gold);">
+          <i class="ri-store-2-fill me-1" style="color: var(--haiti-gold);"></i><%= @transfer.business.name %> · Peman Biznis
+        </span>
+      </div>
+    <% end %>
+
     <% if @transfer.business_id? && @transfer.business_line_items.any? %>
-      <div class="p-3 rounded-3 mb-3" style="background: white; border: 1px solid rgba(93,99,69,0.15);">
-        <div class="small fw-bold text-uppercase mb-2" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">
-          <i class="ri-file-list-3-line me-1"></i>RESI
+      <div class="p-3 rounded-3 mb-3" style="background: white; border: 1px solid rgba(93,99,69,0.1); box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+        <div class="small fw-bold text-uppercase mb-2" style="color: var(--haiti-olive); font-size: 9px; letter-spacing: 1.5px;">
+          <i class="ri-receipt-line me-1"></i>RESI
         </div>
         <% @transfer.business_line_items.each do |item| %>
-          <div class="d-flex justify-content-between mb-1">
+          <div class="d-flex justify-content-between align-items-center py-1">
             <span style="color: var(--haiti-charcoal); font-size: 12px; font-weight: 600;"><%= item.name %> &times; <%= item.quantity %></span>
             <span class="fw-bold" style="color: var(--haiti-charcoal); font-size: 12px;"><%= number_to_currency(item.line_total, unit: "", precision: 0) %> HTG</span>
           </div>
         <% end %>
-        <div class="pt-2 mt-2" style="border-top: 1px solid rgba(93,99,69,0.1);">
-          <div class="d-flex justify-content-between small">
-            <span style="color: var(--haiti-olive);">Sou-total</span>
-            <span class="fw-bold" style="color: var(--haiti-charcoal);"><%= number_to_currency(@transfer.subtotal, unit: "", precision: 0) %> HTG</span>
+        <div class="pt-2 mt-2" style="border-top: 1px dashed rgba(93,99,69,0.15);">
+          <div class="d-flex justify-content-between align-items-center py-1 small">
+            <span style="color: var(--haiti-olive); font-size: 11px;">Sou-total</span>
+            <span class="fw-bold" style="color: var(--haiti-charcoal); font-size: 11px;"><%= number_to_currency(@transfer.subtotal, unit: "", precision: 0) %> HTG</span>
           </div>
           <% if @transfer.tax_amount.to_f > 0 %>
-            <div class="d-flex justify-content-between small">
-              <span style="color: var(--haiti-olive);">Taks (<%= @transfer.business.tax_percentage %>%)</span>
-              <span class="fw-bold" style="color: var(--haiti-charcoal);"><%= number_to_currency(@transfer.tax_amount, unit: "", precision: 0) %> HTG</span>
+            <div class="d-flex justify-content-between align-items-center py-1 small">
+              <span style="color: var(--haiti-olive); font-size: 11px;">Taks (<%= @transfer.business.tax_percentage %>%)</span>
+              <span class="fw-bold" style="color: var(--haiti-charcoal); font-size: 11px;"><%= number_to_currency(@transfer.tax_amount, unit: "", precision: 0) %> HTG</span>
             </div>
           <% end %>
         </div>
@@ -203,22 +347,36 @@
     <% end %>
 
     <%# ══════════════════════════════════════════ %>
-    <%# ── DETAILS CARD                         ── %>
+    <%# ── 6. ACTION BUTTON (full-width)        ── %>
     <%# ══════════════════════════════════════════ %>
-    <div class="rounded-3 mb-3 overflow-hidden" style="background: var(--haiti-charcoal);">
+    <div class="d-grid gap-2 mb-3">
+      <% if @needs_pin %>
+        <button type="button" onclick="openPinModal()"
+            class="btn w-100 py-3 fw-black rounded-3 border-0 d-flex align-items-center justify-content-center gap-2"
+            style="background: var(--haiti-gold); color: var(--haiti-charcoal); font-size: 15px; letter-spacing: 0.3px; box-shadow: 0 4px 14px rgba(197,160,89,0.35);">
+          <i class="ri-flashlight-fill"></i> Konfime & Peye
+        </button>
+      <% end %>
+    </div>
+
+    <%# ══════════════════════════════════════════ %>
+    <%# ── 7. DETAILS CARD (pushed to bottom)   ── %>
+    <%# ══════════════════════════════════════════ %>
+    <div class="rounded-3 mb-3 overflow-hidden" style="background: var(--haiti-charcoal); box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
+      <div class="px-3 pt-2 pb-1">
+        <div class="fw-bold text-uppercase" style="color: rgba(255,255,255,0.3); font-size: 9px; letter-spacing: 1.5px;">
+          <i class="ri-file-list-3-line me-1"></i>Detay
+        </div>
+      </div>
 
       <%# ── Payment Method ── %>
       <div class="px-3 py-2 d-flex justify-content-between align-items-center" style="border-bottom: 1px solid rgba(255,255,255,0.06);">
-        <span style="color: rgba(255,255,255,0.4); font-size: 11px; font-weight: 600;">Peye Avèk</span>
+        <span style="color: rgba(255,255,255,0.4); font-size: 11px; font-weight: 600;">Peye Ak Pòtfèy</span>
         <span class="fw-bold" style="font-size: 11px; color: white;">
-          <% if @transfer.usdc_wallet_transfer? || (@transfer.wallet_funded? && @transfer.usdc_address_transfer?) %>
-            <i class="ri-wallet-3-line me-1" style="color: var(--haiti-gold);"></i>Pòtfèy USD
-          <% elsif @transfer.wallet_funded? || @transfer.wallet_payout? %>
-            <i class="ri-wallet-3-line me-1" style="color: var(--haiti-gold);"></i>Pòtfèy HTG
-          <% elsif @transfer.bank_transfer? %>
-            <i class="ri-wallet-3-line me-1" style="color: var(--haiti-gold);"></i>Pòtfèy HTG
+          <% if @transfer.business_id? %>
+            <i class="ri-store-2-fill me-1" style="color: var(--haiti-gold);"></i>Biznis
           <% else %>
-            <i class="ri-smartphone-line me-1" style="color: var(--haiti-gold);"></i>MonCash
+            <i class="ri-user-3-fill me-1" style="color: var(--haiti-gold);"></i>Pèsonèl
           <% end %>
         </span>
       </div>
@@ -228,7 +386,11 @@
         <span style="color: rgba(255,255,255,0.4); font-size: 11px; font-weight: 600;">Frè</span>
         <span class="fw-bold" style="font-size: 11px; color: #4ade80;">
           <% if @transfer.fee.to_f > 0 %>
-            - <%= number_to_currency(@transfer.fee, unit: "", precision: 0) %> HTG
+            <% if @transfer.crypto_transfer? && @transfer.exchange_rate.to_f > 0 %>
+              - <%= number_with_precision(@transfer.fee / @transfer.exchange_rate, precision: 2) %> <%= @transfer.asset_label %>
+            <% else %>
+              - <%= number_to_currency(@transfer.fee, unit: "", precision: 0) %> HTG
+            <% end %>
           <% else %>
             Gratis
           <% end %>
@@ -266,13 +428,68 @@
       <%# ── Date ── %>
       <div class="px-3 py-2 d-flex justify-content-between align-items-center">
         <span style="color: rgba(255,255,255,0.4); font-size: 11px; font-weight: 600;">Dat</span>
-        <span style="font-size: 11px; color: rgba(255,255,255,0.6);"><%= @transfer.created_at.strftime("%d %b %Y, %H:%M") %></span>
+        <span style="font-size: 11px; color: rgba(255,255,255,0.6);"><%= @transfer.created_at.strftime("%d") %> <%= %w[Jan Fev Mas Avr Me Jen Jiy Out Sep Okt Nov Des][@transfer.created_at.month - 1] %> <%= @transfer.created_at.strftime("%Y, %H:%M") %></span>
       </div>
     </div>
 
+    <%# ══════════════════════════════════════════ %>
+    <%# ── 7b. BIOMETRIC VERIFICATION CARD      ── %>
+    <%# ══════════════════════════════════════════ %>
+    <% if @consent&.biometric_verification.present? %>
+      <% bio = @consent.biometric_verification %>
+      <div class="rounded-3 mb-3 overflow-hidden" style="background: var(--haiti-charcoal); box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
+        <div class="px-3 pt-2 pb-1">
+          <div class="fw-bold text-uppercase" style="color: rgba(255,255,255,0.3); font-size: 9px; letter-spacing: 1.5px;">
+            <i class="ri-fingerprint-line me-1"></i>Verifikasyon Byometrik
+          </div>
+        </div>
+
+        <% doc_label = { "bonid_selfie" => "ID BonID", "cin_front" => "CIN", "passport" => "Paspò" }[bio["compared_against"]] || "ID" %>
+
+        <%# ── Liveness ── %>
+        <div class="px-3 py-2 d-flex justify-content-between align-items-center" style="border-bottom: 1px solid rgba(255,255,255,0.06);">
+          <span style="color: rgba(255,255,255,0.4); font-size: 11px; font-weight: 600;">Figi reyèl</span>
+          <span class="fw-bold" style="font-size: 11px;">
+            <% if bio["liveness_passed"] %>
+              <i class="ri-checkbox-circle-fill me-1" style="color: #4ade80;"></i><span style="color: #4ade80;"><%= number_with_precision(bio["liveness_confidence"], precision: 1, strip_insignificant_zeros: true) %>%</span>
+            <% else %>
+              <i class="ri-close-circle-fill me-1" style="color: #f87171;"></i><span style="color: #f87171;">Echwe</span>
+            <% end %>
+          </span>
+        </div>
+
+        <%# ── Face Match ── %>
+        <div class="px-3 py-2 d-flex justify-content-between align-items-center" style="border-bottom: 1px solid rgba(255,255,255,0.06);">
+          <span style="color: rgba(255,255,255,0.4); font-size: 11px; font-weight: 600;">Matche ak <%= doc_label %></span>
+          <span class="fw-bold" style="font-size: 11px;">
+            <% if bio["face_matched"] %>
+              <i class="ri-checkbox-circle-fill me-1" style="color: #4ade80;"></i><span style="color: #4ade80;"><%= number_with_precision(bio["face_similarity"], precision: 1, strip_insignificant_zeros: true) %>%</span>
+            <% else %>
+              <i class="ri-close-circle-fill me-1" style="color: #f87171;"></i><span style="color: #f87171;"><%= number_with_precision(bio["face_similarity"], precision: 1, strip_insignificant_zeros: true) %>%</span>
+            <% end %>
+          </span>
+        </div>
+
+        <%# ── Verified At ── %>
+        <% if bio["verified_at"].present? %>
+          <% verified_time = Time.parse(bio["verified_at"]) rescue nil %>
+          <% if verified_time %>
+            <div class="px-3 py-2 d-flex justify-content-between align-items-center">
+              <span style="color: rgba(255,255,255,0.4); font-size: 11px; font-weight: 600;">Verifye</span>
+              <span style="font-size: 11px; color: rgba(255,255,255,0.6);"><%= verified_time.strftime("%d") %> <%= %w[Jan Fev Mas Avr Me Jen Jiy Out Sep Okt Nov Des][verified_time.month - 1] %> <%= verified_time.strftime("%Y, %H:%M") %></span>
+            </div>
+          <% end %>
+        <% end %>
+      </div>
+    <% end %>
+
+    <%# ══════════════════════════════════════════ %>
+    <%# ── 8. BLOCKCHAIN TX / MONCASH / CLAIM   ── %>
+    <%# ══════════════════════════════════════════ %>
+
     <%# ── Blockchain TX Hash ── %>
     <% if @transfer.blockchain_tx_hash.present? %>
-      <div class="rounded-3 mb-3 p-3" style="background: rgba(93,99,69,0.08);">
+      <div class="rounded-3 mb-3 p-3" style="background: white; border: 1px solid rgba(93,99,69,0.1); box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
         <div class="d-flex align-items-center justify-content-between">
           <div>
             <div class="small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 9px; letter-spacing: 1px;">Tranzaksyon Blockchain</div>
@@ -289,7 +506,7 @@
 
     <%# ── MonCash TX ID ── %>
     <% if @transfer.moncash_transaction_id.present? %>
-      <div class="rounded-3 mb-3 p-3" style="background: rgba(93,99,69,0.08);">
+      <div class="rounded-3 mb-3 p-3" style="background: white; border: 1px solid rgba(93,99,69,0.1); box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
         <div class="small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 9px; letter-spacing: 1px;">MonCash TX ID</div>
         <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 12px;"><%= @transfer.moncash_transaction_id %></div>
       </div>
@@ -302,9 +519,9 @@
           <i class="ri-link me-1" style="color: var(--haiti-gold);"></i>Voye lyen sa a bay moun nan pou yo reklame lajan an.
         </div>
         <div class="input-group">
-          <input type="text" class="form-control border-0 fw-bold shadow-none p-2 bb-dark-field" value="<%= @claim_url %>" readonly id="claim-url-input"
-                 style="background-color: var(--haiti-charcoal); color: white; font-size: 10px; border-radius: 8px 0 0 8px;">
-          <button class="btn border-0 fw-bold" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 10px; border-radius: 0 8px 8px 0;" onclick="copyClaimUrl()">
+          <input type="text" class="form-control border-0 fw-bold shadow-none p-2" value="<%= @claim_url %>" readonly id="claim-url-input"
+                 style="background-color: var(--haiti-mint); color: var(--haiti-charcoal); font-size: 10px; border-radius: 8px 0 0 8px;">
+          <button class="btn border-0 fw-bold" style="background-color: var(--haiti-gold); color: var(--haiti-charcoal); font-size: 10px; border-radius: 0 8px 8px 0;" onclick="copyClaimUrl()">
             <i class="ri-file-copy-line me-1"></i>Kopye
           </button>
         </div>
@@ -315,26 +532,6 @@
         <% end %>
       </div>
     <% end %>
-
-    <%# ── Actions ── %>
-    <div class="d-grid gap-2 mt-2">
-      <% if @needs_pin %>
-        <button type="button" onclick="openPinModal()"
-            class="btn w-100 py-3 fw-bold rounded-4 shadow-sm border-0 d-flex align-items-center justify-content-center gap-2"
-            style="background-color: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 14px; letter-spacing: 0.5px;">
-          <i class="ri-flashlight-fill"></i> Konfime & Peye
-        </button>
-      <% else %>
-        <%= link_to new_transfer_path,
-            class: "btn w-100 py-3 fw-bold rounded-4 shadow-sm border-0 d-flex align-items-center justify-content-center gap-2",
-            style: "background-color: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 14px; letter-spacing: 0.5px;" do %>
-          <i class="ri-send-plane-fill"></i> Voye Ankò
-        <% end %>
-      <% end %>
-    </div>
-
-    </div><%# ── end cream content section ── %>
-    </div><%# ── end outer card ── %>
 
   </div>
 </div>
@@ -379,64 +576,6 @@
         </div>
       </div>
 
-      <%# ── BonID Consent Waiting Block ── %>
-      <% if @transfer.awaiting_consent? %>
-        <% consent = @transfer.bonid_consent_request %>
-        <div id="bonid-consent-block" class="text-center p-4 rounded-4 mb-3" style="background: #e0f2fe; border: 2px solid #7dd3fc;">
-          <i class="ri-shield-check-line" style="font-size: 40px; color: #0369a1;"></i>
-          <div class="fw-bold mt-2" style="color: #0c4a6e; font-size: 15px;">Ap Tann Apwovasyon BonID</div>
-          <div class="mt-1" style="color: #0369a1; font-size: 12px;">
-            Tcheke imèl ou pou yon kòd OTP 6 chif.<br>
-            Antre kòd la pou apwouve transfè sa a.
-          </div>
-          <% if consent&.expires_at %>
-            <div class="mt-2" style="font-size: 11px; color: #0369a1;">
-              <i class="ri-timer-line me-1"></i>Ekspire: <span id="consent-timer"><%= consent.expires_at.strftime("%l:%M %p") %></span>
-            </div>
-          <% end %>
-          <div id="consent-status-msg" class="mt-2 fw-bold" style="font-size: 12px; display: none;"></div>
-          <div class="mt-3">
-            <div class="spinner-border spinner-border-sm text-primary" role="status" id="consent-spinner">
-              <span class="visually-hidden">Ap chaje...</span>
-            </div>
-          </div>
-        </div>
-        <script>
-          (function() {
-            var pollUrl = '<%= consent_status_transfer_path(@transfer) %>';
-            var interval = setInterval(function() {
-              fetch(pollUrl).then(function(r) { return r.json(); }).then(function(data) {
-                if (data.status === 'approved') {
-                  clearInterval(interval);
-                  document.getElementById('consent-spinner').style.display = 'none';
-                  var msg = document.getElementById('consent-status-msg');
-                  msg.style.display = 'block';
-                  msg.style.color = '#166534';
-                  msg.textContent = '✓ Konsentisyon apwouve! Ap trete transfè...';
-                  setTimeout(function() { window.location.reload(); }, 2000);
-                } else if (data.status === 'denied') {
-                  clearInterval(interval);
-                  document.getElementById('consent-spinner').style.display = 'none';
-                  var msg = document.getElementById('consent-status-msg');
-                  msg.style.display = 'block';
-                  msg.style.color = '#991b1b';
-                  msg.textContent = '✗ Konsentisyon refize. Lajan ranbouse.';
-                  setTimeout(function() { window.location.reload(); }, 2000);
-                } else if (data.status === 'expired') {
-                  clearInterval(interval);
-                  document.getElementById('consent-spinner').style.display = 'none';
-                  var msg = document.getElementById('consent-status-msg');
-                  msg.style.display = 'block';
-                  msg.style.color = '#854d0e';
-                  msg.textContent = '⏱ Konsentisyon ekspire. Lajan ranbouse.';
-                  setTimeout(function() { window.location.reload(); }, 2000);
-                }
-              }).catch(function() {});
-            }, 5000); // Poll every 5 seconds
-          })();
-        </script>
-      <% end %>
-
       <%# ── PIN Form ── %>
       <%= form_tag confirm_transfer_path(@transfer), method: :post, class: "row g-3" do %>
 
@@ -445,14 +584,14 @@
           <% wallet = current_user.ensure_wallet! %>
           <% has_wallet_funds = wallet.sufficient_balance?(@transfer.amount) %>
           <div class="col-12">
-            <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Peye Avèk</label>
+            <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Peye Ak Pòtfèy</label>
             <div class="p-3 rounded-3" style="background: var(--haiti-cream); border: 2px solid <%= has_wallet_funds ? 'var(--haiti-olive)' : '#991b1b' %>;">
               <input type="hidden" name="funding_source" value="wallet">
               <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;">
                 <i class="ri-wallet-3-line me-1"></i>Pòtfèy HTG
               </div>
               <div style="color: var(--haiti-olive); font-size: 10px;">
-                <%= number_to_currency(wallet.htg_balance, unit: "HTG ", precision: 0) %> disponib
+                <%= number_to_currency(wallet.htg_balance, unit: "HTG ", precision: 2) %> disponib
               </div>
             </div>
             <% unless has_wallet_funds %>
@@ -462,27 +601,56 @@
             <% end %>
           </div>
 
-        <%# ── Funding Source Selector (HTG only) ── %>
+        <%# ── Funding Source (HTG — wallet or business) ── %>
         <% elsif @transfer.htg_transfer? && @transfer.pending? %>
           <% wallet = current_user.ensure_wallet! %>
+          <% biz = current_user.business %>
           <% has_wallet_funds = wallet.sufficient_balance?(@transfer.amount) %>
+          <% has_biz_funds = biz.present? && biz.sufficient_htg?(@transfer.amount) %>
+          <% default_source = has_wallet_funds ? "wallet" : (has_biz_funds ? "business" : "wallet") %>
           <div class="col-12">
-            <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Peye Avèk</label>
-            <div class="d-flex gap-2">
-              <label class="flex-fill text-center p-2 rounded-3 funding-source-option" style="border: 2px solid <%= has_wallet_funds ? 'var(--haiti-olive)' : '#d9d6c4' %>; background: var(--haiti-cream); cursor: pointer; <%= has_wallet_funds ? '' : 'opacity: 0.5;' %>" id="lbl-wallet">
-                <input type="radio" name="funding_source" value="wallet" class="d-none" <%= has_wallet_funds ? 'checked' : 'disabled' %>>
-                <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;"><i class="ri-wallet-3-line me-1"></i>Pòtfèy</div>
-                <div style="color: var(--haiti-olive); font-size: 10px;"><%= number_to_currency(wallet.htg_balance, unit: "HTG ", precision: 0) %></div>
-              </label>
-              <label class="flex-fill text-center p-2 rounded-3 funding-source-option" style="border: 2px solid <%= has_wallet_funds ? '#d9d6c4' : 'var(--haiti-olive)' %>; background: var(--haiti-cream); cursor: pointer;" id="lbl-moncash">
-                <input type="radio" name="funding_source" value="moncash" class="d-none" <%= has_wallet_funds ? '' : 'checked' %>>
-                <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;"><i class="ri-smartphone-line me-1"></i>MonCash</div>
-                <div style="color: var(--haiti-olive); font-size: 10px;">Peman ekstèn</div>
-              </label>
+            <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Peye Ak</label>
+            <input type="hidden" name="funding_source" id="transfer-funding-source" value="<%= default_source %>">
+
+            <%# ── Personal wallet option ── %>
+            <div class="p-3 rounded-3 mb-2 transfer-fund-option" onclick="selectTransferSource('wallet')" role="button"
+                 id="fund-opt-wallet"
+                 style="background: var(--haiti-cream); border: 2px solid <%= default_source == 'wallet' ? 'var(--haiti-olive)' : 'rgba(93,99,69,0.15)' %>; cursor: pointer; transition: border-color 0.15s;">
+              <div class="d-flex align-items-center justify-content-between">
+                <div>
+                  <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;">
+                    <i class="ri-wallet-3-line me-1"></i>Pòtfèy Pèsonèl
+                  </div>
+                  <div style="color: var(--haiti-olive); font-size: 10px;">
+                    <%= number_to_currency(wallet.htg_balance, unit: "HTG ", precision: 2) %> disponib
+                  </div>
+                </div>
+                <i class="ri-checkbox-circle-fill" id="fund-check-wallet" style="font-size: 20px; color: var(--haiti-olive); display: <%= default_source == 'wallet' ? 'block' : 'none' %>;"></i>
+              </div>
             </div>
-            <% unless has_wallet_funds %>
-              <div class="small mt-1" style="color: var(--haiti-olive); font-size: 10px;">
-                <i class="ri-information-line me-1"></i>Balans pòtfèy pa sifi. <%= link_to "Depoze", wallet_path, style: "color: var(--haiti-gold); font-weight: 700;" %>
+
+            <%# ── Business option (if user has a business) ── %>
+            <% if biz.present? %>
+              <div class="p-3 rounded-3 mb-2 transfer-fund-option" onclick="selectTransferSource('business')" role="button"
+                   id="fund-opt-business"
+                   style="background: var(--haiti-cream); border: 2px solid <%= default_source == 'business' ? 'var(--haiti-olive)' : 'rgba(93,99,69,0.15)' %>; cursor: pointer; transition: border-color 0.15s;">
+                <div class="d-flex align-items-center justify-content-between">
+                  <div>
+                    <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;">
+                      <i class="ri-store-2-line me-1"></i><%= biz.name.truncate(20) %>
+                    </div>
+                    <div style="color: var(--haiti-olive); font-size: 10px;">
+                      <%= number_to_currency(biz.htg_balance, unit: "HTG ", precision: 2) %> disponib
+                    </div>
+                  </div>
+                  <i class="ri-checkbox-circle-fill" id="fund-check-business" style="font-size: 20px; color: var(--haiti-olive); display: <%= default_source == 'business' ? 'block' : 'none' %>;"></i>
+                </div>
+              </div>
+            <% end %>
+
+            <% unless has_wallet_funds || has_biz_funds %>
+              <div class="small mt-1" style="color: #991b1b; font-size: 10px;">
+                <i class="ri-error-warning-line me-1"></i>Balans pa sifi. <%= link_to "Depoze", wallet_path, style: "color: var(--haiti-gold); font-weight: 700;" %>
               </div>
             <% end %>
           </div>
@@ -494,7 +662,7 @@
           <% usdc_needed = @transfer.crypto_amount || @transfer.net_amount %>
           <% has_usdc = wallet.sufficient_balance?("usdc", usdc_needed) %>
           <div class="col-12">
-            <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Peye Avèk</label>
+            <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Peye Ak Pòtfèy</label>
             <div class="p-3 rounded-3" style="background: var(--haiti-cream); border: 2px solid <%= has_usdc ? 'var(--haiti-olive)' : '#991b1b' %>;">
               <input type="hidden" name="funding_source" value="wallet">
               <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;">
@@ -512,28 +680,25 @@
           </div>
         <% end %>
 
-        <%# ── Funding Source (USDC to external 0x address) ── %>
+        <%# ── Funding Source (USDC to external 0x address — wallet only) ── %>
         <% if @transfer.usdc_address_transfer? && @transfer.pending? %>
           <% wallet = current_user.ensure_wallet! %>
           <% usdc_needed = @transfer.crypto_amount || @transfer.net_amount %>
           <% has_usdc = wallet.sufficient_balance?("usdc", usdc_needed) %>
           <div class="col-12">
-            <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Peye Avèk</label>
-            <div class="d-flex gap-2">
-              <label class="flex-fill text-center p-2 rounded-3" style="border: 2px solid <%= has_usdc ? 'var(--haiti-olive)' : '#d9d6c4' %>; background: var(--haiti-cream); cursor: pointer; <%= has_usdc ? '' : 'opacity: 0.5;' %>" id="lbl-usdc-wallet">
-                <input type="radio" name="funding_source" value="wallet" class="d-none" <%= has_usdc ? 'checked' : 'disabled' %>>
-                <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;"><i class="ri-wallet-3-line me-1"></i>Pòtfèy USD</div>
-                <div style="color: var(--haiti-olive); font-size: 10px;"><%= number_with_precision(truncated_balance(wallet.usdc_balance), precision: 2) %> USD</div>
-              </label>
-              <label class="flex-fill text-center p-2 rounded-3" style="border: 2px solid <%= has_usdc ? '#d9d6c4' : 'var(--haiti-olive)' %>; background: var(--haiti-cream); cursor: pointer;" id="lbl-usdc-moncash">
-                <input type="radio" name="funding_source" value="moncash" class="d-none" <%= has_usdc ? '' : 'checked' %>>
-                <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;"><i class="ri-smartphone-line me-1"></i>MonCash</div>
-                <div style="color: var(--haiti-olive); font-size: 10px;">Konvèti HTG &rarr; USD</div>
-              </label>
+            <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Peye Ak Pòtfèy</label>
+            <div class="p-3 rounded-3" style="background: var(--haiti-cream); border: 2px solid <%= has_usdc ? 'var(--haiti-olive)' : '#991b1b' %>;">
+              <input type="hidden" name="funding_source" value="wallet">
+              <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;">
+                <i class="ri-wallet-3-line me-1"></i>Pòtfèy USD
+              </div>
+              <div style="color: var(--haiti-olive); font-size: 10px;">
+                <%= number_with_precision(truncated_balance(wallet.usdc_balance), precision: 2) %> USD disponib
+              </div>
             </div>
             <% unless has_usdc %>
-              <div class="small mt-1" style="color: var(--haiti-olive); font-size: 10px;">
-                <i class="ri-information-line me-1"></i>Balans USD pa sifi. <%= link_to "Depoze", wallet_path, style: "color: var(--haiti-gold); font-weight: 700;" %>
+              <div class="small mt-1" style="color: #991b1b; font-size: 10px;">
+                <i class="ri-error-warning-line me-1"></i>Balans USD pa sifi. Ou bezwen <%= number_with_precision(usdc_needed, precision: 2) %> USD.
               </div>
             <% end %>
           </div>
@@ -541,21 +706,21 @@
 
         <div class="col-12">
           <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">PIN Transfè (4 chif)</label>
-          <div class="input-group">
-            <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);">
+          <div class="input-group" style="border: 1.5px solid rgba(46,46,56,0.12); border-radius: 12px; overflow: hidden;">
+            <span class="input-group-text border-0" style="background-color: var(--haiti-mint); color: var(--haiti-gold);">
               <i class="ri-lock-2-line"></i>
             </span>
             <input type="password" name="transfer_pin" id="pin-modal-input"
-                   class="form-control border-0 fw-bold shadow-none p-3 bb-dark-field text-center"
+                   class="form-control border-0 fw-bold shadow-none p-3 text-center"
                    maxlength="4" pattern="\d{4}" inputmode="numeric" placeholder="• • • •" required autocomplete="off"
-                   style="background-color: var(--haiti-charcoal); color: white; letter-spacing: 12px; font-size: 1.4rem;">
+                   style="background-color: var(--haiti-mint); color: var(--haiti-charcoal); letter-spacing: 12px; font-size: 1.4rem;">
           </div>
         </div>
 
         <div class="col-12">
           <button type="button" id="transfer-confirm-btn"
-              class="btn w-100 py-3 fw-bold rounded-4 shadow-sm border-0 d-flex align-items-center justify-content-center gap-2"
-              style="background-color: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 14px; letter-spacing: 0.5px;">
+              class="btn w-100 py-3 fw-black rounded-4 shadow-sm border-0 d-flex align-items-center justify-content-center gap-2"
+              style="background-color: var(--haiti-gold); color: var(--haiti-charcoal); font-family: 'Space Grotesk', sans-serif; font-size: 15px; letter-spacing: 0.5px;">
             <i class="ri-flashlight-fill"></i> Peye
           </button>
         </div>
@@ -620,6 +785,18 @@ function closePinModal() {
   document.body.style.overflow = '';
   var input = document.getElementById('pin-modal-input');
   if (input) input.value = '';
+}
+
+function selectTransferSource(source) {
+  var hidden = document.getElementById('transfer-funding-source');
+  if (hidden) hidden.value = source;
+
+  ['wallet', 'business'].forEach(function(s) {
+    var opt = document.getElementById('fund-opt-' + s);
+    var chk = document.getElementById('fund-check-' + s);
+    if (opt) opt.style.borderColor = (s === source) ? 'var(--haiti-olive)' : 'rgba(93,99,69,0.15)';
+    if (chk) chk.style.display = (s === source) ? 'block' : 'none';
+  });
 }
 
 document.addEventListener('DOMContentLoaded', function() {

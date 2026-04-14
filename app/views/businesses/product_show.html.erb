@@ -1,0 +1,266 @@
+<% content_for :title, "#{@product.name} — #{@business.name}" %>
+<% content_for :full_width, true %>
+
+<%
+  unit_price = @product.price.to_f
+  asset = @product.asset || "htg"
+  asset_upper = asset == "usd" ? "USD" : "HTG"
+  allows_qty = @product.allows_quantity?
+  max_qty = @product.max_quantity
+  sold_out = !@product.in_stock?
+  is_owner = user_signed_in? && current_user.id == @owner.id
+%>
+
+<div class="container py-4" style="max-width: 1060px;">
+
+  <%# ── Top bar: Back + Edit ── %>
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <a href="javascript:history.back()" class="d-inline-flex align-items-center gap-1 text-decoration-none" style="color: var(--haiti-olive); font-size: 13px; font-weight: 600;">
+      <i class="ri-arrow-left-s-line" style="font-size: 18px;"></i>Retounen
+    </a>
+    <% if is_owner %>
+      <%= link_to edit_business_product_path(@product), class: "d-inline-flex align-items-center gap-1 text-decoration-none px-3 py-1 rounded-pill", style: "color: var(--haiti-gold); font-size: 12px; font-weight: 700; background: rgba(197,160,89,0.12); border: 1px solid rgba(197,160,89,0.25);" do %>
+        <i class="ri-pencil-line" style="font-size: 14px;"></i>Modifye
+      <% end %>
+    <% end %>
+  </div>
+
+  <%# ══════════════════════════════════════════════════════ %>
+  <%# ── TWO-COLUMN LAYOUT                               ── %>
+  <%# ══════════════════════════════════════════════════════ %>
+  <div class="row g-4">
+
+    <%# ══════════════════════════════════════ %>
+    <%# ── LEFT COLUMN: Product Details     ── %>
+    <%# ══════════════════════════════════════ %>
+    <div class="col-lg-7">
+
+      <%# ── Product Hero Card ── %>
+      <div class="rounded-4 overflow-hidden mb-3" style="background: var(--haiti-charcoal);">
+
+        <%# ── Image ── %>
+        <% if @product.image.attached? %>
+          <%= image_tag @product.image, class: "w-100", style: "height: 320px; object-fit: cover; display: block;" %>
+        <% else %>
+          <div class="d-flex align-items-center justify-content-center" style="height: 220px; background: rgba(255,255,255,0.04);">
+            <i class="ri-shopping-bag-line" style="font-size: 56px; color: rgba(255,255,255,0.12);"></i>
+          </div>
+        <% end %>
+
+        <%# ── Name + Meta ── %>
+        <div class="p-4">
+          <h1 class="fw-black mb-2" style="color: white; font-size: 24px; line-height: 1.25;">
+            <%= @product.name %>
+          </h1>
+
+          <div class="d-flex align-items-center gap-2 flex-wrap mb-3">
+            <span class="badge rounded-pill px-3 py-1" style="background: rgba(197,160,89,0.2); color: var(--haiti-gold); font-size: 11px; font-weight: 700;">
+              <i class="<%= @business.category_icon %> me-1"></i><%= @business.category_label %>
+            </span>
+            <% if @product.product_type_service? %>
+              <span class="badge rounded-pill px-3 py-1" style="background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.6); font-size: 11px; font-weight: 700;">
+                <i class="ri-service-line me-1"></i>Sevis
+              </span>
+            <% end %>
+          </div>
+
+          <%# ── Business link ── %>
+          <%= link_to public_business_path(slug: @business.slug), class: "d-inline-flex align-items-center gap-2 text-decoration-none", style: "color: rgba(255,255,255,0.5); font-size: 13px;" do %>
+            <% if @business.logo.attached? %>
+              <%= image_tag @business.logo, class: "rounded-circle", style: "width: 22px; height: 22px; object-fit: cover; border: 2px solid rgba(197,160,89,0.3);" %>
+            <% else %>
+              <div class="d-flex align-items-center justify-content-center rounded-circle" style="width: 22px; height: 22px; background: rgba(255,255,255,0.08);">
+                <i class="<%= @business.category_icon %>" style="font-size: 10px; color: var(--haiti-gold);"></i>
+              </div>
+            <% end %>
+            <span>pa <strong style="color: rgba(255,255,255,0.7);"><%= @business.name %></strong></span>
+          <% end %>
+        </div>
+      </div>
+
+      <%# ── Description ── %>
+      <% if @product.description.present? %>
+        <div class="card-base p-4 mb-3" style="border: 2px solid rgba(197,160,89,0.2);">
+          <div class="fw-bold mb-2" style="color: var(--haiti-charcoal); font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">
+            <i class="ri-file-text-line me-1" style="color: var(--haiti-gold);"></i>Deskripsyon
+          </div>
+          <p class="mb-0" style="color: var(--haiti-olive); font-size: 13px; line-height: 1.7;">
+            <%= @product.description %>
+          </p>
+        </div>
+      <% end %>
+
+    </div>
+
+    <%# ══════════════════════════════════════ %>
+    <%# ── RIGHT COLUMN: Payment Terminal   ── %>
+    <%# ══════════════════════════════════════ %>
+    <div class="col-lg-5">
+      <div style="position: sticky; top: 80px;">
+
+        <div class="card-base p-4 mb-3" style="border: 2px solid rgba(197,160,89,0.2);">
+
+          <%# ── Unit Price ── %>
+          <div class="text-center mb-1">
+            <span class="fw-black" style="color: var(--haiti-charcoal); font-size: 32px; letter-spacing: -0.5px;">
+              <%= number_with_delimiter(unit_price.to_i) %>
+            </span>
+            <span class="fw-bold" style="color: var(--haiti-olive); font-size: 15px;"><%= asset_upper %></span>
+          </div>
+
+          <% if allows_qty && !sold_out %>
+            <%# ── Divider ── %>
+            <div class="my-3" style="border-top: 1px solid rgba(93,99,69,0.1);"></div>
+
+            <%# ── Quantity Label ── %>
+            <div class="text-center mb-2" style="font-size: 11px; color: var(--haiti-olive); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+              Kantite
+            </div>
+
+            <%# ── Quantity Picker ── %>
+            <div class="d-flex align-items-center justify-content-center gap-4 mb-3">
+              <button type="button" id="qty-minus" class="d-flex align-items-center justify-content-center rounded-circle"
+                      style="width: 48px; height: 48px; background: var(--haiti-charcoal); color: white; border: none; font-size: 20px; cursor: pointer; transition: all 0.15s; opacity: 0.35;"
+                      aria-label="Diminye kantite">
+                <i class="ri-subtract-line"></i>
+              </button>
+
+              <span id="qty-display" class="fw-black" style="color: var(--haiti-charcoal); font-size: 32px; min-width: 56px; text-align: center;">1</span>
+
+              <button type="button" id="qty-plus" class="d-flex align-items-center justify-content-center rounded-circle"
+                      style="width: 48px; height: 48px; background: var(--haiti-charcoal); color: white; border: none; font-size: 20px; cursor: pointer; transition: all 0.15s;"
+                      aria-label="Ogmante kantite">
+                <i class="ri-add-line"></i>
+              </button>
+            </div>
+
+            <%# ── Subtotal line ── %>
+            <div id="subtotal-row" class="text-center rounded-3 py-2 px-3 mb-3" style="background: rgba(197,160,89,0.08); font-size: 13px; color: var(--haiti-olive); display: none;">
+              <span id="price-calc"></span> = <strong id="subtotal-display" style="color: var(--haiti-charcoal);"></strong> <span><%= asset_upper %></span>
+            </div>
+
+            <% if @product.stock.present? %>
+              <div class="text-center mb-3" style="font-size: 11px; color: var(--haiti-olive);">
+                <i class="ri-archive-line me-1"></i><span id="stock-label"><%= @product.stock %></span> rete nan stòk
+              </div>
+            <% end %>
+
+          <% elsif sold_out %>
+            <div class="text-center py-3">
+              <span class="badge rounded-pill px-4 py-2" style="background: rgba(220,38,38,0.1); color: #dc2626; font-size: 13px; font-weight: 700;">
+                <i class="ri-close-circle-line me-1"></i>Pa disponib
+              </span>
+            </div>
+          <% end %>
+
+          <%# ── Pay Button ── %>
+          <% if sold_out %>
+            <div class="btn w-100 rounded-pill py-3 fw-bold"
+                 style="background: rgba(93,99,69,0.12); color: var(--haiti-olive); font-size: 15px; pointer-events: none;">
+              Pa disponib
+            </div>
+          <% else %>
+            <a href="#" id="pay-btn" class="btn w-100 rounded-pill py-3 fw-bold position-relative overflow-hidden"
+               style="background: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 16px; border: 2px solid rgba(197,160,89,0.3); transition: all 0.2s;">
+              <i class="ri-flashlight-fill me-2"></i><span id="pay-btn-text">Peye <%= number_with_delimiter(unit_price.to_i) %> <%= asset_upper %></span>
+            </a>
+          <% end %>
+        </div>
+
+        <%# ── QR Code ── %>
+        <div class="card-base p-4 mb-3 text-center" style="border: 2px solid rgba(197,160,89,0.2);">
+          <div class="fw-bold mb-2" style="color: var(--haiti-charcoal); font-size: 13px;">
+            <i class="ri-qr-code-line me-1" style="color: var(--haiti-gold);"></i>Eskane pou Peye
+          </div>
+          <div class="d-inline-block p-3 rounded-3 mb-2" style="background: white; border: 2px solid rgba(197,160,89,0.2);">
+            <%= qr_svg(pay_business_url(@business.slug, amount: unit_price.to_i, asset: asset, note: @product.name)) %>
+          </div>
+          <div style="color: var(--haiti-olive); font-size: 11px; font-style: italic;">
+            Eskane pou peye dirèkteman.
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <%# ── Secure Footer (bottom center) ── %>
+  <div class="text-center mt-4 mb-2">
+    <div class="d-inline-flex align-items-center gap-2 px-4 py-3 rounded-pill" style="background: var(--haiti-charcoal); font-size: 12px; color: rgba(255,255,255,0.6);">
+      <i class="ri-shield-check-fill" style="color: var(--haiti-gold);"></i>Peman sekirize pa
+      <img src="<%= asset_path('zellus_square.png') %>" style="width: 16px; height: 16px; vertical-align: -1px; border-radius: 3px;" alt="Zellus">
+      <span class="fw-bold" style="color: white;">Zellus</span>
+    </div>
+  </div>
+</div>
+
+<% unless sold_out %>
+<script>
+  (function() {
+    var unitPrice = <%= unit_price %>;
+    var asset = '<%= asset %>';
+    var assetUpper = '<%= asset_upper %>';
+    var productName = <%= @product.name.to_json %>;
+    var payUrl = '<%= pay_business_path(@business.slug) %>';
+    var allowsQty = <%= allows_qty %>;
+    var maxQty = <%= max_qty %>;
+    var qty = 1;
+
+    function fmt(n) {
+      return n.toLocaleString('fr-HT', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+    }
+
+    if (allowsQty) {
+      var qtyDisplay = document.getElementById('qty-display');
+      var subtotalDisplay = document.getElementById('subtotal-display');
+      var subtotalRow = document.getElementById('subtotal-row');
+      var priceCalc = document.getElementById('price-calc');
+      var payBtnText = document.getElementById('pay-btn-text');
+      var minusBtn = document.getElementById('qty-minus');
+      var plusBtn = document.getElementById('qty-plus');
+
+      function update() {
+        var subtotal = unitPrice * qty;
+        qtyDisplay.textContent = qty;
+
+        if (qty > 1) {
+          priceCalc.textContent = fmt(unitPrice) + ' x ' + qty;
+          subtotalDisplay.textContent = fmt(subtotal);
+          subtotalRow.style.display = 'block';
+        } else {
+          subtotalRow.style.display = 'none';
+        }
+
+        payBtnText.textContent = 'Peye ' + fmt(subtotal) + ' ' + assetUpper;
+        minusBtn.style.opacity = qty <= 1 ? '0.35' : '1';
+        plusBtn.style.opacity = qty >= maxQty ? '0.35' : '1';
+      }
+
+      plusBtn.addEventListener('click', function() {
+        if (qty < maxQty) { qty++; update(); }
+      });
+
+      minusBtn.addEventListener('click', function() {
+        if (qty > 1) { qty--; update(); }
+      });
+
+      update();
+    }
+
+    document.getElementById('pay-btn').addEventListener('click', function(e) {
+      e.preventDefault();
+      var subtotal = unitPrice * qty;
+      var note = productName + (qty > 1 ? ' x' + qty : '');
+      <% if user_signed_in? %>
+      note += ' — $<%= current_user.cashtag %>';
+      <% end %>
+      var params = new URLSearchParams();
+      params.set('amount', subtotal);
+      params.set('asset', asset);
+      params.set('note', note);
+      window.location.href = payUrl + '?' + params.toString();
+    });
+  })();
+</script>
+<% end %>

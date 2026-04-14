@@ -73,6 +73,36 @@ class PaymentRequestsController < ApplicationController
     redirect_to wallet_path, notice: "Demann peman kache."
   end
 
+  def decline
+    @payment_request = PaymentRequest.find_by!(token: params[:token])
+
+    unless @payment_request.active?
+      redirect_to public_payment_request_path(@payment_request.token), alert: "Demann sa a pa aktif ankò."
+      return
+    end
+
+    if @payment_request.user_id == current_user.id
+      redirect_to public_payment_request_path(@payment_request.token), alert: "Ou pa ka refize pwòp demann ou."
+      return
+    end
+
+    decline_note = params[:decline_note].to_s.strip
+    @payment_request.update!(
+      status: :declined,
+      cancel_note: decline_note.presence || "Peyè refize demann nan"
+    )
+
+    NotificationService.payment_request_declined(@payment_request, current_user)
+
+    begin
+      PaymentRequestMailer.with(payment_request_id: @payment_request.id).request_canceled.deliver_later
+    rescue => e
+      Rails.logger.error "PaymentRequest decline email failed: #{e.message}"
+    end
+
+    redirect_to public_payment_request_path(@payment_request.token), notice: "Ou refize demann peman an."
+  end
+
   def pay
     @payment_request = PaymentRequest.find_by!(token: params[:token])
 

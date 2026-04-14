@@ -201,12 +201,12 @@
   }
 </style>
 
-<div class="container" style="min-height: 80vh; padding-top: 40px; padding-bottom: 40px;">
-  <div class="row justify-content-center align-items-start g-4">
+<% content_for :full_width, true %>
+<div class="d-flex justify-content-center" style="min-height: 80vh; padding-top: 40px; padding-bottom: 40px;">
+  <div class="w-100 px-3" style="max-width: 560px;">
 
     <%# ── Send Form ── %>
-    <div class="col-lg-5 col-md-8">
-    <div class="card-base p-4 w-100" style="max-width: 420px; margin: 0 auto;">
+    <div class="card-base p-4 w-100">
 
     <% if @transfer.errors.any? %>
       <div class="rounded-3 mb-3 d-flex align-items-center" style="background: #fdf2f2; border: 1px solid #fca5a5; color: #991b1b; font-size: 12px; font-weight: 600; padding: 12px 16px;">
@@ -224,8 +224,8 @@
         <%= form_with(url: set_pin_transfers_path, method: :post, local: true) do |f| %>
           <div class="mb-3">
             <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">PIN (4 chif)</label>
-            <div class="input-group">
-              <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);">
+            <div class="input-group" style="border: 1.5px solid rgba(46,46,56,0.12); border-radius: 12px; overflow: hidden;">
+              <span class="input-group-text border-0" style="background-color: var(--haiti-mint); color: var(--haiti-gold);">
                 <i class="ri-lock-2-line"></i>
               </span>
               <input type="password" name="transfer_pin" class="form-control border-0 fw-bold shadow-none p-3 bb-dark-field text-center"
@@ -277,30 +277,37 @@
               <i class="ri-file-list-3-fill me-1" style="color: var(--haiti-gold);"></i>Resi Kòmand
             </div>
             <% cart_data.each do |item| %>
-              <div class="d-flex justify-content-between py-1" style="border-bottom: 1px solid rgba(0,0,0,0.04); font-size: 12px;">
-                <div>
+              <div class="d-flex align-items-center gap-2 py-2" style="border-bottom: 1px solid rgba(0,0,0,0.04); font-size: 12px;">
+                <% if item["image_url"].present? %>
+                  <img src="<%= item["image_url"] %>" style="width: 32px; height: 32px; border-radius: 8px; object-fit: cover; flex-shrink: 0;" alt="">
+                <% else %>
+                  <div class="d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; border-radius: 8px; background: rgba(93,99,69,0.08); flex-shrink: 0;">
+                    <i class="ri-shopping-bag-line" style="font-size: 14px; color: var(--haiti-olive);"></i>
+                  </div>
+                <% end %>
+                <div class="flex-grow-1">
                   <span class="fw-bold" style="color: var(--haiti-charcoal);"><%= item["name"] %></span>
                   <span class="fw-bold" style="color: var(--haiti-olive);"> x<%= item["quantity"] %></span>
                 </div>
-                <span class="fw-bold" style="color: var(--haiti-charcoal);">
-                  <%= number_to_currency(item["quantity"].to_i * item["unit_price"].to_f, unit: "", precision: 0) %> HTG
+                <span class="fw-bold" style="color: var(--haiti-charcoal); white-space: nowrap;">
+                  <%= number_to_currency(item["quantity"].to_i * item["unit_price"].to_f, unit: "", precision: 0) %> <%= currency_label("htg") %>
                 </span>
               </div>
             <% end %>
             <div class="mt-2 pt-2" style="border-top: 1px dashed var(--haiti-olive);">
               <div class="d-flex justify-content-between mb-1" style="font-size: 12px;">
                 <span class="fw-bold" style="color: var(--haiti-olive);">Sou-total</span>
-                <span class="fw-bold"><%= number_to_currency(cart_subtotal, unit: "", precision: 0) %> HTG</span>
+                <span class="fw-bold"><%= number_to_currency(cart_subtotal, unit: "", precision: 0) %> <%= currency_label("htg") %></span>
               </div>
               <% if cart_tax > 0 %>
                 <div class="d-flex justify-content-between mb-1" style="font-size: 12px;">
                   <span class="fw-bold" style="color: var(--haiti-olive);">Taks (<%= @paying_business&.tax_percentage %>%)</span>
-                  <span class="fw-bold" style="color: #92400e;"><%= number_to_currency(cart_tax, unit: "", precision: 0) %> HTG</span>
+                  <span class="fw-bold" style="color: #92400e;"><%= number_to_currency(cart_tax, unit: "", precision: 0) %> <%= currency_label("htg") %></span>
                 </div>
               <% end %>
               <div class="d-flex justify-content-between mt-1 pt-1" style="border-top: 1px solid rgba(0,0,0,0.06);">
                 <span class="fw-black" style="font-size: 14px;">TOTAL</span>
-                <span class="fw-black" style="font-size: 14px; color: var(--haiti-charcoal);"><%= number_to_currency(cart_total, unit: "", precision: 0) %> HTG</span>
+                <span class="fw-black" style="font-size: 14px; color: var(--haiti-charcoal);"><%= number_to_currency(cart_total, unit: "", precision: 0) %> <%= currency_label("htg") %></span>
               </div>
             </div>
           </div>
@@ -325,8 +332,8 @@
           <p class="mb-0 mt-1" style="font-size: 12px; color: var(--haiti-olive); line-height: 1.4;">Peye oswa voye lajan bay nenp&ograve;t moun sou Z&egrave;llus rapid e ak sekirite.</p>
         </div>
         <button type="button" onclick="openQrScanner()"
-                class="btn btn-sm d-flex align-items-center gap-1 rounded-pill px-3 py-2 border-0 fw-bold"
-                style="background: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 12px;">
+                class="btn btn-sm d-flex align-items-center gap-1 rounded-pill px-3 py-2 fw-bold"
+                style="background: transparent; color: var(--haiti-gold); border: 1.5px solid var(--haiti-gold); font-size: 12px;">
           <i class="ri-qr-scan-2-line" style="font-size: 15px;"></i> Eskane
         </button>
       </div>
@@ -343,40 +350,65 @@
         <div class="col-12">
           <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Map peye ak</label>
           <div class="position-relative" id="dest-dropdown">
-            <button type="button" onclick="toggleDestDropdown()" class="d-flex align-items-center gap-2 w-100 p-3 rounded-3 border-0 fw-bold"
-                    style="background-color: var(--haiti-charcoal); color: white; font-size: 13px; cursor: pointer;">
+            <button type="button" onclick="toggleDestDropdown()" class="d-flex align-items-center gap-2 w-100 p-3 rounded-3 fw-bold"
+                    style="background-color: var(--haiti-mint); border: 1px solid rgba(46,46,56,0.1); color: var(--haiti-charcoal); font-size: 13px; cursor: pointer;">
               <span id="dest-selected-logo" class="d-inline-flex align-items-center"><%= htg_logo_svg(size: 22) %></span>
               <span id="dest-selected-label" class="flex-grow-1 text-start">HTG</span>
               <i class="ri-arrow-down-s-line" style="color: var(--haiti-olive);"></i>
             </button>
             <div id="dest-dropdown-menu" class="position-absolute w-100 rounded-3 shadow-lg overflow-auto"
-                 style="display: none; top: 100%; left: 0; z-index: 10; margin-top: 4px; background: var(--haiti-charcoal); border: 1px solid rgba(255,255,255,0.1); max-height: 320px;">
+                 style="display: none; top: 100%; left: 0; z-index: 10; margin-top: 4px; background: var(--haiti-cream); border: 1px solid rgba(46,46,56,0.1); max-height: 320px;">
               <% htg_bal = number_with_precision(user_wallet&.htg_balance || 0, precision: 2, strip_insignificant_zeros: true) %>
               <% usdc_bal = number_with_precision(truncated_balance(user_wallet&.usdc_balance || 0), precision: 2) %>
-              <% eth_bal = number_with_precision(truncated_balance(user_wallet&.eth_balance || 0, 6), precision: 6) %>
-              <% wbtc_bal = number_with_precision(truncated_balance(user_wallet&.wbtc_balance || 0, 6), precision: 6) %>
-              <% tslax_bal = number_with_precision(truncated_balance(user_wallet&.tslax_balance || 0, 6), precision: 6) %>
-              <% nvdax_bal = number_with_precision(truncated_balance(user_wallet&.nvdax_balance || 0, 6), precision: 6) %>
-              <% aaplx_bal = number_with_precision(truncated_balance(user_wallet&.aaplx_balance || 0, 6), precision: 6) %>
-              <% coinx_bal = number_with_precision(truncated_balance(user_wallet&.coinx_balance || 0, 6), precision: 6) %>
-              <% googlx_bal = number_with_precision(truncated_balance(user_wallet&.googlx_balance || 0, 6), precision: 6) %>
-              <%# ── Cash ── %>
-              <div class="px-3 pt-2 pb-1" style="color: var(--haiti-olive); font-size: 9px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;">Cash</div>
+
+              <%# ── Pèsonèl Group ── %>
+              <div class="d-flex align-items-center gap-2 px-3 pt-3 pb-1">
+                <% if current_user.avatar.attached? %>
+                  <%= image_tag current_user.avatar, class: "rounded-circle", style: "width: 18px; height: 18px; object-fit: cover;" %>
+                <% elsif current_user.bonid_photo_url.present? %>
+                  <img src="<%= current_user.bonid_photo_url %>" class="rounded-circle" style="width: 18px; height: 18px; object-fit: cover;" alt="">
+                <% else %>
+                  <i class="ri-wallet-3-line" style="font-size: 14px; color: var(--haiti-gold);"></i>
+                <% end %>
+                <span style="color: var(--haiti-gold); font-size: 9px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;">Pèsonèl</span>
+              </div>
               <button type="button" class="dest-item d-flex align-items-center gap-2 w-100 px-3 py-2 border-0"
                       data-value="zellus-htg" onclick="selectDest('zellus-htg', this)"
-                      style="background: rgba(255,255,255,0.06); color: white; font-size: 13px; font-weight: 600; cursor: pointer;">
+                      style="background: rgba(197,160,89,0.06); color: var(--haiti-charcoal); font-size: 13px; font-weight: 600; cursor: pointer;">
                 <span class="d-inline-flex align-items-center"><%= htg_logo_svg(size: 20) %></span> HTG
                 <span class="ms-auto" style="color: var(--haiti-gold); font-size: 11px; font-weight: 400;"><%= htg_bal %></span>
               </button>
-              <%# ── Kripto Sou Base ── %>
-              <div class="px-3 pt-2 pb-1" style="color: var(--haiti-olive); font-size: 9px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; border-top: 1px solid rgba(255,255,255,0.06);">Kripto Sou Base</div>
               <button type="button" class="dest-item d-flex align-items-center gap-2 w-100 px-3 py-2 border-0"
                       data-value="zellus-usdc" onclick="selectDest('zellus-usdc', this)"
-                      style="background: transparent; color: white; font-size: 13px; font-weight: 600; cursor: pointer;">
+                      style="background: transparent; color: var(--haiti-charcoal); font-size: 13px; font-weight: 600; cursor: pointer;">
                 <span class="d-inline-flex align-items-center"><%= usd_logo(size: 20) %></span> USD
                 <span class="ms-auto" style="color: var(--haiti-gold); font-size: 11px; font-weight: 400;"><%= usdc_bal %></span>
               </button>
-              <%# wBTC, ETH, and stock dropdown items hidden (HTG + USD only mode) %>
+
+              <% if @business.present? %>
+                <%# ── Biznis Group ── %>
+                <div style="border-top: 1px solid rgba(46,46,56,0.08);"></div>
+                <div class="d-flex align-items-center gap-2 px-3 pt-3 pb-1">
+                  <% if @business.logo.attached? %>
+                    <%= image_tag @business.logo, class: "rounded-circle", style: "width: 18px; height: 18px; object-fit: cover;" %>
+                  <% else %>
+                    <i class="<%= @business.category_icon %>" style="font-size: 14px; color: var(--haiti-gold);"></i>
+                  <% end %>
+                  <span style="color: var(--haiti-gold); font-size: 9px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;"><%= @business.name %></span>
+                </div>
+                <button type="button" class="dest-item d-flex align-items-center gap-2 w-100 px-3 py-2 border-0"
+                        data-value="biznis-htg" onclick="selectDest('biznis-htg', this)"
+                        style="background: transparent; color: var(--haiti-charcoal); font-size: 13px; font-weight: 600; cursor: pointer;">
+                  <span class="d-inline-flex align-items-center"><%= htg_logo_svg(size: 20) %></span> HTG
+                  <span class="ms-auto" style="color: var(--haiti-gold); font-size: 11px; font-weight: 400;"><%= number_with_precision(@business.total_received || 0, precision: 2, strip_insignificant_zeros: true) %></span>
+                </button>
+                <button type="button" class="dest-item d-flex align-items-center gap-2 w-100 px-3 py-2 border-0"
+                        data-value="biznis-usdc" onclick="selectDest('biznis-usdc', this)"
+                        style="background: transparent; color: var(--haiti-charcoal); font-size: 13px; font-weight: 600; cursor: pointer;">
+                  <span class="d-inline-flex align-items-center"><%= usd_logo(size: 20) %></span> USD
+                  <span class="ms-auto" style="color: var(--haiti-gold); font-size: 11px; font-weight: 400;"><%= number_with_precision(@business.usdc_balance || 0, precision: 2) %></span>
+                </button>
+              <% end %>
             </div>
           </div>
           <input type="hidden" name="asset" id="asset-hidden" value="htg">
@@ -393,19 +425,19 @@
         <%# ── Amount ── %>
         <div class="col-12">
           <label class="form-label small fw-bold text-uppercase" id="amount-label" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Map voye</label>
-          <div class="input-group">
-            <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);">
+          <div class="input-group" style="border: 1.5px solid rgba(46,46,56,0.12); border-radius: 12px; overflow: hidden;">
+            <span class="input-group-text border-0" style="background-color: var(--haiti-mint); color: var(--haiti-gold);">
               <i class="ri-money-dollar-circle-line" id="amount-icon"></i>
             </span>
             <%# Visible input: user types here (HTG or USDC depending on asset) %>
             <input type="number" id="amount-visible-input"
                    placeholder="e.g. 500" min="<%= Transfer::SEND_MIN_HTG %>" max="<%= Transfer::SEND_MAX_HTG %>" step="any"
-                   class="form-control border-0 fw-bold shadow-none p-3 bb-dark-field"
-                   style="background-color: var(--haiti-charcoal); color: white;"
+                   class="form-control border-0 fw-bold shadow-none p-3"
+                   style="background-color: var(--haiti-mint); color: var(--haiti-charcoal);"
                    required
                    oninput="handleAmountInput()">
             <span class="input-group-text border-0 fw-bold" id="amount-unit-suffix"
-                  style="background-color: var(--haiti-charcoal); color: var(--haiti-olive); font-size: 11px;">HTG</span>
+                  style="background-color: var(--haiti-mint); color: var(--haiti-charcoal); font-size: 11px;"><%= currency_label("htg") %></span>
             <%# Hidden field: always submits HTG to the backend %>
             <%= f.hidden_field :amount, id: "transfer_amount" %>
           </div>
@@ -414,23 +446,27 @@
             Limit: <%= Transfer::SEND_MIN_HTG %> - <%= number_with_delimiter(Transfer::SEND_MAX_HTG) %> HTG
           </div>
           <div class="small mt-1" id="amount-htg-equivalent" style="color: var(--haiti-gold); font-size: 11px; display: none;"></div>
-          <div id="zero-bal-warning" class="d-flex align-items-center gap-2 mt-2 p-2 rounded-3" style="display: none; background: rgba(220,38,38,0.08); border-left: 3px solid #dc2626; font-size: 11px; color: #991b1b;">
-            <i class="ri-error-warning-line" style="font-size: 14px;"></i>
-            <span>Ou pa gen ase balans pou aktif sa a.</span>
+          <div id="zero-bal-warning" class="align-items-center gap-2 mt-2 p-2 rounded-3 d-none" style="background: rgba(197,160,89,0.1); border-left: 3px solid var(--haiti-gold); font-size: 11px; color: var(--haiti-olive);">
+            <i class="ri-wallet-3-line" style="font-size: 14px; color: var(--haiti-gold);"></i>
+            <span>Balans ou vid pou aktif sa a. <a id="zero-bal-deposit-link" href="<%= wallet_path(action_panel: 'deposit') %>" style="color: var(--haiti-gold); font-weight: 700; text-decoration: underline;">Depoze lajan</a></span>
+          </div>
+          <div id="bonid-consent-warning" class="align-items-center gap-2 mt-2 p-2 rounded-3 d-none" style="background: rgba(197,160,89,0.12); border-left: 3px solid var(--haiti-gold); font-size: 11px; color: var(--haiti-olive);">
+            <i class="ri-shield-check-line" style="font-size: 14px; color: var(--haiti-gold);"></i>
+            <span>Pou pwoteje kont ou, montan sa a mande yon <strong style="color: var(--haiti-charcoal); font-weight: 800;">verifikasyon BonID</strong>.</span>
           </div>
         </div>
 
         <%# ── Receiver: Zèllus cashtag search (HTG + USDC) ── %>
         <div class="col-12" id="section-zellus">
           <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Bay itilizatè</label>
-          <div class="input-group">
-            <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);">
+          <div class="input-group" style="border: 1.5px solid rgba(46,46,56,0.12); border-radius: 12px; overflow: hidden;">
+            <span class="input-group-text border-0" style="background-color: var(--haiti-mint); color: var(--haiti-gold);">
               <i class="ri-search-line" id="htg-search-icon"></i>
             </span>
             <input type="text" name="receiver_lookup" id="receiver-lookup-input"
                    placeholder="Chèche $cashtag oswa non biznis..."
-                   class="form-control border-0 fw-bold shadow-none p-3 bb-dark-field"
-                   style="background-color: var(--haiti-charcoal); color: white;"
+                   class="form-control border-0 fw-bold shadow-none p-3"
+                   style="background-color: var(--haiti-mint); color: var(--haiti-charcoal);"
                    autocomplete="off">
           </div>
           <div id="receiver-lookup-result" class="mt-1" style="display: none;"></div>
@@ -438,6 +474,8 @@
           <input type="hidden" name="transfer[receiver_cashtag]" id="receiver-cashtag-hidden">
           <input type="hidden" name="transfer[receiver_phone]" id="receiver-phone-hidden">
           <input type="hidden" name="transfer[receiver_email]" id="receiver-email-hidden">
+          <input type="hidden" name="biz_slug" id="receiver-biz-slug-hidden">
+          <input type="hidden" name="tip_amount" id="tip-amount-hidden">
           <% if @moncash_methods.any? %>
             <input type="hidden" name="moncash_method_id" id="moncash-select" value="<%= @moncash_methods.first.id %>">
           <% end %>
@@ -446,14 +484,14 @@
         <%# ── Receiver: USDC $cashtag search ── %>
         <div class="col-12" id="section-zellus-usdc" style="display: none;">
           <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Bay itilizatè</label>
-          <div class="input-group">
-            <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);">
+          <div class="input-group" style="border: 1.5px solid rgba(46,46,56,0.12); border-radius: 12px; overflow: hidden;">
+            <span class="input-group-text border-0" style="background-color: var(--haiti-mint); color: var(--haiti-gold);">
               <i class="ri-search-line" id="usdc-search-icon"></i>
             </span>
             <input type="text" id="usdc-tag-input"
                    placeholder="Chèche $cashtag..."
-                   class="form-control border-0 fw-bold shadow-none p-3 bb-dark-field"
-                   style="background-color: var(--haiti-charcoal); color: white;"
+                   class="form-control border-0 fw-bold shadow-none p-3"
+                   style="background-color: var(--haiti-mint); color: var(--haiti-charcoal);"
                    autocomplete="off">
           </div>
           <div id="usdc-tag-result" class="mt-1" style="display: none;"></div>
@@ -462,13 +500,13 @@
         <%# ── Note ── %>
         <div class="col-12">
           <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Pou Kisa</label>
-          <div class="input-group">
-            <span class="input-group-text border-0 align-items-start pt-3" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);">
+          <div class="input-group" style="border: 1.5px solid rgba(46,46,56,0.12); border-radius: 12px; overflow: hidden;">
+            <span class="input-group-text border-0 align-items-start pt-3" style="background-color: var(--haiti-mint); color: var(--haiti-gold);">
               <i class="ri-chat-1-line"></i>
             </span>
             <%= f.text_area :note, rows: 2, maxlength: 280, placeholder: "Pou kisa lajan sa a ye?",
-                class: "form-control border-0 fw-bold shadow-none p-3 bb-dark-field",
-                style: "background-color: var(--haiti-charcoal); color: white;" %>
+                class: "form-control border-0 fw-bold shadow-none p-3",
+                style: "background-color: var(--haiti-mint); color: var(--haiti-charcoal);" %>
           </div>
         </div>
 
@@ -498,7 +536,7 @@
         <div class="col-12" id="section-bank" style="display: none;">
           <% if @bank_methods.any? %>
             <div class="input-group mb-2">
-              <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);">
+              <span class="input-group-text border-0" style="background-color: var(--haiti-mint); color: var(--haiti-gold);">
                 <i class="ri-bank-line"></i>
               </span>
               <select name="bank_method_id" id="bank-method-select"
@@ -518,7 +556,7 @@
           <% end %>
           <div id="bank-manual-fields" style="<%= @bank_methods.any? ? 'display: none;' : '' %>">
             <div class="input-group mb-2">
-              <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);">
+              <span class="input-group-text border-0" style="background-color: var(--haiti-mint); color: var(--haiti-gold);">
                 <i class="ri-hashtag"></i>
               </span>
               <input type="text" name="transfer[receiver_bank_account]" id="bank-account-input"
@@ -527,7 +565,7 @@
                      style="background-color: var(--haiti-charcoal); color: white; font-size: 13px;">
             </div>
             <div class="input-group mb-2">
-              <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);">
+              <span class="input-group-text border-0" style="background-color: var(--haiti-mint); color: var(--haiti-gold);">
                 <i class="ri-user-line"></i>
               </span>
               <input type="text" name="transfer[receiver_account_holder]" id="bank-holder-input"
@@ -561,8 +599,8 @@
             </select>
           <% end %>
           <div id="moncash-manual-phone" style="<%= @moncash_methods.any? ? 'display: none;' : '' %>">
-            <div class="input-group">
-              <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);">
+            <div class="input-group" style="border: 1.5px solid rgba(46,46,56,0.12); border-radius: 12px; overflow: hidden;">
+              <span class="input-group-text border-0" style="background-color: var(--haiti-mint); color: var(--haiti-gold);">
                 <i class="ri-phone-line"></i>
               </span>
               <input type="tel" name="transfer[receiver_phone]" id="moncash-phone-input"
@@ -594,8 +632,8 @@
             </select>
           <% end %>
           <div id="manual-wallet-wrapper" style="<%= @crypto_methods.any? ? 'display:none;' : '' %>">
-            <div class="input-group">
-              <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);">
+            <div class="input-group" style="border: 1.5px solid rgba(46,46,56,0.12); border-radius: 12px; overflow: hidden;">
+              <span class="input-group-text border-0" style="background-color: var(--haiti-mint); color: var(--haiti-gold);">
                 <i class="ri-wallet-3-line"></i>
               </span>
               <%= f.text_field :receiver_wallet_address, placeholder: "0x...",
@@ -608,8 +646,8 @@
         <%# ── Submit ── %>
         <div class="col-12 mt-2">
           <button type="submit" id="transfer-submit-btn"
-              class="btn w-100 py-3 fw-bold rounded-4 shadow-sm border-0 d-flex align-items-center justify-content-center gap-2"
-              style="background-color: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 14px; letter-spacing: 0.5px;">
+              class="btn w-100 py-3 fw-black rounded-4 shadow-sm border-0 d-flex align-items-center justify-content-center gap-2"
+              style="background-color: var(--haiti-gold); color: var(--haiti-charcoal); font-family: 'Space Grotesk', sans-serif; font-size: 15px; letter-spacing: 0.5px;">
             <i class="ri-flashlight-fill" id="submit-icon"></i> <span id="submit-text">Kontinye pou Revize</span>
           </button>
         </div>
@@ -618,10 +656,9 @@
     </div>
 
   </div>
-  </div><%# col-lg-5 %>
 
-  </div><%# row %>
-</div><%# container %>
+  </div>
+</div>
 
 <%# ── QR Scanner Overlay ── %>
 <div id="qr-scanner-overlay" class="qr-overlay" style="display: none;">
@@ -664,6 +701,8 @@ const SAVED_MONCASH = <%= (@moncash_methods || []).map { |pm| [pm.id.to_s, pm.ac
 const SAVED_WALLETS = <%= (@crypto_methods || []).map { |pm| [pm.id.to_s, pm.wallet_address] }.to_h.to_json.html_safe %>;
 
 const USER_HTG_BAL  = <%= (current_user.wallet&.htg_balance || 0).to_f %>;
+const USER_BIZ_HTG_BAL  = <%= (current_user.business&.total_received || 0).to_f %>;
+const USER_BIZ_USDC_BAL = <%= (current_user.business&.usdc_balance || 0).to_f rescue 0 %>;
 const USER_USDC_BAL = <%= (current_user.wallet&.usdc_balance || 0).to_f %>;
 const USER_ETH_BAL  = <%= (current_user.wallet&.eth_balance || 0).to_f %>;
 const USER_WBTC_BAL = <%= (current_user.wallet&.wbtc_balance || 0).to_f %>;
@@ -674,6 +713,7 @@ const USER_COINX_BAL  = <%= (current_user.wallet&.coinx_balance || 0).to_f %>;
 const USER_GOOGLX_BAL = <%= (current_user.wallet&.googlx_balance || 0).to_f %>;
 const USER_TOTAL_HTG = USER_HTG_BAL + (USER_USDC_BAL * USDC_HTG_RATE) + (USER_ETH_BAL * ETH_HTG_RATE) + (USER_WBTC_BAL * WBTC_HTG_RATE);
 
+const BONID_CONSENT_THRESHOLD = <%= BonIdService::CONSENT_THRESHOLD.to_i %>;
 let currentAsset = "htg";
 let currentDest = "zellus-htg";
 let isZellusReceiver = false;
@@ -693,7 +733,9 @@ var DEST_CONFIG = {
   "zellus-nvdax":  { asset: "nvdax",  mode: "wallet", section: "section-zellus", amountUnit: "htg" },
   "zellus-aaplx":  { asset: "aaplx",  mode: "wallet", section: "section-zellus", amountUnit: "htg" },
   "zellus-coinx":  { asset: "coinx",  mode: "wallet", section: "section-zellus", amountUnit: "htg" },
-  "zellus-googlx": { asset: "googlx", mode: "wallet", section: "section-zellus", amountUnit: "htg" }
+  "zellus-googlx": { asset: "googlx", mode: "wallet", section: "section-zellus", amountUnit: "htg" },
+  "biznis-htg":    { asset: "htg",    mode: "business", section: "section-zellus", amountUnit: "htg" },
+  "biznis-usdc":   { asset: "usdc",   mode: "business", section: "section-zellus-usdc", amountUnit: "usdc" }
 };
 
 // ── Currency guide tips ──
@@ -729,14 +771,18 @@ function updateCurrencyTip(asset) {
 }
 
 // ── Check balance for a given asset ──
-function balanceForAsset(asset) {
+function balanceForAsset(asset, dest) {
+  // Business accounts use separate balances
+  if (dest === "biznis-htg")  return USER_BIZ_HTG_BAL;
+  if (dest === "biznis-usdc") return USER_BIZ_USDC_BAL;
+  // Personal accounts
   if (asset === "usdc" || asset === "usd") return USER_USDC_BAL;
   if (asset === "tslax") return USER_TSLAX_BAL;
   if (asset === "nvdax") return USER_NVDAX_BAL;
   if (asset === "aaplx") return USER_AAPLX_BAL;
   if (asset === "coinx") return USER_COINX_BAL;
   if (asset === "googlx") return USER_GOOGLX_BAL;
-  return USER_HTG_BAL; // htg, eth, wbtc all debit HTG
+  return USER_HTG_BAL;
 }
 
 function switchDestination(dest) {
@@ -791,29 +837,15 @@ function switchDestination(dest) {
   document.getElementById("asset-hidden").value = cfg.asset;
   document.getElementById("receiver-mode").value = cfg.mode;
 
-  // ── Zero-balance check: disable fields if balance is 0 ──
-  var bal = balanceForAsset(cfg.asset);
+  // ── Zero-balance info (soft warning, form stays enabled) ──
+  var bal = balanceForAsset(cfg.asset, dest);
   var isZero = bal <= 0;
   var warning = document.getElementById("zero-bal-warning");
-  var amountInput = document.getElementById("amount-visible-input");
-  var submitBtn = document.querySelector("form button[type='submit'], form .btn");
 
-  if (warning) warning.style.display = isZero ? "flex" : "none";
-
-  // Disable/enable receiver sections
-  ["section-zellus", "section-zellus-usdc", "section-moncash", "section-bank", "section-crypto"].forEach(function(id) {
-    var el = document.getElementById(id);
-    if (el) {
-      el.style.opacity = isZero ? "0.4" : "1";
-      el.style.pointerEvents = isZero ? "none" : "";
-      var inputs = el.querySelectorAll("input, select, button");
-      inputs.forEach(function(inp) { inp.disabled = isZero; });
-    }
-  });
-
-  // Disable/enable amount field
-  amountInput.disabled = isZero;
-  amountInput.closest(".input-group").style.opacity = isZero ? "0.4" : "1";
+  if (warning) {
+    if (isZero) { warning.classList.remove('d-none'); warning.classList.add('d-flex'); }
+    else        { warning.classList.remove('d-flex'); warning.classList.add('d-none'); }
+  }
 
   // Show/hide receiver sections (skip if QR recipient is locked in)
   if (!qrRecipientActive) {
@@ -866,7 +898,7 @@ function switchDestination(dest) {
     amountInput.min = "1";
     amountInput.max = "500";
     amountInput.step = "0.01";
-    amountSuffix.textContent = "USD";
+    amountSuffix.textContent = 'USD';
     amountLimits.innerHTML = '<i class="ri-information-line me-1"></i>Limit: 1 - 500 USD';
     amountEquiv.style.display = "";
     amountEquiv.innerHTML = "";
@@ -876,7 +908,7 @@ function switchDestination(dest) {
     amountInput.min = "1";
     amountInput.max = "10000";
     amountInput.step = "0.01";
-    amountSuffix.textContent = "USD";
+    amountSuffix.textContent = 'USD';
     amountLimits.innerHTML = '<i class="ri-information-line me-1"></i>Limit: 1 - 10,000 USD';
     amountEquiv.style.display = "none";
   } else {
@@ -884,26 +916,14 @@ function switchDestination(dest) {
     amountInput.placeholder = "e.g. 500";
     amountInput.min = "<%= Transfer::SEND_MIN_HTG %>";
     amountInput.max = "<%= Transfer::SEND_MAX_HTG %>";
-    amountInput.step = "1";
-    amountSuffix.textContent = "HTG";
+    amountInput.step = "0.01";
+    amountSuffix.textContent = 'HTG';
     amountLimits.innerHTML = '<i class="ri-information-line me-1"></i>Limit: <%= Transfer::SEND_MIN_HTG %> - <%= number_with_delimiter(Transfer::SEND_MAX_HTG) %> HTG';
     amountEquiv.style.display = "none";
   }
 
   amountInput.value = "";
   document.getElementById("transfer_amount").value = "";
-
-  // Disable/enable note toggle + submit button
-  var noteToggle = document.querySelector("#note-wrapper")
-    ? document.querySelector("#note-wrapper").previousElementSibling : null;
-  if (noteToggle && noteToggle.tagName === "A") {
-    noteToggle.style.opacity = isZero ? "0.4" : "1";
-    noteToggle.style.pointerEvents = isZero ? "none" : "";
-  }
-  if (submitBtn) {
-    submitBtn.disabled = isZero;
-    submitBtn.style.opacity = isZero ? "0.4" : "1";
-  }
 
   updateFee();
 }
@@ -949,12 +969,15 @@ function handleAmountInput() {
   var visibleInput = document.getElementById("amount-visible-input");
   var hiddenInput = document.getElementById("transfer_amount");
   var equiv = document.getElementById("amount-htg-equivalent");
+  var bonidWarning = document.getElementById("bonid-consent-warning");
   var val = parseFloat(visibleInput.value) || 0;
+  var htgEquivalent = 0;
 
   if (currentAsset === "usdc") {
     // Convert USDC to HTG for the backend
     var htgAmount = Math.round(val * USDC_HTG_RATE);
     hiddenInput.value = htgAmount > 0 ? htgAmount : "";
+    htgEquivalent = htgAmount;
     if (val > 0) {
       equiv.style.display = "";
       equiv.innerHTML = '<i class="ri-exchange-line me-1"></i>≈ ' + htgAmount.toLocaleString('fr') + ' HTG';
@@ -964,7 +987,17 @@ function handleAmountInput() {
   } else {
     // HTG or ETH: direct pass-through
     hiddenInput.value = val > 0 ? val : "";
+    htgEquivalent = val;
     equiv.style.display = "none";
+  }
+
+  // BonID consent warning
+  if (bonidWarning) {
+    if (htgEquivalent >= BONID_CONSENT_THRESHOLD) {
+      bonidWarning.classList.remove('d-none'); bonidWarning.classList.add('d-flex');
+    } else {
+      bonidWarning.classList.remove('d-flex'); bonidWarning.classList.add('d-none');
+    }
   }
 }
 
@@ -1014,6 +1047,7 @@ function handleBankMethodSelect(select) {
 // ── Unified Receiver Lookup (search-as-you-type) ──
 var _htgLookupTimer = null;
 var _htgLastQuery = '';
+var _autoSelectBiz = false; // When true, auto-select business receiver on lookup result (pay page redirect)
 
 function handleReceiverLookup() {
   var input = document.getElementById("receiver-lookup-input");
@@ -1061,22 +1095,63 @@ function handleReceiverLookup() {
 
       if (data.found) {
         document.getElementById("receiver-cashtag-hidden").value = data.cashtag;
-        if (data.has_moncash) {
-          document.getElementById("receiver-phone-hidden").value = data.moncash_phone;
-        }
         isZellusReceiver = true;
         updateFee();
+
+        // Auto-select business receiver if redirected from pay page
+        if (_autoSelectBiz && data.is_business) {
+          _autoSelectBiz = false;
+          selectHtgReceiver(data.cashtag, data.display_name, data.biz_slug || '');
+          return;
+        }
+        _autoSelectBiz = false;
 
         var avatarHtml = data.avatar_url
           ? '<img src="' + data.avatar_url + '" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 1.5px solid var(--haiti-gold);">'
           : '<div style="width: 32px; height: 32px; border-radius: 50%; background: var(--haiti-charcoal); border: 1.5px solid var(--haiti-gold); display: flex; align-items: center; justify-content: center; color: var(--haiti-gold); font-size: 13px; font-weight: 800;">' + data.display_name.charAt(0).toUpperCase() + '</div>';
 
-        resultDiv.innerHTML = '<div class="d-flex align-items-center justify-content-between p-2 rounded-3" style="background: rgba(22,101,52,0.08);">' +
-          '<div class="d-flex align-items-center gap-2">' + avatarHtml +
-          '<div><div class="fw-bold" style="color: #166534; font-size: 12px;">' + data.display_name + '</div>' +
-          '<div style="color: var(--haiti-olive); font-size: 10px;">$' + data.cashtag + (data.has_moncash ? ' · ' + data.moncash_phone : '') + '</div></div></div>' +
-          '<button type="button" class="btn btn-sm fw-bold rounded-pill" style="background: #166534; color: #fff; font-size: 10px;" ' +
-          'onclick="selectHtgReceiver(\'' + data.cashtag + '\', \'' + (data.moncash_phone || '') + '\', \'' + data.display_name.replace(/'/g, "\\'") + '\')"><i class="ri-check-line me-1"></i>Chwazi</button></div>';
+        var escapedName = data.display_name.replace(/'/g, "\\'");
+
+        if (data.is_business) {
+          // Show two options: Business + Personal
+          resultDiv.innerHTML =
+            '<div class="d-flex flex-column gap-2">' +
+              // Business card
+              '<div class="d-flex align-items-center justify-content-between p-2 rounded-3" style="background: rgba(197,160,89,0.1); border: 1.5px solid var(--haiti-gold);">' +
+                '<div class="d-flex align-items-center gap-2">' + avatarHtml +
+                '<div>' +
+                  '<div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 12px;">' + data.business_name +
+                    '<span style="display: inline-block; background: var(--haiti-gold); color: var(--haiti-charcoal); font-size: 9px; font-weight: 800; padding: 1px 6px; border-radius: 99px; letter-spacing: 0.5px; margin-left: 5px; vertical-align: middle;">Biznis</span>' +
+                  '</div>' +
+                  '<div style="color: var(--haiti-olive); font-size: 10px;">$' + data.cashtag + '</div>' +
+                '</div></div>' +
+                '<button type="button" class="btn btn-sm fw-bold rounded-pill" style="background: var(--haiti-gold); color: var(--haiti-charcoal); font-size: 10px;" ' +
+                'onclick="selectHtgReceiver(\'' + data.cashtag + '\', \'' + escapedName + '\', \'' + (data.biz_slug || '') + '\')"><i class="ri-store-2-line me-1"></i>Chwazi</button>' +
+              '</div>' +
+              // Personal card
+              '<div class="d-flex align-items-center justify-content-between p-2 rounded-3" style="background: rgba(22,101,52,0.08);">' +
+                '<div class="d-flex align-items-center gap-2">' + avatarHtml +
+                '<div>' +
+                  '<div class="fw-bold" style="color: #166534; font-size: 12px;">' + data.display_name +
+                    '<span style="display: inline-block; background: var(--haiti-olive); color: #fff; font-size: 9px; font-weight: 800; padding: 1px 6px; border-radius: 99px; letter-spacing: 0.5px; margin-left: 5px; vertical-align: middle;">Pèsonèl</span>' +
+                  '</div>' +
+                  '<div style="color: var(--haiti-olive); font-size: 10px;">$' + data.cashtag + '</div>' +
+                '</div></div>' +
+                '<button type="button" class="btn btn-sm fw-bold rounded-pill" style="background: #166534; color: #fff; font-size: 10px;" ' +
+                'onclick="selectHtgReceiver(\'' + data.cashtag + '\', \'' + escapedName + '\', null)"><i class="ri-user-line me-1"></i>Chwazi</button>' +
+              '</div>' +
+            '</div>';
+        } else {
+          // Personal only
+          resultDiv.innerHTML = '<div class="d-flex align-items-center justify-content-between p-2 rounded-3" style="background: rgba(22,101,52,0.08);">' +
+            '<div class="d-flex align-items-center gap-2">' + avatarHtml +
+            '<div><div class="fw-bold" style="color: #166534; font-size: 12px;">' + data.display_name +
+              '<span style="display: inline-block; background: var(--haiti-olive); color: #fff; font-size: 9px; font-weight: 800; padding: 1px 6px; border-radius: 99px; letter-spacing: 0.5px; margin-left: 5px; vertical-align: middle;">Pèsonèl</span>' +
+            '</div>' +
+            '<div style="color: var(--haiti-olive); font-size: 10px;">$' + data.cashtag + '</div></div></div>' +
+            '<button type="button" class="btn btn-sm fw-bold rounded-pill" style="background: #166534; color: #fff; font-size: 10px;" ' +
+            'onclick="selectHtgReceiver(\'' + data.cashtag + '\', \'' + escapedName + '\', null)"><i class="ri-check-line me-1"></i>Chwazi</button></div>';
+        }
       } else {
         resultDiv.innerHTML = '<div class="small fw-bold" style="color: #991b1b; font-size: 11px;"><i class="ri-close-circle-line me-1"></i>' + data.message + '</div>';
       }
@@ -1089,15 +1164,20 @@ function handleReceiverLookup() {
   }, 300);
 }
 
-function selectHtgReceiver(cashtag, phone, name) {
+function selectHtgReceiver(cashtag, name, bizSlug) {
   var input = document.getElementById("receiver-lookup-input");
   var resultDiv = document.getElementById("receiver-lookup-result");
   document.getElementById("receiver-cashtag-hidden").value = cashtag;
-  if (phone) document.getElementById("receiver-phone-hidden").value = phone;
+  document.getElementById("receiver-biz-slug-hidden").value = bizSlug || "";
   isZellusReceiver = true;
   updateFee();
   input.value = '$' + cashtag;
-  resultDiv.innerHTML = '<div class="small fw-bold" style="color: #166534; font-size: 11px;"><i class="ri-check-line me-1"></i>' + name + ' · $' + cashtag + '</div>';
+
+  var typeLabel = bizSlug
+    ? '<span style="display: inline-block; background: var(--haiti-gold); color: var(--haiti-charcoal); font-size: 9px; font-weight: 800; padding: 1px 5px; border-radius: 99px; margin-left: 4px; vertical-align: middle;">Biznis</span>'
+    : '<span style="display: inline-block; background: var(--haiti-olive); color: #fff; font-size: 9px; font-weight: 800; padding: 1px 5px; border-radius: 99px; margin-left: 4px; vertical-align: middle;">Pèsonèl</span>';
+
+  resultDiv.innerHTML = '<div class="small fw-bold" style="color: #166534; font-size: 11px;"><i class="ri-check-line me-1"></i>' + name + ' · $' + cashtag + ' ' + typeLabel + '</div>';
 }
 
 
@@ -1147,16 +1227,56 @@ function handleUsdcTagLookup() {
       resultDiv.style.display = 'block';
 
       if (data.found) {
+        // Auto-select business receiver if redirected from pay page
+        if (_autoSelectBiz && data.is_business) {
+          _autoSelectBiz = false;
+          selectUsdcReceiver(data.cashtag, data.display_name, data.biz_slug || '');
+          return;
+        }
+        _autoSelectBiz = false;
+
         var avatarHtml2 = data.avatar_url
           ? '<img src="' + data.avatar_url + '" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 1.5px solid var(--haiti-gold);">'
           : '<div style="width: 32px; height: 32px; border-radius: 50%; background: var(--haiti-charcoal); border: 1.5px solid var(--haiti-gold); display: flex; align-items: center; justify-content: center; color: var(--haiti-gold); font-size: 13px; font-weight: 800;">' + data.display_name.charAt(0).toUpperCase() + '</div>';
 
-        resultDiv.innerHTML = '<div class="d-flex align-items-center justify-content-between p-2 rounded-3" style="background: rgba(22,101,52,0.08);">' +
-          '<div class="d-flex align-items-center gap-2">' + avatarHtml2 +
-          '<div><div class="fw-bold" style="color: #166534; font-size: 12px;">' + data.display_name + '</div>' +
-          '<div style="color: var(--haiti-olive); font-size: 10px;">$' + data.cashtag + '</div></div></div>' +
-          '<button type="button" class="btn btn-sm fw-bold rounded-pill" style="background: #166534; color: #fff; font-size: 10px;" ' +
-          'onclick="selectUsdcReceiver(\'' + data.cashtag + '\', \'' + data.display_name.replace(/'/g, "\\'") + '\')"><i class="ri-check-line me-1"></i>Chwazi</button></div>';
+        var escapedName2 = data.display_name.replace(/'/g, "\\'");
+
+        if (data.is_business) {
+          resultDiv.innerHTML =
+            '<div class="d-flex flex-column gap-2">' +
+              '<div class="d-flex align-items-center justify-content-between p-2 rounded-3" style="background: rgba(197,160,89,0.1); border: 1.5px solid var(--haiti-gold);">' +
+                '<div class="d-flex align-items-center gap-2">' + avatarHtml2 +
+                '<div>' +
+                  '<div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 12px;">' + data.business_name +
+                    '<span style="display: inline-block; background: var(--haiti-gold); color: var(--haiti-charcoal); font-size: 9px; font-weight: 800; padding: 1px 6px; border-radius: 99px; letter-spacing: 0.5px; margin-left: 5px; vertical-align: middle;">Biznis</span>' +
+                  '</div>' +
+                  '<div style="color: var(--haiti-olive); font-size: 10px;">$' + data.cashtag + '</div>' +
+                '</div></div>' +
+                '<button type="button" class="btn btn-sm fw-bold rounded-pill" style="background: var(--haiti-gold); color: var(--haiti-charcoal); font-size: 10px;" ' +
+                'onclick="selectUsdcReceiver(\'' + data.cashtag + '\', \'' + escapedName2 + '\', \'' + (data.biz_slug || '') + '\')"><i class="ri-store-2-line me-1"></i>Chwazi</button>' +
+              '</div>' +
+              '<div class="d-flex align-items-center justify-content-between p-2 rounded-3" style="background: rgba(22,101,52,0.08);">' +
+                '<div class="d-flex align-items-center gap-2">' + avatarHtml2 +
+                '<div>' +
+                  '<div class="fw-bold" style="color: #166534; font-size: 12px;">' + data.display_name +
+                    '<span style="display: inline-block; background: var(--haiti-olive); color: #fff; font-size: 9px; font-weight: 800; padding: 1px 6px; border-radius: 99px; letter-spacing: 0.5px; margin-left: 5px; vertical-align: middle;">Pèsonèl</span>' +
+                  '</div>' +
+                  '<div style="color: var(--haiti-olive); font-size: 10px;">$' + data.cashtag + '</div>' +
+                '</div></div>' +
+                '<button type="button" class="btn btn-sm fw-bold rounded-pill" style="background: #166534; color: #fff; font-size: 10px;" ' +
+                'onclick="selectUsdcReceiver(\'' + data.cashtag + '\', \'' + escapedName2 + '\', null)"><i class="ri-user-line me-1"></i>Chwazi</button>' +
+              '</div>' +
+            '</div>';
+        } else {
+          resultDiv.innerHTML = '<div class="d-flex align-items-center justify-content-between p-2 rounded-3" style="background: rgba(22,101,52,0.08);">' +
+            '<div class="d-flex align-items-center gap-2">' + avatarHtml2 +
+            '<div><div class="fw-bold" style="color: #166534; font-size: 12px;">' + data.display_name +
+              '<span style="display: inline-block; background: var(--haiti-olive); color: #fff; font-size: 9px; font-weight: 800; padding: 1px 6px; border-radius: 99px; letter-spacing: 0.5px; margin-left: 5px; vertical-align: middle;">Pèsonèl</span>' +
+            '</div>' +
+            '<div style="color: var(--haiti-olive); font-size: 10px;">$' + data.cashtag + '</div></div></div>' +
+            '<button type="button" class="btn btn-sm fw-bold rounded-pill" style="background: #166534; color: #fff; font-size: 10px;" ' +
+            'onclick="selectUsdcReceiver(\'' + data.cashtag + '\', \'' + escapedName2 + '\', null)"><i class="ri-check-line me-1"></i>Chwazi</button></div>';
+        }
       } else {
         resultDiv.innerHTML = '<div class="small fw-bold" style="color: #991b1b; font-size: 11px;"><i class="ri-close-circle-line me-1"></i>' + data.message + '</div>';
       }
@@ -1169,14 +1289,20 @@ function handleUsdcTagLookup() {
   }, 300);
 }
 
-function selectUsdcReceiver(cashtag, name) {
+function selectUsdcReceiver(cashtag, name, bizSlug) {
   var input = document.getElementById("usdc-tag-input");
   var resultDiv = document.getElementById("usdc-tag-result");
   document.getElementById("receiver-cashtag-hidden").value = cashtag;
+  document.getElementById("receiver-biz-slug-hidden").value = bizSlug || "";
   isZellusReceiver = true;
   updateFee();
   input.value = '$' + cashtag;
-  resultDiv.innerHTML = '<div class="small fw-bold" style="color: #166534; font-size: 11px;"><i class="ri-check-line me-1"></i>' + name + ' · $' + cashtag + '</div>';
+
+  var typeLabel = bizSlug
+    ? '<span style="display: inline-block; background: var(--haiti-gold); color: var(--haiti-charcoal); font-size: 9px; font-weight: 800; padding: 1px 5px; border-radius: 99px; margin-left: 4px; vertical-align: middle;">Biznis</span>'
+    : '<span style="display: inline-block; background: var(--haiti-olive); color: #fff; font-size: 9px; font-weight: 800; padding: 1px 5px; border-radius: 99px; margin-left: 4px; vertical-align: middle;">Pèsonèl</span>';
+
+  resultDiv.innerHTML = '<div class="small fw-bold" style="color: #166534; font-size: 11px;"><i class="ri-check-line me-1"></i>' + name + ' · $' + cashtag + ' ' + typeLabel + '</div>';
 }
 
 function toggleManualWallet() {
@@ -1200,16 +1326,104 @@ document.addEventListener("DOMContentLoaded", function() {
   var moncashPhoneEl = document.getElementById("moncash-phone-input");
   if (moncashPhoneEl) {
     moncashPhoneEl.addEventListener("input", function() {
-      document.getElementById("receiver-phone-hidden").value = this.value.replace(/\s/g, "");
+      document.getElementById("receiver-phone-hidden").value = this.value.replace(/[^\d]/g, "");
     });
   }
 
-  switchDestination("zellus-htg");
+  // Smart default: pick first account that has balance
+  var defaultDest = "zellus-htg";
+  if (USER_HTG_BAL <= 0) {
+    if (USER_USDC_BAL > 0)          defaultDest = "zellus-usdc";
+    else if (USER_BIZ_HTG_BAL > 0)  defaultDest = "biznis-htg";
+    else if (USER_BIZ_USDC_BAL > 0) defaultDest = "biznis-usdc";
+  }
+  switchDestination(defaultDest);
+
+  // ── Auto-prefill from URL params (pay page, storefront, wallet) ──
+  var urlParams = new URLSearchParams(window.location.search);
+  var bizSlugParam = urlParams.get('biz_slug');
+  var receiverParam = urlParams.get('receiver_lookup');
+  var amountParam = urlParams.get('amount');
+  var noteParam = urlParams.get('note');
+  var assetParam = urlParams.get('asset');
+  var tipParam = urlParams.get('tip_amount');
+  var isPayPageRedirect = !!(bizSlugParam && receiverParam);
+
+  // 1. Asset / currency — switch FIRST so amount fills into the right mode
+  if (assetParam) {
+    // Customer pays from personal wallet (zellus-htg or zellus-usdc), NOT from biznis wallet
+    var payDest = assetParam === 'usdc' ? 'zellus-usdc' : 'zellus-htg';
+    if (DEST_CONFIG[payDest]) {
+      switchDestination(payDest);
+      // Sync the dropdown display label
+      var destLabels = { "zellus-htg": "HTG", "zellus-usdc": "USD" };
+      var labelEl = document.getElementById('dest-selected-label');
+      if (labelEl && destLabels[payDest]) labelEl.textContent = destLabels[payDest];
+    }
+  }
+
+  // 2. Biz slug (IDOR-safe business identifier)
+  if (bizSlugParam) {
+    document.getElementById('receiver-biz-slug-hidden').value = bizSlugParam;
+  }
+
+  // 3. Amount (from pay page) — fill AFTER destination switch
+  if (amountParam && parseFloat(amountParam) > 0) {
+    var amountVisible = document.getElementById('amount-visible-input');
+    var amountHidden = document.getElementById('transfer_amount');
+    if (amountVisible) {
+      amountVisible.value = amountParam;
+      // Lock amount when pre-filled from pay page (customer can't change the merchant's price)
+      if (isPayPageRedirect) {
+        amountVisible.readOnly = true;
+        amountVisible.style.opacity = '0.7';
+        amountVisible.style.cursor = 'not-allowed';
+      }
+    }
+    if (amountHidden) amountHidden.value = amountParam;
+    // Trigger amount handler to sync conversion + update warnings correctly
+    handleAmountInput();
+  }
+
+  // 4. Note (from pay page)
+  if (noteParam) {
+    var noteField = document.getElementById('transfer_note');
+    if (noteField) noteField.value = decodeURIComponent(noteParam);
+  }
+
+  // 5. Tip amount (stored for backend, not shown to user)
+  if (tipParam) {
+    var tipHidden = document.getElementById('tip-amount-hidden');
+    if (tipHidden) tipHidden.value = tipParam;
+  }
+
+  // 6. Receiver lookup ($cashtag from pay page or storefront) — do LAST so lookup runs after all fields set
+  if (receiverParam) {
+    var tagValue = receiverParam.startsWith('$') ? receiverParam : '$' + receiverParam;
+    if (isPayPageRedirect) _autoSelectBiz = true;
+
+    // Use the correct input + lookup for the active section
+    var activeCfg = DEST_CONFIG[currentDest];
+    if (activeCfg && activeCfg.section === 'section-zellus-usdc') {
+      var usdcInput = document.getElementById('usdc-tag-input');
+      if (usdcInput) { usdcInput.value = tagValue; handleUsdcTagLookup(); }
+    } else if (lookupInput) {
+      lookupInput.value = tagValue;
+      handleReceiverLookup();
+    }
+  }
+
+  // 7. Hide zero-balance warning if coming from pay page
+  //    (customer may have sufficient balance after lookup completes;
+  //     the warning will re-show correctly on next switchDestination if needed)
+  if (isPayPageRedirect) {
+    var zbw = document.getElementById('zero-bal-warning');
+    if (zbw) { zbw.classList.remove('d-flex'); zbw.classList.add('d-none'); }
+  }
 
   // Auto-prefill receiver if redirected from wallet withdraw panel
-  var urlParams = new URLSearchParams(window.location.search);
   var prefill = urlParams.get('prefill');
-  if (prefill && lookupInput) {
+  if (prefill && lookupInput && !receiverParam) {
     lookupInput.value = '$' + prefill.replace(/^\$/, '');
     handleReceiverLookup();
   }
@@ -1239,14 +1453,17 @@ document.addEventListener("DOMContentLoaded", function() {
       }
     } catch(e) {}
   }
+
 });
 
 // ══════════════════════════════════════
 // ── QR SCANNER                      ──
 // ══════════════════════════════════════
 var _qrScanner = null;
+var _qrProcessing = false;
 
 function openQrScanner() {
+  _qrProcessing = false;
   var overlay = document.getElementById('qr-scanner-overlay');
   if (!overlay) return;
 
@@ -1273,13 +1490,74 @@ function openQrScanner() {
 }
 
 function onQrScanSuccess(decodedText) {
+  if (_qrProcessing) return;
+
   var value = (decodedText || '').trim();
   if (!value) return;
+
+  // DEBUG: show what was scanned
+  document.getElementById('qr-status-title').innerHTML = '<i class="ri-qr-code-line me-1" style="color: #22c55e;"></i>Li jwenn!';
+  document.getElementById('qr-status-hint').textContent = value.substring(0, 60);
 
   // Parse ethereum: URI format
   if (value.toLowerCase().startsWith('ethereum:')) {
     value = value.replace(/^ethereum:/i, '').split(/[?@]/)[0];
   }
+
+  // ── Zèllus pay URL: POST directly to quick_pay (creates transfer → review page) ──
+  try {
+    var url = new URL(value);
+    var payMatch = url.pathname.match(/^\/b\/([^/]+)\/pay/);
+    if (payMatch) {
+      _qrProcessing = true;
+
+      // Stop scanner immediately to prevent repeated callbacks
+      if (_qrScanner) {
+        try { _qrScanner.stop(); } catch(e) {}
+      }
+
+      document.getElementById('qr-status-title').innerHTML = '<i class="ri-check-line me-1" style="color: #22c55e;"></i>Jwenn li!';
+      document.getElementById('qr-status-hint').textContent = 'N ap kreye peman an...';
+
+      var slug = payMatch[1];
+      var amt = url.searchParams.get('amount') || '';
+      var ast = url.searchParams.get('asset') || 'htg';
+      var nt = url.searchParams.get('note') || '';
+      var csrfEl = document.querySelector('meta[name="csrf-token"]');
+      var csrfToken = csrfEl ? csrfEl.content : '';
+
+      setTimeout(function() {
+        // Close scanner safely (don't let errors block the fetch)
+        try { closeQrScanner(); } catch(e) {}
+
+        // Use fetch instead of form.submit() — mobile browsers block
+        // programmatic form submissions not triggered by user gestures
+        var body = 'amount=' + encodeURIComponent(amt) +
+                   '&asset=' + encodeURIComponent(ast) +
+                   '&note=' + encodeURIComponent(nt) +
+                   '&authenticity_token=' + encodeURIComponent(csrfToken);
+
+        fetch('/b/' + slug + '/pay', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          credentials: 'same-origin',
+          body: body
+        }).then(function(resp) {
+          if (resp.url && resp.url.indexOf('/transfers/') !== -1) {
+            // quick_pay created the transfer — go to review page
+            window.location.href = resp.url;
+          } else {
+            // Unexpected response — fall back to pay page
+            window.location.href = '/b/' + slug + '/pay?amount=' + encodeURIComponent(amt) + '&asset=' + encodeURIComponent(ast) + '&note=' + encodeURIComponent(nt);
+          }
+        }).catch(function() {
+          // Network error — fall back to pay page
+          window.location.href = '/b/' + slug + '/pay?amount=' + encodeURIComponent(amt) + '&asset=' + encodeURIComponent(ast) + '&note=' + encodeURIComponent(nt);
+        });
+      }, 500);
+      return;
+    }
+  } catch(e) { /* not a URL, continue */ }
 
   var matched = false;
 
@@ -1328,6 +1606,13 @@ function onQrScanSuccess(decodedText) {
   }
 
   if (matched) {
+    _qrProcessing = true;
+
+    // Stop scanner immediately
+    if (_qrScanner) {
+      try { _qrScanner.stop(); } catch(e) {}
+    }
+
     // Force-enable amount field + submit button after QR scan
     var amtInput = document.getElementById('amount-visible-input');
     if (amtInput) {
@@ -1339,7 +1624,7 @@ function onQrScanSuccess(decodedText) {
 
     // Hide zero-balance warning
     var zbw = document.getElementById('zero-bal-warning');
-    if (zbw) zbw.style.display = 'none';
+    if (zbw) { zbw.classList.remove('d-flex'); zbw.classList.add('d-none'); }
 
     // Lock QR recipient — hide receiver sections, keep dropdown visible
     qrRecipientActive = true;

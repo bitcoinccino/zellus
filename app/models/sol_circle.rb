@@ -41,16 +41,16 @@ class SolCircle < ApplicationRecord
 
   # Duration-based amount limits per asset
   DURATION_LIMITS = {
-    "three_months"  => { htg_min: 1_000, htg_max: 50_000,  usdc_min: 1, usdc_max: 1_000 },
-    "six_months"    => { htg_min: 1_000, htg_max: 150_000, usdc_min: 1, usdc_max: 2_000 },
-    "twelve_months" => { htg_min: 1_000, htg_max: 500_000, usdc_min: 1, usdc_max: 5_000 }
+    "three_months"  => { htg_min: 1_000, htg_max: 50_000,  usd_min: 1, usd_max: 1_000 },
+    "six_months"    => { htg_min: 1_000, htg_max: 150_000, usd_min: 1, usd_max: 2_000 },
+    "twelve_months" => { htg_min: 1_000, htg_max: 500_000, usd_min: 1, usd_max: 5_000 }
   }.freeze
 
   validates :name, presence: true, length: { maximum: 60 }
   validates :amount, presence: true, numericality: { greater_than: 0 }
   validates :frequency, presence: true
   validates :target_members, presence: true, numericality: { in: 3..20 }
-  validates :asset, presence: true, inclusion: { in: %w[htg usdc] }
+  validates :asset, presence: true, inclusion: { in: %w[htg usd] }
   validates :platform_fee_percent, numericality: { greater_than_or_equal_to: 0, less_than_or_equal_to: 5 }
   validates :creator_fee_percent, numericality: { greater_than_or_equal_to: 0, less_than_or_equal_to: 5 }
   validate :enforce_duration_limits
@@ -126,8 +126,8 @@ class SolCircle < ApplicationRecord
     asset == "htg"
   end
 
-  def usdc?
-    asset == "usdc"
+  def usd?
+    asset == "usd"
   end
 
   # Duration in months for display and round interval calculation
@@ -153,7 +153,7 @@ class SolCircle < ApplicationRecord
     if htg?
       limits[:htg_min]..limits[:htg_max]
     else
-      limits[:usdc_min]..limits[:usdc_max]
+      limits[:usd_min]..limits[:usd_max]
     end
   end
 
@@ -175,8 +175,8 @@ class SolCircle < ApplicationRecord
 
     # Amount limits
     if amount.present?
-      min_amt = htg? ? lim[:htg_min] : lim[:usdc_min]
-      max_amt = htg? ? lim[:htg_max] : lim[:usdc_max]
+      min_amt = htg? ? lim[:htg_min] : lim[:usd_min]
+      max_amt = htg? ? lim[:htg_max] : lim[:usd_max]
       unit = htg? ? "HTG" : "USD"
 
       if amount < min_amt

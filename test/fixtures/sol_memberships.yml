@@ -4,8 +4,10 @@ one:
   user: one
   sol_circle: one
   position: 1
+  token: "sol_membership_token_one"
 
 two:
   user: two
   sol_circle: two
   position: 1
+  token: "sol_membership_token_two"

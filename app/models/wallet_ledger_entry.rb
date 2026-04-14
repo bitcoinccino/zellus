@@ -5,14 +5,19 @@ class WalletLedgerEntry < ApplicationRecord
 
   before_create :generate_token
 
+  def to_param
+    token
+  end
+
   ENTRY_TYPES = %w[deposit withdrawal transfer_out transfer_in fee instant_fee refund conversion_out conversion_in conversion_fee].freeze
-  ASSETS      = %w[htg usdc eth wbtc tslax nvdax aaplx coinx googlx].freeze
+  ASSETS      = %w[htg usd eth wbtc tslax nvdax aaplx coinx googlx].freeze
 
   validates :entry_type,    presence: true, inclusion: { in: ENTRY_TYPES }
   validates :asset,         presence: true, inclusion: { in: ASSETS }
   validates :amount,        presence: true, numericality: { greater_than: 0 }
   validates :balance_after, presence: true, numericality: { greater_than_or_equal_to: 0 }
   validates :moncash_transaction_id, uniqueness: true, allow_nil: true
+  validates :lightspark_payment_id, uniqueness: true, allow_nil: true
 
   scope :deposits,      -> { where(entry_type: "deposit") }
   scope :withdrawals,   -> { where(entry_type: "withdrawal") }
@@ -27,7 +32,7 @@ class WalletLedgerEntry < ApplicationRecord
 
   # ── Asset scopes ──
   scope :htg_entries,  -> { where(asset: "htg") }
-  scope :usdc_entries, -> { where(asset: "usdc") }
+  scope :usd_entries, -> { where(asset: "usd") }
 
   def credit?
     %w[deposit transfer_in refund conversion_in].include?(entry_type)
@@ -38,7 +43,7 @@ class WalletLedgerEntry < ApplicationRecord
   end
 
   def asset_label
-    asset.to_s == "usdc" ? "USD" : asset.to_s.upcase
+    asset.to_s == "usd" ? "USD" : asset.to_s.upcase
   end
 
   private

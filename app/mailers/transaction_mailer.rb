@@ -4,17 +4,30 @@ class TransactionMailer < ApplicationMailer
 
   def created
     load_transaction
-    mail(to: @user.email, subject: "#{subject_prefix} Resevwa (TX ##{@transaction.id})")
+    @crypto_display = crypto_display_label
+    mail(to: @user.email, subject: "Zèllus: #{@transaction.buy? ? 'Ou achte' : 'Ou vann'} #{@crypto_display} (an atant)")
   end
 
   def completed
     load_transaction
-    mail(to: @user.email, subject: "#{subject_prefix} Konplete (TX ##{@transaction.id})")
+    @crypto_display = crypto_display_label
+    subject = if @transaction.admin_credit_external?
+                "Zèllus: #{@crypto_display} voye sou Base ✓"
+              else
+                "Zèllus: #{@transaction.buy? ? 'Ou achte' : 'Ou vann'} #{@crypto_display} ✓"
+              end
+    mail(to: @user.email, subject: subject)
   end
 
   def failed
     load_transaction
-    mail(to: @user.email, subject: "#{subject_prefix} Echwe (TX ##{@transaction.id})")
+    @crypto_display = crypto_display_label
+    subject = if @transaction.admin_credit_external?
+                "Zèllus: Kredi Ekstèn #{@crypto_display} echwe"
+              else
+                "Zèllus: #{@transaction.buy? ? 'Acha' : 'Vann'} #{@crypto_display} echwe"
+              end
+    mail(to: @user.email, subject: subject)
   end
 
   private
@@ -22,7 +35,7 @@ class TransactionMailer < ApplicationMailer
   def load_transaction
     @transaction = Transaction.includes(:user).find(params[:transaction_id])
     @user = @transaction.user
-    @brand_name = "Zèllus"
+    @brand_name = AppBrand::NAME
     @app_base_url = ENV["APP_BASE_URL"].to_s.strip
     @transaction_url = @app_base_url.present? ? "#{@app_base_url}/transactions/#{@transaction.token}" : nil
     @basescan_url = @transaction.blockchain_tx_hash.present? ? basescan_tx_url(@transaction.blockchain_tx_hash) : nil
@@ -49,19 +62,23 @@ class TransactionMailer < ApplicationMailer
   end
 
   def payment_method_label
-    if @transaction.loan_request?
+    if @transaction.admin_credit_external?
+      "Zèllus Kredi Ekstèn (Base Mainnet)"
+    elsif @transaction.loan_request?
       "Peman MonCash (Liy Kredi Pionye)"
     elsif @transaction.failure_reason&.include?("REPAYMENT_LOAN_")
       "Regleman Dèt (#{@transaction.buy? ? 'MonCash' : 'USD'})"
     elsif @transaction.buy?
-      "MonCash (Digicel Gateway)"
+      "MonCash"
     else
       "Peman MonCash bay #{@transaction.moncash_phone.presence || 'resevè'} apre depo Base"
     end
   end
 
   def source_label
-    if @transaction.loan_request?
+    if @transaction.admin_credit_external?
+      "Trezori Zèllus (Base Mainnet)"
+    elsif @transaction.loan_request?
       "Trezò Zèllus"
     elsif @transaction.failure_reason&.include?("REPAYMENT_LOAN_")
       "Bous Itilizatè (Ranbousman Dèt)"
@@ -73,7 +90,9 @@ class TransactionMailer < ApplicationMailer
   end
 
   def destination_label
-    if @transaction.buy? && !@transaction.failure_reason&.include?("REPAYMENT_LOAN_")
+    if @transaction.admin_credit_external?
+      @transaction.destination_address.to_s
+    elsif @transaction.buy? && !@transaction.failure_reason&.include?("REPAYMENT_LOAN_")
       @transaction.destination_address.to_s
     elsif @transaction.failure_reason&.include?("REPAYMENT_LOAN_")
       "Trezò Zèllus (Dèt Regle)"
@@ -83,7 +102,9 @@ class TransactionMailer < ApplicationMailer
   end
 
   def amount_line
-    if @transaction.loan_request?
+    if @transaction.admin_credit_external?
+      "#{@transaction.crypto_amount} USD"
+    elsif @transaction.loan_request?
       "Montan Prè: #{format_htg(@transaction.fiat_amount)}"
     elsif @transaction.failure_reason&.include?("REPAYMENT_LOAN_")
       "Montan Ranbousman: #{format_htg(@transaction.fiat_amount)} (Dèt Regle)"
@@ -102,6 +123,11 @@ class TransactionMailer < ApplicationMailer
     end
   end
 
+  def crypto_display_label
+    currency = @transaction.crypto_currency&.upcase == 'USD' ? 'USD' : @transaction.crypto_currency&.upcase
+    "#{@transaction.crypto_amount} #{currency}"
+  end
+
   def format_htg(value)
     "HTG #{format('%.2f', value.to_f)}"
   end
@@ -109,8 +135,9 @@ class TransactionMailer < ApplicationMailer
   def customer_failure_message
     return "Yon erè inatandi rive. Tanpri kontakte sipò." if @transaction.failure_reason.blank?
 
-    # Custom logic for loan-specific failures
-    if @transaction.loan_request? && @transaction.failure_reason.include?("active")
+    if @transaction.admin_credit_external? && @transaction.failure_reason.include?("exceeds balance")
+      "Trezori a pa gen ase USD pou voye #{@transaction.crypto_amount} USD. Tanpri depoze plis USD nan trezori a epi eseye ankò."
+    elsif @transaction.loan_request? && @transaction.failure_reason.include?("active")
       "Kont MonCash ou dwe aktif pou resevwa yon Prè Pionye. Tanpri verifye estati Digicel ou."
     else
       @transaction.friendly_failure_reason

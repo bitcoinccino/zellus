@@ -1,10 +1,10 @@
-<%= @brand_name %> — Zèllus Transfè Echwe
+<%= @brand_name %> — Peman Bay <%= @receiver_display %> Echwe
 
 Bonjou <%= @sender_name %>,
 
 Malerezman, transfè ou bay <%= @transfer.receiver_name.presence || @receiver_display %> pa t kapab trete.
 
-Rezon: <%= @transfer.failure_reason %>
+Rezon: <%= friendly_failure_reason(@transfer.failure_reason) %>
 
 Montan: <%= @amount_display %>
 <% if @basescan_url.present? %>Basescan: <%= @basescan_url %><% end %>

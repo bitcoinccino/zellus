@@ -1,0 +1,387 @@
+<div class="container py-4" style="max-width: 480px;">
+  <div class="card-base p-4" style="border: 1px solid rgba(93,99,69,0.12);">
+
+    <%# ── Header ── %>
+    <div class="d-flex align-items-center justify-content-between mb-4">
+      <h1 class="h5 fw-black mb-0" style="color: var(--haiti-charcoal);">
+        <i class="ri-pencil-line me-2" style="color: var(--haiti-gold);"></i>Modifye Lyen
+      </h1>
+      <%= link_to business_payment_link_path(@link), class: "small text-decoration-none fw-bold", style: "color: var(--haiti-olive);" do %>
+        <i class="ri-arrow-left-line me-1"></i>Retounen
+      <% end %>
+    </div>
+
+    <%= form_with model: @link, url: business_payment_link_path(@link), method: :patch, class: "needs-validation" do |f| %>
+
+      <% if @link.errors.any? %>
+        <div class="rounded-3 p-3 mb-3" style="background: rgba(210,16,52,0.06); border: 1px solid rgba(210,16,52,0.15);">
+          <% @link.errors.full_messages.each do |msg| %>
+            <div style="color: #D21034; font-size: 12px; font-weight: 600;"><i class="ri-error-warning-line me-1"></i><%= msg %></div>
+          <% end %>
+        </div>
+      <% end %>
+
+      <%# ── Currency ── %>
+      <div class="mb-3">
+        <label class="form-label fw-bold" style="color: var(--haiti-charcoal); font-size: 12px;">Lajan</label>
+        <div class="d-flex gap-2">
+          <label class="flex-grow-1">
+            <input type="radio" name="business_payment_link[asset]" value="htg" class="btn-check" id="asset-htg"
+                   <%= @link.asset == "htg" ? "checked" : "" %>>
+            <div class="btn w-100 rounded-3 py-2 text-center" id="asset-htg-label"
+                 style="font-size: 13px; font-weight: 700; border: 2px solid rgba(93,99,69,0.15);">
+              <%= currency_label("htg", 14) %>
+            </div>
+          </label>
+          <label class="flex-grow-1">
+            <input type="radio" name="business_payment_link[asset]" value="usdc" class="btn-check" id="asset-usdc"
+                   <%= @link.asset == "usdc" ? "checked" : "" %>>
+            <div class="btn w-100 rounded-3 py-2 text-center" id="asset-usdc-label"
+                 style="font-size: 13px; font-weight: 700; border: 2px solid rgba(93,99,69,0.15);">
+              <%= currency_label("usdc", 14) %>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <%# ── Amount Mode Toggle ── %>
+      <div class="mb-3">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+          <label class="form-label fw-bold mb-0" style="color: var(--haiti-charcoal); font-size: 12px;">
+            Montan <span style="color: var(--haiti-olive); font-weight: 400;">(kite vid pou kliyan chwazi)</span>
+          </label>
+          <button type="button" id="toggle-items-btn" onclick="toggleItemsMode()"
+                  class="btn btn-sm rounded-pill px-2 py-1 border-0"
+                  style="background: rgba(197,160,89,0.12); color: var(--haiti-gold); font-size: 10px; font-weight: 700;">
+            <i class="ri-add-line me-1"></i>Ajoute Atik
+          </button>
+        </div>
+
+        <%# ── Simple Amount ── %>
+        <div id="simple-amount-section"<%= @link.itemized? ? ' style="display: none;"'.html_safe : '' %>>
+          <%= f.number_field :amount, class: "form-control", style: "border: 2px solid rgba(93,99,69,0.15); border-radius: 12px; font-size: 14px;",
+              placeholder: "Pa egzanp: 500", step: "0.01", min: "1", id: "link-amount-field",
+              value: @link.itemized? ? nil : @link.amount,
+              disabled: @link.itemized? %>
+        </div>
+
+        <%# ── Itemized Mode ── %>
+        <div id="items-section" style="<%= @link.itemized? ? '' : 'display: none;' %>">
+          <%# ── Product Catalog Picker ── %>
+          <div id="product-picker" class="mb-2" style="display: none;">
+            <div class="p-2 rounded-3" style="background: rgba(197,160,89,0.06); border: 1px solid rgba(197,160,89,0.15); max-height: 200px; overflow-y: auto;">
+              <div id="product-picker-list">
+                <div class="text-center py-2" style="font-size: 11px; color: var(--haiti-olive);">
+                  <i class="ri-loader-4-line me-1"></i>Chaje pwodui...
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="items-list">
+            <%# JS will populate existing items here %>
+          </div>
+
+          <div class="d-flex gap-2 mt-2">
+            <button type="button" onclick="addItemRow()" class="btn btn-sm flex-grow-1 rounded-3 py-2"
+                    style="border: 2px dashed rgba(93,99,69,0.2); color: var(--haiti-olive); font-size: 12px; font-weight: 600;">
+              <i class="ri-add-circle-line me-1"></i>Ajoute atik
+            </button>
+            <button type="button" onclick="toggleProductPicker()" id="catalog-picker-btn"
+                    class="btn btn-sm rounded-3 py-2 px-3"
+                    style="background: rgba(197,160,89,0.12); color: var(--haiti-gold); font-size: 12px; font-weight: 700; border: none;">
+              <i class="ri-store-2-line me-1"></i>Katalòg
+            </button>
+          </div>
+
+          <%# ── Items Total ── %>
+          <div id="items-total-row" class="d-flex justify-content-between align-items-center mt-2 p-2 rounded-3"
+               style="background: rgba(197,160,89,0.08); display: none !important;">
+            <span class="fw-bold" style="font-size: 13px; color: var(--haiti-charcoal);">Total</span>
+            <span class="fw-black" id="items-total-value" style="font-size: 15px; color: var(--haiti-charcoal);">0</span>
+          </div>
+
+          <%# Hidden field to store items JSON %>
+          <input type="hidden" name="business_payment_link[items_json]" id="items-json-hidden" value="<%= @link.items.to_json %>">
+        </div>
+      </div>
+
+      <%# ── Note ── %>
+      <div class="mb-3">
+        <label class="form-label fw-bold" style="color: var(--haiti-charcoal); font-size: 12px;">
+          Nòt <span style="color: var(--haiti-olive); font-weight: 400;">(opsyonèl)</span>
+        </label>
+        <%= f.text_field :note, class: "form-control", style: "border: 2px solid rgba(93,99,69,0.15); border-radius: 12px; font-size: 13px;",
+            placeholder: "Pa egzanp: Peman pou livrezon manje", maxlength: 280 %>
+      </div>
+
+      <%# ── Single Use ── %>
+      <div class="mb-3">
+        <div class="form-check d-flex align-items-center gap-2">
+          <%= f.check_box :single_use, class: "form-check-input", style: "border-color: var(--haiti-olive);" %>
+          <label class="form-check-label" style="color: var(--haiti-charcoal); font-size: 13px; font-weight: 600;">
+            Yon sèl fwa
+          </label>
+          <span style="color: var(--haiti-olive); font-size: 11px;">(dezaktive apre premye pèman)</span>
+        </div>
+      </div>
+
+      <%# ── Allow Tips Toggle ── %>
+      <div class="mb-3">
+        <div class="d-flex align-items-center gap-3 p-3 rounded-3" style="background: rgba(93,99,69,0.04); border: 1px solid rgba(93,99,69,0.08);">
+          <div class="form-check form-switch mb-0">
+            <%= f.check_box :allow_tips, class: "form-check-input", role: "switch", id: "link_allow_tips",
+                checked: @link.allow_tips?,
+                style: "width: 44px; height: 24px; cursor: pointer; border-color: var(--haiti-olive);" %>
+          </div>
+          <div>
+            <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;">
+              <i class="ri-heart-line me-1" style="color: var(--haiti-gold);"></i>Pèmèt kliyan bay poubwa
+            </div>
+            <div style="color: var(--haiti-olive); font-size: 11px;">
+              Kliyan ap wè opsyon poubwa (10%, 15%, 20%) sou paj pèman an.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <%# ── Expiry ── %>
+      <div class="mb-4">
+        <label class="form-label fw-bold" style="color: var(--haiti-charcoal); font-size: 12px;">
+          Dat ekspirasyon <span style="color: var(--haiti-olive); font-weight: 400;">(opsyonèl)</span>
+        </label>
+        <%= f.datetime_local_field :expires_at, class: "form-control", style: "border: 2px solid rgba(93,99,69,0.15); border-radius: 12px; font-size: 13px;" %>
+      </div>
+
+      <%# ── Submit ── %>
+      <%= f.submit "Anrejistre Chanjman", class: "btn w-100 rounded-pill py-3 fw-bold",
+          style: "background: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 14px;" %>
+    <% end %>
+
+  </div>
+</div>
+
+<style>
+  .btn-check:checked + div {
+    background: var(--haiti-gold) !important;
+    border-color: var(--haiti-gold) !important;
+    color: var(--haiti-charcoal) !important;
+  }
+  #link_allow_tips:checked {
+    background-color: var(--haiti-gold) !important;
+    border-color: var(--haiti-gold) !important;
+  }
+  .item-row { animation: fadeIn 0.2s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+  .product-pick-item { cursor: pointer; transition: background 0.15s; }
+  .product-pick-item:hover { background: rgba(197,160,89,0.12) !important; }
+  .item-thumb { width: 32px; height: 32px; border-radius: 8px; object-fit: cover; flex-shrink: 0; }
+  .item-thumb-placeholder { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; background: rgba(93,99,69,0.08); flex-shrink: 0; }
+</style>
+
+<script>
+var itemsMode = <%= @link.itemized? %>;
+var itemCounter = 0;
+var _productsCache = null;
+var _pickerVisible = false;
+
+// ── Initialize existing items on edit ──
+var _existingItems = <%= @link.items.present? ? @link.items.to_json.html_safe : "[]" %>;
+
+(function() {
+  if (itemsMode && _existingItems.length > 0) {
+    var toggleBtn = document.getElementById('toggle-items-btn');
+    toggleBtn.innerHTML = '<i class="ri-money-dollar-circle-line me-1"></i>Montan senp';
+    _existingItems.forEach(function(item) {
+      pickProduct(item.product_id || 0, item.name, item.unit_price, item.image_url || null);
+    });
+    loadProducts();
+  }
+})();
+
+function toggleItemsMode() {
+  itemsMode = !itemsMode;
+  var simpleSection = document.getElementById('simple-amount-section');
+  var itemsSection = document.getElementById('items-section');
+  var toggleBtn = document.getElementById('toggle-items-btn');
+  var amountField = document.getElementById('link-amount-field');
+
+  if (itemsMode) {
+    simpleSection.style.display = 'none';
+    itemsSection.style.display = '';
+    toggleBtn.innerHTML = '<i class="ri-money-dollar-circle-line me-1"></i>Montan senp';
+    amountField.value = '';
+    amountField.disabled = true;
+    if (document.getElementById('items-list').children.length === 0) addItemRow();
+    loadProducts();
+  } else {
+    simpleSection.style.display = '';
+    itemsSection.style.display = 'none';
+    toggleBtn.innerHTML = '<i class="ri-add-line me-1"></i>Ajoute Atik';
+    amountField.disabled = false;
+    document.getElementById('items-json-hidden').value = '[]';
+    document.getElementById('product-picker').style.display = 'none';
+    _pickerVisible = false;
+  }
+}
+
+// ── Product Catalog ──
+function loadProducts() {
+  if (_productsCache) return;
+  fetch('<%= business_products_path(format: :json) %>')
+    .then(function(r) { return r.json(); })
+    .then(function(products) {
+      _productsCache = products;
+      renderProductPicker(products);
+    })
+    .catch(function() {
+      _productsCache = [];
+      document.getElementById('product-picker-list').innerHTML =
+        '<div class="text-center py-2" style="font-size: 11px; color: var(--haiti-olive);">Pa gen pwodui nan katalòg ou.</div>';
+    });
+}
+
+function renderProductPicker(products) {
+  var container = document.getElementById('product-picker-list');
+  if (!products || products.length === 0) {
+    container.innerHTML = '<div class="text-center py-2" style="font-size: 11px; color: var(--haiti-olive);"><i class="ri-store-2-line me-1"></i>Pa gen pwodui nan katalòg ou. Ajoute atik manyèlman.</div>';
+    return;
+  }
+  var html = '';
+  products.forEach(function(p) {
+    var imgHtml = p.image_url
+      ? '<img src="' + p.image_url + '" class="item-thumb" alt="">'
+      : '<div class="item-thumb-placeholder"><i class="ri-shopping-bag-line" style="font-size: 14px; color: var(--haiti-olive);"></i></div>';
+    html += '<div class="product-pick-item d-flex align-items-center gap-2 p-2 rounded-2 mb-1" ' +
+      'style="background: rgba(0,0,0,0.01);" ' +
+      'onclick="pickProduct(' + p.id + ', \'' + p.name.replace(/'/g, "\\'") + '\', ' + p.price + ', ' + (p.image_url ? '\'' + p.image_url.replace(/'/g, "\\'") + '\'' : 'null') + ')">' +
+      imgHtml +
+      '<div class="flex-grow-1">' +
+        '<div class="fw-bold" style="font-size: 12px; color: var(--haiti-charcoal);">' + p.name + '</div>' +
+        '<div style="font-size: 10px; color: var(--haiti-olive);">' + p.price.toLocaleString('fr-HT') + ' ' + (p.asset === 'usdc' ? 'USD' : 'HTG') + '</div>' +
+      '</div>' +
+      '<i class="ri-add-circle-line" style="font-size: 18px; color: var(--haiti-gold);"></i>' +
+    '</div>';
+  });
+  container.innerHTML = html;
+}
+
+function toggleProductPicker() {
+  var picker = document.getElementById('product-picker');
+  _pickerVisible = !_pickerVisible;
+  picker.style.display = _pickerVisible ? '' : 'none';
+  if (_pickerVisible) loadProducts();
+}
+
+function pickProduct(productId, name, price, imageUrl) {
+  itemCounter++;
+  var row = document.createElement('div');
+  row.className = 'item-row d-flex gap-2 mb-2 align-items-center';
+  row.id = 'item-row-' + itemCounter;
+  row.dataset.productId = productId || '';
+  row.dataset.imageUrl = imageUrl || '';
+
+  var imgHtml = imageUrl
+    ? '<img src="' + imageUrl + '" class="item-thumb" alt="">'
+    : '<div class="item-thumb-placeholder"><i class="ri-shopping-bag-line" style="font-size: 14px; color: var(--haiti-olive);"></i></div>';
+
+  row.innerHTML =
+    imgHtml +
+    '<div class="flex-grow-1">' +
+      '<input type="text" value="' + name.replace(/"/g, '&quot;') + '" class="form-control item-name" ' +
+        'style="border: 2px solid rgba(93,99,69,0.15); border-radius: 10px; font-size: 12px; padding: 6px 10px;" oninput="syncItems()">' +
+    '</div>' +
+    '<div style="width: 75px;">' +
+      '<input type="number" value="' + price + '" class="form-control item-price" min="1" step="0.01" ' +
+        'style="border: 2px solid rgba(93,99,69,0.15); border-radius: 10px; font-size: 12px; padding: 6px 10px; text-align: right;" oninput="syncItems()">' +
+    '</div>' +
+    '<div style="width: 50px;">' +
+      '<input type="number" placeholder="Kte" class="form-control item-qty" min="1" value="1" ' +
+        'style="border: 2px solid rgba(93,99,69,0.15); border-radius: 10px; font-size: 12px; padding: 6px 10px; text-align: center;" oninput="syncItems()">' +
+    '</div>' +
+    '<button type="button" onclick="removeItemRow(' + itemCounter + ')" class="btn btn-sm p-1" ' +
+      'style="color: #991b1b; background: none; border: none; line-height: 1;">' +
+      '<i class="ri-delete-bin-line" style="font-size: 16px;"></i>' +
+    '</button>';
+
+  document.getElementById('items-list').appendChild(row);
+  syncItems();
+}
+
+function addItemRow() {
+  itemCounter++;
+  var row = document.createElement('div');
+  row.className = 'item-row d-flex gap-2 mb-2 align-items-center';
+  row.id = 'item-row-' + itemCounter;
+  row.dataset.productId = '';
+  row.dataset.imageUrl = '';
+
+  row.innerHTML =
+    '<div class="item-thumb-placeholder"><i class="ri-shopping-bag-line" style="font-size: 14px; color: var(--haiti-olive);"></i></div>' +
+    '<div class="flex-grow-1">' +
+      '<input type="text" placeholder="Non atik" class="form-control item-name" ' +
+        'style="border: 2px solid rgba(93,99,69,0.15); border-radius: 10px; font-size: 12px; padding: 6px 10px;" oninput="syncItems()">' +
+    '</div>' +
+    '<div style="width: 75px;">' +
+      '<input type="number" placeholder="Pri" class="form-control item-price" min="1" step="0.01" ' +
+        'style="border: 2px solid rgba(93,99,69,0.15); border-radius: 10px; font-size: 12px; padding: 6px 10px; text-align: right;" oninput="syncItems()">' +
+    '</div>' +
+    '<div style="width: 50px;">' +
+      '<input type="number" placeholder="Kte" class="form-control item-qty" min="1" value="1" ' +
+        'style="border: 2px solid rgba(93,99,69,0.15); border-radius: 10px; font-size: 12px; padding: 6px 10px; text-align: center;" oninput="syncItems()">' +
+    '</div>' +
+    '<button type="button" onclick="removeItemRow(' + itemCounter + ')" class="btn btn-sm p-1" ' +
+      'style="color: #991b1b; background: none; border: none; line-height: 1;">' +
+      '<i class="ri-delete-bin-line" style="font-size: 16px;"></i>' +
+    '</button>';
+
+  document.getElementById('items-list').appendChild(row);
+  row.querySelector('.item-name').focus();
+  syncItems();
+}
+
+function removeItemRow(id) {
+  var row = document.getElementById('item-row-' + id);
+  if (row) row.remove();
+  if (document.getElementById('items-list').children.length === 0) addItemRow();
+  syncItems();
+}
+
+function syncItems() {
+  var rows = document.querySelectorAll('.item-row');
+  var items = [];
+  var total = 0;
+
+  rows.forEach(function(row) {
+    var name = row.querySelector('.item-name').value.trim();
+    var price = parseFloat(row.querySelector('.item-price').value) || 0;
+    var qty = parseInt(row.querySelector('.item-qty').value) || 1;
+    if (name && price > 0) {
+      var item = { name: name, unit_price: price, quantity: qty };
+      if (row.dataset.productId) item.product_id = parseInt(row.dataset.productId);
+      if (row.dataset.imageUrl) item.image_url = row.dataset.imageUrl;
+      items.push(item);
+      total += price * qty;
+    }
+  });
+
+  document.getElementById('items-json-hidden').value = JSON.stringify(items);
+
+  var totalRow = document.getElementById('items-total-row');
+  var totalVal = document.getElementById('items-total-value');
+  var assetHtg = document.getElementById('asset-htg');
+  var curr = (assetHtg && assetHtg.checked) ? 'HTG' : 'USD';
+
+  if (total > 0) {
+    totalRow.style.display = 'flex';
+    totalVal.textContent = total.toLocaleString('fr-HT') + ' ' + curr;
+  } else {
+    totalRow.style.display = 'none';
+  }
+}
+
+// Update currency label in total when currency changes
+document.querySelectorAll('input[name="business_payment_link[asset]"]').forEach(function(radio) {
+  radio.addEventListener('change', syncItems);
+});
+</script>

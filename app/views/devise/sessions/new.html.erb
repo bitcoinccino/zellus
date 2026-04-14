@@ -21,6 +21,7 @@
     color: white;
     overflow: hidden;
     position: relative;
+    min-height: calc(100vh - 64px);
   }
 
   .bon-hero-full::before,
@@ -81,20 +82,142 @@
   .bb-dark-field { color: #fff !important; }
   .bb-dark-field::placeholder { color: rgba(255,255,255,0.4) !important; opacity: 1; font-weight: 400 !important; }
 
+  /* ── Hero image ── */
+  .bon-hero-img-wrapper {
+    border-radius: 22px;
+    overflow: hidden;
+    box-shadow: 0 12px 48px rgba(0,0,0,0.35);
+    height: 580px;
+  }
+  .bon-hero-img-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 30%;
+    display: block;
+    transform: scale(1.3);
+    transform-origin: center 35%;
+  }
+
+  /* ── CTA Buttons ── */
+  .bon-cta-btn {
+    background: var(--haiti-gold);
+    color: var(--haiti-charcoal);
+    border: none;
+    border-radius: 12px;
+    padding: 16px 40px;
+    font-weight: 800;
+    font-size: 15px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .bon-cta-btn:hover {
+    background: #d4ad63;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 24px rgba(197,160,89,0.35);
+  }
+
+  .bon-cta-secondary {
+    background: transparent;
+    color: var(--haiti-gold);
+    border: 1.5px solid rgba(197,160,89,0.4);
+    border-radius: 12px;
+    padding: 14px 32px;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .bon-cta-secondary:hover {
+    background: rgba(197,160,89,0.1);
+    border-color: var(--haiti-gold);
+    color: var(--haiti-gold);
+  }
+
+  /* ── Modal overlay ── */
+  .bon-modal-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: rgba(46,46,56,0.65);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .bon-modal-backdrop.active { display: flex; }
+
+  .bon-modal-card {
+    position: relative;
+    width: 100%;
+    max-width: 440px;
+    animation: bonModalIn 0.25s ease-out;
+  }
+
+  .bon-modal-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(46,46,56,0.08);
+    color: var(--haiti-charcoal);
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s;
+    z-index: 2;
+  }
+  .bon-modal-close:hover { background: rgba(46,46,56,0.15); }
+
+  @keyframes bonModalIn {
+    from { opacity: 0; transform: translateY(16px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  @media (max-width: 991px) {
+    .bon-hero-img-wrapper { height: 450px; }
+    /* On mobile/tablet: show image first, then content */
+    .bon-hero-row { flex-direction: column-reverse !important; }
+    .bon-hero-img-wrapper { max-width: 100% !important; margin-left: 0 !important; }
+  }
   @media (max-width: 768px) {
     .bon-hero-full .display-5 { font-size: 1.8rem !important; }
     .bon-rate-badge { flex-direction: column; text-align: center; gap: 8px !important; }
-    .bon-hero-full .bon-signin-card { margin-left: 0 !important; }
+    .bon-hero-img-wrapper { height: 420px; border-radius: 18px; }
+    .bon-hero-img-wrapper img { transform: scale(1.4); transform-origin: center 38%; }
+    /* Hide the rate chart on mobile to keep focus on image + CTA */
+    .bon-rate-mobile-hide { display: none !important; }
+    .bon-chips-mobile-hide { display: none !important; }
   }
   @media (max-width: 480px) {
-    .bon-hero-full .display-5 { font-size: 1.4rem !important; }
+    .bon-hero-full .display-5 { font-size: 1.5rem !important; }
     .bon-chip { font-size: 11px; padding: 4px 10px; }
+    .bon-hero-img-wrapper { height: 380px; border-radius: 16px; }
+    .bon-hero-img-wrapper img { transform: scale(1.5); transform-origin: center 40%; }
   }
 </style>
 
 <section class="bon-hero-full">
   <div class="container py-5">
-    <div class="row align-items-center g-5 position-relative" style="z-index: 1;">
+    <div class="row align-items-center g-4 g-lg-5 position-relative bon-hero-row" style="z-index: 1;">
 
       <%# ── LEFT: VALUE PROP ── %>
       <div class="col-lg-6">
@@ -114,8 +237,8 @@
           Kòmanse jodi a pou konstwi richès jenerasyonèl pou ou menm ak fanmi ou.
         </p>
 
-        <%# ── Live Rate Chart ── %>
-        <div class="mb-4" style="width: 100%; max-width: 400px;">
+        <%# ── Live Rate Chart (hidden on mobile to focus on image) ── %>
+        <div class="mb-4 bon-rate-mobile-hide" style="width: 100%; max-width: 400px;">
           <div class="bon-rate-badge" style="flex-direction: column; align-items: stretch; gap: 10px; width: 100%;">
             <div class="d-flex align-items-center justify-content-between">
               <div>
@@ -150,105 +273,268 @@
           </div>
         </div>
 
-        <div class="d-flex flex-wrap gap-2 mb-3">
+        <div class="d-flex flex-wrap gap-2 mb-3 bon-chips-mobile-hide">
           <span class="bon-chip"><i class="ri-repeat-line" style="color: var(--haiti-gold);"></i> MonCash → USD</span>
           <span class="bon-chip"><i class="ri-group-fill" style="color: var(--haiti-gold);"></i> Sòl Dijital</span>
           <span class="bon-chip"><i class="ri-line-chart-line" style="color: var(--haiti-gold);"></i> Bati Kredi</span>
         </div>
 
-        <div class="d-inline-flex align-items-center gap-2" style="font-size: 12px; color: rgba(255,255,255,0.6);">
+        <div class="d-inline-flex align-items-center gap-2 mb-4 bon-chips-mobile-hide" style="font-size: 12px; color: rgba(255,255,255,0.6);">
           <i class="ri-map-pin-fill" style="color: var(--haiti-gold);"></i>
           <span>Disponib kounye a nan <strong style="color: #fff;">Côtes-de-Fer</strong></span>
         </div>
+
+        <%# ── CTA Buttons ── %>
+        <div class="d-flex flex-wrap gap-3">
+          <button class="bon-cta-btn" id="open-signin-modal" type="button">
+            <i class="ri-login-box-line"></i> KONEKTE
+          </button>
+          <button class="bon-cta-secondary" id="open-register-modal" type="button">
+            <i class="ri-user-add-line"></i> KREYE KONT
+          </button>
+        </div>
       </div>
 
-      <%# ── RIGHT: SIGN IN CARD ── %>
+      <%# ── RIGHT: HERO IMAGE ── %>
       <div class="col-lg-6">
-        <div class="bon-signin-card p-4 p-md-5" style="max-width: 480px; margin-left: auto;">
-          <div class="text-center mb-4">
-            <h2 class="h5 fw-black mb-1 text-uppercase" style="color: var(--haiti-charcoal); letter-spacing: 0.5px;">Konekte Kont Ou</h2>
-            <p class="small mb-0" style="color: var(--haiti-olive);">Antre nan kont Zèllus ou</p>
-          </div>
-
-          <%= form_for(resource, as: resource_name, url: session_path(resource_name)) do |f| %>
-            <div class="mb-3">
-              <label class="small fw-bold text-uppercase mb-1" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">IMÈL</label>
-              <div class="input-group">
-                <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);">
-                  <i class="ri-mail-fill"></i>
-                </span>
-                <%= f.email_field :email, autofocus: true, placeholder: "non@egzanp.com",
-                    class: "form-control border-0 fw-bold shadow-none p-3 bb-dark-field",
-                    style: "background-color: var(--haiti-charcoal); color: white;" %>
-              </div>
-            </div>
-
-            <div class="mb-4">
-              <label class="small fw-bold text-uppercase mb-1" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">MODPAS</label>
-              <div class="input-group">
-                <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);">
-                  <i class="ri-lock-2-fill"></i>
-                </span>
-                <%= f.password_field :password, placeholder: "••••••••",
-                    class: "form-control border-0 fw-bold shadow-none p-3 bb-dark-field",
-                    style: "background-color: var(--haiti-charcoal); color: white;" %>
-              </div>
-            </div>
-
-            <%= f.submit "KONEKTE", class: "btn w-100 py-3 fw-bold border-0 text-uppercase",
-                style: "background: var(--haiti-charcoal); color: var(--haiti-gold); border-radius: 8px; letter-spacing: 1px; font-size: 14px;" %>
-          <% end %>
-
-          <div class="d-flex align-items-center gap-2 my-3">
-            <div class="flex-fill" style="height: 1px; background: var(--haiti-olive); opacity: 0.15;"></div>
-            <span class="small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px;">Oswa</span>
-            <div class="flex-fill" style="height: 1px; background: var(--haiti-olive); opacity: 0.15;"></div>
-          </div>
-
-          <%# ── BonID Loading Overlay (hidden by default) ── %>
-          <div id="bonid-loading" style="display: none; position: absolute; inset: 0; background: var(--haiti-cream); border-radius: 22px; z-index: 10; flex-direction: column; align-items: center; justify-content: center; gap: 16px;">
-            <div style="width: 48px; height: 48px; border: 3px solid rgba(197,160,89,0.2); border-top-color: var(--haiti-gold); border-radius: 50%; animation: bonidSpin 1s linear infinite;"></div>
-            <p class="fw-bold mb-0 text-center px-3" style="color: var(--haiti-charcoal); font-size: 14px; max-width: 280px; line-height: 1.5;">
-              N'ap konekte ou ak BonID pou verifye identite'w
-            </p>
-            <div style="font-size: 11px; color: var(--haiti-olive); opacity: 0.7;">
-              <i class="ri-shield-check-fill me-1" style="color: var(--haiti-gold);"></i>Koneksyon sekirize
-            </div>
-          </div>
-          <style>@keyframes bonidSpin { to { transform: rotate(360deg); } }</style>
-
-          <%= button_to user_bonid_omniauth_authorize_path, method: :post, id: "bonid-form", class: "btn w-100 border-0 p-3", style: "background: var(--haiti-charcoal); color: var(--haiti-gold); font-weight: 700; font-size: 14px; border-radius: 8px; opacity: 0.6;" do %>
-            <i class="ri-shield-check-fill me-2"></i>Konekte ak BonID
-          <% end %>
-
-          <script>
-            (function() {
-              var form = document.getElementById('bonid-form');
-              if (!form) return;
-              var parentForm = form.closest('form');
-              if (!parentForm) return;
-
-              parentForm.addEventListener('submit', function(e) {
-                e.preventDefault();
-                var card = document.querySelector('.bon-signin-card');
-                if (card) card.style.position = 'relative';
-                var overlay = document.getElementById('bonid-loading');
-                if (overlay) overlay.style.display = 'flex';
-                setTimeout(function() { parentForm.submit(); }, 600);
-              });
-            })();
-          </script>
-
-          <div class="text-center mt-3">
-            <span class="small" style="color: var(--haiti-olive);">Pa gen kont?</span>
-            <%= link_to "Kreye yonn la", new_user_registration_path, class: "small fw-bold text-decoration-none", style: "color: var(--haiti-charcoal);" %>
-          </div>
+        <div class="bon-hero-img-wrapper" style="margin-left: auto; max-width: 480px;">
+          <%= image_tag "hero-image.png", alt: "Zèllus sou telefòn ou" %>
         </div>
       </div>
 
     </div>
   </div>
 </section>
+
+<%# ══════════════════════════════════════ %>
+<%# ── SIGN-IN MODAL                   ── %>
+<%# ══════════════════════════════════════ %>
+<div class="bon-modal-backdrop" id="signin-modal">
+  <div class="bon-modal-card">
+    <div class="bon-signin-card p-4 p-md-5">
+      <button class="bon-modal-close" id="close-signin-modal" type="button" aria-label="Fèmen">
+        <i class="ri-close-line"></i>
+      </button>
+
+      <div class="text-center mb-4">
+        <%= image_tag "zellus_square.png", size: "40x40", alt: "Zèllus", style: "border-radius: 10px; margin-bottom: 12px;" %>
+        <h2 class="h5 fw-black mb-1 text-uppercase" style="color: var(--haiti-charcoal); letter-spacing: 0.5px;">Konekte Kont Ou</h2>
+        <p class="small mb-0" style="color: var(--haiti-olive);">Antre nan kont Zèllus ou</p>
+      </div>
+
+      <%= form_for(resource, as: resource_name, url: session_path(resource_name)) do |f| %>
+        <div class="mb-3">
+          <label class="small fw-bold text-uppercase mb-1" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">IMÈL</label>
+          <div class="input-group">
+            <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);">
+              <i class="ri-mail-fill"></i>
+            </span>
+            <%= f.email_field :email, autofocus: false, placeholder: "non@egzanp.com",
+                class: "form-control border-0 fw-bold shadow-none p-3 bb-dark-field",
+                style: "background-color: var(--haiti-charcoal); color: white;" %>
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <label class="small fw-bold text-uppercase mb-1" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">MODPAS</label>
+          <div class="input-group">
+            <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);">
+              <i class="ri-lock-2-fill"></i>
+            </span>
+            <%= f.password_field :password, placeholder: "••••••••",
+                class: "form-control border-0 fw-bold shadow-none p-3 bb-dark-field",
+                style: "background-color: var(--haiti-charcoal); color: white;" %>
+          </div>
+        </div>
+
+        <%= f.submit "KONEKTE", class: "btn w-100 py-3 fw-bold border-0 text-uppercase",
+            style: "background: var(--haiti-charcoal); color: var(--haiti-gold); border-radius: 8px; letter-spacing: 1px; font-size: 14px;" %>
+      <% end %>
+
+      <% if ENV["BONID_OAUTH_CLIENT_ID"].present? %>
+        <div class="d-flex align-items-center gap-2 my-3">
+          <div class="flex-fill" style="height: 1px; background: var(--haiti-olive); opacity: 0.15;"></div>
+          <span class="small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px;">Oswa</span>
+          <div class="flex-fill" style="height: 1px; background: var(--haiti-olive); opacity: 0.15;"></div>
+        </div>
+
+        <%# ── BonID Loading Overlay (hidden by default) ── %>
+        <div id="bonid-loading" style="display: none; position: absolute; inset: 0; background: var(--haiti-cream); border-radius: 22px; z-index: 10; flex-direction: column; align-items: center; justify-content: center; gap: 16px;">
+          <div style="width: 48px; height: 48px; border: 3px solid rgba(197,160,89,0.2); border-top-color: var(--haiti-gold); border-radius: 50%; animation: bonidSpin 1s linear infinite;"></div>
+          <p class="fw-bold mb-0 text-center px-3" style="color: var(--haiti-charcoal); font-size: 14px; max-width: 280px; line-height: 1.5;">
+            N'ap konekte ou ak BonID pou verifye identite'w
+          </p>
+          <div style="font-size: 11px; color: var(--haiti-olive); opacity: 0.7;">
+            <i class="ri-shield-check-fill me-1" style="color: var(--haiti-gold);"></i>Koneksyon sekirize pa <img src="<%= asset_path('zellus_square.png') %>" style="width: 14px; height: 14px; vertical-align: -2px; border-radius: 3px;" alt="Zèllus"> Zèllus
+          </div>
+        </div>
+        <style>@keyframes bonidSpin { to { transform: rotate(360deg); } }</style>
+
+        <%= button_to user_bonid_omniauth_authorize_path, method: :post, id: "bonid-form", class: "btn w-100 border-0 p-3", style: "background: var(--haiti-charcoal); color: var(--haiti-gold); font-weight: 700; font-size: 14px; border-radius: 8px; opacity: 0.6;" do %>
+          <i class="ri-shield-check-fill me-2"></i>Konekte ak BonID
+        <% end %>
+      <% else %>
+        <div class="text-center mt-3 p-2" style="background: rgba(197,160,89,0.08); border-radius: 8px;">
+          <p class="small mb-0" style="color: var(--haiti-olive); font-size: 11px;">
+            <i class="ri-information-line me-1" style="color: var(--haiti-gold);"></i>BonID pa disponib pou kounye a
+          </p>
+        </div>
+      <% end %>
+
+      <div class="text-center mt-3">
+        <span class="small" style="color: var(--haiti-olive);">Pa gen kont?</span>
+        <a href="#" id="switch-to-register" class="small fw-bold text-decoration-none" style="color: var(--haiti-charcoal);">Kreye yonn la</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%# ══════════════════════════════════════ %>
+<%# ── REGISTER MODAL                  ── %>
+<%# ══════════════════════════════════════ %>
+<div class="bon-modal-backdrop" id="register-modal">
+  <div class="bon-modal-card">
+    <div class="bon-signin-card p-4 p-md-5">
+      <button class="bon-modal-close" id="close-register-modal" type="button" aria-label="Fèmen">
+        <i class="ri-close-line"></i>
+      </button>
+
+      <div class="text-center mb-4">
+        <%= image_tag "zellus_square.png", size: "40x40", alt: "Zèllus", style: "border-radius: 10px; margin-bottom: 12px;" %>
+        <h2 class="h5 fw-black mb-1 text-uppercase" id="reg-modal-title" style="color: var(--haiti-charcoal); letter-spacing: 0.5px;">Kreye Kont</h2>
+        <p class="small mb-0" id="reg-modal-subtitle" style="color: var(--haiti-olive);">Enskri pou kòmanse ak Zèllus</p>
+      </div>
+
+      <%= render "devise/shared/error_messages", resource: resource %>
+
+      <%= form_for(resource, as: resource_name, url: registration_path(resource_name), html: { id: "reg-form" }) do |f| %>
+
+        <%# ── STEP 1: Account Info ── %>
+        <div id="reg-step-1">
+          <div class="mb-3">
+            <label class="small fw-bold text-uppercase mb-1" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">IMÈL</label>
+            <div class="input-group">
+              <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);">
+                <i class="ri-mail-fill"></i>
+              </span>
+              <%= f.email_field :email, autofocus: false, autocomplete: "email", placeholder: "ou@egzanp.com",
+                  class: "form-control border-0 fw-bold shadow-none p-3 bb-dark-field",
+                  style: "background-color: var(--haiti-charcoal); color: white;" %>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="small fw-bold text-uppercase mb-1" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">ZÈLLUSTAG</label>
+            <div class="input-group">
+              <span class="input-group-text border-0 fw-bold" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 16px;">$</span>
+              <%= f.text_field :cashtag, placeholder: "nonpa", maxlength: 20, autocomplete: "off", id: "user_cashtag",
+                  class: "form-control border-0 fw-bold shadow-none p-3 bb-dark-field",
+                  style: "background-color: var(--haiti-charcoal); color: white;" %>
+            </div>
+            <div id="cashtag-availability" class="small mt-1" style="font-size: 11px; min-height: 16px;"></div>
+          </div>
+
+          <div class="mb-4">
+            <label class="small fw-bold text-uppercase mb-1" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">
+              MODPAS
+              <% if @minimum_password_length %>
+                <span class="ms-1" style="font-weight: 400; text-transform: none;">(<%= @minimum_password_length %> karaktè min)</span>
+              <% end %>
+            </label>
+            <div class="input-group">
+              <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);">
+                <i class="ri-lock-2-fill"></i>
+              </span>
+              <%= f.password_field :password, autocomplete: "new-password", placeholder: "••••••••",
+                  class: "form-control border-0 fw-bold shadow-none p-3 bb-dark-field",
+                  style: "background-color: var(--haiti-charcoal); color: white;" %>
+            </div>
+          </div>
+
+          <button type="button" id="reg-next-btn" class="btn w-100 py-3 fw-bold border-0 text-uppercase"
+              style="background: var(--haiti-charcoal); color: var(--haiti-gold); border-radius: 8px; letter-spacing: 1px; font-size: 14px;">
+            KREYE KONT
+          </button>
+        </div>
+
+        <%# ── STEP 2: Invite Code ── %>
+        <div id="reg-step-2" style="display: none;">
+          <div class="text-center mb-3">
+            <button type="button" id="reg-back-btn" class="btn btn-sm border-0 p-0 mb-2" style="color: var(--haiti-olive); font-size: 12px;">
+              <i class="ri-arrow-left-s-line me-1"></i>Retounen
+            </button>
+          </div>
+
+          <div class="text-center mb-3">
+            <div class="d-inline-flex align-items-center justify-content-center mb-2" style="width: 50px; height: 50px; background: rgba(197,160,89,0.12); border-radius: 14px;">
+              <i class="ri-key-2-line" style="color: var(--haiti-gold); font-size: 22px;"></i>
+            </div>
+            <h6 class="fw-black text-uppercase mb-1" style="color: var(--haiti-charcoal); font-size: 13px; letter-spacing: 0.5px;">Dènye Etap</h6>
+            <p class="small mb-0" style="color: var(--haiti-olive); font-size: 12px;">Antre kòd envitasyon ou pou fini enskripsyon an</p>
+          </div>
+
+          <div class="mb-4">
+            <label class="small fw-bold text-uppercase mb-1" style="color: var(--haiti-gold); font-size: 10px; letter-spacing: 1px;">
+              <i class="ri-key-2-line me-1"></i>KÒD ENVITASYON
+            </label>
+            <div class="input-group">
+              <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);">
+                <i class="ri-ticket-line"></i>
+              </span>
+              <%= f.text_field :raw_invite_code, placeholder: "KDF-XXXX", required: true, autocomplete: "off", maxlength: 10, id: "invite_code_field",
+                  class: "form-control border-0 fw-bold shadow-none p-3 bb-dark-field text-uppercase",
+                  style: "background-color: var(--haiti-charcoal); color: white; letter-spacing: 2px;" %>
+            </div>
+            <div class="small mt-1" style="color: var(--haiti-olive); font-size: 10px;">
+              <i class="ri-map-pin-line me-1"></i>Zèllus disponib nan Côtes-de-Fer sèlman pou kounye a
+            </div>
+          </div>
+
+          <%= f.submit "ENSKRI KOUNYE A", class: "btn w-100 py-3 fw-bold border-0 text-uppercase",
+              style: "background: var(--haiti-charcoal); color: var(--haiti-gold); border-radius: 8px; letter-spacing: 1px; font-size: 14px;" %>
+        </div>
+
+      <% end %>
+
+      <% if ENV["BONID_OAUTH_CLIENT_ID"].present? %>
+        <div id="reg-bonid-section">
+          <div class="d-flex align-items-center gap-2 my-3">
+            <div class="flex-fill" style="height: 1px; background: var(--haiti-olive); opacity: 0.15;"></div>
+            <span class="small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px;">Oswa</span>
+            <div class="flex-fill" style="height: 1px; background: var(--haiti-olive); opacity: 0.15;"></div>
+          </div>
+
+          <%# ── BonID Loading Overlay ── %>
+          <div id="bonid-loading-reg" style="display: none; position: absolute; inset: 0; background: var(--haiti-cream); border-radius: 22px; z-index: 10; flex-direction: column; align-items: center; justify-content: center; gap: 16px;">
+            <div style="width: 48px; height: 48px; border: 3px solid rgba(197,160,89,0.2); border-top-color: var(--haiti-gold); border-radius: 50%; animation: bonidSpin 1s linear infinite;"></div>
+            <p class="fw-bold mb-0 text-center px-3" style="color: var(--haiti-charcoal); font-size: 14px; max-width: 280px; line-height: 1.5;">
+              N'ap konekte ou ak BonID pou verifye identite'w
+            </p>
+            <div style="font-size: 11px; color: var(--haiti-olive); opacity: 0.7;">
+              <i class="ri-shield-check-fill me-1" style="color: var(--haiti-gold);"></i>Koneksyon sekirize pa <img src="<%= asset_path('zellus_square.png') %>" style="width: 14px; height: 14px; vertical-align: -2px; border-radius: 3px;" alt="Zèllus"> Zèllus
+            </div>
+          </div>
+
+          <%= button_to user_bonid_omniauth_authorize_path, method: :post, id: "bonid-form-reg", class: "btn w-100 border-0 p-3", style: "background: var(--haiti-charcoal); color: var(--haiti-gold); font-weight: 700; font-size: 14px; border-radius: 8px; opacity: 0.6;" do %>
+            <i class="ri-shield-check-fill me-2"></i>Enskri ak BonID
+          <% end %>
+        </div>
+      <% else %>
+        <div id="reg-bonid-section" style="display: none;"></div>
+        <div class="text-center mt-3 p-2" style="background: rgba(197,160,89,0.08); border-radius: 8px;">
+          <p class="small mb-0" style="color: var(--haiti-olive); font-size: 11px;">
+            <i class="ri-information-line me-1" style="color: var(--haiti-gold);"></i>BonID pa disponib pou kounye a
+          </p>
+        </div>
+      <% end %>
+
+      <div class="text-center mt-3">
+        <span class="small" style="color: var(--haiti-olive);">Deja gen kont?</span>
+        <a href="#" id="switch-to-signin" class="small fw-bold text-decoration-none" style="color: var(--haiti-charcoal);">Konekte</a>
+      </div>
+    </div>
+  </div>
+</div>
 
 <%# ══════════════════════════════════════ %>
 <%# ── FOOTER                          ── %>
@@ -259,9 +545,8 @@
 
       <%# ── Col 1: Zèllus ── %>
       <div class="col-lg-3 col-md-6">
-        <div class="d-flex align-items-center gap-2 mb-3">
-          <%= image_tag "Zellus_logo.svg", size: "28x28", alt: "Zèllus" %>
-          <span class="fw-black" style="color: #fff; font-size: 17px; letter-spacing: 1px;">Zèllus</span>
+        <div class="mb-3">
+          <%= image_tag "zellus_square.png", size: "32x32", alt: "Zèllus", style: "border-radius: 8px;" %>
         </div>
         <p style="color: rgba(255,255,255,0.6); font-size: 13px; line-height: 1.6;">
           Libète finansyè ou kòmanse isit la.
@@ -301,30 +586,38 @@
         <h6 class="fw-black text-uppercase mb-3" style="color: var(--haiti-gold); font-size: 11px; letter-spacing: 1.5px;">Pwodui</h6>
         <ul class="list-unstyled" style="font-size: 13px;">
           <li class="mb-2">
+            <%= link_to zellus_info_path, class: "text-decoration-none", style: "color: rgba(255,255,255,0.7);" do %>
+              <i class="ri-send-plane-fill me-1" style="font-size: 12px;"></i>Zèllus Pay
+            <% end %>
+          </li>
+          <li class="mb-2">
+            <%= link_to annye_path, class: "text-decoration-none", style: "color: rgba(255,255,255,0.7);" do %>
+              <i class="ri-store-2-fill me-1" style="font-size: 12px;"></i>Zèllus Biznis
+            <% end %>
+          </li>
+          <li class="mb-2">
+            <%= link_to ajan_info_path, class: "text-decoration-none", style: "color: rgba(255,255,255,0.7);" do %>
+              <i class="ri-user-location-fill me-1" style="font-size: 12px;"></i>Zèllus Ajan
+            <% end %>
+          </li>
+          <%# ── Zèllus Sòl / Bousad / Onèt Byento — re-enable when ready to deploy ── %>
+          <% if false %>
+          <li class="mb-2">
             <%= link_to priosol_info_path, class: "text-decoration-none", style: "color: rgba(255,255,255,0.7);" do %>
-              <i class="ri-group-fill me-1" style="font-size: 12px;"></i>Sòl
+              <i class="ri-loop-right-fill me-1" style="font-size: 12px;"></i>Zèllus Sòl <span class="badge-soon">Byento</span>
             <% end %>
           </li>
           <li class="mb-2">
             <%= link_to priobousad_info_path, class: "text-decoration-none", style: "color: rgba(255,255,255,0.7);" do %>
-              <i class="ri-hand-coin-fill me-1" style="font-size: 12px;"></i>Bousad
+              <i class="ri-hand-coin-fill me-1" style="font-size: 12px;"></i>Zèllus Bousad <span class="badge-soon">Byento</span>
             <% end %>
           </li>
           <li class="mb-2">
             <%= link_to prionet_info_path, class: "text-decoration-none", style: "color: rgba(255,255,255,0.7);" do %>
-              <i class="ri-line-chart-fill me-1" style="font-size: 12px;"></i>Onèt
+              <i class="ri-medal-fill me-1" style="font-size: 12px;"></i>Zèllus Onèt <span class="badge-soon">Byento</span>
             <% end %>
           </li>
-          <li class="mb-2">
-            <%= link_to zellus_info_path, class: "text-decoration-none", style: "color: rgba(255,255,255,0.7);" do %>
-              <i class="ri-flashlight-fill me-1" style="font-size: 12px;"></i>Voye e Resevwa Lajan
-            <% end %>
-          </li>
-          <li class="mb-2">
-            <%= link_to new_business_path, class: "text-decoration-none", style: "color: rgba(255,255,255,0.7);" do %>
-              <i class="ri-store-2-fill me-1" style="font-size: 12px;"></i>Zèllus pou Biznis
-            <% end %>
-          </li>
+          <% end %>
         </ul>
       </div>
 
@@ -343,6 +636,189 @@
   </div>
 </footer>
 
+<%# ══════════════════════════════════════ %>
+<%# ── SCRIPTS                         ── %>
+<%# ══════════════════════════════════════ %>
+
+<%# ── Modal open/close (sign-in + register) ── %>
+<script>
+  (function() {
+    var signinModal   = document.getElementById('signin-modal');
+    var registerModal = document.getElementById('register-modal');
+    var openSignin    = document.getElementById('open-signin-modal');
+    var openRegister  = document.getElementById('open-register-modal');
+    var closeSignin   = document.getElementById('close-signin-modal');
+    var closeRegister = document.getElementById('close-register-modal');
+    var switchToReg   = document.getElementById('switch-to-register');
+    var switchToSign  = document.getElementById('switch-to-signin');
+
+    function showModal(modal) {
+      modal.classList.add('active');
+      document.body.style.overflow = 'hidden';
+      setTimeout(function() {
+        var field = modal.querySelector('input[type="email"]');
+        if (field) field.focus();
+      }, 300);
+    }
+
+    function hideModal(modal) {
+      modal.classList.remove('active');
+      document.body.style.overflow = '';
+    }
+
+    function hideAll() {
+      hideModal(signinModal);
+      hideModal(registerModal);
+    }
+
+    // Open buttons
+    openSignin.addEventListener('click', function() { showModal(signinModal); });
+    openRegister.addEventListener('click', function() { showModal(registerModal); });
+
+    // Close buttons
+    closeSignin.addEventListener('click', function() { hideModal(signinModal); });
+    closeRegister.addEventListener('click', function() { hideModal(registerModal); });
+
+    // Switch between modals
+    switchToReg.addEventListener('click', function(e) {
+      e.preventDefault();
+      hideModal(signinModal);
+      setTimeout(function() { showModal(registerModal); }, 150);
+    });
+    switchToSign.addEventListener('click', function(e) {
+      e.preventDefault();
+      hideModal(registerModal);
+      setTimeout(function() { showModal(signinModal); }, 150);
+    });
+
+    // Close on backdrop click
+    [signinModal, registerModal].forEach(function(m) {
+      m.addEventListener('click', function(e) {
+        if (e.target === m) hideModal(m);
+      });
+    });
+
+    // Close on ESC
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') hideAll();
+    });
+
+    // Auto-open modal if there are Devise error messages
+    <% if resource.errors.any? %>
+      showModal(signinModal);
+    <% end %>
+  })();
+</script>
+
+<%# ── BonID loading overlays ── %>
+<script>
+  (function() {
+    // Sign-in BonID
+    var form = document.getElementById('bonid-form');
+    if (form) {
+      var parentForm = form.closest('form');
+      if (parentForm) {
+        parentForm.addEventListener('submit', function(e) {
+          e.preventDefault();
+          var card = form.closest('.bon-signin-card');
+          if (card) card.style.position = 'relative';
+          var overlay = document.getElementById('bonid-loading');
+          if (overlay) overlay.style.display = 'flex';
+          setTimeout(function() { parentForm.submit(); }, 600);
+        });
+      }
+    }
+    // Register BonID
+    var formReg = document.getElementById('bonid-form-reg');
+    if (formReg) {
+      var parentFormReg = formReg.closest('form');
+      if (parentFormReg) {
+        parentFormReg.addEventListener('submit', function(e) {
+          e.preventDefault();
+          var card = formReg.closest('.bon-signin-card');
+          if (card) card.style.position = 'relative';
+          var overlay = document.getElementById('bonid-loading-reg');
+          if (overlay) overlay.style.display = 'flex';
+          setTimeout(function() { parentFormReg.submit(); }, 600);
+        });
+      }
+    }
+  })();
+</script>
+
+<%# ── Registration: step navigation ── %>
+<script>
+  (function() {
+    var nextBtn = document.getElementById('reg-next-btn');
+    var backBtn = document.getElementById('reg-back-btn');
+    var step1 = document.getElementById('reg-step-1');
+    var step2 = document.getElementById('reg-step-2');
+    var bonidSection = document.getElementById('reg-bonid-section');
+    var title = document.getElementById('reg-modal-title');
+    var subtitle = document.getElementById('reg-modal-subtitle');
+
+    if (!nextBtn || !backBtn) return;
+
+    nextBtn.addEventListener('click', function() {
+      var email = document.querySelector('#reg-form input[type="email"]');
+      var cashtag = document.getElementById('user_cashtag');
+      var password = document.querySelector('#reg-form input[type="password"]');
+
+      if (!email.value || !email.validity.valid) { email.focus(); return; }
+      if (!cashtag.value || cashtag.value.length < 5) { cashtag.focus(); return; }
+      if (!password.value || password.value.length < 6) { password.focus(); return; }
+
+      step1.style.display = 'none';
+      bonidSection.style.display = 'none';
+      step2.style.display = 'block';
+      title.textContent = 'Kòd Envitasyon';
+      subtitle.textContent = 'Yon dènye etap pou fini';
+      document.getElementById('invite_code_field').focus();
+    });
+
+    backBtn.addEventListener('click', function() {
+      step2.style.display = 'none';
+      step1.style.display = 'block';
+      bonidSection.style.display = 'block';
+      title.textContent = 'Kreye Kont';
+      subtitle.textContent = 'Enskri pou kòmanse ak Zèllus';
+    });
+  })();
+</script>
+
+<%# ── Cashtag availability check ── %>
+<script>
+  (function() {
+    var cashtagTimer;
+    var cashtagInput = document.getElementById('user_cashtag');
+    var cashtagResult = document.getElementById('cashtag-availability');
+    if (!cashtagInput) return;
+
+    cashtagInput.addEventListener('input', function() {
+      clearTimeout(cashtagTimer);
+      var tag = this.value.replace(/^\$/, '').toLowerCase().replace(/[^a-z0-9]/g, '');
+      this.value = tag;
+      if (tag.length < 5) {
+        cashtagResult.innerHTML = tag.length > 0 ? '<span style="color: var(--haiti-olive);">Minimòm 5 karaktè</span>' : '';
+        return;
+      }
+      cashtagResult.innerHTML = '<span style="color: var(--haiti-olive);"><i class="ri-loader-4-line me-1"></i>Ap verifye...</span>';
+      cashtagTimer = setTimeout(function() {
+        fetch('/users/check_cashtag?cashtag=' + encodeURIComponent(tag))
+          .then(function(r) { return r.json(); })
+          .then(function(d) {
+            if (d.available) {
+              cashtagResult.innerHTML = '<span style="color: #166534;"><i class="ri-check-line me-1"></i>' + d.message + '</span>';
+            } else {
+              cashtagResult.innerHTML = '<span style="color: #991b1b;"><i class="ri-close-line me-1"></i>' + d.message + '</span>';
+            }
+          });
+      }, 300);
+    });
+  })();
+</script>
+
+<%# ── Rotating taglines ── %>
 <script>
   (function() {
     var words = ["Ekonomize", "Bati Kredi", "Bay Biznis Bousad", "Konbat Lavi Chè", "Konbat Ensekirite"];
@@ -365,6 +841,7 @@
   })();
 </script>
 
+<%# ── Live rate sparkline ── %>
 <script>
   (function() {
     var BASE = <%= hero_buy_rate %>;
@@ -372,7 +849,6 @@
     var points = [];
     var prevRate = BASE;
 
-    // Seed with initial data
     for (var s = 0; s < 20; s++) {
       points.push(BASE * (1 + (Math.random() - 0.5) * 0.0006));
     }

@@ -1,4 +1,4 @@
-Zèllus — Demann Peman Peye
+Zèllus — Demann <%= @amount_display %> Peye ✓
 
 Bonjou <%= @creator_name %>,
 
@@ -7,7 +7,7 @@ Demann peman ou resevwa peman avèk siksè!
 Detay:
 - Demann #<%= @payment_request.id %>
 - Montan Resevwa: <%= @amount_display %>
-- Lajan: <%= @payment_request.asset.upcase %>
+- Lajan: <%= @payment_request.asset_label %>
 <% if @payment_request.payer_name.present? %>- Peyè: <%= @payment_request.payer_name %><% end %>
 
 Mèsi pou konfyans ou nan Zèllus!

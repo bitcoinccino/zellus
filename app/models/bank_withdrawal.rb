@@ -13,6 +13,8 @@ class BankWithdrawal < ApplicationRecord
     failed:     "failed"
   }
 
+  before_create :generate_token
+
   validates :amount, presence: true, numericality: { greater_than: 0 }
   validates :bank_account_number, presence: true
   validates :bank_name, presence: true
@@ -34,5 +36,11 @@ class BankWithdrawal < ApplicationRecord
   def masked_account
     return bank_account_number if bank_account_number.blank? || bank_account_number.length < 4
     "••••#{bank_account_number.last(4)}"
+  end
+
+  private
+
+  def generate_token
+    self.token ||= SecureRandom.urlsafe_base64(12)
   end
 end

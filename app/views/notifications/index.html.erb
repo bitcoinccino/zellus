@@ -1,74 +1,666 @@
-<div class="container d-flex justify-content-center align-items-start py-3" style="min-height: 80vh; background: var(--haiti-cream);">
-  <div class="w-100" style="max-width: 600px;">
+<% content_for :full_width, true %>
+<div class="d-flex justify-content-center" style="min-height: 80vh; padding-top: 32px;">
+  <div class="w-100 px-3" style="max-width: 600px;">
 
     <%# ── Back Link ── %>
     <div class="mb-3">
-      <%= link_to wallet_path, class: "small text-decoration-none fw-bold", style: "color: var(--haiti-olive);" do %>
-        <i class="ri-arrow-left-line me-1"></i>Retounen nan Potfey
+      <%= link_to wallet_path, class: "small text-decoration-none fw-bold d-inline-flex align-items-center gap-1", style: "color: var(--haiti-olive);" do %>
+        <i class="ri-arrow-left-s-line" style="font-size: 18px;"></i>Potfey
       <% end %>
     </div>
 
-    <%# ── Header ── %>
+    <%# ── Header + Mark All Read ── %>
     <div class="d-flex align-items-center justify-content-between mb-3">
-      <h5 class="fw-black mb-0" style="color: var(--haiti-charcoal);">
-        <i class="ri-notification-3-line me-1" style="color: var(--haiti-gold);"></i>
-        Notifikasyon
-      </h5>
-      <% if @notifications.any?(&:unread?) %>
-        <%= link_to mark_all_read_notifications_path, class: "btn btn-sm rounded-pill px-3 border-0 fw-bold",
-            style: "background: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 11px;" do %>
-          <i class="ri-check-double-line me-1"></i>Make tout kòm li
-        <% end %>
+      <h1 class="h5 fw-black mb-0" style="color: var(--haiti-charcoal);">Aktivite</h1>
+      <% if unread_notification_count > 0 %>
+        <button id="mark-all-read-btn" type="button" class="btn btn-sm rounded-pill px-3 fw-bold"
+            style="background: transparent; color: var(--haiti-olive); border: 1.5px solid rgba(93,99,69,0.2); font-size: 11px;"
+            onclick="markAllRead(this)">
+          <i class="ri-check-double-line me-1"></i>MWen Li Tout Deja
+        </button>
       <% end %>
     </div>
 
-    <%# ── Notification List ── %>
-    <div class="rounded-4 overflow-hidden" style="background: white; border: 1px solid rgba(93,99,69,0.1);">
-      <% if @notifications.any? %>
+    <%# ══════════════════════════════════ %>
+    <%# ── SOURCE TABS (Tier 1)        ── %>
+    <%# ══════════════════════════════════ %>
+    <div class="notif-source-tabs mb-3">
+      <button class="notif-source-tab active" data-source="all" onclick="switchSource('all')">
+        <i class="ri-apps-line me-1"></i>Tout
+      </button>
+      <button class="notif-source-tab" data-source="pesonel" onclick="switchSource('pesonel')">
+        <i class="ri-user-line me-1"></i>Pesonèl
+      </button>
+      <button class="notif-source-tab" data-source="biznis" onclick="switchSource('biznis')">
+        <i class="ri-store-2-line me-1"></i>Biznis
+      </button>
+      <button class="notif-source-tab" data-source="ajans" onclick="switchSource('ajans')">
+        <i class="ri-bank-line me-1"></i>Ajan
+      </button>
+    </div>
+
+    <%# ══════════════════════════════════ %>
+    <%# ── CATEGORY PILLS (Tier 2)     ── %>
+    <%# ══════════════════════════════════ %>
+    <div id="notif-pills-wrap" class="d-flex gap-2 mb-4 notif-filter-pills" style="overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 2px;">
+      <%# Pills rendered dynamically by JS based on active source %>
+    </div>
+
+    <% if @notifications.any? %>
+
+      <%# ══════════════════════════════════ %>
+      <%# ── ACTIVITY FEED (flat list)   ── %>
+      <%# ══════════════════════════════════ %>
+      <div id="notif-feed" class="d-flex flex-column gap-2 mb-4">
         <% @notifications.each do |notif| %>
-          <%= link_to mark_read_notification_path(notif),
-              class: "d-flex align-items-center gap-3 px-3 py-3 text-decoration-none notif-row",
-              style: "border-bottom: 1px solid rgba(93,99,69,0.08); #{'background: rgba(197,160,89,0.04);' if notif.unread?} transition: background 0.15s ease;" do %>
-
-            <%# ── Icon ── %>
-            <div style="width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; <%= notif.icon_color_style %>">
-              <i class="<%= notif.icon_class %>" style="font-size: 16px;"></i>
-            </div>
-
-            <%# ── Text ── %>
-            <div class="flex-grow-1" style="min-width: 0;">
-              <div class="<%= notif.unread? ? 'fw-bold' : '' %>" style="color: var(--haiti-charcoal); font-size: 13px; line-height: 1.3;">
-                <%= notif.title %>
-              </div>
-              <% if notif.body.present? %>
-                <div class="text-truncate" style="color: var(--haiti-olive); font-size: 11px; max-width: 400px;">
-                  <%= notif.body %>
-                </div>
-              <% end %>
-              <div style="color: var(--haiti-olive); font-size: 10px; margin-top: 2px;">
-                <%= time_ago_in_words(notif.created_at) %> de sa
-              </div>
-            </div>
-
-            <%# ── Unread Dot ── %>
-            <% if notif.unread? %>
-              <div style="width: 8px; height: 8px; border-radius: 50%; background: var(--haiti-gold); flex-shrink: 0;"></div>
-            <% end %>
-          <% end %>
+          <%= render partial: "notifications/activity_card", locals: { notif: notif } %>
         <% end %>
-      <% else %>
-        <div class="px-3 py-5 text-center">
-          <i class="ri-notification-off-line" style="font-size: 32px; color: var(--haiti-olive); opacity: 0.3;"></i>
-          <div class="mt-2" style="color: var(--haiti-olive); font-size: 13px;">Pa gen notifikasyon anko</div>
+      </div>
+
+      <%# ── Empty state when filter has no matching cards ── %>
+      <div id="notif-filter-empty" class="text-center py-5" style="display: none;">
+        <div style="font-size: 36px; opacity: 0.15; margin-bottom: 8px;">
+          <i id="notif-filter-empty-icon" class="ri-filter-off-line" style="color: var(--haiti-olive);"></i>
+        </div>
+        <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 14px;">
+          Pa gen <span id="notif-filter-empty-label">aktivite</span> anko
+        </div>
+        <div style="color: var(--haiti-olive); font-size: 12px; margin-top: 4px;">
+          Lè ou gen aktivite nan kategori sa a, l ap parèt isit la.
+        </div>
+      </div>
+
+      <%# ── Load More / Infinite Scroll sentinel ── %>
+      <% if @has_more %>
+        <div id="notif-load-more-wrap" class="text-center mb-4" data-cursor="<%= @next_cursor %>">
+          <%# Desktop: visible button ── %>
+          <button id="notif-load-more-btn" onclick="loadMoreNotifs()" class="btn w-100 rounded-pill py-2 fw-bold notif-load-btn" style="max-width: 320px;">
+            <i class="ri-arrow-down-s-line me-1"></i>Chaje Plis
+          </button>
+          <%# Mobile: invisible sentinel triggers infinite scroll ── %>
+          <div id="notif-scroll-sentinel" style="height: 1px;"></div>
         </div>
       <% end %>
-    </div>
+
+      <%# ── Loading spinner (hidden by default) ── %>
+      <div id="notif-loading" class="text-center mb-4" style="display: none;">
+        <div class="spinner-border spinner-border-sm" role="status" style="color: var(--haiti-olive); width: 20px; height: 20px;">
+          <span class="visually-hidden">Chajman...</span>
+        </div>
+      </div>
+
+      <%# ── End of feed message ── %>
+      <div id="notif-end" class="text-center mb-4" style="display: none;">
+        <span style="color: var(--haiti-olive); font-size: 12px; opacity: 0.5;">
+          <i class="ri-check-line me-1"></i>Ou wè tout aktivite w
+        </span>
+      </div>
+
+    <% else %>
+      <%# ── Empty State ── %>
+      <div class="card-base p-5 text-center">
+        <div style="font-size: 48px; opacity: 0.2; margin-bottom: 12px;">
+          <i class="ri-inbox-line" style="color: var(--haiti-olive);"></i>
+        </div>
+        <div class="fw-black mb-1" style="color: var(--haiti-charcoal); font-size: 16px;">Pa gen aktivite anko</div>
+        <div style="color: var(--haiti-olive); font-size: 13px; line-height: 1.5;">
+          Lè ou voye oswa resevwa lajan,<br>aktivite w ap parèt isit la.
+        </div>
+        <%= link_to new_transfer_path, class: "btn rounded-pill px-4 py-2 mt-3 fw-black", style: "background: var(--haiti-gold); color: var(--haiti-charcoal); font-family: 'Space Grotesk', sans-serif; font-size: 13px;" do %>
+          <i class="ri-send-plane-fill me-1"></i>Voye Lajan
+        <% end %>
+      </div>
+    <% end %>
 
   </div>
 </div>
 
+<%# ══════════════════════════════════ %>
+<%# ── STYLES                       ── %>
+<%# ══════════════════════════════════ %>
 <style>
-  .notif-row:hover {
-    background: rgba(93,99,69,0.04) !important;
+  /* ── Source Tabs (Tier 1) ── */
+  .notif-source-tabs {
+    display: flex;
+    background: rgba(93,99,69,0.06);
+    border-radius: 12px;
+    padding: 3px;
+    gap: 2px;
+  }
+  .notif-source-tab {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 0;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 700;
+    border: none;
+    background: transparent;
+    color: var(--haiti-olive);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+  }
+  .notif-source-tab:hover {
+    color: var(--haiti-charcoal);
+  }
+  .notif-source-tab.active {
+    background: var(--haiti-gold);
+    color: var(--haiti-charcoal);
+    box-shadow: 0 1px 4px rgba(197,160,89,0.3);
+  }
+
+  /* ── Filter Pills (Tier 2, horizontal scroll) ── */
+  .notif-filter-pills {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .notif-filter-pills::-webkit-scrollbar {
+    display: none;
+  }
+  .notif-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    border: 1.5px solid rgba(93,99,69,0.15);
+    background: transparent;
+    color: var(--haiti-olive);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+  }
+  .notif-pill:hover {
+    border-color: var(--haiti-olive);
+  }
+  .notif-pill.active {
+    background: var(--haiti-gold);
+    color: var(--haiti-charcoal);
+    border-color: var(--haiti-gold);
+  }
+
+  /* ── Activity Card ── */
+  .activity-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    border-radius: 16px;
+    background: var(--haiti-cream);
+    text-decoration: none;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  .activity-card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 12px rgba(46,46,56,0.06);
+  }
+  .activity-card:active {
+    transform: scale(0.985);
+  }
+  .activity-card.unread {
+    background: rgba(197,160,89,0.06);
+    border-left: 3px solid var(--haiti-gold);
+  }
+
+  /* ── Avatar ── */
+  .notif-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    position: relative;
+  }
+  .notif-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+  }
+  .notif-avatar-initials {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--haiti-charcoal);
+    border: 2px solid var(--haiti-gold);
+  }
+  .notif-avatar-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(93,99,69,0.06);
+  }
+
+  /* ── Category badge on avatar ── */
+  .category-badge {
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid var(--haiti-cream);
+    z-index: 1;
+  }
+  .activity-card.unread .category-badge {
+    border-color: rgba(197,160,89,0.06);
+  }
+
+  /* ── Amount on right ── */
+  .notif-amount {
+    text-align: right;
+    flex-shrink: 0;
+    margin-left: auto;
+    padding-left: 8px;
+  }
+  .notif-amount-value {
+    font-size: 14px;
+    font-weight: 900;
+    line-height: 1.2;
+  }
+
+  /* ── Status pills ── */
+  .notif-status-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 1px 7px;
+    border-radius: 8px;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0.3px;
+  }
+  .notif-status-pill.failed {
+    background: rgba(153,27,27,0.08);
+    color: #991b1b;
+  }
+
+  /* ── Action tags ── */
+  .notif-action-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: 700;
+    margin-top: 4px;
+  }
+  .notif-action-tag.retry {
+    background: rgba(153,27,27,0.08);
+    color: #991b1b;
+  }
+  .notif-action-tag.thanks {
+    background: rgba(22,101,52,0.08);
+    color: #166534;
+  }
+  .notif-action-tag.request {
+    background: rgba(197,160,89,0.12);
+    color: #92400e;
+  }
+
+  /* ── Load More button ── */
+  .notif-load-btn {
+    background: transparent;
+    border: 1.5px solid rgba(93,99,69,0.12);
+    color: var(--haiti-olive);
+    font-size: 12px;
+    transition: all 0.2s ease;
+  }
+  .notif-load-btn:hover {
+    border-color: var(--haiti-olive);
+    color: var(--haiti-charcoal);
+  }
+
+  /* ── Mobile: hide button, show sentinel for infinite scroll ── */
+  /* ── Desktop: show button, hide sentinel                   ── */
+  @media (max-width: 768px) {
+    #notif-load-more-btn { display: none !important; }
+    #notif-scroll-sentinel { display: block; }
+  }
+  @media (min-width: 769px) {
+    #notif-scroll-sentinel { display: none !important; }
+    #notif-load-more-btn { display: inline-flex; }
   }
 </style>
+
+<%# ══════════════════════════════════ %>
+<%# ── FILTER + LOAD MORE JS        ── %>
+<%# ══════════════════════════════════ %>
+<script>
+  // ══════════════════════════════════
+  // ── MARK ALL READ                ──
+  // ══════════════════════════════════
+  function markAllRead(btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<i class="ri-loader-4-line ri-spin me-1"></i>Ap efase...';
+
+    fetch('<%= mark_all_read_notifications_path %>', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: {
+        'Accept': 'application/json',
+        'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+      }
+    }).then(function(r) { return r.json(); })
+      .then(function() {
+        // Zero the bell badge
+        var badge = document.querySelector('#notif-bell-badge');
+        if (badge) { badge.textContent = '0'; badge.style.display = 'none'; }
+
+        // Zero the dropdown count
+        var dc = document.querySelector('#notif-dropdown-count');
+        if (dc) dc.remove();
+
+        // Remove unread styling from all cards
+        document.querySelectorAll('.activity-card.unread').forEach(function(c) {
+          c.classList.remove('unread');
+          // Remove bold from title
+          var title = c.querySelector('.fw-bold');
+          if (title) title.classList.remove('fw-bold');
+          // Remove gold dot
+          var dot = c.querySelector('[style*="border-radius: 50%; background: var(--haiti-gold)"]');
+          if (dot) dot.remove();
+        });
+
+        // Hide the button
+        btn.remove();
+      })
+      .catch(function() {
+        // Fallback: full page reload
+        window.location.href = '<%= mark_all_read_notifications_path %>';
+      });
+  }
+
+  // ══════════════════════════════════
+  // ── TWO-TIER FILTER CONFIG       ──
+  // ══════════════════════════════════
+
+  // Pills per source tab — each entry: { key, icon, label }
+  var SOURCE_PILLS = {
+    all: [
+      { key: 'all',      icon: 'ri-list-check',           label: 'Tout' },
+      { key: 'incoming', icon: 'ri-arrow-down-line',       label: 'Lajan Antre' },
+      { key: 'outgoing', icon: 'ri-arrow-up-line',         label: 'Lajan Soti' },
+      { key: 'convert',  icon: 'ri-exchange-funds-line',   label: 'Konvèti' },
+      { key: 'request',  icon: 'ri-mail-send-line',        label: 'Demann' }
+    ],
+    pesonel: [
+      { key: 'all',      icon: 'ri-list-check',            label: 'Tout' },
+      { key: 'incoming', icon: 'ri-arrow-down-line',        label: 'Antre' },
+      { key: 'outgoing', icon: 'ri-arrow-up-line',          label: 'Soti' },
+      { key: 'depoze',   icon: 'ri-arrow-down-circle-line', label: 'Depoze' },
+      { key: 'retire',   icon: 'ri-arrow-up-circle-line',   label: 'Retire' },
+      { key: 'achte',    icon: 'ri-shopping-bag-line',       label: 'Achte' },
+      { key: 'convert',  icon: 'ri-exchange-funds-line',     label: 'Konvèti' },
+      { key: 'request',  icon: 'ri-mail-send-line',          label: 'Demann' }
+    ],
+    biznis: [
+      { key: 'all',      icon: 'ri-list-check',       label: 'Tout' },
+      { key: 'incoming', icon: 'ri-arrow-down-line',   label: 'Antre' },
+      { key: 'outgoing', icon: 'ri-arrow-up-line',     label: 'Soti' }
+    ],
+    ajans: [
+      { key: 'all',      icon: 'ri-list-check',       label: 'Tout' },
+      { key: 'incoming', icon: 'ri-arrow-down-line',   label: 'Antre' },
+      { key: 'outgoing', icon: 'ri-arrow-up-line',     label: 'Soti' }
+    ]
+  };
+
+  // Category → matching data-category values
+  var FILTER_CATEGORIES = {
+    all:      null,
+    incoming: ['resevwa', 'depoze', 'vann'],
+    outgoing: ['voye', 'retire', 'achte', 'echwe'],
+    achte:    ['achte'],
+    depoze:   ['depoze'],
+    retire:   ['retire'],
+    convert:  ['konveti'],
+    request:  ['demann']
+  };
+
+  // Creole labels for empty state
+  var FILTER_LABELS = {
+    all: 'aktivite', incoming: 'lajan antre', outgoing: 'lajan soti',
+    achte: 'acha', depoze: 'depo', retire: 'retrè',
+    convert: 'konvèsyon', request: 'demann'
+  };
+
+  var SOURCE_LABELS = {
+    all: 'aktivite', pesonel: 'aktivite pesonèl', biznis: 'aktivite biznis', ajans: 'aktivite ajan'
+  };
+
+  var _activeSource = 'all';
+  var _activeFilter = 'all';
+
+  // ══════════════════════════════════
+  // ── SOURCE TAB SWITCHING         ──
+  // ══════════════════════════════════
+
+  function switchSource(source) {
+    _activeSource = source;
+    _activeFilter = 'all';
+
+    // Update source tab active state
+    document.querySelectorAll('.notif-source-tab').forEach(function(tab) {
+      tab.classList.toggle('active', tab.getAttribute('data-source') === source);
+    });
+
+    // Rebuild category pills for this source
+    renderPills(source);
+
+    // Apply combined filter
+    applyFilter();
+  }
+
+  function renderPills(source) {
+    var wrap = document.getElementById('notif-pills-wrap');
+    if (!wrap) return;
+
+    var pills = SOURCE_PILLS[source] || SOURCE_PILLS.all;
+    var html = '';
+    pills.forEach(function(p) {
+      var active = (p.key === 'all') ? ' active' : '';
+      html += '<button class="notif-pill' + active + '" data-filter="' + p.key + '" onclick="filterNotifs(\'' + p.key + '\')">';
+      html += '<i class="' + p.icon + ' me-1"></i>' + p.label;
+      html += '</button>';
+    });
+    wrap.innerHTML = html;
+  }
+
+  // ══════════════════════════════════
+  // ── CATEGORY PILL FILTERING      ──
+  // ══════════════════════════════════
+
+  function filterNotifs(filter) {
+    _activeFilter = filter;
+
+    // Update pill active state
+    document.querySelectorAll('.notif-pill').forEach(function(pill) {
+      pill.classList.toggle('active', pill.getAttribute('data-filter') === filter);
+    });
+
+    applyFilter();
+  }
+
+  function applyFilter() {
+    var allowedCats = FILTER_CATEGORIES[_activeFilter];
+    var visibleCount = 0;
+
+    document.querySelectorAll('#notif-feed .activity-card').forEach(function(card) {
+      var cat    = card.getAttribute('data-category');
+      var source = card.getAttribute('data-source');
+
+      // Tier 1: source match
+      var sourceMatch = (_activeSource === 'all') || (source === _activeSource);
+
+      // Tier 2: category match
+      var catMatch = !allowedCats || (allowedCats.indexOf(cat) !== -1);
+
+      var show = sourceMatch && catMatch;
+      card.style.display = show ? '' : 'none';
+      if (show) visibleCount++;
+    });
+
+    // Show/hide filtered empty state
+    var emptyEl    = document.getElementById('notif-filter-empty');
+    var feedEl     = document.getElementById('notif-feed');
+    var loadMoreEl = document.getElementById('notif-load-more-wrap');
+    var endEl      = document.getElementById('notif-end');
+
+    if (emptyEl) {
+      var isFiltered = _activeSource !== 'all' || _activeFilter !== 'all';
+      if (visibleCount === 0 && isFiltered) {
+        var labelEl = document.getElementById('notif-filter-empty-label');
+        var iconEl  = document.getElementById('notif-filter-empty-icon');
+
+        // Use source label when filtering by source, pill label when filtering by category
+        var emptyLabel = (_activeFilter !== 'all')
+          ? (FILTER_LABELS[_activeFilter] || 'aktivite')
+          : (SOURCE_LABELS[_activeSource] || 'aktivite');
+        if (labelEl) labelEl.textContent = emptyLabel;
+        if (iconEl)  iconEl.className = 'ri-filter-off-line';
+
+        emptyEl.style.display = '';
+        if (feedEl)     feedEl.style.display = 'none';
+        if (loadMoreEl) loadMoreEl.style.display = 'none';
+        if (endEl)      endEl.style.display = 'none';
+      } else {
+        emptyEl.style.display = 'none';
+        if (feedEl) feedEl.style.display = '';
+        if (loadMoreEl && loadMoreEl.getAttribute('data-cursor')) {
+          loadMoreEl.style.display = '';
+        }
+      }
+    }
+  }
+
+  // ══════════════════════════════════
+  // ── LOAD MORE / INFINITE SCROLL  ──
+  // ══════════════════════════════════
+
+  var _loading = false;
+
+  function loadMoreNotifs() {
+    if (_loading) return;
+
+    var wrap = document.getElementById('notif-load-more-wrap');
+    if (!wrap) return;
+
+    var cursor = wrap.getAttribute('data-cursor');
+    if (!cursor) return;
+
+    _loading = true;
+    var feed    = document.getElementById('notif-feed');
+    var loader  = document.getElementById('notif-loading');
+    var btn     = document.getElementById('notif-load-more-btn');
+
+    if (loader) loader.style.display = '';
+    if (btn)    btn.disabled = true;
+
+    fetch('/notifications.json?cursor=' + encodeURIComponent(cursor), {
+      headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (loader) loader.style.display = 'none';
+
+      if (data.html && feed) {
+        var temp = document.createElement('div');
+        temp.innerHTML = data.html;
+        while (temp.firstChild) {
+          feed.appendChild(temp.firstChild);
+        }
+      }
+
+      applyFilter();
+
+      if (data.has_more && data.next_cursor) {
+        wrap.setAttribute('data-cursor', data.next_cursor);
+        if (btn) btn.disabled = false;
+      } else {
+        wrap.style.display = 'none';
+        var endMsg = document.getElementById('notif-end');
+        if (endMsg) endMsg.style.display = '';
+      }
+
+      _loading = false;
+    })
+    .catch(function() {
+      if (loader) loader.style.display = 'none';
+      if (btn)    btn.disabled = false;
+      _loading = false;
+    });
+  }
+
+  // ── Infinite scroll (mobile): IntersectionObserver on sentinel ──
+  (function() {
+    var sentinel = document.getElementById('notif-scroll-sentinel');
+    if (!sentinel || typeof IntersectionObserver === 'undefined') return;
+
+    var observer = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) {
+          loadMoreNotifs();
+        }
+      });
+    }, { rootMargin: '200px' });
+
+    observer.observe(sentinel);
+  })();
+
+  // ══════════════════════════════════
+  // ── SEND THANKS (capture phase)  ──
+  // ══════════════════════════════════
+  // Uses capture-phase listener so the click is intercepted BEFORE the
+  // parent <a> tag can navigate away.
+  document.addEventListener('click', function(e) {
+    var btn = e.target.closest('.js-send-thanks');
+    if (!btn) return;
+
+    e.preventDefault();
+    e.stopImmediatePropagation();
+
+    if (btn.dataset.sent) return;
+    btn.dataset.sent = '1';
+    btn.innerHTML = '<i class="ri-loader-4-line ri-spin"></i> Ap voye...';
+
+    var csrfTag = document.querySelector('meta[name="csrf-token"]');
+    fetch(btn.dataset.thanksUrl, {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: {
+        'Accept': 'application/json',
+        'X-CSRF-Token': csrfTag ? csrfTag.content : ''
+      }
+    }).then(function(r) {
+      if (!r.ok) throw new Error(r.status);
+      return r.json();
+    }).then(function() {
+      btn.innerHTML = '<i class="ri-heart-fill"></i> Mèsi voye';
+      btn.style.opacity = '0.5';
+      btn.classList.remove('js-send-thanks');
+    }).catch(function() {
+      btn.innerHTML = '<i class="ri-heart-line"></i> Voye di mèsi';
+      delete btn.dataset.sent;
+    });
+  }, true);
+
+  // ── Initialize pills on page load ──
+  renderPills('all');
+</script>

@@ -1,0 +1,188 @@
+<%# ── Back Link ── %>
+<div class="mb-3">
+  <%= link_to admin_agents_applicants_path, class: "small text-decoration-none fw-bold d-inline-flex align-items-center gap-1", style: "color: var(--haiti-olive);" do %>
+    <i class="ri-arrow-left-s-line" style="font-size: 18px;"></i>Aplikan Ajan
+  <% end %>
+</div>
+
+<div class="row g-4">
+  <%# ── Left: Business Info ── %>
+  <div class="col-lg-5">
+    <div class="card-base p-4" style="border: 1px solid rgba(93,99,69,0.12);">
+      <%# Business header %>
+      <div class="d-flex align-items-center gap-3 mb-4">
+        <% if @business.logo.attached? %>
+          <div style="width: 64px; height: 64px; border-radius: 16px; overflow: hidden; border: 2.5px solid var(--haiti-gold);">
+            <%= image_tag @business.logo, style: "width: 100%; height: 100%; object-fit: cover;" %>
+          </div>
+        <% else %>
+          <div class="d-flex align-items-center justify-content-center" style="width: 64px; height: 64px; border-radius: 16px; background: var(--haiti-mint); border: 2.5px solid var(--haiti-gold);">
+            <i class="ri-store-2-line" style="color: var(--haiti-gold); font-size: 28px;"></i>
+          </div>
+        <% end %>
+        <div>
+          <h2 class="h5 fw-black mb-1" style="color: var(--haiti-charcoal);"><%= @business.name %></h2>
+          <div style="color: var(--haiti-gold); font-weight: 700; font-size: 13px;">$<%= @business.user.cashtag %></div>
+        </div>
+      </div>
+
+      <%# Agent Status Badge %>
+      <div class="mb-4">
+        <% case @business.agent_status %>
+        <% when "approved" %>
+          <span class="badge rounded-pill px-3 py-2" style="background: #f0fdf4; color: #166534; font-size: 11px; font-weight: 700;">
+            <i class="ri-checkbox-circle-fill me-1"></i>Apwouve
+          </span>
+        <% when "pending" %>
+          <span class="badge rounded-pill px-3 py-2" style="background: #fef3c7; color: #92400e; font-size: 11px; font-weight: 700;">
+            <i class="ri-time-line me-1"></i>An Atant
+          </span>
+        <% when "rejected" %>
+          <span class="badge rounded-pill px-3 py-2" style="background: #fef2f2; color: #991b1b; font-size: 11px; font-weight: 700;">
+            <i class="ri-close-circle-fill me-1"></i>Rejte
+          </span>
+        <% when "suspended" %>
+          <span class="badge rounded-pill px-3 py-2" style="background: #fef3c7; color: #92400e; font-size: 11px; font-weight: 700;">
+            <i class="ri-forbid-line me-1"></i>Sispann
+          </span>
+        <% else %>
+          <span class="badge rounded-pill px-3 py-2" style="background: var(--haiti-mint); color: var(--haiti-olive); font-size: 11px; font-weight: 700;">
+            Pa Aplike
+          </span>
+        <% end %>
+      </div>
+
+      <%# Details table %>
+      <table class="w-100" style="font-size: 13px;">
+        <tr>
+          <td class="fw-bold py-2" style="color: var(--haiti-olive); width: 40%;">Pwopriyetè</td>
+          <td class="py-2" style="color: var(--haiti-charcoal);"><%= @business.user.bonid_full_name.presence || @business.user.email %></td>
+        </tr>
+        <tr>
+          <td class="fw-bold py-2" style="color: var(--haiti-olive);">Imèl</td>
+          <td class="py-2" style="color: var(--haiti-charcoal);"><%= @business.user.email %></td>
+        </tr>
+        <tr>
+          <td class="fw-bold py-2" style="color: var(--haiti-olive);">Telefòn</td>
+          <td class="py-2" style="color: var(--haiti-charcoal);"><%= @business.user.phone_number.presence || "—" %></td>
+        </tr>
+        <tr>
+          <td class="fw-bold py-2" style="color: var(--haiti-olive);">Depatman</td>
+          <td class="py-2" style="color: var(--haiti-charcoal);"><%= @business.department.presence || "—" %></td>
+        </tr>
+        <tr>
+          <td class="fw-bold py-2" style="color: var(--haiti-olive);">Komin</td>
+          <td class="py-2" style="color: var(--haiti-charcoal);"><%= @business.commune.presence || "—" %></td>
+        </tr>
+        <tr>
+          <td class="fw-bold py-2" style="color: var(--haiti-olive);">BonID</td>
+          <td class="py-2">
+            <% if @business.user.bonid_verified? %>
+              <span style="color: #166534; font-weight: 700;"><i class="ri-checkbox-circle-fill me-1"></i>Verifye</span>
+            <% else %>
+              <span style="color: #991b1b; font-weight: 700;"><i class="ri-close-circle-fill me-1"></i>Pa Verifye</span>
+            <% end %>
+          </td>
+        </tr>
+        <% if @business.tax_id.present? %>
+          <tr>
+            <td class="fw-bold py-2" style="color: var(--haiti-olive);">NIF</td>
+            <td class="py-2 fw-bold" style="color: var(--haiti-charcoal); font-family: 'Space Grotesk', monospace;"><%= @business.tax_id %></td>
+          </tr>
+        <% end %>
+        <tr>
+          <td class="fw-bold py-2" style="color: var(--haiti-olive);">Aplike</td>
+          <td class="py-2" style="color: var(--haiti-charcoal);"><%= @business.agent_applied_at&.strftime("%-d %b %Y, %l:%M %p")&.strip || "—" %></td>
+        </tr>
+        <% if @business.agent_rejected_reason.present? %>
+          <tr>
+            <td class="fw-bold py-2" style="color: #991b1b;">Rezon Rejè</td>
+            <td class="py-2" style="color: #991b1b;"><%= @business.agent_rejected_reason %></td>
+          </tr>
+        <% end %>
+        <% if @business.is_agent? %>
+          <tr>
+            <td class="fw-bold py-2" style="color: var(--haiti-olive);">Flòt HTG</td>
+            <td class="py-2 fw-black" style="color: var(--haiti-charcoal);">G <%= number_with_delimiter(@business.agent_float_htg.to_i) %></td>
+          </tr>
+          <tr>
+            <td class="fw-bold py-2" style="color: var(--haiti-olive);">Komisyon Total</td>
+            <td class="py-2" style="color: var(--haiti-charcoal);">G <%= number_with_delimiter(@business.total_commission_earned.to_i) %></td>
+          </tr>
+        <% end %>
+      </table>
+
+      <%# Action Buttons %>
+      <hr style="border-color: rgba(93,99,69,0.1);">
+      <div class="d-flex flex-wrap gap-2">
+        <% if @business.agent_application_pending? %>
+          <%= button_to admin_approve_agent_path(@business), method: :post, class: "btn btn-sm fw-bold px-3 py-2", style: "background: #166534; color: #fff; border-radius: 10px; font-size: 12px;", data: { turbo_confirm: "Apwouve #{@business.name} kòm ajan?" } do %>
+            <i class="ri-check-line me-1"></i>Apwouve
+          <% end %>
+          <%= button_to admin_reject_agent_path(@business), method: :post, class: "btn btn-sm fw-bold px-3 py-2", style: "background: #991b1b; color: #fff; border-radius: 10px; font-size: 12px;", data: { turbo_confirm: "Rejte #{@business.name}?" } do %>
+            <i class="ri-close-line me-1"></i>Rejte
+          <% end %>
+        <% elsif @business.is_agent? %>
+          <%= button_to admin_suspend_agent_path(@business), method: :post, class: "btn btn-sm fw-bold px-3 py-2", style: "background: #991b1b; color: #fff; border-radius: 10px; font-size: 12px;", data: { turbo_confirm: "Sispann #{@business.name} kòm ajan?" } do %>
+            <i class="ri-forbid-line me-1"></i>Sispann Ajan
+          <% end %>
+        <% elsif @business.agent_status == "suspended" %>
+          <%= button_to admin_reactivate_agent_path(@business), method: :post, class: "btn btn-sm fw-bold px-3 py-2", style: "background: #166534; color: #fff; border-radius: 10px; font-size: 12px;", data: { turbo_confirm: "Reaktive #{@business.name} kòm ajan?" } do %>
+            <i class="ri-refresh-line me-1"></i>Reaktive Ajan
+          <% end %>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <%# ── Right: Transaction History ── %>
+  <div class="col-lg-7">
+    <% if @business.is_agent? && @agent_transactions&.any? %>
+      <div class="card-base p-4" style="border: 1px solid rgba(93,99,69,0.12);">
+        <h3 class="h6 fw-black mb-3" style="color: var(--haiti-charcoal);">
+          <i class="ri-exchange-line me-2" style="color: var(--haiti-gold);"></i>Dènye Tranzaksyon Ajan
+        </h3>
+        <div class="table-responsive">
+          <table class="table table-sm align-middle" style="font-size: 12px;">
+            <thead>
+              <tr style="color: var(--haiti-olive); font-size: 10px; text-transform: uppercase; letter-spacing: 1px;">
+                <th>Tip</th>
+                <th>Kliyan</th>
+                <th>Montan</th>
+                <th>Komisyon</th>
+                <th>Kòd</th>
+                <th>Dat</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @agent_transactions.each do |atx| %>
+                <tr>
+                  <td>
+                    <% type_colors = { "cash_in" => "#166534", "float_top_up" => "#1d4ed8", "float_withdraw" => "#92400e" } %>
+                    <span class="badge rounded-pill" style="background: rgba(0,0,0,0.05); color: <%= type_colors[atx.transaction_type] || 'var(--haiti-olive)' %>; font-size: 9px; font-weight: 700;">
+                      <%= atx.transaction_type.humanize %>
+                    </span>
+                  </td>
+                  <td style="color: var(--haiti-charcoal);">$<%= atx.customer&.cashtag || "—" %></td>
+                  <td class="fw-bold" style="color: var(--haiti-charcoal);">G <%= number_with_delimiter(atx.amount.to_i) %></td>
+                  <td style="color: var(--haiti-olive);">G <%= atx.commission_amount.to_i %></td>
+                  <td style="color: var(--haiti-gold); font-weight: 700; font-family: 'Space Grotesk', monospace; font-size: 11px;"><%= atx.confirmation_code %></td>
+                  <td class="small" style="color: var(--haiti-olive);"><%= atx.created_at.strftime("%-d %b %H:%M") %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    <% else %>
+      <div class="card-base p-4 text-center" style="border: 1px solid rgba(93,99,69,0.12);">
+        <i class="ri-exchange-line d-block mb-2" style="font-size: 36px; color: var(--haiti-olive); opacity: 0.3;"></i>
+        <div class="fw-bold" style="color: var(--haiti-olive);">Pa gen tranzaksyon ajan ankò</div>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<style>
+  .table > :not(caption) > * > * { background-color: transparent !important; }
+</style>

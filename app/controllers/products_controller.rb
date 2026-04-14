@@ -3,6 +3,21 @@ class ProductsController < ApplicationController
   before_action :set_business
   before_action :set_product, only: [:edit, :update, :destroy]
 
+  # ── GET /business/products.json — list products for payment link picker ──
+  def index
+    products = @business.products.active.ordered
+    render json: products.map { |p|
+      {
+        id: p.id,
+        name: p.name,
+        price: p.price.to_f,
+        asset: p.asset,
+        asset_label: p.asset_label,
+        image_url: p.image.attached? ? Rails.application.routes.url_helpers.url_for(p.image) : nil
+      }
+    }
+  end
+
   # ── GET /business/products/new ──
   def new
     @product = @business.products.new
@@ -53,6 +68,6 @@ class ProductsController < ApplicationController
   end
 
   def product_params
-    params.require(:product).permit(:name, :price, :description, :position, :active, :image)
+    params.require(:product).permit(:name, :price, :asset, :description, :position, :active, :image, :product_type, :stock)
   end
 end

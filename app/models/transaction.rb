@@ -1,11 +1,14 @@
 class Transaction < ApplicationRecord
   belongs_to :user
   enum :status,           { pending: 0, paid: 1, crypto_sent: 2, completed: 3, failed: 4, payout_failed: 5 }
-  enum :transaction_type, { buy: "buy", sell: "sell", loan_request: "loan_request"  }
-  enum :crypto_currency,  { usdc: "usdc", eth: "eth", wbtc: "wbtc", tslax: "tslax", nvdax: "nvdax", aaplx: "aaplx", coinx: "coinx", googlx: "googlx" }
+  enum :transaction_type, { buy: "buy", sell: "sell", loan_request: "loan_request", admin_credit_external: "admin_credit_external" }
+  enum :crypto_currency,  { usd: "usd", eth: "eth", wbtc: "wbtc", tslax: "tslax", nvdax: "nvdax", aaplx: "aaplx", coinx: "coinx", googlx: "googlx" }
 
   # ── Token (public-facing ID) ──
   before_validation :ensure_token, on: :create
+
+  # ── Live Dashboard Broadcast ──
+  after_update_commit :broadcast_to_admin_dashboard, if: -> { saved_change_to_status? && completed? }
 
   def to_param
     token
@@ -105,5 +108,18 @@ class Transaction < ApplicationRecord
       candidate = SecureRandom.urlsafe_base64(12)
       break candidate unless self.class.exists?(token: candidate)
     end
+  end
+
+  def broadcast_to_admin_dashboard
+    ActionCable.server.broadcast("admin_dashboard", {
+      type: "transaction_completed",
+      transaction_id: id,
+      fee_amount: fee_amount.to_f,
+      fiat_amount: fiat_amount.to_f,
+      transaction_type: transaction_type,
+      user_cashtag: user&.cashtag
+    })
+  rescue => e
+    Rails.logger.error "AdminDashboard broadcast error: #{e.message}"
   end
 end

@@ -1,12 +1,12 @@
-Zèllus — Demann Peman Resevwa
+Zèllus — <%= @creator_name %> Mande W <%= @amount_display %>
 
 Bonjou <%= @payer.display_name %>,
 
-<%= @creator_name %> mande ou lajan ak Zèllus.
+<%= @creator_name %> mande w <%= @amount_display %> ak Zèllus.
 
 Detay Demann:
 - Montan: <%= @amount_display %>
-- Lajan: <%= @payment_request.asset.upcase %>
+- Lajan: <%= @payment_request.asset_label %>
 <% if @payment_request.note.present? %>- Nòt: <%= @payment_request.note %><% end %>
 <% if @payment_request.expires_at.present? %>- Ekspirasyon: <%= @payment_request.expires_at.strftime("%b %d, %Y %l:%M %p").strip %><% end %>
 

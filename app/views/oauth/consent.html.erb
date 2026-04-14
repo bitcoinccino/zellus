@@ -1,0 +1,318 @@
+<% content_for :title, "Konsantman BonID" %>
+
+<style>
+  .consent-card {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+    max-width: 480px;
+    margin: 2rem auto;
+    overflow: hidden;
+  }
+  .consent-header {
+    background: var(--haiti-charcoal);
+    color: white;
+    padding: 1.5rem 1.5rem 1.25rem;
+    text-align: center;
+  }
+  .consent-header h5 { margin: 0; font-weight: 800; letter-spacing: -0.5px; }
+  .consent-header .partner-name {
+    color: var(--haiti-gold);
+    font-size: 18px;
+    font-weight: 700;
+    margin-top: 6px;
+  }
+  .consent-header .partner-desc {
+    color: rgba(255,255,255,0.5);
+    font-size: 11px;
+    margin-top: 4px;
+  }
+
+  .scope-category {
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+    transition: opacity 0.2s ease;
+  }
+  .scope-category.disabled-scope { opacity: 0.45; }
+  .scope-category.disabled-scope .scope-label { text-decoration: line-through; }
+
+  .scope-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    cursor: pointer;
+  }
+  .scope-header .scope-info { display: flex; align-items: center; gap: 10px; }
+  .scope-icon {
+    width: 36px; height: 36px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; color: white;
+  }
+  .scope-label { font-weight: 700; font-size: 13px; color: var(--haiti-charcoal); }
+  .scope-desc { font-size: 10px; color: var(--haiti-olive); margin-top: 1px; }
+
+  /* Toggle switch */
+  .scope-toggle .form-check-input {
+    width: 42px; height: 22px;
+    cursor: pointer;
+    border: 2px solid #ccc;
+    background-color: #e9ecef;
+  }
+  .scope-toggle .form-check-input:checked {
+    background-color: #1e5a9a;
+    border-color: #1e5a9a;
+  }
+  .scope-toggle .form-check-input:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  /* Sub-scope body */
+  .scope-subs {
+    padding: 0 20px 12px 66px;
+    display: none;
+  }
+  .scope-subs.show { display: block; }
+  .sub-scope {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 6px 0;
+  }
+  .sub-scope-label { font-size: 12px; color: var(--haiti-charcoal); font-weight: 600; }
+
+  .consent-footer {
+    padding: 16px 20px 20px;
+    background: var(--haiti-cream);
+  }
+  .consent-footer .btn-approve {
+    width: 100%; padding: 14px;
+    background: #1e5a9a; color: white;
+    border: none; border-radius: 12px;
+    font-weight: 800; font-size: 14px;
+    letter-spacing: 0.3px;
+  }
+  .consent-footer .btn-approve:disabled {
+    background: #ccc; color: #999;
+  }
+  .consent-footer .btn-deny {
+    width: 100%; padding: 10px;
+    background: none; color: var(--haiti-olive);
+    border: none; font-size: 12px; font-weight: 600;
+    margin-top: 8px;
+  }
+
+  .already-badge {
+    font-size: 9px; font-weight: 700; color: #166534;
+    background: rgba(22,101,52,0.1); padding: 2px 6px;
+    border-radius: 99px; margin-left: 6px;
+  }
+</style>
+
+<div class="consent-card">
+  <%# ── Header ── %>
+  <div class="consent-header">
+    <div style="font-size: 24px; margin-bottom: 4px;"><i class="ri-shield-check-line"></i></div>
+    <h5>Konsantman BonID</h5>
+    <div class="partner-name"><%= @client.name %></div>
+    <div class="partner-desc">ap mande aksè nan done ou</div>
+  </div>
+
+  <%= form_tag oauth_decision_path, method: :post do %>
+    <%= hidden_field_tag :client_id, @client.client_id %>
+    <%= hidden_field_tag :redirect_uri, @redirect_uri %>
+    <%= hidden_field_tag :state, @state %>
+    <%= hidden_field_tag :requested_scopes, @scopes.join(" ") %>
+
+    <%# Always include openid %>
+    <% if @scopes.include?("openid") %>
+      <input type="hidden" name="granted_scopes[]" value="openid">
+    <% end %>
+
+    <div class="px-0 py-2">
+      <%
+        scope_categories = [
+          { key: "profile",         icon: "ri-user-line",          color: "#1e5a9a", label: "Idantite",        desc: "Non, dat nesans, nasyonalite, foto",        scopes: ["profile"] },
+          { key: "contact",         icon: "ri-contacts-line",      color: "#0d9488", label: "Kontak",          desc: "Imèl ak nimewo telefòn",                    scopes: ["email", "phone"] },
+          { key: "address",         icon: "ri-map-pin-line",       color: "#7c3aed", label: "Adrès",           desc: "Ri, komin, depatman, peyi",                 scopes: ["address"] },
+          { key: "physical",        icon: "ri-body-scan-line",     color: "#ea580c", label: "Fizik",           desc: "Wotè, pwa, koulè je",                       scopes: ["physical"] },
+          { key: "health",          icon: "ri-heart-pulse-line",   color: "#dc2626", label: "Sante",           desc: "Gwoup san, donè ògàn",                      scopes: ["health"] },
+          { key: "verification",    icon: "ri-verified-badge-line",color: "#166534", label: "Verifikasyon",    desc: "Estati verifikasyon BonID",                  scopes: ["verification"] },
+          { key: "criminal_record", icon: "ri-file-shield-line",   color: "#991b1b", label: "Dosye Kriminèl",  desc: "Estati dosye kriminèl",                     scopes: ["criminal_record"] }
+        ]
+      %>
+
+      <% scope_categories.each do |cat| %>
+        <% # Only show categories where at least one scope was requested %>
+        <% cat_scopes = cat[:scopes] & @scopes %>
+        <% next if cat_scopes.empty? %>
+
+        <% is_multi = cat[:scopes].length > 1 %>
+        <% all_already = cat_scopes.all? { |s| @already_granted.include?(s) } %>
+        <% any_already = cat_scopes.any? { |s| @already_granted.include?(s) } %>
+
+        <div class="scope-category" id="cat-<%= cat[:key] %>" data-category="<%= cat[:key] %>">
+          <div class="scope-header">
+            <div class="scope-info">
+              <div class="scope-icon" style="background: <%= cat[:color] %>;"><i class="<%= cat[:icon] %>"></i></div>
+              <div>
+                <div class="scope-label">
+                  <%= cat[:label] %>
+                  <% if all_already %>
+                    <span class="already-badge">Deja akòde</span>
+                  <% end %>
+                </div>
+                <div class="scope-desc"><%= cat[:desc] %></div>
+              </div>
+            </div>
+            <div class="scope-toggle form-check form-switch">
+              <% if is_multi %>
+                <%# Master toggle for multi-scope category %>
+                <input class="form-check-input master-toggle"
+                       type="checkbox"
+                       id="toggle-<%= cat[:key] %>"
+                       data-category="<%= cat[:key] %>"
+                       <%= "checked" if !all_already || any_already %>
+                       <%= "disabled" if all_already %>>
+              <% else %>
+                <%# Single scope toggle %>
+                <input class="form-check-input scope-check"
+                       type="checkbox"
+                       id="toggle-<%= cat[:key] %>"
+                       name="granted_scopes[]"
+                       value="<%= cat_scopes.first %>"
+                       data-category="<%= cat[:key] %>"
+                       checked
+                       <%= "disabled" if all_already %>>
+                <% if all_already %>
+                  <input type="hidden" name="granted_scopes[]" value="<%= cat_scopes.first %>">
+                <% end %>
+              <% end %>
+            </div>
+          </div>
+
+          <% if is_multi %>
+            <div class="scope-subs show" id="subs-<%= cat[:key] %>">
+              <% cat_scopes.each do |scope| %>
+                <% already = @already_granted.include?(scope) %>
+                <div class="sub-scope">
+                  <span class="sub-scope-label">
+                    <%= scope == "email" ? "Imèl" : "Telefòn" %>
+                    <% if already %>
+                      <span class="already-badge">Deja akòde</span>
+                    <% end %>
+                  </span>
+                  <div class="form-check form-switch scope-toggle">
+                    <input class="form-check-input sub-toggle scope-check"
+                           type="checkbox"
+                           name="granted_scopes[]"
+                           value="<%= scope %>"
+                           data-category="<%= cat[:key] %>"
+                           checked
+                           <%= "disabled" if already %>>
+                    <% if already %>
+                      <input type="hidden" name="granted_scopes[]" value="<%= scope %>">
+                    <% end %>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+
+    <%# ── Footer ── %>
+    <div class="consent-footer">
+      <button type="submit" class="btn-approve" id="btn-approve">
+        <i class="ri-shield-check-line me-1"></i>
+        Otorize <span id="scope-count">(<%= (@scopes - ["openid"]).length %>)</span>
+      </button>
+      <button type="submit" name="deny" value="1" class="btn-deny">
+        <i class="ri-close-line me-1"></i>Refize aksè
+      </button>
+    </div>
+  <% end %>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  var allChecks = document.querySelectorAll(".scope-check");
+  var masterToggles = document.querySelectorAll(".master-toggle");
+  var btnApprove = document.getElementById("btn-approve");
+  var scopeCount = document.getElementById("scope-count");
+
+  function updateCategory(catKey) {
+    var cat = document.getElementById("cat-" + catKey);
+    var toggle = document.getElementById("toggle-" + catKey);
+    if (!cat || !toggle) return;
+
+    if (toggle.disabled) return; // Already granted — skip
+
+    if (toggle.checked) {
+      cat.classList.remove("disabled-scope");
+    } else {
+      cat.classList.add("disabled-scope");
+    }
+  }
+
+  function updateSubmitButton() {
+    var checked = document.querySelectorAll(".scope-check:checked:not(:disabled)");
+    var alreadyGranted = document.querySelectorAll(".scope-check:disabled:checked");
+    var total = checked.length + alreadyGranted.length;
+
+    if (total > 0) {
+      btnApprove.disabled = false;
+      scopeCount.textContent = "(" + total + ")";
+    } else {
+      btnApprove.disabled = true;
+      scopeCount.textContent = "";
+      btnApprove.innerHTML = '<i class="ri-shield-line me-1"></i>Chwazi omwen yon pèmisyon';
+    }
+  }
+
+  // Master toggle controls sub-toggles
+  masterToggles.forEach(function(master) {
+    master.addEventListener("change", function() {
+      var catKey = this.dataset.category;
+      var subs = document.querySelectorAll('.sub-toggle[data-category="' + catKey + '"]:not(:disabled)');
+      var checked = this.checked;
+
+      subs.forEach(function(sub) {
+        sub.checked = checked;
+      });
+
+      updateCategory(catKey);
+      updateSubmitButton();
+    });
+  });
+
+  // Sub-toggle updates master
+  document.querySelectorAll(".sub-toggle").forEach(function(sub) {
+    sub.addEventListener("change", function() {
+      var catKey = this.dataset.category;
+      var master = document.getElementById("toggle-" + catKey);
+      if (!master || master.disabled) return;
+
+      var subs = document.querySelectorAll('.sub-toggle[data-category="' + catKey + '"]:not(:disabled)');
+      var checkedSubs = document.querySelectorAll('.sub-toggle[data-category="' + catKey + '"]:checked');
+
+      master.checked = checkedSubs.length > 0;
+      updateCategory(catKey);
+      updateSubmitButton();
+    });
+  });
+
+  // Single scope toggles
+  document.querySelectorAll(".scope-check:not(.sub-toggle)").forEach(function(check) {
+    check.addEventListener("change", function() {
+      updateCategory(this.dataset.category);
+      updateSubmitButton();
+    });
+  });
+
+  // Initial state
+  document.querySelectorAll(".scope-category").forEach(function(cat) {
+    updateCategory(cat.dataset.category);
+  });
+  updateSubmitButton();
+});
+</script>

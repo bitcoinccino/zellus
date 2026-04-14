@@ -1,0 +1,138 @@
+<%# ── Header ── %>
+<div class="mb-4">
+  <h1 class="h4 fw-black mb-1" style="color: var(--haiti-charcoal);">
+    <i class="ri-hand-coin-line me-2" style="color: var(--haiti-gold);"></i>Demann Prè an Atant
+  </h1>
+  <p class="small mb-0" style="color: var(--haiti-olive);">Prè Pionye — revize epi apwouve oswa rejte demann prè</p>
+</div>
+
+<%# ── Stats ── %>
+<div class="row g-3 mb-4">
+  <div class="col-md-3">
+    <div class="card-base p-3 text-center">
+      <div class="fw-black h4 mb-0" style="color: var(--haiti-charcoal);"><%= @loan_requests.count %></div>
+      <div class="small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px;">An Atant</div>
+    </div>
+  </div>
+</div>
+
+<%# ── Loan Cards ── %>
+<% if @loan_requests.any? %>
+  <div class="row g-3">
+    <% @loan_requests.each do |loan| %>
+      <% loan_user = loan.user %>
+      <% usd_amount = @usd_htg_rate > 0 ? (loan.fiat_amount.to_f / @usd_htg_rate).round(2) : 0 %>
+      <div class="col-md-6">
+        <div class="card-base p-4" style="border: 1px solid rgba(93,99,69,0.12);">
+          <%# User info + tier badge %>
+          <div class="d-flex align-items-center gap-3 mb-3">
+            <% if loan_user.avatar.attached? %>
+              <%= image_tag loan_user.avatar, style: "width: 48px; height: 48px; border-radius: 50%; object-fit: cover; border: 2px solid rgba(93,99,69,0.12);" %>
+            <% else %>
+              <div style="width: 48px; height: 48px; border-radius: 50%; background: rgba(93,99,69,0.08); display: flex; align-items: center; justify-content: center;">
+                <i class="ri-user-line" style="color: var(--haiti-olive); font-size: 20px;"></i>
+              </div>
+            <% end %>
+            <div class="flex-fill">
+              <div class="fw-black" style="color: var(--haiti-charcoal); font-size: 14px;">
+                $<%= loan_user.cashtag %>
+              </div>
+              <div class="d-flex align-items-center gap-2 mt-1">
+                <%# Credit Tier Badge %>
+                <% tier = loan_user.credit_tier %>
+                <% tier_icon = loan_user.tier_icon %>
+                <% tier_colors = case tier
+                    when "Nouvo"   then { bg: "rgba(93,99,69,0.08)", color: "var(--haiti-olive)" }
+                    when "Pijon"   then { bg: "#dbeafe", color: "#1d4ed8" }
+                    when "Toutrèl" then { bg: "#dcfce7", color: "#166534" }
+                    when "Malfini" then { bg: "#fef3c7", color: "#92400e" }
+                    when "Folkon"  then { bg: "#f3e8ff", color: "#7c3aed" }
+                    else { bg: "rgba(93,99,69,0.08)", color: "var(--haiti-olive)" }
+                    end %>
+                <span class="badge rounded-pill fw-bold" style="background: <%= tier_colors[:bg] %>; color: <%= tier_colors[:color] %>; font-size: 10px; padding: 3px 8px;">
+                  <%= tier_icon %> <%= tier %>
+                </span>
+                <span style="color: var(--haiti-olive); font-size: 10px;">
+                  Skò: <%= loan_user.credit_score %>/800
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <%# Loan details %>
+          <div class="rounded-3 p-3 mb-3" style="background: rgba(93,99,69,0.04); border: 1px solid rgba(93,99,69,0.1);">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+              <span class="fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Montan</span>
+              <div class="d-flex align-items-center gap-2">
+                <span class="fw-black" style="color: var(--haiti-charcoal); font-family: 'Space Grotesk', sans-serif; font-size: 18px;">
+                  <%= number_to_currency(loan.fiat_amount, unit: "", precision: 0) %> HTG
+                </span>
+                <span style="color: var(--haiti-olive); font-size: 11px;">≈ $<%= number_to_currency(usd_amount, unit: "", precision: 2) %></span>
+              </div>
+            </div>
+
+            <% if loan.loan_purpose.present? %>
+              <div class="d-flex align-items-center justify-content-between mb-1">
+                <span style="color: var(--haiti-olive); font-size: 10px;">Rezon</span>
+                <span class="fw-bold" style="color: var(--haiti-charcoal); font-size: 11px;"><%= loan.loan_purpose_label %></span>
+              </div>
+            <% end %>
+
+            <% if loan.repayment_term_weeks.present? %>
+              <div class="d-flex align-items-center justify-content-between mb-1">
+                <span style="color: var(--haiti-olive); font-size: 10px;">Dire</span>
+                <span class="fw-bold" style="color: var(--haiti-charcoal); font-size: 11px;"><%= loan.repayment_term_label %></span>
+              </div>
+            <% end %>
+
+            <% if loan.loan_total_repayable.present? && loan.loan_total_repayable > 0 %>
+              <div class="d-flex align-items-center justify-content-between mb-1">
+                <span style="color: var(--haiti-olive); font-size: 10px;">Total Ranbousman</span>
+                <span class="fw-bold" style="color: var(--haiti-charcoal); font-size: 11px;"><%= number_to_currency(loan.loan_total_repayable, unit: "", precision: 0) %> HTG</span>
+              </div>
+            <% end %>
+
+            <% if loan.collateral_description.present? %>
+              <div class="d-flex align-items-center justify-content-between">
+                <span style="color: var(--haiti-olive); font-size: 10px;">Garanti</span>
+                <span class="fw-bold" style="color: var(--haiti-charcoal); font-size: 11px;"><%= loan.collateral_description.truncate(40) %></span>
+              </div>
+            <% end %>
+          </div>
+
+          <%# Loan limit context %>
+          <div class="d-flex align-items-center gap-2 mb-3 px-1">
+            <i class="ri-information-line" style="color: var(--haiti-olive); font-size: 12px;"></i>
+            <span style="color: var(--haiti-olive); font-size: 10px;">
+              Limit prè pou nivo <%= tier %>: $<%= loan_user.loan_limit_usd %> USD
+              · Demann: <%= time_ago_in_words(loan.created_at) %> pase
+            </span>
+          </div>
+
+          <%# Actions %>
+          <div class="d-flex gap-2">
+            <%= button_to admin_approve_bousad_path(loan.token), method: :post,
+                class: "btn flex-fill fw-bold py-2",
+                style: "background: #166534; color: #fff; border-radius: 12px; font-size: 12px;",
+                data: { turbo_confirm: "Apwouve prè #{number_to_currency(loan.fiat_amount, unit: '', precision: 0)} HTG pou #{loan_user.display_name}?" } do %>
+              <i class="ri-check-line me-1"></i>Apwouve
+            <% end %>
+
+            <%= button_to admin_reject_bousad_path(loan.token), method: :post,
+                class: "btn flex-fill fw-bold py-2",
+                style: "background: #D21034; color: #fff; border-radius: 12px; font-size: 12px;",
+                data: { turbo_confirm: "Rejte demann prè #{loan_user.display_name}?" } do %>
+              <i class="ri-close-line me-1"></i>Rejte
+            <% end %>
+          </div>
+        </div>
+      </div>
+    <% end %>
+  </div>
+<% else %>
+  <div class="card-base p-5 text-center">
+    <i class="ri-hand-coin-line ri-3x mb-3" style="color: var(--haiti-olive); opacity: 0.3;"></i>
+    <p class="fw-bold mb-1" style="color: var(--haiti-charcoal);">Pa gen demann prè an atant</p>
+    <p class="small" style="color: var(--haiti-olive);">Tout demann prè trete. Retounen pita.</p>
+  </div>
+<% end %>

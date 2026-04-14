@@ -1,0 +1,152 @@
+<div class="container py-4" style="max-width: 1060px;">
+
+  <%# ── Back ── %>
+  <a href="javascript:history.back()" class="d-inline-flex align-items-center gap-1 text-decoration-none mb-3" style="color: var(--haiti-olive); font-size: 13px; font-weight: 600;">
+    <i class="ri-arrow-left-s-line" style="font-size: 18px;"></i>Retounen
+  </a>
+
+  <%# ══════════════════════════════════════════════════════ %>
+  <%# ── HERO: Mission                                    ── %>
+  <%# ══════════════════════════════════════════════════════ %>
+  <div class="rounded-4 p-4 p-md-5 mb-4 text-center position-relative" style="background: var(--haiti-charcoal);">
+    <div class="mb-3">
+      <img src="<%= asset_path('zellus_square.png') %>" style="width: 56px; height: 56px; border-radius: 14px;" alt="Zèllus">
+    </div>
+    <div class="mb-3">
+      <span class="badge rounded-pill px-3 py-2 fw-bold" style="background: var(--haiti-gold); color: var(--haiti-charcoal); font-size: 11px;">
+        <i class="ri-heart-line me-1"></i>Misyon Nou
+      </span>
+    </div>
+    <h1 class="fw-black mb-3" style="font-size: clamp(1.5rem, 4vw, 2.2rem); line-height: 1.2; color: white;">
+      Lajan dijital pou <span style="color: var(--haiti-gold);">tout moun</span> an Ayiti.
+    </h1>
+    <p class="mb-0 mx-auto" style="max-width: 560px; color: rgba(255,255,255,0.65); font-size: 14px; line-height: 1.7;">
+      Zèllus se yon platfòm finansye dijital ki fèt pou Ayisyen. Nou kwè chak moun merite aksè a sèvis finansye ki rapid, transparan, e an sekirite.
+    </p>
+  </div>
+
+  <%# ══════════════════════════════════════════════════════ %>
+  <%# ── TWO-COLUMN LAYOUT                               ── %>
+  <%# ══════════════════════════════════════════════════════ %>
+  <div class="row g-4">
+
+    <%# ── LEFT COLUMN ── %>
+    <div class="col-lg-7">
+
+      <%# ── Who We Are ── %>
+      <div class="card-base p-4 mb-3" style="border: 2px solid rgba(197,160,89,0.2);">
+        <h5 class="fw-black mb-3" style="color: var(--haiti-charcoal); font-size: 16px;">
+          <i class="ri-team-line me-2" style="color: var(--haiti-gold);"></i>Kiyès Nou Ye
+        </h5>
+        <p style="color: var(--haiti-olive); font-size: 13px; line-height: 1.8;">
+          Zèllus se yon konpayi fintech ayisyen ki konekte moun ak lajan yo pi vit, pi fasil, e san frè kache. Nou itilize teknoloji modèn,blockchain, idantite dijital ak BonID, e pòtfèy entèlijan,pou bati yon sistèm finansye ki vrèman sèvi pèp la.
+        </p>
+        <p class="mb-0" style="color: var(--haiti-olive); font-size: 13px; line-height: 1.8;">
+          Ekip nou gen eksperyans nan teknoloji, finans, ak devlopman kominotè an Ayiti. Nou konprann defi yo paske nou viv yo chak jou.
+        </p>
+      </div>
+
+      <%# ── Values ── %>
+      <div class="card-base p-4 mb-3" style="border: 2px solid rgba(197,160,89,0.2);">
+        <h5 class="fw-black mb-3" style="color: var(--haiti-charcoal); font-size: 16px;">
+          <i class="ri-flag-line me-2" style="color: var(--haiti-gold);"></i>Valè Nou
+        </h5>
+        <div class="d-flex flex-column gap-3">
+          <div class="d-flex align-items-start gap-3 p-3 rounded-3" style="background: rgba(93,99,69,0.04); border: 1px solid rgba(93,99,69,0.08);">
+            <div class="d-flex align-items-center justify-content-center rounded-circle flex-shrink-0" style="width: 40px; height: 40px; background: var(--haiti-charcoal);">
+              <i class="ri-eye-line" style="color: var(--haiti-gold); font-size: 18px;"></i>
+            </div>
+            <div>
+              <div class="fw-bold mb-1" style="color: var(--haiti-charcoal); font-size: 14px;">Transparans</div>
+              <div style="color: var(--haiti-olive); font-size: 12px; line-height: 1.6;">Pa gen frè kache. Ou wè egzakteman konbyen ou peye anvan ou konfime.</div>
+            </div>
+          </div>
+          <div class="d-flex align-items-start gap-3 p-3 rounded-3" style="background: rgba(93,99,69,0.04); border: 1px solid rgba(93,99,69,0.08);">
+            <div class="d-flex align-items-center justify-content-center rounded-circle flex-shrink-0" style="width: 40px; height: 40px; background: var(--haiti-charcoal);">
+              <i class="ri-shield-check-line" style="color: var(--haiti-gold); font-size: 18px;"></i>
+            </div>
+            <div>
+              <div class="fw-bold mb-1" style="color: var(--haiti-charcoal); font-size: 14px;">Sekirite</div>
+              <div style="color: var(--haiti-olive); font-size: 12px; line-height: 1.6;">Verifikasyon BonID, PIN transfè, e konsentisyon byometrik pwoteje kòb ou.</div>
+            </div>
+          </div>
+          <div class="d-flex align-items-start gap-3 p-3 rounded-3" style="background: rgba(93,99,69,0.04); border: 1px solid rgba(93,99,69,0.08);">
+            <div class="d-flex align-items-center justify-content-center rounded-circle flex-shrink-0" style="width: 40px; height: 40px; background: var(--haiti-charcoal);">
+              <i class="ri-group-line" style="color: var(--haiti-gold); font-size: 18px;"></i>
+            </div>
+            <div>
+              <div class="fw-bold mb-1" style="color: var(--haiti-charcoal); font-size: 14px;">Enklizyon</div>
+              <div style="color: var(--haiti-olive); font-size: 12px; line-height: 1.6;">Kit ou nan vil, kit ou nan mòn,si ou gen telefòn, ou gen Zèllus.</div>
+            </div>
+          </div>
+          <div class="d-flex align-items-start gap-3 p-3 rounded-3" style="background: rgba(93,99,69,0.04); border: 1px solid rgba(93,99,69,0.08);">
+            <div class="d-flex align-items-center justify-content-center rounded-circle flex-shrink-0" style="width: 40px; height: 40px; background: var(--haiti-charcoal);">
+              <i class="ri-flashlight-line" style="color: var(--haiti-gold); font-size: 18px;"></i>
+            </div>
+            <div>
+              <div class="fw-bold mb-1" style="color: var(--haiti-charcoal); font-size: 14px;">Rapidite</div>
+              <div style="color: var(--haiti-olive); font-size: 12px; line-height: 1.6;">Transfè ant $ZellusTag rive imedyatman,pa gen tann, pa gen papye.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <%# ── RIGHT COLUMN (Sticky) ── %>
+    <div class="col-lg-5">
+      <div style="position: sticky; top: 80px;">
+
+        <%# ── Products ── %>
+        <div class="card-base p-4 mb-3" style="border: 2px solid rgba(197,160,89,0.2);">
+          <h5 class="fw-black mb-3" style="color: var(--haiti-charcoal); font-size: 16px;">
+            <i class="ri-apps-line me-2" style="color: var(--haiti-gold);"></i>Pwodui Nou yo
+          </h5>
+          <div class="d-flex flex-column gap-2">
+            <%= link_to zellus_info_path, class: "d-flex align-items-center gap-3 p-3 rounded-3 text-decoration-none", style: "background: rgba(93,99,69,0.04); border: 1px solid rgba(93,99,69,0.08);" do %>
+              <div class="d-flex align-items-center justify-content-center rounded-circle flex-shrink-0" style="width: 44px; height: 44px; background: var(--haiti-charcoal);">
+                <i class="ri-send-plane-fill" style="color: var(--haiti-gold); font-size: 20px;"></i>
+              </div>
+              <div>
+                <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 14px;">Zèllus Pay</div>
+                <div style="color: var(--haiti-olive); font-size: 11px;">Voye ak resevwa lajan gratis</div>
+              </div>
+              <i class="ri-arrow-right-s-line ms-auto" style="color: var(--haiti-olive); font-size: 18px;"></i>
+            <% end %>
+            <%= link_to ajan_info_path, class: "d-flex align-items-center gap-3 p-3 rounded-3 text-decoration-none", style: "background: rgba(93,99,69,0.04); border: 1px solid rgba(93,99,69,0.08);" do %>
+              <div class="d-flex align-items-center justify-content-center rounded-circle flex-shrink-0" style="width: 44px; height: 44px; background: var(--haiti-charcoal);">
+                <i class="ri-user-location-line" style="color: var(--haiti-gold); font-size: 20px;"></i>
+              </div>
+              <div>
+                <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 14px;">Zèllus Ajan</div>
+                <div style="color: var(--haiti-olive); font-size: 11px;">Touche 2% komisyon</div>
+              </div>
+              <i class="ri-arrow-right-s-line ms-auto" style="color: var(--haiti-olive); font-size: 18px;"></i>
+            <% end %>
+            <%= link_to priosol_info_path, class: "d-flex align-items-center gap-3 p-3 rounded-3 text-decoration-none", style: "background: rgba(93,99,69,0.04); border: 1px solid rgba(93,99,69,0.08);" do %>
+              <div class="d-flex align-items-center justify-content-center rounded-circle flex-shrink-0" style="width: 44px; height: 44px; background: var(--haiti-charcoal);">
+                <i class="ri-loop-right-line" style="color: var(--haiti-gold); font-size: 20px;"></i>
+              </div>
+              <div>
+                <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 14px;">Zèllus Sòl</div>
+                <div style="color: var(--haiti-olive); font-size: 11px;">Ekonomize ansanm</div>
+              </div>
+              <i class="ri-arrow-right-s-line ms-auto" style="color: var(--haiti-olive); font-size: 18px;"></i>
+            <% end %>
+          </div>
+        </div>
+
+        <%# ── CTA ── %>
+        <div class="card-base p-4 text-center" style="background: var(--haiti-charcoal); border: 2px solid rgba(197,160,89,0.2);">
+          <h5 class="fw-black mb-2" style="color: var(--haiti-gold); font-size: 16px;">Kesyon?</h5>
+          <p class="mb-3" style="color: rgba(255,255,255,0.6); font-size: 13px;">Vizite FAQ nou oswa kontakte nou dirèkteman.</p>
+          <%= link_to faq_path, class: "btn fw-bold rounded-3 px-4 py-2", style: "background: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 14px; border: 2px solid var(--haiti-gold);" do %>
+            <i class="ri-question-line me-1"></i>FAQ
+          <% end %>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>

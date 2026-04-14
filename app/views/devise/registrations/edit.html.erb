@@ -1,9 +1,10 @@
-<div class="container d-flex justify-content-center align-items-start py-4" style="min-height: 80vh;">
-  <div class="w-100" style="max-width: 420px;">
+<% content_for :full_width, true %>
+<div class="d-flex justify-content-center align-items-start py-4" style="min-height: 80vh;">
+  <div class="w-100" style="max-width: 560px;">
 
     <%= render "devise/shared/error_messages", resource: resource %>
 
-    <%= form_for(resource, as: resource_name, url: registration_path(resource_name), html: { method: :put, multipart: true }) do |f| %>
+    <%= form_for(resource, as: resource_name, url: registration_path(resource_name), html: { method: :put, multipart: true, data: { turbo: false } }) do |f| %>
 
       <%# ══════════════════════════════════════ %>
       <%# ── AVATAR HERO CARD                ── %>
@@ -26,18 +27,22 @@
               style: "display: none;", onchange: "previewAvatar(this)" %>
         </div>
 
-        <div class="fw-black" style="color: var(--haiti-charcoal); font-size: 18px;"><%= resource.display_name %></div>
+        <div class="fw-black" style="color: var(--haiti-charcoal); font-size: 18px; font-family: 'Space Grotesk', sans-serif;">
+          <% if resource.cashtag.present? %>$<%= resource.cashtag %><% else %><%= resource.display_name %><% end %>
+        </div>
         <div class="d-flex align-items-center justify-content-center gap-2 mt-1">
           <span class="badge rounded-pill" style="background-color: var(--haiti-gold); color: var(--haiti-charcoal); font-size: 10px; font-weight: 800;">
             <%= resource.tier_icon %> <%= resource.credit_tier %>
           </span>
-          <span style="color: var(--haiti-olive); font-size: 11px;"><%= resource.credit_score || 0 %> pwen</span>
+          <span class="badge rounded-pill" style="background-color: var(--haiti-mint); color: var(--haiti-olive); font-size: 10px; font-weight: 700;">
+            <i class="ri-copper-coin-line me-1" style="color: var(--haiti-gold);"></i><%= resource.credit_score || 0 %> pwen
+          </span>
         </div>
 
         <% if resource.avatar.attached? && resource.avatar.blob&.persisted? %>
           <div class="mt-2">
-            <%= button_to remove_avatar_path, method: :delete,
-                data: { turbo_confirm: "Retire foto profil ou?" },
+            <%= link_to remove_avatar_path,
+                data: { turbo_method: :delete, turbo_confirm: "Retire foto profil ou?" },
                 class: "btn btn-link p-0 small fw-bold text-decoration-underline",
                 style: "color: #991b1b; font-size: 11px;" do %>
               <i class="ri-delete-bin-line me-1"></i>Retire Foto
@@ -57,12 +62,12 @@
                   onclick="toggleSettingsSection('profil')"
                   style="background: transparent; cursor: pointer;">
             <div class="d-flex align-items-center justify-content-center rounded-3"
-                 style="width: 36px; height: 36px; background: var(--haiti-charcoal); flex-shrink: 0;">
-              <i class="ri-user-3-line" style="color: var(--haiti-gold); font-size: 16px;"></i>
+                 style="width: 36px; height: 36px; background: var(--haiti-gold); flex-shrink: 0;">
+              <i class="ri-user-3-line" style="color: var(--haiti-charcoal); font-size: 16px;"></i>
             </div>
             <div class="flex-grow-1">
               <div class="fw-black small text-uppercase" style="color: var(--haiti-charcoal); font-size: 12px; letter-spacing: 0.5px;">Pwofil</div>
-              <div style="color: var(--haiti-olive); font-size: 10px;">Zellustag, telefòn, imèl</div>
+              <div style="color: var(--haiti-olive); font-size: 10px;">Zèllustag, telefòn, imèl</div>
             </div>
             <i class="ri-arrow-down-s-line settings-chevron" id="chevron-profil" style="color: var(--haiti-olive); font-size: 18px; transition: transform 0.2s;"></i>
           </button>
@@ -75,7 +80,7 @@
               </label>
               <%= f.email_field :email, autofocus: false, autocomplete: "email",
                   class: "form-control shadow-none rounded-3",
-                  style: "border: 2px solid var(--haiti-olive); background-color: var(--haiti-cream); color: var(--haiti-charcoal); font-size: 13px;" %>
+                  style: "border: 1.5px solid rgba(46,46,56,0.12); background-color: var(--haiti-mint); color: var(--haiti-charcoal); font-size: 13px;" %>
               <% if devise_mapping.confirmable? && resource.pending_reconfirmation? %>
                 <div class="p-2 mt-2 rounded-3" style="background-color: #fef3c7; border: 1px solid #f59e0b;">
                   <div class="small fw-bold" style="color: #92400e; font-size: 10px;">
@@ -85,20 +90,20 @@
               <% end %>
             </div>
 
-            <%# Zellustag %>
+            <%# Zèllustag %>
             <div class="mb-3">
               <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 0.5px;">
-                <i class="ri-at-line me-1"></i>ZELLUSTAG
+                <i class="ri-at-line me-1"></i>ZÈLLUSTAG
               </label>
               <div class="input-group">
-                <span class="input-group-text fw-bold rounded-start-3" style="background-color: var(--haiti-charcoal); border: 2px solid var(--haiti-charcoal); border-right: none; color: var(--haiti-gold); font-size: 15px;">$</span>
+                <span class="input-group-text fw-bold rounded-start-3" style="background-color: var(--haiti-mint); border: 1.5px solid rgba(46,46,56,0.12); border-right: none; color: var(--haiti-gold); font-size: 15px;">$</span>
                 <%= f.text_field :cashtag, placeholder: "nonpa", maxlength: 20, autocomplete: "off", id: "user_cashtag",
                     class: "form-control shadow-none rounded-end-3",
-                    style: "border: 2px solid var(--haiti-olive); border-left: none; background-color: var(--haiti-cream); color: var(--haiti-charcoal); font-size: 13px;" %>
+                    style: "border: 1.5px solid rgba(46,46,56,0.12); border-left: none; background-color: var(--haiti-mint); color: var(--haiti-charcoal); font-size: 13px;" %>
               </div>
               <div id="cashtag-availability" class="small mt-1" style="font-size: 10px; min-height: 14px;"></div>
               <div class="small" style="color: var(--haiti-olive); font-size: 9px;">
-                <i class="ri-information-line me-1"></i>Ou ka chanje Zellustag ou 1 fwa pa mwa.
+                <i class="ri-information-line me-1"></i>Ou ka chanje Zèllustag ou 1 fwa pa mwa.
               </div>
             </div>
 
@@ -109,7 +114,7 @@
               </label>
               <%= f.telephone_field :phone_number, placeholder: "50912345678", maxlength: 11,
                   class: "form-control shadow-none rounded-3",
-                  style: "border: 2px solid var(--haiti-olive); background-color: var(--haiti-cream); color: var(--haiti-charcoal); font-size: 13px;" %>
+                  style: "border: 1.5px solid rgba(46,46,56,0.12); background-color: var(--haiti-mint); color: var(--haiti-charcoal); font-size: 13px;" %>
             </div>
           </div>
         </div>
@@ -120,8 +125,8 @@
                   onclick="toggleSettingsSection('prefs')"
                   style="background: transparent; cursor: pointer;">
             <div class="d-flex align-items-center justify-content-center rounded-3"
-                 style="width: 36px; height: 36px; background: var(--haiti-charcoal); flex-shrink: 0;">
-              <i class="ri-settings-4-line" style="color: var(--haiti-gold); font-size: 16px;"></i>
+                 style="width: 36px; height: 36px; background: var(--haiti-gold); flex-shrink: 0;">
+              <i class="ri-settings-4-line" style="color: var(--haiti-charcoal); font-size: 16px;"></i>
             </div>
             <div class="flex-grow-1">
               <div class="fw-black small text-uppercase" style="color: var(--haiti-charcoal); font-size: 12px; letter-spacing: 0.5px;">Preferans</div>
@@ -144,7 +149,7 @@
                     ], resource.payout_preference),
                     {},
                     { class: "form-select shadow-none rounded-3",
-                      style: "border: 2px solid var(--haiti-olive); background-color: var(--haiti-cream); color: var(--haiti-charcoal); font-size: 13px;" } %>
+                      style: "border: 1.5px solid rgba(46,46,56,0.12); background-color: var(--haiti-mint); color: var(--haiti-charcoal); font-size: 13px;" } %>
               <div class="small mt-1" style="color: var(--haiti-olive); font-size: 9px;">
                 <i class="ri-information-line me-1"></i>Kijan ou vle resevwa peman Sol ou
               </div>
@@ -155,7 +160,7 @@
               <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 0.5px;">
                 <i class="ri-repeat-line me-1"></i>Ranbousman Otomatik
               </label>
-              <div class="form-check form-switch p-3 rounded-3 d-flex align-items-center gap-3" style="background-color: var(--haiti-mint); border: 1.5px solid var(--haiti-olive);">
+              <div class="form-check form-switch p-3 rounded-3 d-flex align-items-center gap-3" style="background-color: var(--haiti-mint); border: 1.5px solid rgba(46,46,56,0.12);">
                 <%= f.check_box :auto_repay_enabled, class: "form-check-input shadow-none ms-0", style: "width: 40px; height: 20px; border-color: var(--haiti-olive); cursor: pointer;", role: "switch" %>
                 <div>
                   <span class="d-block fw-bold" style="color: var(--haiti-charcoal); font-size: 11px;">Debite pòtfèy mwen otomatikman</span>
@@ -172,8 +177,8 @@
                   onclick="toggleSettingsSection('security')"
                   style="background: transparent; cursor: pointer;">
             <div class="d-flex align-items-center justify-content-center rounded-3"
-                 style="width: 36px; height: 36px; background: var(--haiti-charcoal); flex-shrink: 0;">
-              <i class="ri-lock-line" style="color: var(--haiti-gold); font-size: 16px;"></i>
+                 style="width: 36px; height: 36px; background: var(--haiti-gold); flex-shrink: 0;">
+              <i class="ri-lock-line" style="color: var(--haiti-charcoal); font-size: 16px;"></i>
             </div>
             <div class="flex-grow-1">
               <div class="fw-black small text-uppercase" style="color: var(--haiti-charcoal); font-size: 12px; letter-spacing: 0.5px;">Sekirite</div>
@@ -193,7 +198,7 @@
               <% end %>
               <%= f.password_field :password, autocomplete: "new-password",
                   class: "form-control shadow-none rounded-3",
-                  style: "border: 2px solid var(--haiti-olive); background-color: var(--haiti-cream); color: var(--haiti-charcoal); font-size: 13px;" %>
+                  style: "border: 1.5px solid rgba(46,46,56,0.12); background-color: var(--haiti-mint); color: var(--haiti-charcoal); font-size: 13px;" %>
             </div>
 
             <div class="mb-3">
@@ -202,7 +207,7 @@
               </label>
               <%= f.password_field :password_confirmation, autocomplete: "new-password",
                   class: "form-control shadow-none rounded-3",
-                  style: "border: 2px solid var(--haiti-olive); background-color: var(--haiti-cream); color: var(--haiti-charcoal); font-size: 13px;" %>
+                  style: "border: 1.5px solid rgba(46,46,56,0.12); background-color: var(--haiti-mint); color: var(--haiti-charcoal); font-size: 13px;" %>
             </div>
 
             <div class="mb-0">
@@ -212,7 +217,7 @@
               <span class="small" style="color: var(--haiti-olive); font-size: 9px;">(obligatwa pou chanje modpas/imèl)</span>
               <%= f.password_field :current_password, autocomplete: "current-password",
                   class: "form-control shadow-none rounded-3",
-                  style: "border: 2px solid var(--haiti-olive); background-color: var(--haiti-cream); color: var(--haiti-charcoal); font-size: 13px;" %>
+                  style: "border: 1.5px solid rgba(46,46,56,0.12); background-color: var(--haiti-mint); color: var(--haiti-charcoal); font-size: 13px;" %>
             </div>
           </div>
         </div>
@@ -224,25 +229,25 @@
       <%# ══════════════════════════════════════ %>
       <div class="d-grid mt-3">
         <%= f.submit "Sove Chanjman", class: "btn py-3 fw-black text-uppercase rounded-3",
-            style: "background-color: var(--haiti-charcoal); color: var(--haiti-gold); border: none; letter-spacing: 1px; font-size: 13px;" %>
+            style: "background-color: var(--haiti-gold); color: var(--haiti-charcoal); border: none; letter-spacing: 1px; font-size: 13px; font-family: 'Space Grotesk', sans-serif;" %>
       </div>
 
     <% end %>
 
     <%# ── Danger Zone ── %>
-    <div class="mt-3 p-3 rounded-4" style="background-color: #fdf2f2; border: 1.5px solid #fca5a5;">
+    <div class="mt-3 p-3 rounded-4 card-base" style="border: 1px solid #ffcccc;">
       <div class="d-flex align-items-center justify-content-between">
         <div>
           <div class="fw-bold small" style="color: #991b1b; font-size: 11px;">
             <i class="ri-error-warning-line me-1"></i>Anile Kont
           </div>
-          <div style="color: #991b1b; font-size: 9px; opacity: 0.7;">Aksyon sa a pa ka defèt</div>
+          <div style="color: var(--haiti-olive); font-size: 9px;">Aksyon sa a pa ka defèt</div>
         </div>
         <%= button_to registration_path(resource_name),
             data: { confirm: "Èske ou sèten?", turbo_confirm: "Èske ou sèten?" },
             method: :delete,
             class: "btn btn-sm fw-bold rounded-3",
-            style: "background: #991b1b; color: #fff; font-size: 11px;" do %>
+            style: "background: transparent; color: #991b1b; border: 1.5px solid #991b1b; font-size: 11px;" do %>
           <i class="ri-delete-bin-line me-1"></i>Siprime
         <% end %>
       </div>

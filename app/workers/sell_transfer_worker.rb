@@ -17,10 +17,10 @@ class SellTransferWorker
       # 1. Standard Payout for New Loans
       process_moncash_payout(transaction)
     elsif transaction.sell? && transaction.failure_reason&.include?("REPAYMENT_LOAN_")
-      # 2. USDC REPAYMENT: Verify deposit then settle debt (No MonCash Payout)
+      # 2. USD REPAYMENT: Verify deposit then settle debt (No MonCash Payout)
       process_usdc_repayment(transaction, transaction_id, attempt)
     else
-      # 3. Standard Sell: Verify USDC then Payout MonCash
+      # 3. Standard Sell: Verify USD then Payout MonCash
       process_sell_with_blockchain_check(transaction, transaction_id, attempt)
     end
 
@@ -30,7 +30,7 @@ class SellTransferWorker
 
   private
 
-  # NEW: Handles settling debt when USDC is received
+  # NEW: Handles settling debt when USD is received
   def process_usdc_repayment(transaction, transaction_id, attempt)
     return unless transaction.blockchain_tx_hash.present?
 
@@ -38,7 +38,7 @@ class SellTransferWorker
     receipt = fetch_receipt(rpc_url, transaction.blockchain_tx_hash)
 
     if receipt.nil?
-      attempt >= MAX_ATTEMPTS ? fail_tx(transaction, "USDC timeout") : retry_job(transaction_id, attempt)
+      attempt >= MAX_ATTEMPTS ? fail_tx(transaction, "USD timeout") : retry_job(transaction_id, attempt)
     elsif receipt["status"] == "0x1"
       # SETTLE DEBT
       loan_id = transaction.failure_reason.split("_").last
@@ -46,16 +46,16 @@ class SellTransferWorker
 
       if original_loan
         original_loan.update!(status: :completed)
-        transaction.update!(status: :completed, failure_reason: "Debt Settled via USDC")
+        transaction.update!(status: :completed, failure_reason: "Debt Settled via USD")
         
         # FOKON BOOST: Reward for using Sovereign Assets (+60 points)
         transaction.user.increment!(:credit_score, 60)
         notify_transaction_email(:completed, transaction)
         NotificationService.transaction_completed(transaction)
-        Rails.logger.info "Zèllus: Loan ##{loan_id} repaid via USDC. User score boosted."
+        Rails.logger.info "Zèllus: Loan ##{loan_id} repaid via USD. User score boosted."
       end
     else
-      fail_tx(transaction, "USDC transaction reverted.")
+      fail_tx(transaction, "USD transaction reverted.")
     end
   end
 
@@ -66,11 +66,11 @@ class SellTransferWorker
     receipt = fetch_receipt(rpc_url, transaction.blockchain_tx_hash)
 
     if receipt.nil?
-      attempt >= MAX_ATTEMPTS ? fail_tx(transaction, "USDC timeout") : retry_job(transaction_id, attempt)
+      attempt >= MAX_ATTEMPTS ? fail_tx(transaction, "USD timeout") : retry_job(transaction_id, attempt)
     elsif receipt["status"] == "0x1"
       process_moncash_payout(transaction)
     else
-      fail_tx(transaction, "USDC transaction reverted.")
+      fail_tx(transaction, "USD transaction reverted.")
     end
   end
 

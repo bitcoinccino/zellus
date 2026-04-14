@@ -1,6 +1,6 @@
 <div style="margin-bottom:20px;">
-  <div style="font-size:15px; font-weight:800; color:#92400e; margin-bottom:6px;">Transfè Ekspire</div>
-  <div style="font-size:13px; color:#5D6345;">Transfè #<%= @transfer.id %> — <%= @transfer.updated_at.strftime("%b %d, %Y") %></div>
+  <div style="font-size:15px; font-weight:800; color:#92400e; margin-bottom:6px;">Peman Bay <%= @receiver_display %> Ekspire</div>
+  <div style="font-size:13px; color:#5D6345;">Transfè #<%= @transfer.token %> — <%= @transfer.updated_at.strftime("%b %d, %Y") %></div>
 </div>
 
 <div style="background:#fef3c7; border:2px solid #92400e; border-radius:14px; padding:16px; margin-bottom:16px;">
@@ -10,7 +10,7 @@
       <td style="color:#2E2E38; font-weight:800; text-align:right; padding-bottom:8px;">HTG <%= format('%.0f', @transfer.amount.to_f) %></td>
     </tr>
     <tr>
-      <td style="color:#92400e; font-size:12px; font-weight:600;">Resevè</td>
+      <td style="color:#92400e; font-size:12px; font-weight:600;">Moun ou peye ya:<br><span style="font-size:10px; font-weight:400; color:#5D6345;"><%= @receiver_type %></span></td>
       <td style="color:#2E2E38; font-weight:600; text-align:right;">
         <%= @transfer.receiver_name.presence || @transfer.receiver_phone.presence || @transfer.receiver_email.presence || "—" %>
       </td>

@@ -1,78 +1,70 @@
-<div class="container d-flex justify-content-center align-items-center" style="min-height: 85vh;">
-  <div class="card-base p-4 w-100 shadow-lg"
-       style="max-width: <%= @transaction.sell? ? '960px' : '440px' %>;">
+<% content_for :full_width, true %>
+<div class="d-flex justify-content-center" style="min-height: 85vh; padding-top: 32px; padding-bottom: 40px;">
+  <div class="w-100 px-3" style="max-width: 560px;">
+    <div class="card-base p-4">
+      <div class="p-3 rounded-4" style="background: var(--haiti-cream); border: 1.5px solid rgba(93,99,69,0.2);">
 
     <!-- Header -->
-    <div class="text-center mb-4">
-      <% if @transaction.loan_request? %>
-        <%# ── Loan-specific headers ── %>
-        <% if @transaction.completed? %>
-          <div class="d-inline-flex align-items-center justify-content-center mb-3 rounded-3" style="width: 56px; height: 56px; background-color: #166534;">
-            <i class="ri-checkbox-circle-fill ri-xl text-white"></i>
-          </div>
-          <h2 class="h4 fw-black mb-1 text-uppercase" style="color: #2E2E38; letter-spacing: -0.5px;">Prè Ranbouse</h2>
-          <p class="small mb-0" style="color: #166534; font-size: 11px; font-weight: 700;">Ranbousman konplete. Mèsi pou konfyans ou!</p>
-        <% elsif @transaction.failed? %>
-          <div class="d-inline-flex align-items-center justify-content-center mb-3 rounded-3" style="width: 56px; height: 56px; background-color: #991b1b;">
-            <i class="ri-close-circle-fill ri-xl text-white"></i>
-          </div>
-          <h2 class="h4 fw-black mb-1 text-uppercase" style="color: #2E2E38; letter-spacing: -0.5px;">Prè Refize</h2>
-        <% elsif @transaction.paid? %>
-          <div class="d-inline-flex align-items-center justify-content-center mb-3 rounded-3" style="width: 56px; height: 56px; background-color: var(--haiti-gold);">
-            <i class="ri-hand-coin-fill ri-xl" style="color: var(--haiti-charcoal);"></i>
-          </div>
-          <h2 class="h4 fw-black mb-1 text-uppercase" style="color: #2E2E38; letter-spacing: -0.5px;">Prè Apwouve</h2>
-          <p class="small mb-0" style="color: var(--haiti-olive); font-size: 11px; font-weight: 700;">Lajan deboure. Tanpri ranbouse anvan dat limit.</p>
-        <% else %>
-          <div class="d-inline-flex align-items-center justify-content-center mb-3 rounded-3" style="width: 56px; height: 56px; background-color: var(--haiti-olive);">
-            <i class="ri-time-line ri-xl text-white"></i>
-          </div>
-          <h2 class="h4 fw-black mb-1 text-uppercase" style="color: #2E2E38; letter-spacing: -0.5px;">Demann Prè Soumèt</h2>
-          <p class="small mb-0" style="color: var(--haiti-olive); font-size: 11px; font-weight: 700;">Ap tann revizyon admin...</p>
-        <% end %>
-      <% else %>
-        <%# ── Buy/Sell headers ── %>
-        <% if @transaction.completed? %>
-          <div class="d-inline-flex align-items-center justify-content-center mb-3 rounded-3" style="width: 56px; height: 56px; background-color: #166534;">
-            <i class="ri-checkbox-circle-fill ri-xl text-white"></i>
-          </div>
-          <h2 class="h4 fw-black mb-1 text-uppercase" style="color: #2E2E38; letter-spacing: -0.5px;">Transfè Konplè</h2>
-        <% elsif @transaction.payout_failed? %>
-          <div class="d-inline-flex align-items-center justify-content-center mb-3 rounded-3" style="width: 56px; height: 56px; background-color: #c2410c;">
-            <i class="ri-error-warning-fill ri-xl text-white"></i>
-          </div>
-          <h2 class="h4 fw-black mb-1 text-uppercase" style="color: #2E2E38; letter-spacing: -0.5px;">Depo Resevwa</h2>
-          <p class="small mb-0" style="color: #9a3412; font-size: 11px; font-weight: 700;"><%= @transaction.crypto_currency.upcase %> konfime sou Base, men peman MonCash bezwen reesye/revizyon sipò.</p>
-        <% elsif @transaction.failed? %>
-          <div class="d-inline-flex align-items-center justify-content-center mb-3 rounded-3" style="width: 56px; height: 56px; background-color: #991b1b;">
-            <i class="ri-close-circle-fill ri-xl text-white"></i>
-          </div>
-          <h2 class="h4 fw-black mb-1 text-uppercase" style="color: #2E2E38; letter-spacing: -0.5px;">Transfè Echwe</h2>
-        <% elsif @transaction.paid? %>
-          <div class="d-inline-flex align-items-center justify-content-center mb-3 rounded-3" style="width: 56px; height: 56px; background-color: #92400e;">
-            <i class="ri-loader-4-line ri-xl text-white"></i>
-          </div>
-          <h2 class="h4 fw-black mb-1 text-uppercase" style="color: #2E2E38; letter-spacing: -0.5px;">Peman Resevwa</h2>
-          <p class="small mb-0" style="color: #92400e; font-size: 11px; font-weight: 700;">Ap voye <%= @transaction.crypto_currency.upcase %> nan pòtfèy ou...</p>
-        <% elsif @transaction.crypto_sent? %>
-          <div class="d-inline-flex align-items-center justify-content-center mb-3 rounded-3" style="width: 56px; height: 56px; background-color: #92400e;">
-            <i class="ri-send-plane-fill ri-xl text-white"></i>
-          </div>
-          <h2 class="h4 fw-black mb-1 text-uppercase" style="color: #2E2E38; letter-spacing: -0.5px;"><%= @transaction.crypto_currency.upcase %> Voye</h2>
-          <p class="small mb-0" style="color: #92400e; font-size: 11px; font-weight: 700;">Ap tann konfimasyon blockchain...</p>
-        <% else %>
-          <div class="d-inline-flex align-items-center justify-content-center mb-3 rounded-3" style="width: 56px; height: 56px; background-color: #5D6345;">
-            <i class="ri-shield-user-fill ri-xl text-white"></i>
-          </div>
-          <h2 class="h4 fw-black mb-1 text-uppercase" style="color: #2E2E38; letter-spacing: -0.5px;">Verifye Transfè</h2>
-        <% end %>
+    <% if @transaction.loan_request? %>
+      <% header_title = case
+         when @transaction.completed? then "Prè Ranbouse"
+         when @transaction.failed? then "Prè Refize"
+         when @transaction.paid? then "Prè Apwouve"
+         else "Demann Prè Soumèt"
+         end %>
+      <% header_sub = case
+         when @transaction.completed? then "Ranbousman konplete. Mèsi pou konfyans ou!"
+         when @transaction.paid? then "Lajan deboure. Tanpri ranbouse anvan dat limit."
+         when @transaction.pending? then "Ap tann revizyon admin..."
+         else nil
+         end %>
+    <% else %>
+      <% header_title = case
+         when @transaction.completed? then "Transfè Konplè"
+         when @transaction.payout_failed? then "Depo Resevwa"
+         when @transaction.failed? then "Transfè Echwe"
+         when @transaction.paid? then "Peman Resevwa"
+         when @transaction.crypto_sent? then "USD Voye"
+         else "Verifye Transfè"
+         end %>
+      <% header_sub = case
+         when @transaction.payout_failed? then "USD konfime, men peman MonCash bezwen reesye/revizyon sipò."
+         when @transaction.paid? then "Ap voye USD nan pòtfèy ou..."
+         when @transaction.crypto_sent? then "Ap tann konfimasyon..."
+         else nil
+         end %>
+    <% end %>
+
+    <div class="d-flex align-items-center justify-content-between mb-2">
+      <div class="d-flex align-items-center gap-2">
+        <% status_icon = case
+           when @transaction.completed? then "ri-checkbox-circle-fill"
+           when @transaction.payout_failed? then "ri-error-warning-fill"
+           when @transaction.failed? then "ri-close-circle-fill"
+           when @transaction.paid? then "ri-loader-4-line"
+           when @transaction.crypto_sent? then "ri-send-plane-fill"
+           else "ri-file-list-3-line"
+           end %>
+        <% status_color = case
+           when @transaction.completed? then "#166534"
+           when @transaction.payout_failed? then "#c2410c"
+           when @transaction.failed? then "#991b1b"
+           when @transaction.paid?, @transaction.crypto_sent? then "#92400e"
+           else "var(--haiti-olive)"
+           end %>
+        <i class="<%= status_icon %>" style="font-size: 20px; color: <%= status_color %>;"></i>
+        <div class="fw-black" style="color: var(--haiti-charcoal); font-size: 18px;"><%= header_title %></div>
+      </div>
+      <%= link_to (@transaction.loan_request? ? transactions_path : wallet_path), class: "btn btn-sm p-0", style: "color: var(--haiti-olive);" do %>
+        <i class="ri-close-line" style="font-size: 20px;"></i>
       <% end %>
-      <p style="color: #5D6345; font-size: 11px; font-weight: 700; letter-spacing: 1px;" class="text-uppercase">
-        <i class="ri-hashtag me-1"></i> TX #<%= @transaction.id %>
-        &nbsp;&middot;&nbsp;
-        <%= @transaction.created_at.strftime("%b %d, %Y") %>
-      </p>
     </div>
+    <% if header_sub.present? %>
+      <p class="mb-2" style="color: <%= status_color %>; font-size: 12px; font-weight: 700;"><%= header_sub %></p>
+    <% end %>
+    <p class="mb-3" style="color: var(--haiti-olive); font-size: 11px; font-weight: 700; letter-spacing: 0.5px;">
+      TX <%= @transaction.token %> &middot; <%= @transaction.created_at.strftime("%b %d, %Y") %>
+    </p>
 
     <%# ── Loan Details (only for loan_request) ── %>
     <% if @transaction.loan_request? %>
@@ -158,7 +150,7 @@
           <span style="color: #2E2E38; font-size: 12px; font-weight: 600;"><%= @transaction.friendly_failure_reason %></span>
           <% if @transaction.payout_failed? && @transaction.sell? && @transaction.blockchain_tx_hash.present? %>
             <div class="mt-1" style="color: #7c2d12; font-size: 11px; font-weight: 600;">
-              Depo <%= @transaction.crypto_currency.upcase %> ou resevwa sou Base. Peman HTG nan MonCash poko fini.
+              Depo USD ou resevwa. Peman HTG nan MonCash poko fini.
             </div>
           <% end %>
         </div>
@@ -166,144 +158,102 @@
     <% end %>
 
     <% unless @transaction.loan_request? %>
-    <% masked_moncash_phone = @transaction.moncash_phone.to_s.gsub(/\d(?=\d{4})/, "•") %>
+    <% raw_phone = @transaction.moncash_phone.to_s.gsub(/\D/, "")
+   masked_moncash_phone = if raw_phone.length >= 11
+     "(#{raw_phone[0..2]}) ••• #{raw_phone[-4..]}"
+   elsif raw_phone.length >= 4
+     "••• #{raw_phone[-4..]}"
+   else
+     raw_phone
+   end %>
 
     <div class="mb-4">
+      <% display_currency = @transaction.crypto_currency == "usdc" ? "USD" : @transaction.crypto_currency.upcase %>
+
       <% if @transaction.sell? %>
-        <div class="row g-3">
-          <div class="col-lg-5">
-            <!-- Amount Box -->
-            <div class="p-4 h-100" style="background-color: #E8EDE0; border: 2px solid #5D6345; border-radius: 20px; position: relative; overflow: hidden;">
-              <div class="d-flex justify-content-between mb-2">
-                <span style="color: #5D6345; font-size: 12px; font-weight: 600;">Ou Voye</span>
-                <span style="color: #2E2E38; font-weight: 800;"><%= @transaction.crypto_amount %> <%= @transaction.crypto_currency.upcase %></span>
-              </div>
-              <div class="d-flex justify-content-between mb-3">
-                <span style="color: #5D6345; font-size: 12px; font-weight: 600;">Frè Sèvis (2%)</span>
-                <span style="color: #D8000C; font-weight: 700; font-size: 13px;">- <%= number_to_currency(@transaction.fee_amount, unit: "HTG ", precision: 2) %></span>
-              </div>
-
-              <div class="pt-3" style="border-top: 1px dashed #5D6345;">
-                <div class="d-flex justify-content-between align-items-center">
-                  <span style="color: #2E2E38; font-weight: 900; font-size: 14px;" class="text-uppercase">Ou Resevwa</span>
-                  <div class="text-end">
-                    <span class="h2 mb-0 fw-black d-block" style="color: #5D6345; letter-spacing: -1.5px;">
-                      <%= number_with_precision(@transaction.fiat_amount, precision: 2) %> <small style="font-size: 14px; letter-spacing: 0;">HTG</small>
-                    </span>
-                    <span class="badge" style="background-color: #C5A059; color: #2E2E38; font-size: 9px; font-weight: 800; letter-spacing: 0.5px;">
-                      <i class="ri-smartphone-line me-1"></i> PEMAN MONCASH
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
+        <!-- Sell: Amount Box -->
+        <div class="p-3 rounded-4 mb-3" style="background-color: var(--haiti-charcoal);">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span style="color: rgba(255,255,255,0.6); font-size: 11px; font-weight: 600;">Ou Voye</span>
+            <span class="d-flex align-items-center gap-1" style="color: #fff; font-weight: 800;">
+              <%= image_tag "usd.svg", size: "16x16", style: "vertical-align: -2px;" %>
+              <%= @transaction.crypto_amount %> <%= display_currency %>
+            </span>
           </div>
-
-          <div class="col-lg-7">
-            <!-- Destination / Receiving Details -->
-            <div class="p-3 h-100" style="background-color: #fff; border-radius: 18px; border: 1px solid #d9d6c4;">
-              <div class="d-flex align-items-center mb-2">
-                <i class="ri-smartphone-fill me-2" style="color: #C5A059;"></i>
-                <span class="text-uppercase fw-bold" style="color: #5D6345; font-size: 10px; letter-spacing: 0.1em;">Nimewo Peman MonCash</span>
-              </div>
-              <div class="p-2 rounded" style="background-color: #fcfcf9; border-left: 3px solid #ef233c;">
-                <code style="color: #2E2E38; font-size: 11px; word-break: break-all; font-weight: 600;"><%= masked_moncash_phone %></code>
-              </div>
-              <div class="mt-2 d-flex align-items-start" style="color: #5D6345; font-size: 10px;">
-                <i class="ri-information-fill me-1 mt-1"></i>
-                <span>Peman HTG ap voye nan nimewo MonCash sa a apre transfè <%= @transaction.crypto_currency.upcase %> ou konfime.</span>
-              </div>
-
-              <div class="mt-3 p-2 rounded" style="background-color: #fcfcf9; border-left: 3px solid #C5A059;">
-                <div class="d-flex justify-content-between align-items-center gap-2 mb-1">
-                  <div class="small fw-bold text-uppercase" style="color: #5D6345; font-size: 9px; letter-spacing: 0.08em;">Adrès Depo <%= @transaction.crypto_currency.upcase %> (Trezò)</div>
-                  <button type="button"
-                          class="btn btn-sm py-1 px-2 fw-bold rounded-3"
-                          style="background-color: #2E2E38; color: #C5A059; font-size: 10px;"
-                          onclick="copyTreasuryAddress('<%= j @transaction.destination_address.to_s %>', this)">
-                    <i class="ri-file-copy-line me-1"></i>Kopye
-                  </button>
-                </div>
-                <code style="color: #2E2E38; font-size: 10px; word-break: break-all; font-weight: 600;"><%= @transaction.destination_address %></code>
-                <div class="mt-2 d-flex align-items-center gap-3 flex-wrap">
-                  <img
-                    src="https://quickchart.io/qr?size=140&text=<%= ERB::Util.url_encode(@transaction.destination_address.to_s) %>"
-                    alt="QR code for treasury Base address"
-                    width="96"
-                    height="96"
-                    style="border-radius: 10px; border: 1px solid #d9d6c4; background: #fff; padding: 4px;">
-                  <div class="small" style="color: #5D6345; font-size: 10px; line-height: 1.3;">
-                    <div class="fw-bold text-uppercase mb-1" style="letter-spacing: 0.08em;">Rezo Base Sèlman</div>
-                    <div><i class="ri-instance-line me-1"></i>Voye <strong><%= @transaction.crypto_currency.upcase %> sou Base</strong> sèlman</div>
-                    <div><i class="ri-error-warning-line me-1"></i>Pa voye lòt jeton</div>
-                    <div><i class="ri-qr-code-line me-1"></i>Eskane QR pou evite erè kopi</div>
-                  </div>
-                </div>
-              </div>
-            </div>
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span style="color: rgba(255,255,255,0.6); font-size: 11px; font-weight: 600;">Frè Sèvis (2%)</span>
+            <span style="color: #fca5a5; font-weight: 700; font-size: 12px;">- <%= number_to_currency(@transaction.fee_amount, unit: "HTG ", precision: 2) %></span>
           </div>
-        </div>
-      <% else %>
-      <!-- Amount Box -->
-      <div class="p-4 mb-3" style="background-color: #E8EDE0; border: 2px solid #5D6345; border-radius: 20px; position: relative; overflow: hidden;">
-        <div class="d-flex justify-content-between mb-2">
-          <span style="color: #5D6345; font-size: 12px; font-weight: 600;">Ou Voye</span>
-          <% if @transaction.sell? %>
-            <span style="color: #2E2E38; font-weight: 800;"><%= @transaction.crypto_amount %> <%= @transaction.crypto_currency.upcase %></span>
-          <% else %>
-            <span style="color: #2E2E38; font-weight: 800;"><%= number_to_currency(@transaction.fiat_amount, unit: "HTG ", precision: 0) %></span>
-          <% end %>
-        </div>
-        <div class="d-flex justify-content-between mb-3">
-          <span style="color: #5D6345; font-size: 12px; font-weight: 600;">Frè Sèvis (2%)</span>
-          <span style="color: #D8000C; font-weight: 700; font-size: 13px;">- <%= number_to_currency(@transaction.fee_amount, unit: "HTG ", precision: 2) %></span>
-        </div>
-
-        <div class="pt-3" style="border-top: 1px dashed #5D6345;">
+          <hr style="border-color: rgba(255,255,255,0.15); margin: 8px 0;">
           <div class="d-flex justify-content-between align-items-center">
-            <span style="color: #2E2E38; font-weight: 900; font-size: 14px;" class="text-uppercase">Ou Resevwa</span>
-            <div class="text-end">
-              <span class="h2 mb-0 fw-black d-block" style="color: #5D6345; letter-spacing: -1.5px;">
-                <% if @transaction.sell? %>
-                  <%= number_with_precision(@transaction.fiat_amount, precision: 2) %> <small style="font-size: 14px; letter-spacing: 0;">HTG</small>
-                <% else %>
-                  <%= @transaction.crypto_amount %> <small style="font-size: 14px; letter-spacing: 0;"><%= @transaction.crypto_currency.upcase %></small>
-                <% end %>
-              </span>
-              <span class="badge" style="background-color: #C5A059; color: #2E2E38; font-size: 9px; font-weight: 800; letter-spacing: 0.5px;">
-                <% if @transaction.sell? %>
-                  <i class="ri-smartphone-line me-1"></i> PEMAN MONCASH
-                <% else %>
-                  <i class="ri-instance-line me-1"></i> REZO BASE
-                <% end %>
-              </span>
-            </div>
+            <span style="color: rgba(255,255,255,0.6); font-size: 11px; font-weight: 600;">Ou Resevwa</span>
+            <span class="d-flex align-items-center gap-1 fw-black" style="color: var(--haiti-gold); font-size: 16px;">
+              <%= image_tag "htg.svg", size: "18x18", style: "vertical-align: -2px;" %>
+              <%= number_with_precision(@transaction.fiat_amount, precision: 2, delimiter: ",") %> HTG
+            </span>
           </div>
+        </div>
+
+        <!-- Sell: MonCash Destination -->
+        <div class="p-3 rounded-4 mb-3" style="background-color: var(--haiti-charcoal);">
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <%= image_tag "moncash.svg", size: "20x20", style: "border-radius: 4px;" %>
+            <span class="fw-bold" style="color: rgba(255,255,255,0.6); font-size: 11px; letter-spacing: 0.5px;">PEMAN MONCASH</span>
+          </div>
+          <div class="fw-bold" style="color: #fff; font-size: 13px;"><%= masked_moncash_phone %></div>
+          <div class="mt-2" style="color: rgba(255,255,255,0.4); font-size: 10px;">
+            <i class="ri-information-line me-1"></i>Peman HTG ap voye nan nimewo MonCash sa a apre transfè USD ou konfime.
+          </div>
+        </div>
+
+        <% if @transaction.destination_address.present? %>
+        <!-- Sell: Treasury Address -->
+        <div class="p-3 rounded-4 mb-3" style="background-color: var(--haiti-charcoal);">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="fw-bold" style="color: rgba(255,255,255,0.6); font-size: 11px;">Adrès Depo USD (Trezò)</span>
+            <button type="button" class="btn btn-sm py-1 px-2 fw-bold rounded-3"
+                    style="background: rgba(255,255,255,0.1); color: var(--haiti-gold); font-size: 10px;"
+                    onclick="copyTreasuryAddress('<%= j @transaction.destination_address.to_s %>', this)">
+              <i class="ri-file-copy-line me-1"></i>Kopye
+            </button>
+          </div>
+          <code style="color: #fff; font-size: 10px; word-break: break-all; font-weight: 600;"><%= @transaction.destination_address %></code>
+        </div>
+        <% end %>
+      <% else %>
+      <!-- Buy: Amount Box -->
+      <div class="p-3 rounded-4 mb-3" style="background-color: var(--haiti-charcoal);">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span style="color: rgba(255,255,255,0.6); font-size: 11px; font-weight: 600;">Ou Voye</span>
+          <span class="d-flex align-items-center gap-1" style="color: #fff; font-weight: 800;">
+            <%= image_tag "htg.svg", size: "16x16", style: "vertical-align: -2px;" %>
+            <%= number_to_currency(@transaction.fiat_amount, unit: "", precision: 0, delimiter: ",") %> HTG
+          </span>
+        </div>
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span style="color: rgba(255,255,255,0.6); font-size: 11px; font-weight: 600;">Frè Sèvis (2%)</span>
+          <span style="color: #fca5a5; font-weight: 700; font-size: 12px;">- <%= number_to_currency(@transaction.fee_amount, unit: "HTG ", precision: 2) %></span>
+        </div>
+        <hr style="border-color: rgba(255,255,255,0.15); margin: 8px 0;">
+        <div class="d-flex justify-content-between align-items-center">
+          <span style="color: rgba(255,255,255,0.6); font-size: 11px; font-weight: 600;">Ou Resevwa</span>
+          <span class="d-flex align-items-center gap-1 fw-black" style="color: var(--haiti-gold); font-size: 16px;">
+            <%= image_tag "usd.svg", size: "18x18", style: "vertical-align: -2px;" %>
+            <%= @transaction.crypto_amount %> <%= display_currency %>
+          </span>
         </div>
       </div>
 
-      <!-- Destination / Receiving Details -->
-      <div class="p-3 mb-3" style="background-color: #fff; border-radius: 18px; border: 1px solid #d9d6c4;">
-        <div class="d-flex align-items-center mb-2">
-          <i class="<%= @transaction.sell? ? 'ri-smartphone-fill' : 'ri-wallet-3-fill' %> me-2" style="color: #C5A059;"></i>
-          <span class="text-uppercase fw-bold" style="color: #5D6345; font-size: 10px; letter-spacing: 0.1em;">
-            <%= @transaction.sell? ? "Nimewo Peman MonCash" : "Pòtfèy Resevè" %>
-          </span>
+      <!-- Buy: MonCash Source -->
+      <div class="p-3 rounded-4 mb-3" style="background-color: var(--haiti-charcoal);">
+        <div class="d-flex align-items-center gap-2 mb-2">
+          <%= image_tag "moncash.svg", size: "20x20", style: "border-radius: 4px;" %>
+          <span class="fw-bold" style="color: rgba(255,255,255,0.6); font-size: 11px; letter-spacing: 0.5px;">PEYE AK MONCASH</span>
         </div>
-        <div class="p-2 rounded" style="background-color: #fcfcf9; border-left: 3px solid #C5A059;">
-          <code style="color: #2E2E38; font-size: 11px; word-break: break-all; font-weight: 600;">
-            <%= @transaction.sell? ? masked_moncash_phone : @transaction.destination_address %>
-          </code>
-        </div>
-        <% if !@transaction.pending? %>
-          <div class="mt-2 d-flex align-items-start" style="color: #5D6345; font-size: 10px;">
-            <i class="ri-information-fill me-1 mt-1"></i>
-            <span>Adrès sa a te verifye nan moman soumisyon an.</span>
-          </div>
-        <% else %>
-          <div class="mt-2 d-flex align-items-start" style="color: #5D6345; font-size: 10px;">
-            <i class="ri-information-fill me-1 mt-1"></i>
-            <span>Verifikasyon final nesesè. Transfè nan move adrès pa ka retounen.</span>
+        <div class="fw-bold" style="color: #fff; font-size: 13px;"><%= masked_moncash_phone %></div>
+        <% if @transaction.destination_address.present? %>
+          <div class="mt-2 d-flex align-items-center gap-1" style="color: rgba(255,255,255,0.4); font-size: 10px;">
+            <i class="ri-wallet-3-line me-1"></i>Pòtfèy: <code style="color: rgba(255,255,255,0.5); font-size: 10px;"><%= @transaction.destination_address.truncate(20) %></code>
           </div>
         <% end %>
       </div>
@@ -311,46 +261,37 @@
 
       <!-- Blockchain TX hash (shown once available) -->
       <% if @transaction.blockchain_tx_hash.present? %>
-        <div class="p-3 mb-3" style="background-color: #fff; border-radius: 18px; border: 1px solid #d9d6c4;">
-          <div class="d-flex align-items-center mb-2">
-            <i class="ri-links-line me-2" style="color: #C5A059;"></i>
-            <span class="text-uppercase fw-bold" style="color: #5D6345; font-size: 10px; letter-spacing: 0.1em;">Tranzaksyon Blockchain</span>
-          </div>
-          <div class="p-2 rounded" style="background-color: #fcfcf9; border-left: 3px solid #C5A059;">
-            <code style="color: #2E2E38; font-size: 11px; word-break: break-all; font-weight: 600;"><%= @transaction.blockchain_tx_hash %></code>
-          </div>
-          <div class="mt-2">
+        <div class="p-3 rounded-4 mb-3" style="background-color: var(--haiti-charcoal);">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="fw-bold" style="color: rgba(255,255,255,0.6); font-size: 11px;"><i class="ri-links-line me-1"></i>Tranzaksyon</span>
             <%= link_to basescan_tx_url(@transaction.blockchain_tx_hash), target: "_blank",
-                class: "text-decoration-none small fw-bold d-inline-flex align-items-center gap-1",
-                style: "color: #5D6345; font-size: 11px;" do %>
+                class: "text-decoration-none fw-bold d-inline-flex align-items-center gap-1",
+                style: "color: var(--haiti-gold); font-size: 10px;" do %>
               <i class="ri-external-link-line"></i> Wè sou Basescan
             <% end %>
           </div>
+          <code style="color: rgba(255,255,255,0.7); font-size: 10px; word-break: break-all; font-weight: 600;"><%= @transaction.blockchain_tx_hash %></code>
         </div>
       <% end %>
 
-      <!-- Payment Method -->
-      <div class="d-flex align-items-center p-3 mb-4" style="background-color: #fdf2f2; border-radius: 18px; border: 1px solid #fee2e2;">
-        <div class="d-flex align-items-center justify-content-center rounded-3 me-3 shadow-sm"
-             style="width: 44px; height: 44px; background: linear-gradient(135deg, #d90429, #ef233c);">
-          <span class="fw-black text-white" style="font-size: 11px; letter-spacing: 0.5px;">MC</span>
+      <!-- Status -->
+      <% status_style = case @transaction.status
+        when "completed"             then "color: #166534; background-color: #dcfce7;"
+        when "paid", "crypto_sent"   then "color: #92400e; background-color: #fef3c7;"
+        when "payout_failed"         then "color: #7c2d12; background-color: #ffedd5;"
+        when "failed"                then "color: #991b1b; background-color: #fee2e2;"
+        else                              "color: var(--haiti-olive); background-color: rgba(93,99,69,0.08);"
+        end %>
+      <div class="d-flex align-items-center justify-content-between p-3 rounded-4 mb-3" style="<%= status_style %>">
+        <div class="d-flex align-items-center gap-2">
+          <%= image_tag "moncash.svg", size: "28x28", style: "border-radius: 6px;" %>
+          <div>
+            <div class="fw-bold" style="font-size: 13px;">MonCash</div>
+            <div style="font-size: 10px; opacity: 0.7;">Peman Mobil</div>
+          </div>
         </div>
-        <div>
-          <span class="d-block fw-bold small d-flex align-items-center gap-1" style="color: #2E2E38;">
-            Pòtfèy MonCash
-            <span class="badge rounded-pill" style="background-color: #ef233c; color: #fff; font-size: 8px; letter-spacing: 0.5px;">MonCash</span>
-          </span>
-          <span style="color: #5D6345; font-size: 11px; font-weight: 600;">Pasrèl Digicel Otorize</span>
-        </div>
-        <% status_style = case @transaction.status
-          when "completed"             then "color: #166534; background-color: #dcfce7; border-color: #166534;"
-          when "paid", "crypto_sent"   then "color: #92400e; background-color: #fef3c7; border-color: #92400e;"
-          when "payout_failed"         then "color: #7c2d12; background-color: #ffedd5; border-color: #c2410c;"
-          when "failed"                then "color: #991b1b; background-color: #fee2e2; border-color: #991b1b;"
-          else                              "color: #5D6345; background-color: transparent; border-color: #5D6345;"
-          end %>
-        <span class="badge rounded-pill border ms-auto" style="<%= status_style %> font-size: 10px; font-weight: 800; letter-spacing: 0.5px;">
-          <%= @transaction.status.upcase %>
+        <span class="fw-black text-uppercase" style="font-size: 11px; letter-spacing: 0.5px;">
+          <%= @transaction.status.humanize %>
         </span>
       </div>
     </div>
@@ -468,7 +409,7 @@
                 <i class="ri-links-line me-1"></i> Soumèt TX Hash Depo Base Ou
               </div>
               <div class="small mb-2" style="color: #5D6345; font-size: 10px;">
-                Apre ou voye <%= @transaction.crypto_currency.upcase %> nan adrès trezò a sou Base, kole hash tranzaksyon an pou nou ka verifye epi lage HTG nan MonCash.
+                Apre ou voye USD nan adrès trezò a, kole hash tranzaksyon an pou nou ka verifye epi lage HTG nan MonCash.
               </div>
               <%= form_with url: submit_sell_tx_hash_transaction_path(@transaction), method: :post, local: true, class: "d-grid gap-2" do %>
                 <%= text_field_tag :sell_deposit_tx_hash, @transaction.blockchain_tx_hash,
@@ -486,16 +427,16 @@
             </div>
           <% else %>
             <%= button_to pay_transaction_path(@transaction), method: :post,
-                class: "btn border-0 py-3 fw-bold rounded-4 shadow-lg d-flex align-items-center justify-content-center gap-2",
-                style: "background-color: #2E2E38; color: #C5A059;" do %>
-              <i class="ri-flashlight-fill"></i> Konfime & Lage Lajan
+                class: "btn w-100 border-0 py-3 fw-bold rounded-4 d-flex align-items-center justify-content-center gap-2",
+                style: "background-color: var(--haiti-charcoal); color: var(--haiti-gold);" do %>
+              <i class="ri-checkbox-circle-line"></i> Konfime
             <% end %>
           <% end %>
           <% if @transaction.buy? && (Rails.env.development? || current_user.email == ENV['ADMIN_EMAIL'].to_s.strip) %>
             <%= button_to manual_confirm_transaction_path(@transaction), method: :post,
-                class: "btn py-2 fw-bold rounded-4 d-flex align-items-center justify-content-center gap-2",
+                class: "btn w-100 py-3 fw-bold rounded-4 d-flex align-items-center justify-content-center gap-2",
                 style: "background-color: #fff7ed; color: #92400e; border: 1px dashed #f59e0b;" do %>
-              <i class="ri-tools-fill"></i> Konfimasyon Manyèl (Dev/Admin)
+              <i class="ri-tools-fill"></i> Dev Peye
             <% end %>
           <% end %>
           <%= link_to "Anile Tranzaksyon", new_transaction_path,
@@ -515,6 +456,8 @@
           <% end %>
         <% end %>
       </div>
+  </div><%# inner bordered card %>
+  </div><%# card-base %>
   </div>
 </div>
 

@@ -1,0 +1,106 @@
+<% content_for :title, "Pwodui — #{@business.name}" %>
+<% content_for :full_width, true %>
+
+<div class="container py-4" style="max-width: 1060px;">
+
+  <%# ── Back to business profile ── %>
+  <%= link_to public_business_path(slug: @business.slug), class: "d-inline-flex align-items-center gap-1 text-decoration-none mb-3", style: "color: var(--haiti-olive); font-size: 13px; font-weight: 600;" do %>
+    <i class="ri-arrow-left-s-line" style="font-size: 18px;"></i>Retounen
+  <% end %>
+
+  <%# ══════════════════════════════════════ %>
+  <%# ── HERO CARD (matches public_show)  ── %>
+  <%# ══════════════════════════════════════ %>
+  <div class="rounded-4 overflow-hidden mb-4" style="background: var(--haiti-charcoal);">
+
+    <%# ── Business Logo (centered) ── %>
+    <div class="text-center pt-4 pb-2">
+      <% if @business.logo.attached? %>
+        <%= image_tag @business.logo, class: "rounded-circle", style: "width: 72px; height: 72px; object-fit: cover; border: 3px solid var(--haiti-gold);" %>
+      <% else %>
+        <div class="d-inline-flex align-items-center justify-content-center rounded-circle"
+             style="width: 72px; height: 72px; background: var(--haiti-olive);">
+          <i class="<%= @business.category_icon %>" style="font-size: 32px; color: var(--haiti-gold);"></i>
+        </div>
+      <% end %>
+    </div>
+
+    <%# ── Name + Meta ── %>
+    <div class="p-4 pt-2 text-center">
+      <h1 class="fw-black mb-2" style="color: white; font-size: 22px; line-height: 1.25;">
+        <%= @business.name %>
+      </h1>
+
+      <div class="d-flex align-items-center justify-content-center gap-2 flex-wrap mb-2">
+        <span class="badge rounded-pill px-3 py-1" style="background: rgba(197,160,89,0.2); color: var(--haiti-gold); font-size: 11px; font-weight: 700;">
+          <i class="<%= @business.category_icon %> me-1"></i><%= @business.category_label %>
+        </span>
+        <span class="badge rounded-pill px-3 py-1" style="background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.5); font-size: 11px; font-weight: 700;">
+          <i class="ri-shopping-bag-line me-1"></i><%= @products.size %> pwodui
+        </span>
+      </div>
+
+      <%# ── Business link ── %>
+      <%= link_to public_business_path(slug: @business.slug), class: "d-inline-flex align-items-center gap-2 text-decoration-none", style: "color: rgba(255,255,255,0.5); font-size: 13px;" do %>
+        <span>Wè pwofil <strong style="color: rgba(255,255,255,0.7);"><%= @business.name %></strong></span>
+      <% end %>
+    </div>
+  </div>
+
+  <%# ══════════════════════════════════════ %>
+  <%# ── PRODUCT GRID (3 columns)         ── %>
+  <%# ══════════════════════════════════════ %>
+  <% if @products.any? %>
+    <div class="row g-3">
+      <% @products.each do |product| %>
+        <div class="col-6 col-md-4">
+          <%= link_to public_product_path(slug: @business.slug, token: product.token), class: "card-base p-0 overflow-hidden text-decoration-none d-flex flex-column h-100", style: "border: 1px solid rgba(93,99,69,0.12);" do %>
+
+            <%# ── Image ── %>
+            <% if product.image.attached? %>
+              <%= image_tag product.image, class: "w-100", style: "height: 160px; object-fit: cover; display: block;" %>
+            <% else %>
+              <div class="d-flex align-items-center justify-content-center" style="height: 120px; background: rgba(93,99,69,0.04);">
+                <i class="ri-shopping-bag-line" style="font-size: 36px; color: var(--haiti-olive); opacity: 0.2;"></i>
+              </div>
+            <% end %>
+
+            <%# ── Details ── %>
+            <div class="p-3 d-flex flex-column flex-grow-1">
+              <div class="fw-bold mb-1" style="color: var(--haiti-charcoal); font-size: 14px; line-height: 1.3;">
+                <%= product.name %>
+              </div>
+              <% if product.description.present? %>
+                <div class="mb-2" style="color: var(--haiti-olive); font-size: 11px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                  <%= product.description %>
+                </div>
+              <% end %>
+              <div class="mt-auto d-flex align-items-center justify-content-between">
+                <div class="fw-black" style="color: var(--haiti-charcoal); font-size: 17px;">
+                  <%= number_with_delimiter(product.price.to_i) %> <small style="color: var(--haiti-olive); font-size: 11px; font-weight: 600;"><%= currency_label(product.asset || "htg") %></small>
+                </div>
+                <% unless product.in_stock? %>
+                  <span class="badge rounded-pill" style="background: rgba(220,38,38,0.1); color: #dc2626; font-size: 9px;">Epuize</span>
+                <% end %>
+              </div>
+            </div>
+
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  <% else %>
+    <div class="card-base p-5 text-center">
+      <i class="ri-shopping-bag-line" style="font-size: 48px; color: var(--haiti-olive); opacity: 0.25;"></i>
+      <div class="fw-bold mt-2" style="color: var(--haiti-charcoal);">Pa gen pwodui disponib</div>
+      <div style="color: var(--haiti-olive); font-size: 13px;">Biznis sa a poko ajoute pwodui.</div>
+    </div>
+  <% end %>
+
+  <%# ── Secure Footer ── %>
+  <div class="text-center mt-4" style="font-size: 11px; color: var(--haiti-olive);">
+    <i class="ri-shield-check-fill me-1" style="color: var(--haiti-gold);"></i>Peman sekirize pa
+    <img src="<%= asset_path('zellus_square.png') %>" style="width: 14px; height: 14px; vertical-align: -2px; border-radius: 3px;" alt="Zellus"> Zellus
+  </div>
+
+</div>

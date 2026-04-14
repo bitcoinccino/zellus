@@ -1,0 +1,197 @@
+<div class="container py-4" style="max-width: 1060px;">
+
+  <%# ── Back ── %>
+  <a href="javascript:history.back()" class="d-inline-flex align-items-center gap-1 text-decoration-none mb-3" style="color: var(--haiti-olive); font-size: 13px; font-weight: 600;">
+    <i class="ri-arrow-left-s-line" style="font-size: 18px;"></i>Retounen
+  </a>
+
+  <%# ══════════════════════════════════════════════════════ %>
+  <%# ── HERO                                             ── %>
+  <%# ══════════════════════════════════════════════════════ %>
+  <div class="rounded-4 p-4 p-md-5 mb-4 text-center position-relative" style="background: var(--haiti-charcoal);">
+    <div class="mb-3">
+      <img src="<%= asset_path('zellus_square.png') %>" style="width: 56px; height: 56px; border-radius: 14px;" alt="Zèllus">
+    </div>
+    <h1 class="fw-black mb-2" style="font-size: clamp(1.4rem, 3.5vw, 2rem); color: white;">
+      <i class="ri-question-answer-line me-2" style="color: var(--haiti-gold);"></i>Kesyon Yo Poze Souvan
+    </h1>
+    <p class="mb-0 mx-auto" style="max-width: 480px; color: rgba(255,255,255,0.6); font-size: 14px;">
+      Tout sa ou bezwen konnen sou Zèllus
+    </p>
+  </div>
+
+  <%# ══════════════════════════════════════════════════════ %>
+  <%# ── TWO-COLUMN LAYOUT                               ── %>
+  <%# ══════════════════════════════════════════════════════ %>
+  <div class="row g-4">
+
+    <%# ── LEFT COLUMN ── %>
+    <div class="col-lg-7">
+
+      <%# ── 1. General ── %>
+      <div class="card-base p-4 mb-3" style="border: 2px solid rgba(197,160,89,0.2);">
+        <h5 class="fw-black mb-3" style="color: var(--haiti-charcoal); font-size: 16px;">
+          <i class="ri-information-line me-2" style="color: var(--haiti-gold);"></i>Jeneral
+        </h5>
+
+        <div class="mb-3 p-3 rounded-3" style="background: rgba(93,99,69,0.04); border: 1px solid rgba(93,99,69,0.08);">
+          <div class="fw-bold mb-1" style="color: var(--haiti-charcoal); font-size: 14px;">Kisa Zèllus ye?</div>
+          <div style="color: var(--haiti-olive); font-size: 13px; line-height: 1.7;">
+            Zèllus se yon platfòm finansye dijital ki pèmèt ou voye, resevwa, e jere lajan ou, an HTG oswa an USD, dirèkteman sou telefòn ou. Pa gen bezwen kont labank.
+          </div>
+        </div>
+
+        <div class="mb-3 p-3 rounded-3" style="background: rgba(93,99,69,0.04); border: 1px solid rgba(93,99,69,0.08);">
+          <div class="fw-bold mb-1" style="color: var(--haiti-charcoal); font-size: 14px;">Èske Zèllus gratis?</div>
+          <div style="color: var(--haiti-olive); font-size: 13px; line-height: 1.7;">
+            Wi! Kreye kont gratis, voye lajan ant $ZellusTag gratis. Sèl frè ki genyen se lè ou itilize MonCash oswa fè retrè bank.
+          </div>
+        </div>
+
+        <div class="p-3 rounded-3" style="background: rgba(93,99,69,0.04); border: 1px solid rgba(93,99,69,0.08);">
+          <div class="fw-bold mb-1" style="color: var(--haiti-charcoal); font-size: 14px;">Kijan mwen kreye yon kont?</div>
+          <div style="color: var(--haiti-olive); font-size: 13px; line-height: 1.7;">
+            Ale sou paj la, peze "Kòmanse", antre imèl ou ak yon modpas, epi chwazi yon $ZellusTag inik. Sa pran mwens pase 2 minit.
+          </div>
+        </div>
+      </div>
+
+      <%# ── 2. Transfers ── %>
+      <div class="card-base p-4 mb-3" style="border: 2px solid rgba(197,160,89,0.2);">
+        <h5 class="fw-black mb-3" style="color: var(--haiti-charcoal); font-size: 16px;">
+          <i class="ri-send-plane-line me-2" style="color: var(--haiti-gold);"></i>Transfè Lajan
+        </h5>
+
+        <div class="mb-3 p-3 rounded-3" style="background: rgba(93,99,69,0.04); border: 1px solid rgba(93,99,69,0.08);">
+          <div class="fw-bold mb-1" style="color: var(--haiti-charcoal); font-size: 14px;">Kijan mwen voye lajan?</div>
+          <div style="color: var(--haiti-olive); font-size: 13px; line-height: 1.7;">
+            Antre $ZellusTag, nimewo telefòn, oswa imèl moun nan, chwazi montan an, konfime ak PIN 4 chif ou, e lajan an ale imedyatman.
+          </div>
+        </div>
+
+        <div class="mb-3 p-3 rounded-3" style="background: rgba(93,99,69,0.04); border: 1px solid rgba(93,99,69,0.08);">
+          <div class="fw-bold mb-1" style="color: var(--haiti-charcoal); font-size: 14px;">Konbyen tan sa pran?</div>
+          <div style="color: var(--haiti-olive); font-size: 13px; line-height: 1.7;">
+            Transfè ant $ZellusTag rive imedyatman. Transfè MonCash pran kèk segonn. Transfè bank pran 1-2 jou ouvrab.
+          </div>
+        </div>
+
+        <div class="mb-3 p-3 rounded-3" style="background: rgba(93,99,69,0.04); border: 1px solid rgba(93,99,69,0.08);">
+          <div class="fw-bold mb-1" style="color: var(--haiti-charcoal); font-size: 14px;">Kisa yon $ZellusTag ye?</div>
+          <div style="color: var(--haiti-olive); font-size: 13px; line-height: 1.7;">
+            $ZellusTag se non inik ou sou Zèllus, tankou $vladimir oswa $maboutik. Moun jis tape $tag ou pou voye w lajan, pa gen nimewo kont pou sonje.
+          </div>
+        </div>
+
+        <div class="p-3 rounded-3" style="background: rgba(93,99,69,0.04); border: 1px solid rgba(93,99,69,0.08);">
+          <div class="fw-bold mb-1" style="color: var(--haiti-charcoal); font-size: 14px;">Ki limit transfè?</div>
+          <div style="color: var(--haiti-olive); font-size: 13px; line-height: 1.7;">
+            Limit depann de nivo verifikasyon ou. Ak BonID verifye, ou ka voye plis. Tcheke paj Pòtfèy ou pou wè limit jounalye ou.
+          </div>
+        </div>
+      </div>
+
+      <%# ── 3. BonID & Security ── %>
+      <div class="card-base p-4 mb-3" style="border: 2px solid rgba(197,160,89,0.2);">
+        <h5 class="fw-black mb-3" style="color: var(--haiti-charcoal); font-size: 16px;">
+          <i class="ri-shield-check-line me-2" style="color: var(--haiti-gold);"></i>BonID & Sekirite
+        </h5>
+
+        <div class="mb-3 p-3 rounded-3" style="background: rgba(93,99,69,0.04); border: 1px solid rgba(93,99,69,0.08);">
+          <div class="fw-bold mb-1" style="color: var(--haiti-charcoal); font-size: 14px;">Kisa BonID ye?</div>
+          <div style="color: var(--haiti-olive); font-size: 13px; line-height: 1.7;">
+            BonID se sèvis idantite nasyonal dijital. Li verifye idantite ou ak CIN oswa paspò ou pou pwoteje kont ou kont fwòd.
+          </div>
+        </div>
+
+        <div class="mb-3 p-3 rounded-3" style="background: rgba(93,99,69,0.04); border: 1px solid rgba(93,99,69,0.08);">
+          <div class="fw-bold mb-1" style="color: var(--haiti-charcoal); font-size: 14px;">Poukisa yo mande konsentisyon BonID pou gwo transfè?</div>
+          <div style="color: var(--haiti-olive); font-size: 13px; line-height: 1.7;">
+            Pou pwoteje ou. Lè ou voye yon gwo montan, BonID verifye ke se vrèman ou, ak figi ou (byometrik), anvan lajan an ale. Pèsonn lòt pa ka apwouve transfè nan plas ou.
+          </div>
+        </div>
+
+        <div class="mb-3 p-3 rounded-3" style="background: rgba(93,99,69,0.04); border: 1px solid rgba(93,99,69,0.08);">
+          <div class="fw-bold mb-1" style="color: var(--haiti-charcoal); font-size: 14px;">Kisa verifikasyon byometrik la ye?</div>
+          <div style="color: var(--haiti-olive); font-size: 13px; line-height: 1.7;">
+            Lè ou apwouve yon transfè nan BonID, sistèm nan tcheke ke figi ou reyèl (pa yon foto) epi li konpare l ak pyès idantite ou (CIN oswa paspò). Rezilta a parèt sou resi transfè ou.
+          </div>
+        </div>
+
+        <div class="p-3 rounded-3" style="background: rgba(93,99,69,0.04); border: 1px solid rgba(93,99,69,0.08);">
+          <div class="fw-bold mb-1" style="color: var(--haiti-charcoal); font-size: 14px;">Kisa PIN transfè a ye?</div>
+          <div style="color: var(--haiti-olive); font-size: 13px; line-height: 1.7;">
+            PIN se yon kòd 4 chif ou chwazi. Chak fwa ou voye lajan, ou dwe antre PIN ou pou konfime. Sa anpeche moun ki gen telefòn ou voye lajan san pèmisyon ou.
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <%# ── RIGHT COLUMN (Sticky) ── %>
+    <div class="col-lg-5">
+      <div style="position: sticky; top: 80px;">
+
+        <%# ── 4. Wallet & Money ── %>
+        <div class="card-base p-4 mb-3" style="border: 2px solid rgba(197,160,89,0.2);">
+          <h5 class="fw-black mb-3" style="color: var(--haiti-charcoal); font-size: 16px;">
+            <i class="ri-wallet-3-line me-2" style="color: var(--haiti-gold);"></i>Pòtfèy & Lajan
+          </h5>
+
+          <div class="mb-3 p-3 rounded-3" style="background: rgba(93,99,69,0.04); border: 1px solid rgba(93,99,69,0.08);">
+            <div class="fw-bold mb-1" style="color: var(--haiti-charcoal); font-size: 14px;">Kijan mwen mete lajan nan pòtfèy mwen?</div>
+            <div style="color: var(--haiti-olive); font-size: 13px; line-height: 1.7;">
+              Ou ka depoze ak MonCash, USD (sou blockchain Base), oswa resevwa lajan nan men yon lòt itilizatè Zèllus.
+            </div>
+          </div>
+
+          <div class="mb-3 p-3 rounded-3" style="background: rgba(93,99,69,0.04); border: 1px solid rgba(93,99,69,0.08);">
+            <div class="fw-bold mb-1" style="color: var(--haiti-charcoal); font-size: 14px;">Kijan mwen retire lajan?</div>
+            <div style="color: var(--haiti-olive); font-size: 13px; line-height: 1.7;">
+              Ale nan Pòtfèy ou, peze "Retire", chwazi MonCash oswa kont bank ou (Unibank), e mete montan an. Retrè MonCash imedyat, retrè bank pran 1-2 jou ouvrab.
+            </div>
+          </div>
+
+          <div class="p-3 rounded-3" style="background: rgba(93,99,69,0.04); border: 1px solid rgba(93,99,69,0.08);">
+            <div class="fw-bold mb-1" style="color: var(--haiti-charcoal); font-size: 14px;">Èske mwen ka kenbe USD nan Zèllus?</div>
+            <div style="color: var(--haiti-olive); font-size: 13px; line-height: 1.7;">
+              Wi! Pòtfèy ou sipòte HTG ak USD. Ou ka konvèti ant yo nan app la dirèkteman.
+            </div>
+          </div>
+        </div>
+
+        <%# ── 5. Business & Agents ── %>
+        <div class="card-base p-4 mb-3" style="border: 2px solid rgba(197,160,89,0.2);">
+          <h5 class="fw-black mb-3" style="color: var(--haiti-charcoal); font-size: 16px;">
+            <i class="ri-store-2-line me-2" style="color: var(--haiti-gold);"></i>Biznis & Ajan
+          </h5>
+
+          <div class="mb-3 p-3 rounded-3" style="background: rgba(93,99,69,0.04); border: 1px solid rgba(93,99,69,0.08);">
+            <div class="fw-bold mb-1" style="color: var(--haiti-charcoal); font-size: 14px;">Kijan mwen vin yon Ajan Zèllus?</div>
+            <div style="color: var(--haiti-olive); font-size: 13px; line-height: 1.7;">
+              Verifye BonID ou, kreye yon biznis nan app la, e kòmanse aksepte depo lajan kach. Ou touche 2% komisyon sou chak depo. Sa pran 20 minit.
+            </div>
+          </div>
+
+          <div class="p-3 rounded-3" style="background: rgba(93,99,69,0.04); border: 1px solid rgba(93,99,69,0.08);">
+            <div class="fw-bold mb-1" style="color: var(--haiti-charcoal); font-size: 14px;">Kijan biznis mwen aksepte peman Zèllus?</div>
+            <div style="color: var(--haiti-olive); font-size: 13px; line-height: 1.7;">
+              Kreye yon biznis nan app la, ou resevwa yon $ZellusTag biznis ak kòd QR. Kliyan eskane kòd la oswa tape $tag ou pou peye.
+            </div>
+          </div>
+        </div>
+
+        <%# ── CTA ── %>
+        <div class="card-base p-4 text-center" style="background: var(--haiti-charcoal); border: 2px solid rgba(197,160,89,0.2);">
+          <h5 class="fw-black mb-2" style="color: var(--haiti-gold); font-size: 16px;">Ou pa jwenn repons ou?</h5>
+          <p class="mb-3" style="color: rgba(255,255,255,0.6); font-size: 13px;">Kontakte nou dirèkteman e n ap ede w.</p>
+          <a href="mailto:support@zellus.ht" class="btn fw-bold rounded-3 px-4 py-2" style="background: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 14px; border: 2px solid var(--haiti-gold);">
+            <i class="ri-mail-line me-1"></i>support@zellus.ht
+          </a>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>

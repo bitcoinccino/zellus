@@ -1,0 +1,410 @@
+<div class="container py-4" style="max-width: 440px;">
+
+  <%# ── Back button ── %>
+  <a href="javascript:history.back()" class="d-inline-flex align-items-center gap-1 text-decoration-none mb-3" style="color: var(--haiti-olive); font-size: 13px; font-weight: 600;">
+    <i class="ri-arrow-left-s-line" style="font-size: 18px;"></i>Retounen
+  </a>
+
+  <%# ══════════════════════════════════════ %>
+  <%# ── BUSINESS HERO CARD               ── %>
+  <%# ══════════════════════════════════════ %>
+  <div class="rounded-4 p-4 mb-3 text-center" style="background: var(--haiti-charcoal);">
+
+    <%# ── Logo ── %>
+    <div class="mb-2">
+      <% if @business.logo.attached? %>
+        <%= image_tag @business.logo, class: "rounded-circle", style: "width: 64px; height: 64px; object-fit: cover; border: 3px solid var(--haiti-gold);" %>
+      <% else %>
+        <div class="d-inline-flex align-items-center justify-content-center rounded-circle"
+             style="width: 64px; height: 64px; background: var(--haiti-olive);">
+          <i class="<%= @business.category_icon %>" style="font-size: 32px; color: var(--haiti-gold);"></i>
+        </div>
+      <% end %>
+    </div>
+
+    <%# ── Name & Category ── %>
+    <div class="fw-black mb-1" style="color: white; font-size: 18px;"><%= @business.name %></div>
+    <span class="badge rounded-pill" style="background: rgba(93,99,69,0.3); color: var(--haiti-gold); font-size: 10px;">
+      <i class="<%= @business.category_icon %> me-1"></i><%= @business.category_label %>
+    </span>
+
+    <% if @business.active? %>
+      <div class="mt-2" style="color: rgba(255,255,255,0.4); font-size: 10px;">
+        <i class="ri-checkbox-circle-fill me-1" style="color: #22c55e;"></i>Biznis Verifye
+      </div>
+    <% end %>
+  </div>
+
+  <%# ══════════════════════════════════════ %>
+  <%# ── PAYMENT FORM                     ── %>
+  <%# ══════════════════════════════════════ %>
+  <div class="card-base p-4" style="border: 2px solid rgba(197,160,89,0.2);">
+
+    <%# ── Currency Toggle (HTG | USD) ── %>
+    <div class="d-flex justify-content-center gap-2 mb-4" id="currency-toggle">
+      <button type="button" class="btn rounded-pill px-4 py-2 currency-btn <%= @asset == 'htg' ? 'active' : '' %>"
+              data-asset="htg"
+              style="font-size: 13px; font-weight: 700; border: 2px solid <%= @asset == 'htg' ? 'var(--haiti-gold)' : 'rgba(93,99,69,0.15)' %>;
+                     background: <%= @asset == 'htg' ? 'var(--haiti-gold)' : 'transparent' %>;
+                     color: <%= @asset == 'htg' ? 'var(--haiti-charcoal)' : 'var(--haiti-olive)' %>;">
+        <%= currency_label("htg", 14) %>
+      </button>
+      <button type="button" class="btn rounded-pill px-4 py-2 currency-btn <%= @asset == 'usd' ? 'active' : '' %>"
+              data-asset="usd"
+              style="font-size: 13px; font-weight: 700; border: 2px solid <%= @asset == 'usd' ? 'var(--haiti-gold)' : 'rgba(93,99,69,0.15)' %>;
+                     background: <%= @asset == 'usd' ? 'var(--haiti-gold)' : 'transparent' %>;
+                     color: <%= @asset == 'usd' ? 'var(--haiti-charcoal)' : 'var(--haiti-olive)' %>;">
+        <%= currency_label("usd", 14) %>
+      </button>
+    </div>
+
+    <% if @cart_items.present? && @cart_items.is_a?(Array) && @cart_items.any? %>
+    <%# ── Items Breakdown (from itemized payment link) ── %>
+    <div class="mb-3 p-3 rounded-3" style="background: rgba(93,99,69,0.06); border: 1px dashed rgba(93,99,69,0.2);">
+      <div class="fw-bold text-uppercase mb-2" style="font-size: 10px; color: var(--haiti-olive); letter-spacing: 0.5px;">
+        <i class="ri-file-list-3-line me-1" style="color: var(--haiti-gold);"></i>Detay Kòmand
+      </div>
+      <% @cart_items.each do |item| %>
+        <div class="d-flex align-items-center gap-2 py-2" style="border-bottom: 1px solid rgba(0,0,0,0.04); font-size: 12px;">
+          <% if item["image_url"].present? %>
+            <img src="<%= item["image_url"] %>" style="width: 36px; height: 36px; border-radius: 8px; object-fit: cover; flex-shrink: 0;" alt="">
+          <% else %>
+            <div class="d-flex align-items-center justify-content-center" style="width: 36px; height: 36px; border-radius: 8px; background: rgba(93,99,69,0.08); flex-shrink: 0;">
+              <i class="ri-shopping-bag-line" style="font-size: 14px; color: var(--haiti-olive);"></i>
+            </div>
+          <% end %>
+          <div class="flex-grow-1">
+            <span class="fw-bold" style="color: var(--haiti-charcoal);"><%= item["name"] %></span>
+            <span style="color: var(--haiti-olive);"> x<%= item["quantity"] %></span>
+          </div>
+          <span class="fw-bold" style="color: var(--haiti-charcoal); white-space: nowrap;">
+            <%= number_with_delimiter((item["quantity"].to_i * item["unit_price"].to_f).round(2)) %> <%= currency_label(@asset) %>
+          </span>
+        </div>
+      <% end %>
+      <div class="d-flex justify-content-between mt-2 pt-2" style="border-top: 1px solid rgba(93,99,69,0.15);">
+        <span class="fw-black" style="font-size: 13px; color: var(--haiti-charcoal);">Total</span>
+        <span class="fw-black" style="font-size: 13px; color: var(--haiti-charcoal);">
+          <%= number_with_delimiter(@cart_items.sum { |i| i["quantity"].to_i * i["unit_price"].to_f }.round(2)) %> <%= currency_label(@asset) %>
+        </span>
+      </div>
+    </div>
+    <% end %>
+
+    <%# ── Amount Input ── %>
+    <div class="mb-3">
+      <label class="form-label fw-bold" style="color: var(--haiti-charcoal); font-size: 12px;">Montan</label>
+      <div class="input-group">
+        <input type="number" id="pay-amount" class="form-control form-control-lg text-center fw-black"
+               style="font-size: 28px; border: 2px solid rgba(93,99,69,0.15); border-radius: 12px 0 0 12px; color: var(--haiti-charcoal);<%= (@cart_items.present? || @amount.present?) ? ' opacity: 0.7;' : '' %>"
+               placeholder="0" min="1" step="any"
+               value="<%= @amount %>"
+               <%= (@cart_items.present? || @amount.present?) ? 'readonly' : '' %>>
+        <span class="input-group-text fw-bold" id="currency-label"
+              style="background: rgba(93,99,69,0.06); border: 2px solid rgba(93,99,69,0.15); border-left: 0; border-radius: 0 12px 12px 0; color: var(--haiti-olive); font-size: 14px; min-width: 60px; justify-content: center;">
+          <%= currency_label(@asset) %>
+        </span>
+      </div>
+    </div>
+
+    <%# ── Fee Transparency ── %>
+    <div class="text-center mb-3" style="font-size: 11px; color: var(--haiti-olive);">
+      <span class="badge rounded-pill me-1" style="background: rgba(22,101,52,0.08); color: #166534; font-size: 10px; font-weight: 700;">
+        <i class="ri-checkbox-circle-fill me-1"></i>Kliyan peye 0%
+      </span>
+      <span style="opacity: 0.6;">Frais machann: <%= (@business.fee_rate * 100).round(1) %>%</span>
+    </div>
+
+    <% if @show_tips %>
+    <%# ══════════════════════════════════════ %>
+    <%# ── TIP SECTION (slides in when amount entered) ── %>
+    <%# ══════════════════════════════════════ %>
+    <div id="tip-section" class="mb-3" style="display: none; transition: all 0.3s ease;">
+      <label class="form-label fw-bold" style="color: var(--haiti-charcoal); font-size: 12px;">
+        <i class="ri-heart-line me-1" style="color: var(--haiti-gold);"></i>Poubwa (Tips)
+        <span style="color: var(--haiti-olive); font-weight: 400;">(opsyonèl)</span>
+      </label>
+
+      <%# ── Quick-Pick Buttons ── %>
+      <div class="d-flex gap-2 mb-2" id="tip-buttons">
+        <button type="button" class="btn flex-grow-1 rounded-pill py-2 tip-btn" data-percent="0"
+                style="font-size: 12px; font-weight: 700; background: var(--haiti-gold); color: var(--haiti-charcoal); border: 2px solid var(--haiti-gold);">
+          Pa gen
+        </button>
+        <button type="button" class="btn flex-grow-1 rounded-pill py-2 tip-btn" data-percent="10"
+                style="font-size: 12px; font-weight: 700; background: transparent; color: var(--haiti-olive); border: 2px solid rgba(93,99,69,0.15);">
+          10%
+        </button>
+        <button type="button" class="btn flex-grow-1 rounded-pill py-2 tip-btn" data-percent="15"
+                style="font-size: 12px; font-weight: 700; background: transparent; color: var(--haiti-olive); border: 2px solid rgba(93,99,69,0.15);">
+          15%
+        </button>
+        <button type="button" class="btn flex-grow-1 rounded-pill py-2 tip-btn" data-percent="20"
+                style="font-size: 12px; font-weight: 700; background: transparent; color: var(--haiti-olive); border: 2px solid rgba(93,99,69,0.15);">
+          20%
+        </button>
+      </div>
+
+      <%# ── Custom Tip Input (hidden by default) ── %>
+      <div id="custom-tip-row" class="d-flex align-items-center gap-2 mb-2">
+        <button type="button" id="custom-tip-toggle" class="btn rounded-pill py-2 px-3"
+                style="font-size: 11px; font-weight: 700; background: transparent; color: var(--haiti-olive); border: 2px solid rgba(93,99,69,0.15); white-space: nowrap;">
+          <i class="ri-edit-line me-1"></i>Lòt
+        </button>
+        <input type="number" id="custom-tip-input" class="form-control" placeholder="Montan poubwa"
+               style="display: none; border: 2px solid rgba(93,99,69,0.15); border-radius: 12px; font-size: 13px; padding: 8px 12px;"
+               min="0" step="any">
+      </div>
+
+      <%# ── Tip Summary (shows when tip > 0) ── %>
+      <div id="tip-summary" class="rounded-3 p-2 text-center" style="display: none; background: rgba(197,160,89,0.08); border: 1px solid rgba(197,160,89,0.15);">
+        <span style="font-size: 12px; color: var(--haiti-charcoal); font-weight: 600;">
+          <i class="ri-heart-fill me-1" style="color: var(--haiti-gold);"></i>
+          Poubwa: <span id="tip-display">0</span> <span id="tip-currency-label"><%= currency_label(@asset) %></span>
+          <span style="color: var(--haiti-olive); font-weight: 400;"> → </span>
+          Total: <span id="total-display" class="fw-bold">0</span> <span id="total-currency-label"><%= currency_label(@asset) %></span>
+        </span>
+      </div>
+    </div>
+    <% end %>
+
+    <%# ── Note ── %>
+    <div class="mb-4">
+      <label class="form-label fw-bold" style="color: var(--haiti-charcoal); font-size: 12px;">Nòt <span style="color: var(--haiti-olive); font-weight: 400;">(opsyonèl)</span></label>
+      <textarea id="pay-note" class="form-control" rows="3"
+                style="border: 2px solid rgba(93,99,69,0.15); border-radius: 12px; font-size: 14px; padding: 12px;"
+                placeholder="Sa peman sa a ye pou..." maxlength="280"><%= @note %></textarea>
+    </div>
+
+    <%# ── Pay Button ── %>
+    <% if user_signed_in? %>
+      <a href="#" id="pay-btn" class="btn w-100 rounded-pill py-3 fw-bold"
+         style="background: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 15px;">
+        <i class="ri-send-plane-fill me-2"></i><span id="pay-btn-text">Peye ak Zèllus</span>
+      </a>
+    <% else %>
+      <a href="<%= new_user_session_path %>" class="btn w-100 rounded-pill py-3 fw-bold"
+         style="background: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 15px;">
+        <img src="<%= asset_path('zellus_square.png') %>" style="width: 20px; height: 20px; border-radius: 5px; vertical-align: -3px;" alt="Zèllus" class="me-2">Peye
+      </a>
+    <% end %>
+
+    <%# ── Secure Footer ── %>
+    <div class="text-center mt-3" style="font-size: 11px; color: var(--haiti-olive);">
+      <i class="ri-shield-check-fill me-1" style="color: var(--haiti-gold);"></i>Peman sekirize pa <img src="<%= asset_path('zellus_square.png') %>" style="width: 14px; height: 14px; vertical-align: -2px; border-radius: 3px;" alt="Zèllus"> Zèllus
+    </div>
+  </div>
+
+  <% if user_signed_in? %>
+    <%= form_tag pay_business_path(@business.slug), method: :post, id: "quick-pay-form", style: "display:none;" do %>
+      <%= hidden_field_tag :amount, @amount %>
+      <%= hidden_field_tag :asset, @asset %>
+      <%= hidden_field_tag :note, @note %>
+    <% end %>
+
+    <% if @amount.present? && params[:auto_pay] == "1" %>
+      <script>document.getElementById('quick-pay-form').submit();</script>
+    <% end %>
+  <% end %>
+
+</div>
+
+<script>
+  (function() {
+    var activeAsset = '<%= @asset %>';
+    var cashtag = '<%= @owner.cashtag %>';
+    var bizSlug = '<%= @business.slug %>';
+    var transferUrl = '<%= new_transfer_path %>';
+    var tippable = <%= @show_tips %>;
+    var tipPercent = 0;
+    var customTipAmount = 0;
+    var useCustomTip = false;
+
+    // Currency toggle
+    document.querySelectorAll('.currency-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        activeAsset = this.dataset.asset;
+
+        document.querySelectorAll('.currency-btn').forEach(function(b) {
+          b.style.background = 'transparent';
+          b.style.borderColor = 'rgba(93,99,69,0.15)';
+          b.style.color = 'var(--haiti-olive)';
+        });
+
+        this.style.background = 'var(--haiti-gold)';
+        this.style.borderColor = 'var(--haiti-gold)';
+        this.style.color = 'var(--haiti-charcoal)';
+
+        document.getElementById('currency-label').innerHTML = activeAsset === 'usd' ? 'USD' : 'HTG';
+        updateTipDisplay();
+      });
+    });
+
+    // ── Tip Logic ──
+    if (tippable) {
+      var amountInput = document.getElementById('pay-amount');
+      var tipSection = document.getElementById('tip-section');
+      var tipSummary = document.getElementById('tip-summary');
+      var tipDisplay = document.getElementById('tip-display');
+      var totalDisplay = document.getElementById('total-display');
+      var tipCurrLabel = document.getElementById('tip-currency-label');
+      var totalCurrLabel = document.getElementById('total-currency-label');
+      var customTipInput = document.getElementById('custom-tip-input');
+      var customTipToggle = document.getElementById('custom-tip-toggle');
+
+      // Show/hide tip section based on amount
+      function checkTipVisibility() {
+        var amount = parseFloat(amountInput.value);
+        if (amount > 0) {
+          tipSection.style.display = 'block';
+        } else {
+          tipSection.style.display = 'none';
+          tipSummary.style.display = 'none';
+        }
+        updateTipDisplay();
+      }
+
+      amountInput.addEventListener('input', checkTipVisibility);
+
+      // Show tips on load if amount is pre-filled
+      checkTipVisibility();
+
+      // Tip percentage buttons
+      document.querySelectorAll('.tip-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          tipPercent = parseInt(this.dataset.percent);
+          useCustomTip = false;
+          customTipInput.style.display = 'none';
+          customTipInput.value = '';
+
+          // Active state
+          document.querySelectorAll('.tip-btn').forEach(function(b) {
+            b.style.background = 'transparent';
+            b.style.borderColor = 'rgba(93,99,69,0.15)';
+            b.style.color = 'var(--haiti-olive)';
+          });
+          this.style.background = 'var(--haiti-gold)';
+          this.style.borderColor = 'var(--haiti-gold)';
+          this.style.color = 'var(--haiti-charcoal)';
+
+          // Reset custom toggle
+          customTipToggle.style.background = 'transparent';
+          customTipToggle.style.borderColor = 'rgba(93,99,69,0.15)';
+          customTipToggle.style.color = 'var(--haiti-olive)';
+
+          updateTipDisplay();
+        });
+      });
+
+      // Custom tip toggle
+      customTipToggle.addEventListener('click', function() {
+        useCustomTip = true;
+        tipPercent = 0;
+        customTipInput.style.display = 'block';
+        customTipInput.focus();
+
+        // Active state for custom
+        document.querySelectorAll('.tip-btn').forEach(function(b) {
+          b.style.background = 'transparent';
+          b.style.borderColor = 'rgba(93,99,69,0.15)';
+          b.style.color = 'var(--haiti-olive)';
+        });
+        this.style.background = 'var(--haiti-gold)';
+        this.style.borderColor = 'var(--haiti-gold)';
+        this.style.color = 'var(--haiti-charcoal)';
+
+        updateTipDisplay();
+      });
+
+      // Custom tip input
+      customTipInput.addEventListener('input', function() {
+        customTipAmount = parseFloat(this.value) || 0;
+        updateTipDisplay();
+      });
+    }
+
+    function getBaseAmount() {
+      return parseFloat(document.getElementById('pay-amount').value) || 0;
+    }
+
+    function getTipAmount() {
+      var base = getBaseAmount();
+      if (useCustomTip) return Math.max(0, customTipAmount);
+      if (tipPercent > 0) return Math.round(base * tipPercent / 100 * 100) / 100;
+      return 0;
+    }
+
+    function updateTipDisplay() {
+      if (!tippable) return;
+      var base = getBaseAmount();
+      var tip = getTipAmount();
+      var total = base + tip;
+      var currIcon = activeAsset === 'usd' ? 'USD' : 'HTG';
+      var currText = activeAsset === 'usd' ? 'USD' : 'HTG';
+
+      var tipSummary = document.getElementById('tip-summary');
+      var tipDisplay = document.getElementById('tip-display');
+      var totalDisplay = document.getElementById('total-display');
+      var tipCurrLabel = document.getElementById('tip-currency-label');
+      var totalCurrLabel = document.getElementById('total-currency-label');
+
+      if (tip > 0 && base > 0) {
+        tipSummary.style.display = 'block';
+        tipDisplay.textContent = tip.toLocaleString('fr-HT', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+        totalDisplay.textContent = total.toLocaleString('fr-HT', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+        tipCurrLabel.innerHTML = currIcon;
+        totalCurrLabel.innerHTML = currIcon;
+      } else {
+        tipSummary.style.display = 'none';
+      }
+
+      // Update pay button text with total
+      var payBtnText = document.getElementById('pay-btn-text');
+      if (payBtnText) {
+        if (total > 0 && tip > 0) {
+          payBtnText.textContent = 'Peye ' + total.toLocaleString('fr-HT') + ' ' + currText;
+        } else if (base > 0) {
+          payBtnText.textContent = 'Peye ' + base.toLocaleString('fr-HT') + ' ' + currText;
+        } else {
+          payBtnText.textContent = 'Peye ak Zèllus';
+        }
+      }
+    }
+
+    // Pay button
+    var payBtn = document.getElementById('pay-btn');
+    if (payBtn) {
+      payBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        var amount = getBaseAmount();
+        var tip = getTipAmount();
+        var totalAmount = amount + tip;
+        var note = document.getElementById('pay-note').value;
+
+        if (!amount || amount <= 0) {
+          document.getElementById('pay-amount').focus();
+          document.getElementById('pay-amount').style.borderColor = '#D21034';
+          setTimeout(function() { document.getElementById('pay-amount').style.borderColor = 'rgba(93,99,69,0.15)'; }, 2000);
+          return;
+        }
+
+        <% if user_signed_in? %>
+        // Logged in: POST to quick_pay → creates transfer → review page
+        var qpForm = document.getElementById('quick-pay-form');
+        qpForm.querySelector('[name="amount"]').value = totalAmount;
+        qpForm.querySelector('[name="asset"]').value = activeAsset;
+        qpForm.querySelector('[name="note"]').value = note;
+        if (tip > 0) {
+          var tipInp = document.createElement('input');
+          tipInp.type = 'hidden'; tipInp.name = 'tip_amount'; tipInp.value = tip;
+          qpForm.appendChild(tipInp);
+        }
+        qpForm.submit();
+        <% else %>
+        // Not logged in: redirect to login
+        window.location.href = '<%= new_user_session_path %>';
+        <% end %>
+      });
+    }
+  })();
+</script>

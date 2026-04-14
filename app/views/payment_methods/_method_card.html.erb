@@ -1,0 +1,136 @@
+<%# ═══════════════════════════════════════════════════════
+    Ghost Card — light border, compact horizontal layout
+    Default method gets accent border + badge
+    ═══════════════════════════════════════════════════════ %>
+<div class="pm-card <%= 'pm-card-default' if pm.is_default? %> <%= 'pm-card-inactive' unless pm.active? %>">
+
+  <%# ── Main row: icon + info + status + actions ── %>
+  <div class="d-flex align-items-center gap-3">
+
+    <%# Provider icon %>
+    <div class="pm-card-icon">
+      <% if pm.mobile_wallet? %>
+        <i class="ri-phone-line"></i>
+      <% elsif pm.bank_account? %>
+        <i class="ri-bank-line"></i>
+      <% else %>
+        <i class="ri-wallet-3-line"></i>
+      <% end %>
+    </div>
+
+    <%# Info block %>
+    <div class="flex-grow-1" style="min-width: 0;">
+      <div class="d-flex align-items-center gap-2">
+        <span class="fw-bold text-truncate" style="font-size: 13px; color: var(--haiti-charcoal);"><%= pm.display_label %></span>
+        <% if pm.is_default? %>
+          <span class="pm-badge-default"><i class="ri-star-fill" style="font-size: 8px;"></i> Prensipal</span>
+        <% end %>
+        <span class="pm-badge-status ms-auto flex-shrink-0 <%= pm.active? ? 'pm-badge-active' : 'pm-badge-inactive' %>">
+          <%= pm.active? ? 'Aktif' : 'Inaktif' %>
+        </span>
+      </div>
+      <div style="color: var(--haiti-olive); font-size: 11px; margin-top: 1px;">
+        <% if pm.mobile_wallet? %>
+          <%= pm.masked_account_number %>
+        <% elsif pm.bank_account? %>
+          <%= pm.masked_bank_account %><% if pm.account_holder_name.present? %> &middot; <%= pm.account_holder_name %><% end %>
+        <% else %>
+          <code style="font-size: 10px; color: var(--haiti-olive);"><%= pm.masked_wallet_address %></code>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <%# ── Action row: edit + set default + toggle + delete ── %>
+  <div class="pm-card-actions">
+    <%# Edit %>
+    <button type="button" class="pm-action-btn pm-action-edit" title="Modifye" onclick="toggleEditForm('<%= pm.token %>')">
+      <i class="ri-pencil-line"></i>
+    </button>
+
+    <%# Set as default (only show if not already default and is active) %>
+    <% if pm.active? && !pm.is_default? %>
+      <%= form_with model: pm, url: set_default_payment_method_path(pm), method: :patch, local: true, style: "display: inline;" do %>
+        <button type="submit" class="pm-action-btn pm-action-star" title="Fè'l prensipal">
+          <i class="ri-star-line"></i>
+        </button>
+      <% end %>
+    <% elsif pm.is_default? %>
+      <span class="pm-action-btn pm-action-star-active" title="Metod prensipal">
+        <i class="ri-star-fill"></i>
+      </span>
+    <% end %>
+
+    <%# Toggle active/inactive — with confirmation %>
+    <%= form_with model: pm, url: payment_method_path(pm), method: :patch, local: true, style: "display: inline;",
+        html: { data: { confirm_msg: pm.active? ? "Dezaktive #{pm.display_label}?" : "Aktive #{pm.display_label}?",
+                         confirm_desc: pm.active? ? "Ou pap kapab itilize metod sa a pou voye oswa resevwa lajan." : "Metod sa a ap tounen disponib pou peman.",
+                         confirm_type: pm.active? ? "warning" : "info" } } do |f| %>
+      <%= f.hidden_field :active, value: !pm.active? %>
+      <button type="submit" class="pm-action-btn pm-action-toggle" title="<%= pm.active? ? 'Dezaktive' : 'Aktive' %>">
+        <i class="<%= pm.active? ? 'ri-toggle-fill' : 'ri-toggle-line' %>" style="font-size: 20px; color: <%= pm.active? ? '#22c55e' : 'rgba(93,99,69,0.3)' %>;"></i>
+      </button>
+    <% end %>
+
+    <%# Delete — with confirmation %>
+    <%= form_with url: payment_method_path(pm), method: :delete, local: true, style: "display: inline;",
+        html: { data: { confirm_msg: "Retire #{pm.display_label}?",
+                         confirm_desc: "Aksyon sa a pa ka defèt. Metod peman sa a ap efase nèt.",
+                         confirm_type: "danger" } } do %>
+      <button type="submit" class="pm-action-btn pm-action-delete" title="Retire">
+        <i class="ri-delete-bin-6-line"></i>
+      </button>
+    <% end %>
+  </div>
+
+  <%# ── Inline Edit Form (hidden by default) ── %>
+  <div id="pm-edit-<%= pm.token %>" class="pm-form-panel" style="display: none; margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(93,99,69,0.08);">
+    <%= form_with model: pm, url: payment_method_path(pm), method: :patch, local: true, class: "d-grid gap-2" do |f| %>
+      <% if pm.mobile_wallet? %>
+        <div>
+          <label class="form-label small fw-bold text-uppercase mb-1" style="color: var(--haiti-olive); font-size: 9px; letter-spacing: 1px;">Nimewo MonCash</label>
+          <%= f.text_field :account_number, value: pm.account_number, inputmode: "tel",
+              class: "form-control fw-bold shadow-none p-3",
+              style: "background-color: var(--haiti-mint); color: var(--haiti-charcoal); border: 1.5px solid rgba(46,46,56,0.12); border-radius: 10px; font-size: 13px;" %>
+        </div>
+      <% elsif pm.bank_account? %>
+        <div>
+          <label class="form-label small fw-bold text-uppercase mb-1" style="color: var(--haiti-olive); font-size: 9px; letter-spacing: 1px;">Nimewo Kont</label>
+          <%= f.text_field :bank_account_number, value: pm.bank_account_number,
+              class: "form-control fw-bold shadow-none p-3",
+              style: "background-color: var(--haiti-mint); color: var(--haiti-charcoal); border: 1.5px solid rgba(46,46,56,0.12); border-radius: 10px; font-size: 13px;" %>
+        </div>
+        <div>
+          <label class="form-label small fw-bold text-uppercase mb-1" style="color: var(--haiti-olive); font-size: 9px; letter-spacing: 1px;">Non sou Kont</label>
+          <%= f.text_field :account_holder_name, value: pm.account_holder_name, placeholder: "egz. Jean Pierre",
+              class: "form-control fw-bold shadow-none p-3",
+              style: "background-color: var(--haiti-mint); color: var(--haiti-charcoal); border: 1.5px solid rgba(46,46,56,0.12); border-radius: 10px; font-size: 13px;" %>
+        </div>
+      <% else %>
+        <div>
+          <label class="form-label small fw-bold text-uppercase mb-1" style="color: var(--haiti-olive); font-size: 9px; letter-spacing: 1px;">Adrès Potfey</label>
+          <%= f.text_field :wallet_address, value: pm.wallet_address,
+              class: "form-control fw-bold shadow-none p-3",
+              style: "background-color: var(--haiti-mint); color: var(--haiti-charcoal); border: 1.5px solid rgba(46,46,56,0.12); border-radius: 10px; font-size: 12px;" %>
+        </div>
+      <% end %>
+      <div>
+        <label class="form-label small fw-bold text-uppercase mb-1" style="color: var(--haiti-olive); font-size: 9px; letter-spacing: 1px;">Etikèt</label>
+        <%= f.text_field :label, value: pm.label, placeholder: "egz. MonCash Mwen",
+            class: "form-control fw-bold shadow-none p-3",
+            style: "background-color: var(--haiti-mint); color: var(--haiti-charcoal); border: 1.5px solid rgba(46,46,56,0.12); border-radius: 10px; font-size: 13px;" %>
+      </div>
+      <div class="d-flex gap-2">
+        <button type="submit" class="btn flex-grow-1 py-3 fw-bold rounded-3 border-0"
+                style="background-color: var(--haiti-gold); color: var(--haiti-charcoal); font-family: 'Space Grotesk', sans-serif; font-size: 13px;">
+          <i class="ri-check-line me-1"></i>Anrejistre
+        </button>
+        <button type="button" class="btn flex-grow-1 py-3 fw-bold rounded-3"
+                style="background: transparent; color: var(--haiti-olive); border: 1.5px solid rgba(93,99,69,0.15); font-size: 13px;"
+                onclick="toggleEditForm('<%= pm.token %>')">
+          Anile
+        </button>
+      </div>
+    <% end %>
+  </div>
+</div>

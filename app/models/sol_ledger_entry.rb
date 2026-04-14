@@ -5,7 +5,7 @@ class SolLedgerEntry < ApplicationRecord
   belongs_to :reference, polymorphic: true, optional: true
 
   ENTRY_TYPES = %w[deposit payout platform_fee creator_fee refund].freeze
-  ASSETS = %w[htg usdc].freeze
+  ASSETS = %w[htg usd].freeze
 
   validates :entry_type, presence: true, inclusion: { in: ENTRY_TYPES }
   validates :asset, presence: true, inclusion: { in: ASSETS }

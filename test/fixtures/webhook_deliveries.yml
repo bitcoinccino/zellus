@@ -1,0 +1,17 @@
+pending_delivery:
+  oauth_client: zellus_partner
+  event: "transfer.completed"
+  delivery_id: "test-delivery-001"
+  payload: '{"token":"abc123","status":"completed","amount":"100.0"}'
+  status: "pending"
+  attempts: 0
+
+delivered_delivery:
+  oauth_client: zellus_partner
+  event: "transfer.received"
+  delivery_id: "test-delivery-002"
+  payload: '{"token":"abc456","status":"completed","amount":"200.0"}'
+  status: "delivered"
+  attempts: 1
+  response_status: 200
+  delivered_at: <%= 1.hour.ago.iso8601 %>

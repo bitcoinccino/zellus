@@ -1,0 +1,197 @@
+<%#
+  ⚡ Zèllus Lightning Loader — Power Charge (first page load only)
+  The Z bolt charges from bottom to top, then reveals the page.
+  Navigation and form submissions use the standard overlay spinner.
+%>
+
+<style>
+  /* ══════════════════════════════════════════════════
+     LIGHTNING LOADER
+     ══════════════════════════════════════════════════ */
+  #zellus-loader {
+    position: fixed; inset: 0; z-index: 10000;
+    background: #2E2E38;
+    display: flex;
+    align-items: center; justify-content: center;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  #zellus-loader.hidden { display: none; }
+  #zellus-loader.fade-out {
+    animation: zl-fade-out 0.5s ease-out forwards;
+  }
+  @keyframes zl-fade-out {
+    0%   { opacity: 1; }
+    100% { opacity: 0; }
+  }
+
+  .zl-container {
+    position: relative;
+    width: 160px; height: 160px;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .zl-bolt {
+    position: relative;
+    z-index: 3;
+    width: 72px; height: 72px;
+  }
+
+  /* Glow ring */
+  .zl-glow {
+    position: absolute;
+    width: 160px; height: 160px;
+    border-radius: 50%;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1;
+    background: radial-gradient(circle, rgba(197,160,89,0.35) 0%, rgba(197,160,89,0) 70%);
+    opacity: 0;
+    animation: zl-charge-ring 1.8s ease-out 0.4s forwards;
+  }
+
+  /* Brand name */
+  .zl-brand {
+    margin-top: 24px;
+    color: #C5A059;
+    font-family: 'Space Grotesk', 'Plus Jakarta Sans', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    opacity: 0;
+    animation: zl-charge-text 0.6s ease-out 1.2s forwards;
+  }
+
+  /* Status text */
+  .zl-text {
+    margin-top: 8px;
+    color: rgba(197,160,89,0.6);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    opacity: 0;
+    animation: zl-charge-text 0.5s ease-out 1.5s forwards;
+  }
+
+  /* ── Charge Animations ── */
+  @keyframes zl-charge-ring {
+    0%   { opacity: 0; transform: translate(-50%,-50%) scale(0.4); }
+    40%  { opacity: 0.8; transform: translate(-50%,-50%) scale(1.1); }
+    60%  { opacity: 1; transform: translate(-50%,-50%) scale(1.3); }
+    80%  { opacity: 0.6; transform: translate(-50%,-50%) scale(1); }
+    100% { opacity: 0.4; transform: translate(-50%,-50%) scale(1); }
+  }
+
+  @keyframes zl-charge-text {
+    0%   { opacity: 0; transform: translateY(10px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Gentle pulse after charge completes */
+  @keyframes zl-glow-pulse {
+    0%, 100% { opacity: 0.3; transform: translate(-50%,-50%) scale(1); }
+    50%      { opacity: 0.7; transform: translate(-50%,-50%) scale(1.15); }
+  }
+
+  /* Ambient particles */
+  .zl-particle {
+    position: absolute;
+    width: 2px; height: 2px;
+    border-radius: 50%;
+    background: #C5A059;
+    opacity: 0;
+    z-index: 0;
+  }
+  @keyframes zl-particle-float {
+    0%   { opacity: 0; transform: translateY(0) scale(0.5); }
+    30%  { opacity: 0.6; }
+    100% { opacity: 0; transform: translateY(-80px) scale(0); }
+  }
+</style>
+
+<%# ── The Lightning Loader (visible by default on page load) ── %>
+<div id="zellus-loader">
+  <div class="zl-container">
+    <div class="zl-glow"></div>
+    <div class="zl-bolt">
+      <svg viewBox="100 60 185 265" xmlns="http://www.w3.org/2000/svg" width="72" height="72">
+        <defs>
+          <%# Charge gradient: gold sweeps upward from dark %>
+          <linearGradient id="zl-bolt-charge" x1="0" y1="1" x2="0" y2="0">
+            <stop offset="0%" stop-color="#FFD54F">
+              <animate attributeName="offset" values="0;1" dur="1.4s" fill="freeze"/>
+            </stop>
+            <stop offset="0%" stop-color="#C5A059">
+              <animate attributeName="offset" values="0;1" dur="1.4s" fill="freeze"/>
+            </stop>
+            <stop offset="0%" stop-color="rgba(197,160,89,0.15)">
+              <animate attributeName="offset" values="0;1" dur="1.4s" fill="freeze"/>
+            </stop>
+          </linearGradient>
+          <filter id="zl-bolt-shadow" x="-30%" y="-30%" width="160%" height="160%">
+            <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#C5A059" flood-opacity="0.8"/>
+          </filter>
+        </defs>
+        <path id="zl-bolt-path"
+              d="M 234 73 L 115 200 L 180 200 L 150 311 L 269 184 L 204 184 Z"
+              fill="url(#zl-bolt-charge)"
+              stroke="rgba(197,160,89,0.3)"
+              stroke-width="2"
+              stroke-linejoin="round"/>
+      </svg>
+    </div>
+  </div>
+  <div class="zl-brand">Zèllus</div>
+  <div class="zl-text">Chaje..</div>
+</div>
+
+<script>
+// ⚡ Lightning Loader API (charge mode only)
+(function() {
+  var loader = document.getElementById('zellus-loader');
+  var container = loader.querySelector('.zl-container');
+  var glow = loader.querySelector('.zl-glow');
+  var boltPath = document.getElementById('zl-bolt-path');
+  var particleInterval;
+
+  // Start particles immediately
+  particleInterval = setInterval(function() {
+    var p = document.createElement('div');
+    p.className = 'zl-particle';
+    p.style.left = 'calc(50% + ' + (Math.random() * 80 - 40) + 'px)';
+    p.style.top = 'calc(50% + ' + (Math.random() * 40) + 'px)';
+    var dur = 1 + Math.random() * 1.5;
+    p.style.animation = 'zl-particle-float ' + dur + 's ease-out forwards';
+    container.appendChild(p);
+    setTimeout(function() { p.remove(); }, dur * 1000 + 100);
+  }, 200);
+
+  // Add glow filter after charge completes
+  setTimeout(function() {
+    if (boltPath) boltPath.setAttribute('filter', 'url(#zl-bolt-shadow)');
+    if (boltPath) boltPath.setAttribute('stroke', 'none');
+    if (glow) glow.style.animation = 'zl-glow-pulse 2.5s ease-in-out infinite';
+  }, 1600);
+
+  window.ZellusSplash = {
+    fadeOut: function(cb) {
+      clearInterval(particleInterval);
+      loader.classList.add('fade-out');
+      setTimeout(function() {
+        loader.classList.add('hidden');
+        loader.classList.remove('fade-out');
+        if (cb) cb();
+      }, 550);
+    },
+    hide: function() {
+      clearInterval(particleInterval);
+      loader.classList.add('hidden');
+    }
+  };
+
+  // Record start time for minimum display calculation
+  window.__zellusChargeStart = Date.now();
+})();
+</script>

@@ -4,10 +4,13 @@ class Wallet < ApplicationRecord
 
   enum :status, { open: 0, held: 1, closed: 2 }
 
-  ASSETS = %w[htg usdc eth wbtc].freeze
+  ASSETS = %w[htg usd eth wbtc].freeze
+
+  # DB column is usdc_balance; alias to usd_balance for codebase consistency
+  alias_attribute :usd_balance, :usdc_balance
 
   validates :htg_balance,  numericality: { greater_than_or_equal_to: 0 }
-  validates :usdc_balance, numericality: { greater_than_or_equal_to: 0 }
+  validates :usd_balance, numericality: { greater_than_or_equal_to: 0 }
   validates :eth_balance,  numericality: { greater_than_or_equal_to: 0 }
   validates :wbtc_balance, numericality: { greater_than_or_equal_to: 0 }
 
@@ -15,7 +18,7 @@ class Wallet < ApplicationRecord
   def balance_for(asset)
     case asset.to_s
     when "htg"  then htg_balance
-    when "usdc" then usdc_balance
+    when "usd" then usd_balance
     when "eth"  then eth_balance
     when "wbtc" then wbtc_balance
     else BigDecimal("0")

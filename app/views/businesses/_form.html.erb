@@ -1,11 +1,12 @@
-<%# ── Shared Business Form Partial ── %>
+<%# ── 3-Step Business Registration Form ── %>
 
-<%= form_with(model: @business, url: @business.new_record? ? business_path : business_path, method: @business.new_record? ? :post : :patch, local: true, class: "needs-validation") do |f| %>
+<%= form_with(model: @business, url: @business.new_record? ? business_path : business_path,
+    method: @business.new_record? ? :post : :patch, local: true, multipart: true, id: "biz-form") do |f| %>
 
   <% if @business.errors.any? %>
     <div class="rounded-3 p-3 mb-3" style="background: #fee2e2; border: 1px solid #fca5a5;">
       <div class="fw-bold mb-1" style="color: #991b1b; font-size: 13px;">
-        <i class="ri-error-warning-line me-1"></i><%= pluralize(@business.errors.count, "erè") %> anpeche biznis ou anrejistre:
+        <i class="ri-error-warning-line me-1"></i><%= pluralize(@business.errors.count, "ere") %> anpeche biznis ou anrejistre:
       </div>
       <ul class="mb-0 ps-3" style="font-size: 12px; color: #991b1b;">
         <% @business.errors.full_messages.each do |msg| %>
@@ -15,122 +16,807 @@
     </div>
   <% end %>
 
-  <%# ── Business Name ── %>
-  <div class="mb-3">
-    <label class="form-label fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;">
-      <i class="ri-store-2-line me-1" style="color: var(--haiti-gold);"></i>Non Biznis
-    </label>
-    <%= f.text_field :name, class: "form-control", placeholder: "Ex: Ti Machann Lakay", style: "border-color: var(--haiti-olive); font-size: 14px;" %>
-  </div>
+  <%# ══════════════════════════════════════════════════════════ %>
+  <%# ══  PATI 1: Idantite Biznis la                        ══ %>
+  <%# ══════════════════════════════════════════════════════════ %>
+  <div id="biz-step-1">
 
-  <%# ── Slug ── %>
-  <div class="mb-3">
-    <label class="form-label fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;">
-      <i class="ri-link me-1" style="color: var(--haiti-gold);"></i>Lyen Piblik (slug)
-    </label>
-    <div class="input-group">
-      <span class="input-group-text" style="background: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 12px;">b/</span>
-      <%= f.text_field :slug, class: "form-control", placeholder: "ti-machann-lakay", style: "border-color: var(--haiti-olive); font-size: 14px;" %>
+    <div class="text-center mb-1" style="color: var(--haiti-olive); font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;">
+      PATI 1 — IDANTITE BIZNIS LA
     </div>
-    <div class="form-text" style="font-size: 11px; color: var(--haiti-olive);">Sa a se lyen kliyan ou yo pral itilize: priotelus.com/b/slug-ou</div>
-  </div>
 
-  <%# ── Logo Upload ── %>
-  <div class="mb-3">
-    <label class="form-label fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;">
-      <i class="ri-image-line me-1" style="color: var(--haiti-gold);"></i>Logo Biznis
-    </label>
-    <% if @business.logo.attached? %>
-      <div class="mb-2">
-        <%= image_tag @business.logo, class: "rounded-circle", style: "width: 60px; height: 60px; object-fit: cover; border: 2px solid var(--haiti-olive);" %>
+    <%# ── Logo Upload ── %>
+    <div class="text-center mb-3 mt-3">
+      <div class="position-relative d-inline-block">
+        <div id="logo-preview-container"
+             style="width: 90px; height: 90px; border-radius: 20px; border: 3px dashed var(--haiti-olive); overflow: hidden; background: var(--haiti-mint); display: flex; align-items: center; justify-content: center; cursor: pointer;"
+             onclick="document.getElementById('business_logo').click();">
+          <% if @business.logo.attached? %>
+            <%= image_tag @business.logo, style: "width: 100%; height: 100%; object-fit: cover;" %>
+          <% else %>
+            <i class="ri-image-add-line" style="font-size: 2rem; color: var(--haiti-olive);" id="logo-placeholder"></i>
+          <% end %>
+        </div>
+        <label for="business_logo" class="position-absolute d-flex align-items-center justify-content-center rounded-circle"
+               style="bottom: -4px; right: -4px; width: 28px; height: 28px; background: var(--haiti-gold); border: 2px solid white; cursor: pointer;">
+          <i class="ri-camera-line" style="color: var(--haiti-charcoal); font-size: 13px;"></i>
+        </label>
+        <%= f.file_field :logo, accept: "image/*", id: "business_logo", style: "display: none;" %>
       </div>
-    <% end %>
-    <%= f.file_field :logo, class: "form-control", accept: "image/*", style: "border-color: var(--haiti-olive); font-size: 13px;" %>
+      <div class="small mt-1" style="color: var(--haiti-olive); font-size: 10px;">
+        <i class="ri-information-line me-1"></i>Logo biznis ou (maks 2MB)
+      </div>
+    </div>
+
+    <%# ── Non Biznis ── %>
+    <div class="mb-3">
+      <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 0.5px;">
+        <i class="ri-store-2-line me-1"></i>NON BIZNIS *
+      </label>
+      <%= f.text_field :name, placeholder: "Egzanp: Ti Machin Boutik", maxlength: 80, required: true,
+          class: "form-control shadow-none rounded-3", id: "business_name",
+          style: "border: 2px solid var(--haiti-olive); background-color: var(--haiti-cream); color: var(--haiti-charcoal); font-size: 13px;" %>
+    </div>
+
+    <%# ── Slug ── %>
+    <div class="mb-3">
+      <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 0.5px;">
+        <i class="ri-link me-1"></i>LYEN PIBLIK (SLUG) *
+      </label>
+      <div class="input-group">
+        <span class="input-group-text fw-bold rounded-start-3" style="background-color: var(--haiti-charcoal); border: 2px solid var(--haiti-charcoal); color: var(--haiti-gold); font-size: 11px;">zellus.com/b/</span>
+        <%= f.text_field :slug, maxlength: 40, required: true, id: "business_slug",
+            class: "form-control shadow-none rounded-end-3",
+            style: "border: 2px solid var(--haiti-olive); background-color: var(--haiti-cream); color: var(--haiti-charcoal); font-size: 13px;" %>
+      </div>
+      <div id="slug-availability" class="small mt-1" style="font-size: 10px; min-height: 14px;"></div>
+    </div>
+
+    <%# ── Deskripsyon ── %>
+    <div class="mb-3">
+      <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 0.5px;">
+        <i class="ri-file-text-line me-1"></i>DESKRIPSYON *
+      </label>
+      <%= f.text_area :description, placeholder: "Dekri biznis ou an 2-3 fraz...", maxlength: 200, rows: 3, required: true,
+          class: "form-control shadow-none rounded-3", id: "business_description",
+          style: "border: 2px solid var(--haiti-olive); background-color: var(--haiti-cream); color: var(--haiti-charcoal); font-size: 13px; resize: none;" %>
+      <div class="text-end small mt-1" style="font-size: 10px; color: var(--haiti-olive);">
+        <span id="desc-count">0</span>/200
+      </div>
+    </div>
+
+    <%# ── Sekte (Master Category) ── %>
+    <div class="mb-3">
+      <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 0.5px;">
+        <i class="ri-apps-line me-1"></i>SEKTE *
+      </label>
+      <%= f.select :category,
+          Business::CATEGORIES.map { |k, v| [v[:label], k] },
+          { include_blank: "-- Chwazi sekte --", selected: @business.category },
+          { class: "form-select shadow-none rounded-3", id: "business_category", required: true,
+            style: "border: 2px solid var(--haiti-olive); background-color: var(--haiti-cream); color: var(--haiti-charcoal); font-size: 13px;" } %>
+    </div>
+
+    <%# ── Sou-Kategori ── %>
+    <div class="mb-3">
+      <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 0.5px;">
+        <i class="ri-list-check me-1"></i>SOU-KATEGORI *
+      </label>
+      <select name="business[subcategory]" id="business_subcategory" required
+              class="form-select shadow-none rounded-3"
+              style="border: 2px solid var(--haiti-olive); background-color: var(--haiti-cream); color: var(--haiti-charcoal); font-size: 13px;">
+        <option value="">-- Chwazi sou-kategori --</option>
+      </select>
+    </div>
+
+    <%# ── Next Button ── %>
+    <div class="d-grid mt-4">
+      <button type="button" class="btn btn-lg fw-bold py-3 rounded-3" data-biz-next
+              style="background: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 14px;">
+        Kontinye <i class="ri-arrow-right-line ms-1"></i>
+      </button>
+    </div>
   </div>
 
-  <%# ── Category Picker ── %>
-  <div class="mb-3">
-    <label class="form-label fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;">
-      <i class="ri-apps-line me-1" style="color: var(--haiti-gold);"></i>Kategori
-    </label>
-    <div class="d-flex flex-wrap gap-2">
-      <% Business::CATEGORIES.each do |key, meta| %>
-        <label class="category-pill" style="cursor: pointer;">
-          <%= f.radio_button :category, key, class: "btn-check", id: "cat_#{key}" %>
-          <span class="d-inline-flex align-items-center gap-1 px-3 py-2 rounded-pill border"
-                style="font-size: 12px; font-weight: 600; transition: all 0.2s;
-                       <%= @business.category == key.to_s ? "background: var(--haiti-charcoal); color: var(--haiti-gold); border-color: var(--haiti-charcoal);" : "background: white; color: var(--haiti-charcoal); border-color: rgba(93,99,69,0.2);" %>">
-            <i class="<%= meta[:icon] %>" style="font-size: 14px;"></i>
-            <%= meta[:label] %>
+  <%# ══════════════════════════════════════════════════════════ %>
+  <%# ══  PATI 2: Kote w ye ak Kijan pou kontakte w         ══ %>
+  <%# ══════════════════════════════════════════════════════════ %>
+  <div id="biz-step-2" style="display: none;">
+
+    <div class="text-center mb-1" style="color: var(--haiti-olive); font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;">
+      PATI 2 — KOTE W YE & KONTAK
+    </div>
+
+    <%# ── Back Button ── %>
+    <button type="button" class="btn btn-sm rounded-pill mb-3 mt-2 fw-bold" data-biz-back
+            style="background: rgba(93,99,69,0.08); color: var(--haiti-olive); font-size: 12px;">
+      <i class="ri-arrow-left-line me-1"></i>Retounen
+    </button>
+
+    <%# ── Depatman ── %>
+    <div class="mb-3">
+      <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 0.5px;">
+        <i class="ri-map-pin-line me-1"></i>DEPATMAN *
+      </label>
+      <%= f.select :department,
+          Business::NESTED_ADDRESSES.keys.sort.map { |d| [d, d] },
+          { include_blank: "-- Chwazi depatman --", selected: @business.department },
+          { class: "form-select shadow-none rounded-3", id: "business_department", required: true,
+            style: "border: 2px solid var(--haiti-olive); background-color: var(--haiti-cream); color: var(--haiti-charcoal); font-size: 13px;" } %>
+    </div>
+
+    <%# ── Arondissement ── %>
+    <div class="mb-3">
+      <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 0.5px;">
+        <i class="ri-map-2-line me-1"></i>ARONDISSEMENT *
+      </label>
+      <select name="business[arrondissement]" id="business_arrondissement" required
+              class="form-select shadow-none rounded-3"
+              style="border: 2px solid var(--haiti-olive); background-color: var(--haiti-cream); color: var(--haiti-charcoal); font-size: 13px;">
+        <option value="">-- Chwazi arondissement --</option>
+      </select>
+    </div>
+
+    <%# ── Komin ── %>
+    <div class="mb-3">
+      <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 0.5px;">
+        <i class="ri-community-line me-1"></i>KOMIN *
+      </label>
+      <select name="business[commune]" id="business_commune" required
+              class="form-select shadow-none rounded-3"
+              style="border: 2px solid var(--haiti-olive); background-color: var(--haiti-cream); color: var(--haiti-charcoal); font-size: 13px;">
+        <option value="">-- Chwazi komin --</option>
+      </select>
+    </div>
+
+    <%# ── Seksyon Komin ── %>
+    <div class="mb-3">
+      <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 0.5px;">
+        <i class="ri-layout-grid-line me-1"></i>SEKSYON KOMIN *
+      </label>
+      <select name="business[section]" id="business_section" required
+              class="form-select shadow-none rounded-3"
+              style="border: 2px solid var(--haiti-olive); background-color: var(--haiti-cream); color: var(--haiti-charcoal); font-size: 13px;">
+        <option value="">-- Chwazi seksyon --</option>
+      </select>
+    </div>
+
+    <%# ── Adres konple (Street / Postal) ── %>
+    <div class="mb-3">
+      <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 0.5px;">
+        <i class="ri-road-map-line me-1"></i>ADRES KONPLE *
+      </label>
+      <%= f.text_field :address, placeholder: "Rue Rebbeca #12 HT1110", required: true,
+          class: "form-control shadow-none rounded-3",
+          style: "border: 2px solid var(--haiti-olive); background-color: var(--haiti-cream); color: var(--haiti-charcoal); font-size: 13px;" %>
+      <div class="small mt-1" style="color: var(--haiti-olive); font-size: 10px;">Ri, nimewo, kod postal</div>
+    </div>
+
+    <%# ── Telefon ── %>
+    <div class="mb-3">
+      <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 0.5px;">
+        <i class="ri-phone-line me-1"></i>TELEFON *
+      </label>
+      <%= f.text_field :phone, placeholder: "+50937XXXXXX", required: true,
+          class: "form-control shadow-none rounded-3",
+          style: "border: 2px solid var(--haiti-olive); background-color: var(--haiti-cream); color: var(--haiti-charcoal); font-size: 13px;" %>
+    </div>
+
+    <%# ── Edtan Ouveti ── %>
+    <div class="mb-3">
+      <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 0.5px;">
+        <i class="ri-time-line me-1"></i>EDTAN OUVETI
+      </label>
+      <div class="small mb-2" style="color: var(--haiti-olive); font-size: 10px;">Opsyonel — chwazi jou ak lè biznis ou ouvri</div>
+      <% days = [["Lendi", "lendi"], ["Madi", "madi"], ["Mekredi", "mekredi"], ["Jedi", "jedi"], ["Vandredi", "vandredi"], ["Samdi", "samdi"], ["Dimanch", "dimanch"]] %>
+      <% hours_data = begin; JSON.parse(@business.hours.presence || "{}"); rescue; {}; end %>
+      <div class="d-flex flex-column gap-2" id="hours-grid">
+        <% days.each do |label, key| %>
+          <div class="d-flex align-items-center gap-2">
+            <div class="form-check" style="min-width: 90px;">
+              <input type="checkbox" class="form-check-input hours-day-toggle" id="hours_<%= key %>"
+                     data-day="<%= key %>" style="border-color: var(--haiti-olive);"
+                     <%= hours_data[key] ? "checked" : "" %>>
+              <label class="form-check-label fw-bold" for="hours_<%= key %>" style="font-size: 12px; color: var(--haiti-charcoal);"><%= label %></label>
+            </div>
+            <select class="form-select form-select-sm shadow-none rounded-3 hours-open" data-day="<%= key %>"
+                    style="border: 2px solid var(--haiti-olive); background-color: var(--haiti-cream); font-size: 11px; max-width: 100px; <%= hours_data[key] ? '' : 'opacity: 0.4; pointer-events: none;' %>">
+              <% (5..22).each do |h| %>
+                <% formatted = "#{h > 12 ? h - 12 : h}:00 #{h >= 12 ? 'PM' : 'AM'}" %>
+                <option value="<%= formatted %>" <%= hours_data.dig(key, "open") == formatted ? "selected" : (formatted == "8:00 AM" && !hours_data[key] ? "selected" : "") %>><%= formatted %></option>
+              <% end %>
+            </select>
+            <span style="font-size: 11px; color: var(--haiti-olive);">—</span>
+            <select class="form-select form-select-sm shadow-none rounded-3 hours-close" data-day="<%= key %>"
+                    style="border: 2px solid var(--haiti-olive); background-color: var(--haiti-cream); font-size: 11px; max-width: 100px; <%= hours_data[key] ? '' : 'opacity: 0.4; pointer-events: none;' %>">
+              <% (5..23).each do |h| %>
+                <% formatted = "#{h > 12 ? h - 12 : h}:00 #{h >= 12 ? 'PM' : 'AM'}" %>
+                <option value="<%= formatted %>" <%= hours_data.dig(key, "close") == formatted ? "selected" : (formatted == "5:00 PM" && !hours_data[key] ? "selected" : "") %>><%= formatted %></option>
+              <% end %>
+            </select>
+          </div>
+        <% end %>
+      </div>
+      <%= f.hidden_field :hours, id: "business_hours_json" %>
+    </div>
+
+    <%# ── Imel Kontak ── %>
+    <div class="mb-3">
+      <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 0.5px;">
+        <i class="ri-mail-line me-1"></i>IMEL KONTAK *
+      </label>
+      <%= f.email_field :email, placeholder: "biznis@egzanp.com", required: true,
+          class: "form-control shadow-none rounded-3",
+          style: "border: 2px solid var(--haiti-olive); background-color: var(--haiti-cream); color: var(--haiti-charcoal); font-size: 13px;" %>
+    </div>
+
+    <%# ── Rezo Sosyal / Sitweb ── %>
+    <div class="mb-3">
+      <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 0.5px;">
+        <i class="ri-global-line me-1"></i>REZO SOSYAL / SITWEB
+      </label>
+      <div class="d-flex flex-column gap-2">
+        <div class="input-group input-group-sm">
+          <span class="input-group-text rounded-start-3" style="background: var(--haiti-mint); border: 2px solid var(--haiti-olive); border-right: 0; color: var(--haiti-olive); font-size: 12px;">
+            <i class="ri-instagram-line"></i>
+          </span>
+          <input type="text" name="business[social_media][instagram]" placeholder="@biznis_ou"
+                 value="<%= @business.social_media&.dig('instagram') %>"
+                 class="form-control shadow-none rounded-end-3"
+                 style="border: 2px solid var(--haiti-olive); border-left: 0; background-color: var(--haiti-cream); font-size: 12px;">
+        </div>
+        <div class="input-group input-group-sm">
+          <span class="input-group-text rounded-start-3" style="background: var(--haiti-mint); border: 2px solid var(--haiti-olive); border-right: 0; color: var(--haiti-olive); font-size: 12px;">
+            <i class="ri-facebook-circle-line"></i>
+          </span>
+          <input type="text" name="business[social_media][facebook]" placeholder="facebook.com/biznis-ou"
+                 value="<%= @business.social_media&.dig('facebook') %>"
+                 class="form-control shadow-none rounded-end-3"
+                 style="border: 2px solid var(--haiti-olive); border-left: 0; background-color: var(--haiti-cream); font-size: 12px;">
+        </div>
+        <div class="input-group input-group-sm">
+          <span class="input-group-text rounded-start-3" style="background: var(--haiti-mint); border: 2px solid var(--haiti-olive); border-right: 0; color: var(--haiti-olive); font-size: 12px;">
+            <i class="ri-whatsapp-line"></i>
+          </span>
+          <input type="text" name="business[social_media][whatsapp]" placeholder="+509XXXXXXXX"
+                 value="<%= @business.social_media&.dig('whatsapp') %>"
+                 class="form-control shadow-none rounded-end-3"
+                 style="border: 2px solid var(--haiti-olive); border-left: 0; background-color: var(--haiti-cream); font-size: 12px;">
+        </div>
+      </div>
+      <div class="small mt-1" style="color: var(--haiti-olive); font-size: 10px;">Opsyonel — ajoute rezo sosyal ou</div>
+    </div>
+
+    <%# ── Website ── %>
+    <div class="mb-3">
+      <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 0.5px;">
+        <i class="ri-earth-line me-1"></i>SITWEB
+      </label>
+      <%= f.text_field :website, placeholder: "https://biznis-ou.com",
+          class: "form-control shadow-none rounded-3",
+          style: "border: 2px solid var(--haiti-olive); background-color: var(--haiti-cream); color: var(--haiti-charcoal); font-size: 13px;" %>
+      <div class="small mt-1" style="color: var(--haiti-olive); font-size: 10px;">Opsyonel</div>
+    </div>
+
+    <%# ── Next Button ── %>
+    <div class="d-grid mt-4">
+      <button type="button" class="btn btn-lg fw-bold py-3 rounded-3" data-biz-next
+              style="background: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 14px;">
+        Kontinye <i class="ri-arrow-right-line ms-1"></i>
+      </button>
+    </div>
+  </div>
+
+  <%# ══════════════════════════════════════════════════════════ %>
+  <%# ══  PATI 3: Paramet Peman                             ══ %>
+  <%# ══════════════════════════════════════════════════════════ %>
+  <div id="biz-step-3" style="display: none;">
+
+    <div class="text-center mb-1" style="color: var(--haiti-olive); font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;">
+      PATI 3 — PARAMET PEMAN
+    </div>
+
+    <%# ── Back Button ── %>
+    <button type="button" class="btn btn-sm rounded-pill mb-3 mt-2 fw-bold" data-biz-back
+            style="background: rgba(93,99,69,0.08); color: var(--haiti-olive); font-size: 12px;">
+      <i class="ri-arrow-left-line me-1"></i>Retounen
+    </button>
+
+    <%# ── To Fre (read-only) ── %>
+    <div class="mb-3">
+      <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 0.5px;">
+        <i class="ri-percent-line me-1"></i>TO FRE
+      </label>
+      <div class="form-control shadow-none rounded-3 fw-bold"
+           style="border: 2px solid var(--haiti-olive); background-color: var(--haiti-mint); color: var(--haiti-charcoal); font-size: 13px;">
+        1.5%
+      </div>
+      <div class="small mt-1" style="color: var(--haiti-olive); font-size: 10px;">
+        <i class="ri-information-line me-1"></i>To fre sa a fiks pou tout biznis sou Zèllus
+      </div>
+    </div>
+
+    <%# ── Accepted Currencies ── %>
+    <div class="mb-3">
+      <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 0.5px;">
+        <i class="ri-coin-line me-1"></i>KI LAJAN W AKSEPTE? *
+      </label>
+      <%
+        currency_options = [
+          { key: "htg",  label: "HTG (Goud)",  icon: "ri-money-cny-circle-line" },
+          { key: "usdc", label: "USDC (Dola)", icon: "ri-money-dollar-circle-line" },
+          { key: "eth",  label: "ETH",         icon: "ri-copper-diamond-line" },
+          { key: "wbtc", label: "WBTC",        icon: "ri-bit-coin-line" }
+        ]
+        current_currencies = @business.accepted_currencies || ["htg"]
+      %>
+      <div class="d-flex flex-wrap gap-2">
+        <% currency_options.each do |c| %>
+          <label class="currency-pill" style="cursor: pointer;">
+            <input type="checkbox" name="business[accepted_currencies][]" value="<%= c[:key] %>" class="d-none"
+                   <%= "checked" if current_currencies.include?(c[:key]) %>>
+            <span class="d-inline-flex align-items-center gap-1 px-3 py-2 rounded-pill border fw-bold"
+                  style="font-size: 12px; transition: all 0.2s;">
+              <i class="<%= c[:icon] %>"></i><%= c[:label] %>
+            </span>
+          </label>
+        <% end %>
+      </div>
+      <%# Hidden field ensures empty array is sent when nothing checked %>
+      <input type="hidden" name="business[accepted_currencies][]" value="">
+    </div>
+
+    <%# ── Settlement Preference ── %>
+    <div class="mb-3">
+      <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 0.5px;">
+        <i class="ri-exchange-dollar-line me-1"></i>KIJAN W VLE RESEVWA LAJAN W? *
+      </label>
+      <div class="d-flex flex-wrap gap-2">
+        <label class="settlement-pill" style="cursor: pointer;">
+          <input type="radio" name="business[auto_settle]" value="true" class="d-none" data-settlement-toggle
+                 <%= @business.auto_settle? ? "checked" : "" %>>
+          <span class="d-inline-flex align-items-center gap-1 px-3 py-2 rounded-pill border fw-bold"
+                style="font-size: 12px; transition: all 0.2s;">
+            <i class="ri-money-dollar-circle-line"></i>USD (USDC)
           </span>
         </label>
-      <% end %>
+        <label class="settlement-pill" style="cursor: pointer;">
+          <input type="radio" name="business[auto_settle]" value="false" class="d-none" data-settlement-toggle
+                 <%= !@business.auto_settle? ? "checked" : "" %>>
+          <span class="d-inline-flex align-items-center gap-1 px-3 py-2 rounded-pill border fw-bold"
+                style="font-size: 12px; transition: all 0.2s;">
+            <i class="ri-money-cny-circle-line"></i>HTG (Goud)
+          </span>
+        </label>
+      </div>
     </div>
-  </div>
 
-  <%# ── Description ── %>
-  <div class="mb-3">
-    <label class="form-label fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;">
-      <i class="ri-file-text-line me-1" style="color: var(--haiti-gold);"></i>Deskripsyon
-    </label>
-    <%= f.text_area :description, class: "form-control", rows: 3, placeholder: "Dekri biznis ou an kèk mo...", style: "border-color: var(--haiti-olive); font-size: 14px;" %>
-  </div>
-
-  <%# ── Location ── %>
-  <div class="row mb-3">
-    <div class="col-6">
-      <label class="form-label fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;">
-        <i class="ri-map-pin-line me-1" style="color: var(--haiti-gold);"></i>Komin
+    <%# ── Aksepte Poubwa (Tips Toggle) ── %>
+    <div class="mb-3">
+      <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 0.5px;">
+        <i class="ri-heart-line me-1"></i>AKSEPTE POUBWA (TIPS)
       </label>
-      <%= f.text_field :commune, class: "form-control", placeholder: "Ex: Pétion-Ville", style: "border-color: var(--haiti-olive); font-size: 14px;" %>
+      <div class="d-flex align-items-center gap-3 p-3 rounded-3" style="background: rgba(93,99,69,0.04); border: 1px solid rgba(93,99,69,0.08);">
+        <div class="form-check form-switch mb-0">
+          <%= f.check_box :tippable, class: "form-check-input", role: "switch", id: "business_tippable",
+              style: "width: 44px; height: 24px; cursor: pointer; border-color: var(--haiti-olive);" %>
+        </div>
+        <div>
+          <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;">
+            Pèmèt kliyan ajoute poubwa
+          </div>
+          <div style="color: var(--haiti-olive); font-size: 11px; line-height: 1.5;">
+            Opsyon sa ap parèt sou paj pèman an. Kliyan ka chwazi 10%, 15%, 20% oswa yon montan pèsonalize.
+          </div>
+        </div>
+      </div>
+      <div class="small mt-1" style="color: var(--haiti-olive); font-size: 10px;">
+        <i class="ri-information-line me-1"></i>Rekòmande pou restoran, salon, livrezon, ak sèvis pesonel
+      </div>
     </div>
-    <div class="col-6">
-      <label class="form-label fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;">Depatman</label>
-      <%= f.text_field :department, class: "form-control", placeholder: "Ex: Lwès", style: "border-color: var(--haiti-olive); font-size: 14px;" %>
+
+    <%# ── NIF ── %>
+    <div class="mb-3">
+      <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 0.5px;">
+        <i class="ri-government-line me-1"></i>NIF (NIMERO IDANTIFIKASYON FISKAL) *
+      </label>
+      <%= f.text_field :tax_id, placeholder: "000-000-000-0", maxlength: 15, required: true,
+          class: "form-control shadow-none rounded-3",
+          style: "border: 2px solid var(--haiti-olive); background-color: var(--haiti-cream); color: var(--haiti-charcoal); font-size: 13px;" %>
+      <div class="small p-2 mt-2 rounded-3" style="background-color: #fef3c7; border: 1px solid #f59e0b;">
+        <i class="ri-error-warning-line me-1" style="color: #92400e;"></i>
+        <span style="color: #92400e; font-size: 10px;">San NIF, retre limite a $500 USD pa mwa.</span>
+      </div>
+    </div>
+
+    <%# ── USDC Pitch Box ── %>
+    <div class="mb-4">
+      <div class="p-3 rounded-3" style="background-color: rgba(197, 160, 89, 0.1); border: 1px solid rgba(197, 160, 89, 0.3);">
+        <div class="fw-bold text-uppercase mb-1" style="font-size: 10px; color: var(--haiti-charcoal); letter-spacing: 1px;">
+          <i class="ri-shield-check-line me-1"></i>PEMAN AN DOLA
+        </div>
+        <div style="font-size: 11px; color: var(--haiti-olive); line-height: 1.6;">
+          Tout biznis sou Zèllus ka chwazi kenbe kob yo an Dola (USDC) pou pwoteje vale lajan yo.
+          Pa kite enflasyon manje pwofi w — chwazi USD jodi a!
+        </div>
+      </div>
+    </div>
+
+    <%# ── Submit ── %>
+    <div class="d-grid">
+      <%= f.submit((@business.new_record? ? "Kreye Biznis Mwen" : "Sove Chanjman"), class: "btn btn-lg fw-bold py-3 rounded-3",
+          style: "background: var(--haiti-gold); color: var(--haiti-charcoal); font-size: 15px;") %>
     </div>
   </div>
 
-  <%# ── Phone ── %>
-  <div class="mb-3">
-    <label class="form-label fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;">
-      <i class="ri-phone-line me-1" style="color: var(--haiti-gold);"></i>Telefòn Biznis
-    </label>
-    <%= f.text_field :phone, class: "form-control", placeholder: "509XXXXXXXX", style: "border-color: var(--haiti-olive); font-size: 14px;" %>
-  </div>
-
-  <%# ── Fee Rate ── %>
-  <div class="mb-3">
-    <label class="form-label fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;">
-      <i class="ri-percent-line me-1" style="color: var(--haiti-gold);"></i>To Frè (%)
-    </label>
-    <div class="input-group">
-      <%= f.number_field :fee_rate, class: "form-control", step: 0.001, min: 0, max: 0.10, style: "border-color: var(--haiti-olive); font-size: 14px;" %>
-      <span class="input-group-text" style="background: var(--haiti-cream); font-size: 12px;">defò: 1.5%</span>
-    </div>
-    <div class="form-text" style="font-size: 11px; color: var(--haiti-olive);">Pousantaj ou kolekte sou chak tranzaksyon (0.015 = 1.5%)</div>
-  </div>
-
-  <%# ── Tax ID ── %>
-  <div class="mb-4">
-    <label class="form-label fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;">
-      <i class="ri-government-line me-1" style="color: var(--haiti-gold);"></i>NIF (opsyonèl)
-    </label>
-    <%= f.text_field :tax_id, class: "form-control", placeholder: "Nimewo Idantifikasyon Fiskal", style: "border-color: var(--haiti-olive); font-size: 14px;" %>
-  </div>
-
-  <%# ── Submit ── %>
-  <div class="d-grid">
-    <%= f.submit(@business.new_record? ? "Kreye Biznis Mwen" : "Anrejistre Chanjman"), class: "btn btn-lg fw-bold py-3 rounded-3", style: "background: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 15px;" %>
-  </div>
 <% end %>
 
 <style>
-  .category-pill .btn-check:checked + span {
+  .settlement-pill input:checked + span {
     background: var(--haiti-charcoal) !important;
     color: var(--haiti-gold) !important;
     border-color: var(--haiti-charcoal) !important;
   }
-  .category-pill:hover span {
-    border-color: var(--haiti-olive) !important;
+  .settlement-pill span {
+    background: var(--haiti-cream);
+    color: var(--haiti-olive);
+    border-color: var(--haiti-olive);
+  }
+  .settlement-pill:hover span {
+    border-color: var(--haiti-charcoal) !important;
+  }
+  .currency-pill input:checked + span {
+    background: var(--haiti-charcoal) !important;
+    color: var(--haiti-gold) !important;
+    border-color: var(--haiti-charcoal) !important;
+  }
+  .currency-pill span {
+    background: var(--haiti-cream);
+    color: var(--haiti-olive);
+    border-color: var(--haiti-olive);
+  }
+  .currency-pill:hover span {
+    border-color: var(--haiti-charcoal) !important;
+  }
+  #business_tippable:checked {
+    background-color: var(--haiti-gold) !important;
+    border-color: var(--haiti-gold) !important;
   }
 </style>
+
+<script>
+(function() {
+  // ── Step Navigation ──
+  var currentStep = 1;
+  var totalSteps = 3;
+  var steps = [
+    document.getElementById('biz-step-1'),
+    document.getElementById('biz-step-2'),
+    document.getElementById('biz-step-3')
+  ];
+  var fills = document.querySelectorAll('.biz-progress-fill');
+  var stepLabel = document.getElementById('biz-step-label');
+
+  function showStep(n) {
+    steps.forEach(function(s, i) { s.style.display = (i === n - 1) ? 'block' : 'none'; });
+    fills.forEach(function(f, i) { f.style.width = (i < n) ? '100%' : '0%'; });
+    if (stepLabel) stepLabel.textContent = 'Pati ' + n + '/3';
+    currentStep = n;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function validateStep(step) {
+    var container = document.getElementById('biz-step-' + step);
+    var fields = container.querySelectorAll('[required]');
+    var valid = true;
+    var firstInvalid = null;
+    fields.forEach(function(field) {
+      if (!field.value || field.value.trim() === '') {
+        field.style.borderColor = '#dc2626';
+        field.style.boxShadow = '0 0 0 3px rgba(220,38,38,0.15)';
+        valid = false;
+        if (!firstInvalid) firstInvalid = field;
+      } else {
+        field.style.borderColor = 'var(--haiti-olive)';
+        field.style.boxShadow = 'none';
+      }
+    });
+    if (firstInvalid) firstInvalid.focus();
+    return valid;
+  }
+
+  // Reset field style on input
+  document.querySelectorAll('#biz-form [required]').forEach(function(f) {
+    f.addEventListener('input', function() {
+      if (this.value.trim() !== '') {
+        this.style.borderColor = 'var(--haiti-olive)';
+        this.style.boxShadow = 'none';
+      }
+    });
+  });
+
+  // Next buttons
+  document.querySelectorAll('[data-biz-next]').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      if (validateStep(currentStep)) showStep(currentStep + 1);
+    });
+  });
+
+  // Back buttons
+  document.querySelectorAll('[data-biz-back]').forEach(function(btn) {
+    btn.addEventListener('click', function() { showStep(currentStep - 1); });
+  });
+
+  // ── Auto-Slug from Name ──
+  var nameInput = document.getElementById('business_name');
+  var slugInput = document.getElementById('business_slug');
+  var slugEdited = false;
+
+  if (slugInput) {
+    slugInput.addEventListener('input', function() { slugEdited = true; });
+  }
+
+  if (nameInput && slugInput) {
+    nameInput.addEventListener('input', function() {
+      if (!slugEdited) {
+        var slug = this.value
+          .toLowerCase()
+          .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+          .replace(/[^a-z0-9\s-]/g, '')
+          .replace(/\s+/g, '-')
+          .replace(/-+/g, '-')
+          .replace(/^-|-$/g, '');
+        slugInput.value = slug;
+        checkSlugAvailability(slug);
+      }
+    });
+  }
+
+  // ── Slug Uniqueness Check ──
+  var slugTimer;
+  var slugResult = document.getElementById('slug-availability');
+
+  function checkSlugAvailability(slug) {
+    if (!slugResult) return;
+    clearTimeout(slugTimer);
+    if (slug.length < 3) {
+      slugResult.innerHTML = slug.length > 0 ? '<span style="color: var(--haiti-olive);">Minimum 3 karakte</span>' : '';
+      return;
+    }
+    slugResult.innerHTML = '<span style="color: var(--haiti-olive);"><i class="ri-loader-4-line me-1"></i>Ap verifye...</span>';
+    slugTimer = setTimeout(function() {
+      fetch('/business/check_slug?slug=' + encodeURIComponent(slug))
+        .then(function(r) { return r.json(); })
+        .then(function(d) {
+          if (d.available) {
+            slugResult.innerHTML = '<span style="color: #166534;"><i class="ri-check-line me-1"></i>' + d.message + '</span>';
+          } else {
+            slugResult.innerHTML = '<span style="color: #991b1b;"><i class="ri-close-line me-1"></i>' + d.message + '</span>';
+          }
+        })
+        .catch(function() {
+          slugResult.innerHTML = '';
+        });
+    }, 300);
+  }
+
+  if (slugInput) {
+    slugInput.addEventListener('input', function() { checkSlugAvailability(this.value); });
+  }
+
+  // ── Description Character Counter ──
+  var descField = document.getElementById('business_description');
+  var descCount = document.getElementById('desc-count');
+  if (descField && descCount) {
+    descCount.textContent = descField.value.length;
+    descField.addEventListener('input', function() {
+      descCount.textContent = this.value.length;
+      descCount.style.color = this.value.length > 180 ? '#dc2626' : 'var(--haiti-olive)';
+    });
+  }
+
+  // ── Category → Subcategory Cascading ──
+  var SUBCATEGORIES = <%= raw Business::SUBCATEGORIES.transform_keys(&:to_s).to_json %>;
+  var SUBCATEGORY_LABELS = <%= raw Business::SUBCATEGORY_LABELS.to_json %>;
+  var categorySelect = document.getElementById('business_category');
+  var subcategorySelect = document.getElementById('business_subcategory');
+  var preselectedSubcategory = "<%= @business.subcategory %>";
+
+  function populateSubcategories(catKey) {
+    if (!subcategorySelect) return;
+    var subs = SUBCATEGORIES[catKey] || [];
+    subcategorySelect.innerHTML = '<option value="">-- Chwazi sou-kategori --</option>';
+    subs.forEach(function(key) {
+      var opt = document.createElement('option');
+      opt.value = key;
+      opt.textContent = SUBCATEGORY_LABELS[key] || key;
+      if (key === preselectedSubcategory) opt.selected = true;
+      subcategorySelect.appendChild(opt);
+    });
+  }
+
+  if (categorySelect) {
+    categorySelect.addEventListener('change', function() {
+      preselectedSubcategory = '';
+      populateSubcategories(this.value);
+    });
+    // Populate on load if editing
+    if (categorySelect.value) populateSubcategories(categorySelect.value);
+  }
+
+  // ── Address Hierarchy: Department → Arrondissement → Commune → Section ──
+  var NESTED_ADDRESSES = <%= raw Business::NESTED_ADDRESSES.to_json %>;
+  var deptSelect = document.getElementById('business_department');
+  var arrSelect = document.getElementById('business_arrondissement');
+  var communeSelect = document.getElementById('business_commune');
+  var sectionSelect = document.getElementById('business_section');
+  var preselectedArr = "<%= @business.arrondissement %>";
+  var preselectedCommune = "<%= @business.commune %>";
+  var preselectedSection = "<%= @business.section %>";
+
+  function populateArrondissements(dept) {
+    if (!arrSelect) return;
+    var arrs = NESTED_ADDRESSES[dept] || {};
+    arrSelect.innerHTML = '<option value="">-- Chwazi arondissement --</option>';
+    Object.keys(arrs).sort().forEach(function(arr) {
+      var opt = document.createElement('option');
+      opt.value = arr;
+      opt.textContent = arr;
+      if (arr === preselectedArr) opt.selected = true;
+      arrSelect.appendChild(opt);
+    });
+    // Cascade down
+    populateCommunes(arrSelect.value);
+  }
+
+  function populateCommunes(arr) {
+    if (!communeSelect) return;
+    var dept = deptSelect.value;
+    var coms = (NESTED_ADDRESSES[dept] && NESTED_ADDRESSES[dept][arr]) || {};
+    communeSelect.innerHTML = '<option value="">-- Chwazi komin --</option>';
+    Object.keys(coms).sort().forEach(function(com) {
+      var opt = document.createElement('option');
+      opt.value = com;
+      opt.textContent = com;
+      if (com === preselectedCommune) opt.selected = true;
+      communeSelect.appendChild(opt);
+    });
+    // Cascade down
+    populateSections(communeSelect.value);
+  }
+
+  function populateSections(com) {
+    if (!sectionSelect) return;
+    var dept = deptSelect.value;
+    var arr = arrSelect.value;
+    var secs = (NESTED_ADDRESSES[dept] && NESTED_ADDRESSES[dept][arr] && NESTED_ADDRESSES[dept][arr][com]) || [];
+    sectionSelect.innerHTML = '<option value="">-- Chwazi seksyon --</option>';
+    secs.forEach(function(sec) {
+      var opt = document.createElement('option');
+      opt.value = sec;
+      opt.textContent = sec;
+      if (sec === preselectedSection) opt.selected = true;
+      sectionSelect.appendChild(opt);
+    });
+  }
+
+  if (deptSelect) {
+    deptSelect.addEventListener('change', function() {
+      preselectedArr = ''; preselectedCommune = ''; preselectedSection = '';
+      populateArrondissements(this.value);
+    });
+  }
+  if (arrSelect) {
+    arrSelect.addEventListener('change', function() {
+      preselectedCommune = ''; preselectedSection = '';
+      populateCommunes(this.value);
+    });
+  }
+  if (communeSelect) {
+    communeSelect.addEventListener('change', function() {
+      preselectedSection = '';
+      populateSections(this.value);
+    });
+  }
+
+  // Populate on load if editing
+  if (deptSelect && deptSelect.value) {
+    populateArrondissements(deptSelect.value);
+  }
+
+  // ── Logo Preview ──
+  var logoInput = document.getElementById('business_logo');
+  if (logoInput) {
+    logoInput.addEventListener('change', function() {
+      if (this.files && this.files[0]) {
+        if (this.files[0].size > 2097152) {
+          alert('Logo two gwo! Maks 2MB.');
+          this.value = '';
+          return;
+        }
+        var reader = new FileReader();
+        reader.onload = function(e) {
+          var container = document.getElementById('logo-preview-container');
+          if (container) {
+            container.innerHTML = '<img src="' + e.target.result + '" style="width: 100%; height: 100%; object-fit: cover;">';
+          }
+        };
+        reader.readAsDataURL(this.files[0]);
+      }
+    });
+  }
+
+  // ── Settlement Radio Active State ──
+  var settlementRadios = document.querySelectorAll('[data-settlement-toggle]');
+  settlementRadios.forEach(function(radio) {
+    radio.addEventListener('change', function() {
+      settlementRadios.forEach(function(r) {
+        var span = r.nextElementSibling;
+        if (span) {
+          span.style.background = 'var(--haiti-cream)';
+          span.style.color = 'var(--haiti-olive)';
+          span.style.borderColor = 'var(--haiti-olive)';
+        }
+      });
+      var selected = this.nextElementSibling;
+      if (selected) {
+        selected.style.background = 'var(--haiti-charcoal)';
+        selected.style.color = 'var(--haiti-gold)';
+        selected.style.borderColor = 'var(--haiti-charcoal)';
+      }
+    });
+    // Trigger on load
+    if (radio.checked) radio.dispatchEvent(new Event('change'));
+  });
+
+  // ── Hours Schedule ──
+  var dayToggles = document.querySelectorAll('.hours-day-toggle');
+  var hoursHidden = document.getElementById('business_hours_json');
+
+  dayToggles.forEach(function(cb) {
+    cb.addEventListener('change', function() {
+      var day = this.dataset.day;
+      var openSel = document.querySelector('.hours-open[data-day="' + day + '"]');
+      var closeSel = document.querySelector('.hours-close[data-day="' + day + '"]');
+      if (this.checked) {
+        openSel.style.opacity = '1'; openSel.style.pointerEvents = 'auto';
+        closeSel.style.opacity = '1'; closeSel.style.pointerEvents = 'auto';
+      } else {
+        openSel.style.opacity = '0.4'; openSel.style.pointerEvents = 'none';
+        closeSel.style.opacity = '0.4'; closeSel.style.pointerEvents = 'none';
+      }
+      serializeHours();
+    });
+  });
+
+  function serializeHours() {
+    var data = {};
+    dayToggles.forEach(function(cb) {
+      if (cb.checked) {
+        var day = cb.dataset.day;
+        var openVal = document.querySelector('.hours-open[data-day="' + day + '"]').value;
+        var closeVal = document.querySelector('.hours-close[data-day="' + day + '"]').value;
+        data[day] = { open: openVal, close: closeVal };
+      }
+    });
+    if (hoursHidden) hoursHidden.value = JSON.stringify(data);
+  }
+
+  // Serialize on any time change
+  document.querySelectorAll('.hours-open, .hours-close').forEach(function(sel) {
+    sel.addEventListener('change', serializeHours);
+  });
+
+  // Serialize initial state
+  serializeHours();
+
+  // Serialize before form submit
+  var bizForm = document.getElementById('biz-form');
+  if (bizForm) {
+    bizForm.addEventListener('submit', serializeHours);
+  }
+
+  // Init on step 1
+  showStep(1);
+})();
+</script>

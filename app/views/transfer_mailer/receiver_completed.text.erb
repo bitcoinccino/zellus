@@ -1,8 +1,8 @@
-<%= @brand_name %> — Lajan Ou Rive!
+<%= @brand_name %> — Ou Resevwa <%= @amount_display %> ✓
 
 Bonjou <%= @transfer.receiver_name %>,
 
-Ou resevwa <%= @net_display %>!
+Ou resevwa <%= @amount_display %> nan men <%= @sender_name %>!
 
 Voye pa: <%= @sender_name %>
 <% if @transfer.note.present? %>Mesaj: "<%= @transfer.note %>"<% end %>

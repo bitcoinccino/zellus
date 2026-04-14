@@ -9,23 +9,64 @@
       <tr>
         <td align="center">
           <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:640px; background:#F7F4E3; border:1px solid #d9d6c4; border-radius:18px;">
+
+            <!-- HEADER: Centered logo + brand -->
             <tr>
-              <td style="padding:20px 24px; border-bottom:1px solid #e6e2d0; background:linear-gradient(135deg, #2E2E38, #3a3a45); border-radius:18px 18px 0 0;">
-                <div style="font-size:11px; letter-spacing:1.4px; text-transform:uppercase; font-weight:700; color:#C5A059;">Zèllus</div>
-                <div style="font-size:13px; color:#E8EDE0; margin-top:4px;">Notifikasyon</div>
+              <td style="padding:28px 24px 20px; border-bottom:1px solid #e6e2d0; background:linear-gradient(135deg, #2E2E38, #3a3a45); border-radius:18px 18px 0 0; text-align:center;">
+                <div style="margin-bottom:8px;">
+                  <%= image_tag attachments['zellus_logo.png'].url, alt: AppBrand::NAME, style: "width:48px; height:48px; border-radius:12px; display:inline-block;", width: "48", height: "48" rescue "" %>
+                </div>
+                <div style="font-size:18px; letter-spacing:2px; text-transform:uppercase; font-weight:800; color:#C5A059;"><%= AppBrand::NAME %></div>
+                <%
+                  slogans = [
+                    "Libète finansye ou kòmanse isit la",
+                    "Lajan ou, kontwòl ou",
+                    "Voye. Resevwa. San limit.",
+                    "Pi bon fason pou jere lajan ou",
+                    "Lajan ou an sekirite, toujou disponib",
+                    "Konekte ak lajan ou, nenpòt kote",
+                    "Senp. Rapid. An sekirite.",
+                    "Avni finansye ou nan men ou",
+                    "Chak goud konte, chak tranzaksyon pwoteje",
+                    "Pou pèp la, pa pèp la"
+                  ]
+                  slogan = slogans[Date.today.yday % slogans.size]
+                %>
+                <div style="font-size:12px; color:#9a978a; margin-top:4px; letter-spacing:0.5px; font-style:italic;"><%= slogan %></div>
               </td>
             </tr>
+
+            <!-- BODY -->
             <tr>
               <td style="padding:24px;">
                 <%= yield %>
               </td>
             </tr>
+
+            <!-- FOOTER: Contact info, X handle, legal -->
             <tr>
-              <td style="padding:16px 24px 22px; border-top:1px solid #e6e2d0; color:#5D6345; font-size:12px;">
-                Mesaj sa a te voye pa <strong>Zèllus</strong>.<br>
-                Pa reponn imèl sa a dirèkteman.
+              <td style="padding:20px 24px 24px; border-top:1px solid #e6e2d0; background:linear-gradient(135deg, #2E2E38, #3a3a45); border-radius:0 0 18px 18px; text-align:center;">
+                <div style="margin-bottom:12px;">
+                  <a href="https://x.com/zellusapp" style="color:#C5A059; text-decoration:none; font-size:13px; font-weight:700;">𝕏 @zellusapp</a>
+                  <span style="color:#555; margin:0 8px;">|</span>
+                  <a href="mailto:support@zellus.app" style="color:#C5A059; text-decoration:none; font-size:13px; font-weight:700;">support@zellus.app</a>
+                </div>
+                <div style="background:rgba(255,255,255,0.08); border:1px solid rgba(197,160,89,0.3); border-radius:8px; padding:10px 14px; margin-bottom:12px;">
+                  <div style="color:#C5A059; font-size:11px; font-weight:700;">🔒 Pa pataje PIN ou ak pèsonn. <%= AppBrand::NAME %> p ap janm mande w li.</div>
+                </div>
+                <div style="margin-bottom:8px;">
+                  <a href="https://zellus.app" style="color:#C5A059; text-decoration:none; font-size:12px; font-weight:700;">https://zellus.app</a>
+                </div>
+                <div style="color:#9a978a; font-size:11px; line-height:1.6;">
+                  Mesaj sa a te voye pa <strong style="color:#E8EDE0;"><%= AppBrand::NAME %></strong>.<br>
+                  Pa reponn imèl sa a dirèkteman.
+                </div>
+                <div style="color:#6b6b6b; font-size:10px; margin-top:10px;">
+                  © <%= Date.today.year %> <%= AppBrand::NAME %> · Tout dwa rezève
+                </div>
               </td>
             </tr>
+
           </table>
         </td>
       </tr>

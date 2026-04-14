@@ -6,8 +6,9 @@
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
     <%= action_cable_meta_tag %>
+    <link rel="icon" type="image/png" sizes="96x96" href="<%= asset_path('zellus_square.png') %>">
     <link rel="icon" type="image/svg+xml" href="<%= asset_path('zellus_square.svg') %>">
-    <link rel="apple-touch-icon" href="<%= asset_path('zellus_square.svg') %>">
+    <link rel="apple-touch-icon" sizes="180x180" href="<%= asset_path('zellus_square.png') %>">
 
     <%# ── Preconnect hints ── %>
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -39,8 +40,7 @@
         background-color: var(--haiti-mint);
         color: var(--haiti-charcoal);
         font-family: 'Plus Jakarta Sans', 'Segoe UI', Roboto, -apple-system, sans-serif;
-        background-image: radial-gradient(var(--haiti-olive) 0.5px, transparent 0.5px);
-        background-size: 30px 30px;
+        background-image: none;
         overflow-x: hidden;
         margin: 0 !important;
         padding: 0 !important;
@@ -73,8 +73,9 @@
 
       .dropdown-menu {
         background-color: var(--haiti-cream);
-        border: none;
-        box-shadow: 8px 8px 0px var(--haiti-charcoal);
+        border: 1px solid rgba(46, 46, 56, 0.05);
+        box-shadow: 0 8px 24px rgba(46, 46, 56, 0.12);
+        border-radius: 16px;
       }
       .dropdown-item {
         font-size: 13px;
@@ -86,8 +87,9 @@
 
       .card-base {
         background-color: var(--haiti-cream);
-        border-radius: 28px;
-        border: none;
+        border-radius: 16px;
+        border: 1px solid rgba(46, 46, 56, 0.05);
+        box-shadow: 0 2px 12px rgba(46, 46, 56, 0.08);
       }
 
       .badge-soon {
@@ -132,7 +134,282 @@
       }
       #turbo-progress.active { opacity: 1; }
 
-      /* ── Loading overlay (form submissions) ── */
+      /* ── Shared spin animation ── */
+      @keyframes spin { to { transform: rotate(360deg); } }
+
+      /* ══════════════════════════════════════════════════════
+         USER SIDEBAR — 2026 Fintech UX
+         Collapsible (mini ↔ expanded), search, account switcher
+         ══════════════════════════════════════════════════════ */
+
+      /* ── Layout ── */
+      .user-sidebar {
+        width: 260px;
+        background: var(--haiti-charcoal);
+        border-right: 1px solid rgba(197,160,89,0.08);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+      }
+      .user-sidebar.collapsed { width: 64px; }
+
+      .user-sidebar-scroll {
+        flex: 1;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding: 0 10px 16px;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(197,160,89,0.15) transparent;
+      }
+      .user-sidebar-scroll::-webkit-scrollbar { width: 4px; }
+      .user-sidebar-scroll::-webkit-scrollbar-thumb { background: rgba(197,160,89,0.15); border-radius: 4px; }
+
+      /* ── Account Switcher (top) ── */
+      .sidebar-account {
+        padding: 14px 14px 10px;
+        border-bottom: 1px solid rgba(197,160,89,0.08);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        cursor: default;
+        transition: padding 0.25s ease;
+      }
+      .collapsed .sidebar-account { padding: 14px 12px 10px; justify-content: center; }
+      .sidebar-account-avatar {
+        width: 38px; height: 38px; border-radius: 12px;
+        border: 2px solid var(--haiti-gold);
+        object-fit: cover; flex-shrink: 0;
+      }
+      .sidebar-account-avatar-fallback {
+        width: 38px; height: 38px; border-radius: 12px;
+        border: 2px solid var(--haiti-gold);
+        background: rgba(197,160,89,0.12);
+        display: flex; align-items: center; justify-content: center;
+        flex-shrink: 0; font-size: 1.1rem;
+      }
+      .sidebar-account-info { min-width: 0; flex: 1; }
+      .collapsed .sidebar-account-info { display: none; }
+      .sidebar-account-name {
+        color: #fff; font-size: 13px; font-weight: 700;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        display: flex; align-items: center; gap: 4px;
+      }
+      .sidebar-account-tag {
+        color: rgba(255,255,255,0.4); font-size: 10px; font-weight: 600;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      }
+      .sidebar-verified-dot {
+        width: 14px; height: 14px; border-radius: 50%;
+        background: #16a34a; border: 2px solid var(--haiti-charcoal);
+        display: flex; align-items: center; justify-content: center;
+        position: absolute; bottom: -1px; right: -1px;
+      }
+      .sidebar-verified-dot i { color: #fff; font-size: 7px; }
+
+      /* ── Search ── */
+      .sidebar-search {
+        padding: 8px 12px 4px;
+        transition: padding 0.25s ease;
+      }
+      .collapsed .sidebar-search { padding: 8px 8px 4px; }
+      .sidebar-search-input {
+        width: 100%; height: 36px;
+        background: rgba(255,255,255,0.06);
+        border: 1px solid rgba(197,160,89,0.1);
+        border-radius: 10px; color: #fff;
+        font-size: 12px; font-weight: 500;
+        padding: 0 12px 0 34px;
+        outline: none;
+        transition: background 0.15s, border-color 0.15s;
+      }
+      .sidebar-search-input::placeholder { color: rgba(255,255,255,0.3); }
+      .sidebar-search-input:focus {
+        background: rgba(255,255,255,0.1);
+        border-color: rgba(197,160,89,0.3);
+      }
+      .sidebar-search-wrap {
+        position: relative;
+      }
+      .sidebar-search-wrap i {
+        position: absolute; left: 11px; top: 50%;
+        transform: translateY(-50%);
+        color: rgba(255,255,255,0.3); font-size: 14px;
+        pointer-events: none;
+      }
+      .collapsed .sidebar-search-input { display: none; }
+      .collapsed .sidebar-search-icon-only {
+        display: flex !important;
+        width: 40px; height: 36px;
+        align-items: center; justify-content: center;
+        background: rgba(255,255,255,0.06);
+        border-radius: 10px; cursor: pointer;
+        margin: 0 auto;
+      }
+      .sidebar-search-icon-only { display: none; }
+      .sidebar-search-icon-only i { color: rgba(255,255,255,0.35); font-size: 16px; }
+
+      /* ── Section Headers ── */
+      .user-nav-section { margin-bottom: 4px; }
+      .user-nav-header {
+        color: rgba(255,255,255,0.28);
+        font-size: 9px;
+        font-weight: 800;
+        letter-spacing: 1.8px;
+        text-transform: uppercase;
+        padding: 16px 14px 6px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        white-space: nowrap;
+      }
+      .collapsed .user-nav-header {
+        font-size: 0; padding: 12px 0 4px;
+        justify-content: center;
+      }
+      .collapsed .user-nav-header::before {
+        content: ''; display: block; width: 16px;
+        border-top: 1px solid rgba(255,255,255,0.08);
+      }
+
+      /* ── Nav Items ── */
+      .user-nav-item {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 0 14px;
+        margin: 2px 0;
+        height: 44px;
+        border-radius: 12px;
+        font-size: 13px;
+        font-weight: 600;
+        color: rgba(255,255,255,0.5);
+        text-decoration: none;
+        transition: all 0.15s ease;
+        position: relative;
+        white-space: nowrap;
+      }
+      .collapsed .user-nav-item {
+        justify-content: center;
+        padding: 0; gap: 0;
+      }
+      .user-nav-item-icon {
+        width: 32px; height: 32px; border-radius: 10px;
+        display: flex; align-items: center; justify-content: center;
+        flex-shrink: 0;
+        background: rgba(255,255,255,0.04);
+        transition: background 0.15s, transform 0.15s;
+      }
+      .user-nav-item-icon i { font-size: 17px; }
+      .user-nav-item-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+      .collapsed .user-nav-item-label { display: none; }
+
+      .user-nav-item:hover {
+        color: rgba(255,255,255,0.85);
+        background: rgba(255,255,255,0.05);
+      }
+      .user-nav-item:hover .user-nav-item-icon {
+        background: rgba(255,255,255,0.08);
+        transform: scale(1.05);
+      }
+
+      /* ── Active (pill highlight) ── */
+      .user-nav-active {
+        color: var(--haiti-gold) !important;
+        background: rgba(197,160,89,0.1) !important;
+      }
+      .user-nav-active .user-nav-item-icon {
+        background: rgba(197,160,89,0.18) !important;
+      }
+      .user-nav-active .user-nav-item-icon i { color: var(--haiti-gold) !important; }
+
+      /* Active left accent bar */
+      .user-nav-active::before {
+        content: ''; position: absolute; left: 0; top: 50%;
+        transform: translateY(-50%);
+        width: 3px; height: 20px;
+        background: var(--haiti-gold);
+        border-radius: 0 3px 3px 0;
+      }
+      .collapsed .user-nav-active::before { display: none; }
+
+      /* ── Action shortcuts (+ button) ── */
+      .user-nav-action-btn {
+        width: 24px; height: 24px; border-radius: 6px;
+        display: flex; align-items: center; justify-content: center;
+        background: rgba(197,160,89,0.1);
+        color: var(--haiti-gold); font-size: 14px;
+        opacity: 0; transition: opacity 0.15s, background 0.15s;
+        flex-shrink: 0; cursor: pointer; border: none;
+        text-decoration: none;
+      }
+      .user-nav-item:hover .user-nav-action-btn { opacity: 1; }
+      .user-nav-action-btn:hover { background: rgba(197,160,89,0.25); }
+      .collapsed .user-nav-action-btn { display: none; }
+
+      /* ── Disabled + Badge ── */
+      .user-nav-disabled {
+        opacity: 0.25;
+        pointer-events: none;
+        cursor: default;
+      }
+      .user-badge-soon {
+        font-size: 7px;
+        background: rgba(197,160,89,0.15);
+        color: var(--haiti-gold);
+        padding: 2px 6px;
+        border-radius: 4px;
+        letter-spacing: 0.5px;
+        font-weight: 700;
+      }
+      .collapsed .user-badge-soon { display: none; }
+
+      /* ── Section Divider ── */
+      .sidebar-divider {
+        margin: 4px 16px;
+        border-top: 1px solid rgba(197,160,89,0.06);
+      }
+      .collapsed .sidebar-divider { margin: 4px 10px; }
+
+      /* ── Collapse Toggle ── */
+      .sidebar-collapse-btn {
+        padding: 10px;
+        border-top: 1px solid rgba(197,160,89,0.08);
+        display: flex; align-items: center; justify-content: center;
+        cursor: pointer; color: rgba(255,255,255,0.3);
+        transition: color 0.15s;
+      }
+      .sidebar-collapse-btn:hover { color: var(--haiti-gold); }
+      .sidebar-collapse-btn i { font-size: 18px; transition: transform 0.25s; }
+      .collapsed .sidebar-collapse-btn i { transform: rotate(180deg); }
+
+      /* ── Tooltip for collapsed mode ── */
+      .collapsed .user-nav-item[data-tooltip]::after {
+        content: attr(data-tooltip);
+        position: absolute; left: calc(100% + 10px); top: 50%;
+        transform: translateY(-50%);
+        background: var(--haiti-charcoal);
+        color: #fff; font-size: 11px; font-weight: 600;
+        padding: 4px 10px; border-radius: 6px;
+        white-space: nowrap; pointer-events: none;
+        opacity: 0; transition: opacity 0.15s;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        z-index: 100;
+      }
+      .collapsed .user-nav-item[data-tooltip]:hover::after { opacity: 1; }
+
+      /* ── Security badge in sidebar ── */
+      .sidebar-security-badge {
+        display: inline-flex; align-items: center; gap: 3px;
+        font-size: 8px; font-weight: 700; letter-spacing: 0.5px;
+        color: #16a34a; text-transform: uppercase;
+        padding: 2px 0;
+      }
+      .sidebar-security-badge i { font-size: 10px; }
+      .collapsed .sidebar-security-badge { display: none; }
+
+      /* ── Loading overlay (navigation + form submissions) ── */
       #loading-overlay {
         position: fixed; inset: 0; z-index: 9998;
         background: rgba(46,46,56,0.5); backdrop-filter: blur(2px);
@@ -145,19 +422,27 @@
         border-top-color: var(--haiti-gold); border-radius: 50%;
         animation: spin 0.7s linear infinite;
       }
-      @keyframes spin { to { transform: rotate(360deg); } }
+
+      /* ── Page reveal: lightning loader covers screen on first load,
+           overlay covers screen on navigation. No body opacity needed. ── */
     </style>
+    <%= yield :head %>
   </head>
 
-  <body>
-    <%# ── Turbo progress bar + loading overlay ── %>
+  <body data-user-display-name="<%= current_user&.display_name %>" data-bonid-verified="<%= current_user&.bonid_verified? ? 'true' : 'false' %>">
+    <%# ── Turbo progress bar ── %>
     <div id="turbo-progress"></div>
-    <div id="loading-overlay"><div class="spinner"></div><div style="color: var(--haiti-gold); font-size: 13px; font-weight: 700;">Chajman...</div></div>
+
+    <%# ── ⚡ Lightning Loader (first page load only) ── %>
+    <%= render "shared/lightning_loader" %>
+
+    <%# ── Loading overlay (navigation + forms) ── %>
+    <div id="loading-overlay"><div class="spinner"></div><div style="color: var(--haiti-gold); font-size: 13px; font-weight: 700;">Chaje..</div></div>
 
     <nav class="navbar navbar-expand-lg py-3 shadow-sm" style="background-color: var(--haiti-charcoal); border-bottom: 3px solid var(--haiti-gold);">
       <div class="container">
         <%= link_to root_path, class: "navbar-brand d-flex align-items-center me-4" do %>
-          <%= image_tag "zellus_square.svg", size: "40x40", alt: "Zèllus", style: "border-radius: 10px;" %>
+          <%= image_tag "zellus_square.png", alt: "Zèllus", style: "height: 40px; width: 40px; border-radius: 10px;" %>
         <% end %>
 
         <button class="navbar-toggler border-0 shadow-none py-2 px-3" type="button" data-bs-toggle="collapse" data-bs-target="#zellusNavbarContent">
@@ -170,66 +455,153 @@
             <%# ── LOGGED-IN NAV ─────────────────────────────── %>
             <ul class="navbar-nav ms-auto mb-2 mb-lg-0 gap-1 align-items-lg-center">
 
-              <%# ── Mobile-only nav items (matches wallet page actions) ── %>
+              <%# ── Mobile nav items moved to bottom nav bar ── %>
+              <% if current_user.uma_enabled? && LightsparkConfig.enabled? %>
+                <li class="nav-item d-lg-none">
+                  <%= link_to resevwa_path, class: "nav-link text-white fw-bold py-2 px-3", style: "font-size: 14px;" do %>
+                    <i class="ri-money-dollar-circle-line me-2" style="color: var(--haiti-gold);"></i> Resevwa
+                  <% end %>
+                </li>
+              <% end %>
+              <%# ── Pwodui link (mobile) ── %>
               <li class="nav-item d-lg-none">
-                <%= link_to wallet_path, class: "nav-link text-white fw-bold py-2 px-3", style: "font-size: 14px;" do %>
-                  <i class="ri-wallet-3-line me-2" style="color: var(--haiti-gold);"></i> Pòtfèy
-                <% end %>
+                <a class="nav-link text-white fw-bold py-2 px-3" style="font-size: 14px;" data-bs-toggle="collapse" href="#mobile-pwodui-menu" role="button">
+                  <i class="ri-apps-line me-2" style="color: var(--haiti-gold);"></i> Pwodui <i class="ri-arrow-down-s-line" style="font-size: 12px;"></i>
+                </a>
+                <div class="collapse ps-4" id="mobile-pwodui-menu">
+                  <%= link_to zellus_info_path, class: "d-block text-white text-decoration-none py-1 px-3", style: "font-size: 12px;" do %>
+                    <i class="ri-send-plane-fill me-1" style="color: var(--haiti-gold);"></i> Zèllus Pay
+                  <% end %>
+                  <%= link_to annye_path, class: "d-block text-white text-decoration-none py-1 px-3", style: "font-size: 12px;" do %>
+                    <i class="ri-store-2-line me-1" style="color: var(--haiti-gold);"></i> Zèllus Biznis
+                  <% end %>
+                  <%= link_to ajan_info_path, class: "d-block text-white text-decoration-none py-1 px-3", style: "font-size: 12px;" do %>
+                    <i class="ri-user-location-line me-1" style="color: var(--haiti-gold);"></i> Zèllus Ajan
+                  <% end %>
+                  <%# ── Zèllus Sòl / Bousad / Onèt Byento — re-enable when ready to deploy ── %>
+                  <% if false %>
+                  <%= link_to priosol_info_path, class: "d-block text-white text-decoration-none py-1 px-3", style: "font-size: 12px;" do %>
+                    <i class="ri-loop-right-line me-1" style="color: var(--haiti-gold);"></i> Zèllus Sòl <span class="badge-soon">Byento</span>
+                  <% end %>
+                  <hr class="my-1" style="border-color: rgba(255,255,255,0.1);">
+                  <%= link_to priobousad_info_path, class: "d-block text-white text-decoration-none py-1 px-3", style: "font-size: 12px;" do %>
+                    <i class="ri-hand-coin-line me-1" style="color: var(--haiti-gold);"></i> Zèllus Bousad <span class="badge-soon">Byento</span>
+                  <% end %>
+                  <%= link_to prionet_info_path, class: "d-block text-white text-decoration-none py-1 px-3", style: "font-size: 12px;" do %>
+                    <i class="ri-medal-line me-1" style="color: var(--haiti-gold);"></i> Zèllus Onèt <span class="badge-soon">Byento</span>
+                  <% end %>
+                  <% end %>
+                  <hr class="my-1" style="border-color: rgba(255,255,255,0.1);">
+                  <%= link_to apwopo_path, class: "d-block text-white text-decoration-none py-1 px-3", style: "font-size: 12px;" do %>
+                    <i class="ri-information-line me-1" style="color: var(--haiti-gold);"></i> Apwopo
+                  <% end %>
+                  <%= link_to faq_path, class: "d-block text-white text-decoration-none py-1 px-3", style: "font-size: 12px;" do %>
+                    <i class="ri-question-line me-1" style="color: var(--haiti-gold);"></i> FAQ
+                  <% end %>
+                </div>
               </li>
-              <li class="nav-item d-lg-none">
-                <%= link_to new_transfer_path, class: "nav-link text-white fw-bold py-2 px-3", style: "font-size: 14px;" do %>
-                  <i class="ri-send-plane-fill me-2" style="color: var(--haiti-gold);"></i> Peye
-                <% end %>
-              </li>
-              <li class="nav-item d-lg-none">
-                <%= link_to new_payment_request_path, class: "nav-link text-white fw-bold py-2 px-3", style: "font-size: 14px;" do %>
-                  <i class="ri-hand-coin-fill me-2" style="color: var(--haiti-gold);"></i> Mande
-                <% end %>
-              </li>
-              <li class="nav-item d-lg-none">
-                <%= link_to new_transaction_path, class: "nav-link text-white fw-bold py-2 px-3", style: "font-size: 14px;" do %>
-                  <i class="ri-shopping-cart-line me-2" style="color: var(--haiti-gold);"></i> Achte
-                <% end %>
-              </li>
-              <li class="nav-item d-lg-none">
-                <%= link_to wallet_path(action_panel: "deposit"), class: "nav-link text-white fw-bold py-2 px-3", style: "font-size: 14px;" do %>
-                  <i class="ri-download-line me-2" style="color: var(--haiti-gold);"></i> Depoze
-                <% end %>
-              </li>
-              <li class="nav-item d-lg-none">
-                <%= link_to wallet_path(action_panel: "withdraw"), class: "nav-link text-white fw-bold py-2 px-3", style: "font-size: 14px;" do %>
-                  <i class="ri-logout-box-line me-2" style="color: var(--haiti-gold);"></i> Retire
-                <% end %>
-              </li>
+              <%# Ajan link moved to mobile bottom nav %>
               <li class="nav-item d-lg-none"><hr class="my-2" style="border-color: rgba(255,255,255,0.15);"></li>
+
+              <%# ── Pwodui dropdown (desktop) ── %>
+              <li class="nav-item dropdown d-none d-lg-block">
+                <a class="nav-link dropdown-toggle text-white fw-bold small" href="#" role="button" data-bs-toggle="dropdown">
+                  Pwodui
+                </a>
+                <ul class="dropdown-menu shadow-lg p-2" style="min-width: 320px; border: none; border-radius: 16px;">
+                  <li>
+                    <%= link_to zellus_info_path, class: "dropdown-item rounded p-3" do %>
+                      <div class="fw-bold" style="color: var(--haiti-charcoal);"><i class="ri-send-plane-fill me-2" style="color: var(--haiti-gold);"></i>Zèllus Pay</div>
+                      <div style="color: var(--haiti-olive); font-size: 11px; white-space: normal;">Voye ak resevwa lajan gratis.</div>
+                    <% end %>
+                  </li>
+                  <li>
+                    <%= link_to annye_path, class: "dropdown-item rounded p-3" do %>
+                      <div class="fw-bold" style="color: var(--haiti-charcoal);"><i class="ri-store-2-line me-2" style="color: var(--haiti-gold);"></i>Zèllus Biznis</div>
+                      <div style="color: var(--haiti-olive); font-size: 11px; white-space: normal;">Aksepte peman Zèllus, voye peman dirèk, eskane kòd QR pèsonalize ou.</div>
+                    <% end %>
+                  </li>
+                  <li>
+                    <%= link_to ajan_info_path, class: "dropdown-item rounded p-3" do %>
+                      <div class="fw-bold" style="color: var(--haiti-charcoal);"><i class="ri-user-location-line me-2" style="color: var(--haiti-gold);"></i>Zèllus Ajan</div>
+                      <div style="color: var(--haiti-olive); font-size: 11px; white-space: normal;">Touche 2% komisyon sou depo lajan kach.</div>
+                    <% end %>
+                  </li>
+                  <%# ── Zèllus Sòl / Bousad / Onèt Byento — re-enable when ready to deploy ── %>
+                  <% if false %>
+                  <li>
+                    <%= link_to priosol_info_path, class: "dropdown-item rounded p-3" do %>
+                      <div class="fw-bold" style="color: var(--haiti-charcoal);"><i class="ri-loop-right-line me-2" style="color: var(--haiti-gold);"></i>Zèllus Sòl <span class="badge-soon">Byento</span></div>
+                      <div style="color: var(--haiti-olive); font-size: 11px; white-space: normal;">Kreye Sòl ak zanmi, fanmi'w oswa kominote'w pou w ka ekonomize.</div>
+                    <% end %>
+                  </li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li>
+                    <%= link_to priobousad_info_path, class: "dropdown-item rounded p-3" do %>
+                      <div class="fw-bold" style="color: var(--haiti-charcoal);"><i class="ri-hand-coin-line me-2" style="color: var(--haiti-gold);"></i>Zèllus Bousad <span class="badge-soon">Byento</span></div>
+                      <div style="color: var(--haiti-olive); font-size: 11px; white-space: normal;">Aplike pou yon prè pou bay biznis ou bousad.</div>
+                    <% end %>
+                  </li>
+                  <li>
+                    <%= link_to prionet_info_path, class: "dropdown-item rounded p-3" do %>
+                      <div class="fw-bold" style="color: var(--haiti-charcoal);"><i class="ri-medal-line me-2" style="color: var(--haiti-gold);"></i>Zèllus Onèt <span class="badge-soon">Byento</span></div>
+                      <div style="color: var(--haiti-olive); font-size: 11px; white-space: normal;">Bati kredi ou ak biznis ou pou debloke plis kapital.</div>
+                    <% end %>
+                  </li>
+                  <% end %>
+                  <li><hr class="dropdown-divider"></li>
+                  <li>
+                    <%= link_to apwopo_path, class: "dropdown-item rounded p-3" do %>
+                      <div class="fw-bold" style="color: var(--haiti-charcoal);"><i class="ri-information-line me-2" style="color: var(--haiti-gold);"></i>Apwopo</div>
+                      <div style="color: var(--haiti-olive); font-size: 11px; white-space: normal;">Aprann plis sou Zèllus ak misyon nou.</div>
+                    <% end %>
+                  </li>
+                  <li>
+                    <%= link_to faq_path, class: "dropdown-item rounded p-3" do %>
+                      <div class="fw-bold" style="color: var(--haiti-charcoal);"><i class="ri-question-line me-2" style="color: var(--haiti-gold);"></i>FAQ</div>
+                      <div style="color: var(--haiti-olive); font-size: 11px; white-space: normal;">Kesyon yo poze souvan sou Zèllus.</div>
+                    <% end %>
+                  </li>
+                </ul>
+              </li>
+
+              <%# ── Resevwa Button (desktop) ── %>
+              <% if current_user.uma_enabled? && LightsparkConfig.enabled? %>
+                <li class="nav-item d-none d-lg-block ms-lg-2">
+                  <%= link_to resevwa_path, class: "btn btn-sm fw-bold rounded-pill px-3 py-1 d-flex align-items-center gap-1", style: "background: var(--haiti-gold); color: var(--haiti-charcoal); font-size: 12px; border: none;" do %>
+                    <i class="ri-money-dollar-circle-line" style="font-size: 14px;"></i> Resevwa
+                  <% end %>
+                </li>
+              <% end %>
 
               <%# ── Notification Bell ── %>
               <li class="nav-item dropdown ms-lg-2">
                 <a href="#" role="button" data-bs-toggle="dropdown"
-                   class="nav-link p-0 d-flex align-items-center justify-content-center position-relative"
-                   style="width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,0.08); border: 1px solid rgba(197,160,89,0.3);">
-                  <i class="ri-notification-3-line" style="color: var(--haiti-gold); font-size: 18px;"></i>
-                  <span id="notif-bell-badge" class="position-absolute" style="top: -2px; right: -2px; background: #dc2626; color: #fff; font-size: 9px; font-weight: 800; min-width: 18px; height: 18px; line-height: 18px; text-align: center; border-radius: 50%; border: 2px solid var(--haiti-charcoal); <%= 'display: none;' if unread_notification_count == 0 %>">
-                    <%= unread_notification_count %>
-                  </span>
+                   class="nav-link p-0 position-relative"
+                   style="color: var(--haiti-gold); font-size: 20px;">
+                  <i class="ri-notification-3-line"></i>
+                  <% if unread_notification_count > 0 %>
+                    <span id="notif-bell-badge" class="position-absolute d-flex align-items-center justify-content-center" style="top: -6px; right: -10px; background: var(--haiti-gold); color: var(--haiti-charcoal); font-size: 9px; font-weight: 800; width: 20px; height: 20px; border-radius: 50%;">
+                      <%= unread_notification_count %>
+                    </span>
+                  <% end %>
                 </a>
-                <ul class="dropdown-menu dropdown-menu-end shadow-lg p-2 mt-2" style="min-width: 340px; max-height: 420px; overflow-y: auto; border: none; border-radius: 16px;">
+                <ul class="dropdown-menu dropdown-menu-end p-0 mt-2" style="min-width: 340px; max-height: 420px; overflow: hidden; border: 1px solid rgba(46,46,56,0.1); border-radius: 16px; box-shadow: 0 10px 25px rgba(46,46,56,0.2);">
                   <li>
-                    <div class="px-3 py-2 d-flex align-items-center justify-content-between">
-                      <span class="fw-bold small" style="color: var(--haiti-charcoal);">Notifikasyon</span>
+                    <div class="px-3 py-2 d-flex align-items-center justify-content-between" style="background: var(--haiti-charcoal);">
+                      <span class="fw-black small" style="color: var(--haiti-gold); font-family: 'Space Grotesk', sans-serif;">Notifikasyon</span>
                       <% if unread_notification_count > 0 %>
-                        <span id="notif-dropdown-count" class="badge rounded-pill" style="background: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 9px;"><%= unread_notification_count %></span>
+                        <span id="notif-dropdown-count" class="badge rounded-pill" style="background: var(--haiti-gold); color: var(--haiti-charcoal); font-size: 9px; font-weight: 800;"><%= unread_notification_count %></span>
                       <% end %>
                     </div>
                   </li>
-                  <li><hr class="dropdown-divider my-1"></li>
                   <% if recent_notifications_for_dropdown.any? %>
-                    <% recent_notifications_for_dropdown.each do |notif| %>
-                      <li>
-                        <%= link_to mark_read_notification_path(notif), class: "dropdown-item rounded-3 p-2 mb-1", style: "#{'background: rgba(197,160,89,0.06);' if notif.unread?}" do %>
-                          <div class="d-flex align-items-center gap-2">
-                            <div style="width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; <%= notif.icon_color_style %>">
-                              <i class="<%= notif.icon_class %>" style="font-size: 14px;"></i>
+                    <li style="background: var(--haiti-cream);">
+                      <div class="p-2" style="max-height: 340px; overflow-y: auto;">
+                        <% recent_notifications_for_dropdown.each do |notif| %>
+                          <%= link_to mark_read_notification_path(notif), class: "d-flex align-items-center gap-2 rounded-3 p-2 mb-1 text-decoration-none", style: "border-bottom: 1px solid var(--haiti-mint); #{notif.unread? ? 'border-left: 3px solid var(--haiti-gold); background: rgba(197,160,89,0.05);' : ''}" do %>
+                            <div style="width: 32px; height: 32px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; border-radius: 50%; border: 1px solid rgba(197,160,89,0.3); background: rgba(197,160,89,0.06);">
+                              <i class="<%= notif.icon_class %>" style="font-size: 16px; color: var(--haiti-gold);"></i>
                             </div>
                             <div class="flex-grow-1" style="min-width: 0;">
                               <div class="<%= notif.unread? ? 'fw-bold' : '' %>" style="color: var(--haiti-charcoal); font-size: 12px; line-height: 1.3;">
@@ -239,23 +611,19 @@
                                 <%= time_ago_in_words(notif.created_at) %> de sa
                               </div>
                             </div>
-                            <% if notif.unread? %>
-                              <div style="width: 8px; height: 8px; border-radius: 50%; background: var(--haiti-gold); flex-shrink: 0;"></div>
-                            <% end %>
-                          </div>
+                          <% end %>
                         <% end %>
-                      </li>
-                    <% end %>
-                    <li><hr class="dropdown-divider my-1"></li>
-                    <li>
+                      </div>
+                    </li>
+                    <li style="background: var(--haiti-cream); border-top: 1px solid rgba(46,46,56,0.06);">
                       <div class="text-center py-2">
                         <%= link_to notifications_path, class: "small fw-bold text-decoration-none", style: "color: var(--haiti-gold);" do %>
-                          W&egrave; Tout <i class="ri-arrow-right-s-line"></i>
+                          Wè Tout <i class="ri-arrow-right-s-line"></i>
                         <% end %>
                       </div>
                     </li>
                   <% else %>
-                    <li>
+                    <li style="background: var(--haiti-cream);">
                       <div class="px-3 py-4 text-center">
                         <i class="ri-notification-off-line" style="font-size: 24px; color: var(--haiti-olive); opacity: 0.4;"></i>
                         <div class="small mt-1" style="color: var(--haiti-olive);">Pa gen notifikasyon</div>
@@ -265,88 +633,157 @@
                 </ul>
               </li>
 
-              <%# ── Market Link ── %>
-              <li class="nav-item ms-lg-2">
-                <%= link_to rates_wallet_path, class: "nav-link d-flex align-items-center gap-1 px-3 py-2 rounded-pill",
-                    style: "background: rgba(255,255,255,0.08); border: 1px solid rgba(197,160,89,0.3); color: white; font-size: 12px; font-weight: 700;" do %>
-                  <i class="ri-line-chart-line" style="color: var(--haiti-gold); font-size: 15px;"></i>
-                  <span>Mache Dechanj</span>
-                <% end %>
-              </li>
+
 
               <%# ── User Profile Pill (always visible) ── %>
-              <li class="nav-item dropdown ms-lg-2">
-                <a class="nav-link dropdown-toggle d-flex align-items-center gap-2 px-3 py-2 rounded-pill"
+              <li class="nav-item dropdown ms-lg-3">
+                <a class="nav-link dropdown-toggle d-flex align-items-center gap-2 px-3 py-2"
                    href="#" role="button" data-bs-toggle="dropdown"
-                   style="background: rgba(255,255,255,0.08); border: 1px solid var(--haiti-gold); color: white;">
+                   style="color: white; border-radius: 24px; background: rgba(255,255,255,0.06); transition: background 0.15s; max-width: 200px;">
                   <% if current_user.avatar.attached? %>
-                    <%= image_tag current_user.avatar, style: "width: 26px; height: 26px; border-radius: 50%; object-fit: cover; border: 1.5px solid var(--haiti-gold);", alt: "" %>
-                  <% else %>
-                    <span style="font-size: 1.2rem;"><%= current_user.tier_icon %></span>
-                  <% end %>
-                  <span class="small fw-bold"><%= current_user.bonid_verified? && current_user.bonid_full_name.present? ? current_user.bonid_first_name : current_user.display_name %></span>
-                </a>
-                <ul class="dropdown-menu dropdown-menu-end shadow-lg p-2 mt-2" style="min-width: 240px;">
-                  <li>
-                    <div class="px-3 py-2">
-                      <% if current_user.bonid_verified? && current_user.bonid_full_name.present? %>
-                        <div class="fw-bold" style="color: var(--haiti-charcoal);"><%= current_user.bonid_full_name %></div>
-                        <div class="small" style="color: var(--haiti-olive);"><%= current_user.email %></div>
-                        <% if current_user.bonid_blood_type.present? %>
-                          <div class="d-flex align-items-center gap-1 mt-1">
-                            <i class="ri-heart-pulse-line" style="color: #dc2626; font-size: 13px;"></i>
-                            <span class="badge rounded-pill" style="background: #fef2f2; color: #991b1b; font-size: 10px; font-weight: 700;"><%= current_user.bonid_blood_type %></span>
-                          </div>
-                        <% end %>
-                      <% else %>
-                        <div class="small fw-bold" style="color: var(--haiti-charcoal);"><%= current_user.email %></div>
+                    <div style="position: relative; width: 30px; height: 30px;">
+                      <%= image_tag current_user.avatar, style: "width: 30px; height: 30px; border-radius: 50%; object-fit: cover; border: 2px solid var(--haiti-gold);", alt: "" %>
+                      <% if current_user.bonid_verified? %>
+                        <div class="js-bonid-badge" style="position: absolute; bottom: -2px; right: -2px; width: 14px; height: 14px; background: #16a34a; border-radius: 50%; border: 2px solid var(--haiti-charcoal); display: flex; align-items: center; justify-content: center;">
+                          <i class="ri-check-line" style="color: #fff; font-size: 8px;"></i>
+                        </div>
                       <% end %>
-                      <div class="d-flex align-items-center gap-2 mt-1">
-                        <span class="badge rounded-pill" style="background-color: var(--haiti-gold); color: var(--haiti-charcoal); font-size: 9px; font-weight: 800;">
-                          <%= current_user.credit_tier %>
-                        </span>
-                        <span style="color: var(--haiti-olive); font-size: 10px;"><%= current_user.credit_score || 0 %> pwen</span>
+                    </div>
+                  <% else %>
+                    <div style="position: relative;">
+                      <span style="font-size: 1.3rem;"><%= current_user.tier_icon %></span>
+                      <% if current_user.bonid_verified? %>
+                        <div class="js-bonid-badge" style="position: absolute; bottom: -2px; right: -4px; width: 14px; height: 14px; background: #16a34a; border-radius: 50%; border: 2px solid var(--haiti-charcoal); display: flex; align-items: center; justify-content: center;">
+                          <i class="ri-check-line" style="color: #fff; font-size: 8px;"></i>
+                        </div>
+                      <% end %>
+                    </div>
+                  <% end %>
+                  <span class="small fw-bold js-bonid-name"><%= current_user.bonid_verified? && current_user.bonid_full_name.present? ? current_user.bonid_first_name : current_user.display_name %></span>
+                </a>
+
+                <ul class="dropdown-menu dropdown-menu-end shadow-lg p-0 mt-2" style="min-width: 320px; width: 340px; border: 1px solid rgba(46,46,56,0.08); border-radius: 16px; overflow: hidden;">
+
+                  <%# ── SECTION 1: Identity Header ── %>
+                  <li>
+                    <div style="padding: 16px 20px 14px; background: linear-gradient(135deg, var(--haiti-charcoal) 0%, #3a3a48 100%);">
+                      <div class="d-flex align-items-center gap-3">
+                        <%# Avatar with verification badge %>
+                        <div style="position: relative; flex-shrink: 0;">
+                          <% if current_user.avatar.attached? %>
+                            <%= image_tag current_user.avatar, style: "width: 44px; height: 44px; border-radius: 50%; object-fit: cover; border: 2px solid var(--haiti-gold);", alt: "" %>
+                          <% else %>
+                            <div style="width: 44px; height: 44px; border-radius: 50%; background: rgba(197,160,89,0.15); border: 2px solid var(--haiti-gold); display: flex; align-items: center; justify-content: center;">
+                              <span style="font-size: 1.3rem;"><%= current_user.tier_icon %></span>
+                            </div>
+                          <% end %>
+                          <% if current_user.bonid_verified? %>
+                            <div class="js-bonid-badge" style="position: absolute; bottom: -1px; right: -1px; width: 18px; height: 18px; background: #16a34a; border-radius: 50%; border: 2.5px solid var(--haiti-charcoal); display: flex; align-items: center; justify-content: center;" title="Idantite verifye ak BonID">
+                              <i class="ri-check-line" style="color: #fff; font-size: 10px;"></i>
+                            </div>
+                          <% end %>
+                        </div>
+                        <%# Name + email %>
+                        <div style="min-width: 0; flex: 1;">
+                          <div class="d-flex align-items-center gap-1">
+                            <span class="fw-bold text-truncate js-bonid-fullname" style="color: #fff; font-size: 14px;">
+                              <%= current_user.bonid_verified? && current_user.bonid_full_name.present? ? current_user.bonid_full_name : current_user.display_name %>
+                            </span>
+                            <% if current_user.bonid_verified? %>
+                              <i class="ri-verified-badge-fill js-bonid-badge" style="color: #16a34a; font-size: 15px; flex-shrink: 0;" title="Verifye"></i>
+                            <% end %>
+                          </div>
+                          <div class="text-truncate" style="color: rgba(255,255,255,0.5); font-size: 11px;"><%= current_user.email.gsub(/(.{2})(.*)(@.*)/) { $1 + '•' * [$2.length, 4].min + $3 } %></div>
+                          <div class="d-flex align-items-center gap-2 mt-2">
+                            <span class="badge rounded-pill" style="background: rgba(197,160,89,0.2); color: var(--haiti-gold); font-size: 9px; font-weight: 800; padding: 3px 8px;">
+                              <%= current_user.credit_tier %>
+                            </span>
+                            <span style="color: rgba(255,255,255,0.35); font-size: 10px;"><%= current_user.credit_score || 0 %> pwen</span>
+                            <% if current_user.bonid_blood_type.present? %>
+                              <span class="d-flex align-items-center gap-1 js-bonid-blood" style="margin-left: auto;">
+                                <i class="ri-heart-pulse-line" style="color: #f87171; font-size: 11px;"></i>
+                                <span style="color: #f87171; font-size: 9px; font-weight: 700;"><%= current_user.bonid_blood_type %></span>
+                              </span>
+                            <% end %>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </li>
-                  <li><hr class="dropdown-divider my-1"></li>
-                  <li>
-                    <%= link_to payment_methods_path, class: "dropdown-item rounded p-3" do %>
-                      <div class="fw-bold" style="color: var(--haiti-charcoal);"><i class="ri-bank-card-line me-2" style="color: var(--haiti-gold);"></i>Metòd Peman</div>
-                    <% end %>
-                  </li>
-                  <li>
-                    <%= link_to bonid_verification_path, class: "dropdown-item rounded p-3" do %>
-                      <div class="fw-bold" style="color: var(--haiti-charcoal);">
-                        <i class="ri-shield-check-line me-2" style="color: var(--haiti-gold);"></i>Verifye ak BonID
-                        <% if current_user.bonid_verified? %>
-                          <span class="badge rounded-pill ms-1" style="background: #f0fdf4; color: #166534; font-size: 8px;">Verifye</span>
-                        <% end %>
-                      </div>
-                      <div style="color: var(--haiti-olive); font-size: 11px;">
-                        <% if current_user.bonid_verified? %>
-                          <%= current_user.bonid.gsub(/(.{4}).*(.{3})/, '\1••••••\2') %>
-                        <% else %>
-                          Verifye idantite'w pou debloke pi gwo limit kredi.
-                        <% end %>
-                      </div>
-                    <% end %>
-                  </li>
-                  <li>
-                    <%= link_to edit_user_registration_path, class: "dropdown-item rounded p-3" do %>
-                      <div class="fw-bold" style="color: var(--haiti-charcoal);"><i class="ri-settings-3-line me-2" style="color: var(--haiti-olive);"></i>Paramèt Kont</div>
-                    <% end %>
-                  </li>
-                  <% if current_user.email == ENV['ADMIN_EMAIL'].to_s.strip %>
-                    <li>
-                      <%= link_to admin_dashboard_path, class: "dropdown-item rounded p-3" do %>
-                        <div class="fw-bold" style="color: var(--haiti-charcoal);"><i class="ri-dashboard-3-line me-2" style="color: var(--haiti-gold);"></i>Tablo Admin</div>
+
+                  <%# ── SECTION 2: BonID CTA (not verified) ── %>
+                  <% unless current_user.bonid_verified? %>
+                    <li class="js-bonid-cta" style="padding: 8px 10px 4px;">
+                      <%= link_to bonid_verification_path, class: "d-block text-decoration-none", style: "background: linear-gradient(135deg, #00209F 0%, #0035d4 100%); border-radius: 12px; padding: 12px 14px; transition: transform 0.15s, box-shadow 0.15s;" do %>
+                        <div class="d-flex align-items-center gap-3">
+                          <div style="width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.15); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <i class="ri-shield-check-line" style="color: #fff; font-size: 18px;"></i>
+                          </div>
+                          <div style="flex: 1;">
+                            <div class="fw-bold" style="color: #fff; font-size: 13px;">Verifye ak BonID</div>
+                            <div style="color: rgba(255,255,255,0.65); font-size: 10px;">Debloke pi gwo limit ak fonksyon</div>
+                          </div>
+                          <i class="ri-arrow-right-s-line" style="color: rgba(255,255,255,0.5); font-size: 20px;"></i>
+                        </div>
                       <% end %>
                     </li>
                   <% end %>
-                  <li>
-                    <%= button_to destroy_user_session_path, method: :delete, class: "dropdown-item rounded p-3 w-100 text-start border-0 bg-transparent", data: { turbo: false } do %>
-                      <div class="fw-bold" style="color: #991b1b;"><i class="ri-logout-box-r-line me-2"></i>Dekonekte</div>
+
+                  <%# ── SECTION 3: Menu Items ── %>
+                  <li style="padding: 6px 10px 2px;">
+                    <div style="padding: 0 6px 4px; margin-top: 2px;">
+                      <span style="font-size: 9px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: rgba(46,46,56,0.3);">KONT</span>
+                    </div>
+                  </li>
+                  <% if current_user.bonid_verified? %>
+                    <li class="js-bonid-menu-item" style="padding: 0 10px;">
+                      <%= link_to bonid_verification_path, class: "d-flex align-items-center gap-3 text-decoration-none", style: "padding: 10px 10px; border-radius: 10px; transition: background 0.15s; min-height: 44px;", onmouseover: "this.style.background='var(--haiti-mint)'", onmouseout: "this.style.background='transparent'" do %>
+                        <div style="width: 32px; height: 32px; border-radius: 10px; background: #eef1ff; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                          <i class="ri-shield-check-line" style="color: #00209F; font-size: 16px;"></i>
+                        </div>
+                        <div style="flex: 1; min-width: 0;">
+                          <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;">BonID</div>
+                          <div class="text-truncate" style="color: #00209F; font-size: 10px; font-weight: 600;"><%= current_user.bonid.gsub(/(.{4}).*(.{3})/, '\1••••••\2') %></div>
+                        </div>
+                        <span class="badge rounded-pill" style="background: #dcfce7; color: #166534; font-size: 9px; font-weight: 700; padding: 3px 8px;">Verifye</span>
+                      <% end %>
+                    </li>
+                  <% end %>
+                  <li style="padding: 0 10px;">
+                    <%= link_to payment_methods_path, class: "d-flex align-items-center gap-3 text-decoration-none", style: "padding: 10px 10px; border-radius: 10px; transition: background 0.15s; min-height: 44px;", onmouseover: "this.style.background='var(--haiti-mint)'", onmouseout: "this.style.background='transparent'" do %>
+                      <div style="width: 32px; height: 32px; border-radius: 10px; background: rgba(197,160,89,0.1); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                        <i class="ri-bank-card-line" style="color: var(--haiti-gold); font-size: 16px;"></i>
+                      </div>
+                      <span class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;">Metòd Peman</span>
+                    <% end %>
+                  </li>
+                  <li style="padding: 0 10px;">
+                    <%= link_to edit_user_registration_path, class: "d-flex align-items-center gap-3 text-decoration-none", style: "padding: 10px 10px; border-radius: 10px; transition: background 0.15s; min-height: 44px;", onmouseover: "this.style.background='var(--haiti-mint)'", onmouseout: "this.style.background='transparent'" do %>
+                      <div style="width: 32px; height: 32px; border-radius: 10px; background: rgba(93,99,69,0.1); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                        <i class="ri-settings-3-line" style="color: var(--haiti-olive); font-size: 16px;"></i>
+                      </div>
+                      <span class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;">Paramèt Kont</span>
+                    <% end %>
+                  </li>
+                  <% if current_user.email == ENV['ADMIN_EMAIL'].to_s.strip %>
+                    <li style="padding: 0 10px;">
+                      <%= link_to admin_root_path, class: "d-flex align-items-center gap-3 text-decoration-none", style: "padding: 10px 10px; border-radius: 10px; transition: background 0.15s; min-height: 44px;", onmouseover: "this.style.background='var(--haiti-mint)'", onmouseout: "this.style.background='transparent'" do %>
+                        <div style="width: 32px; height: 32px; border-radius: 10px; background: rgba(197,160,89,0.1); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                          <i class="ri-dashboard-3-line" style="color: var(--haiti-gold); font-size: 16px;"></i>
+                        </div>
+                        <span class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;">Tablo Admin</span>
+                      <% end %>
+                    </li>
+                  <% end %>
+
+                  <%# ── SECTION 4: Logout (separated) ── %>
+                  <li style="padding: 4px 10px 0;"><hr style="border-color: rgba(46,46,56,0.08); margin: 0;"></li>
+                  <li style="padding: 4px 10px 10px;">
+                    <%= button_to destroy_user_session_path, method: :delete, class: "d-flex align-items-center gap-3 w-100 text-start border-0 bg-transparent", style: "padding: 10px 10px; border-radius: 10px; transition: background 0.15s; min-height: 44px; cursor: pointer;", data: { turbo: false } do %>
+                      <div style="width: 32px; height: 32px; border-radius: 10px; background: #fef2f2; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                        <i class="ri-logout-box-r-line" style="color: #dc2626; font-size: 16px;"></i>
+                      </div>
+                      <span class="fw-bold" style="color: #991b1b; font-size: 13px;">Dekonekte</span>
                     <% end %>
                   </li>
                 </ul>
@@ -363,44 +800,77 @@
                 <ul class="dropdown-menu shadow-lg p-2" style="min-width: 320px;">
                   <li>
                     <%= link_to zellus_info_path, class: "dropdown-item rounded p-3" do %>
-                      <div class="fw-bold" style="color: var(--haiti-charcoal);"><i class="ri-user-line me-2" style="color: var(--haiti-gold);"></i>Zellus pou Endividyèl</div>
+                      <div class="fw-bold" style="color: var(--haiti-charcoal);"><i class="ri-send-plane-fill me-2" style="color: var(--haiti-gold);"></i>Zèllus Pay</div>
                       <div style="color: var(--haiti-olive); font-size: 11px; white-space: normal;">Voye ak resevwa lajan gratis.</div>
                     <% end %>
                   </li>
                   <li>
-                    <%= link_to zellus_info_path, class: "dropdown-item rounded p-3" do %>
-                      <div class="fw-bold" style="color: var(--haiti-charcoal);"><i class="ri-store-2-line me-2" style="color: var(--haiti-gold);"></i>Zellus pou Biznis</div>
+                    <%= link_to annye_path, class: "dropdown-item rounded p-3" do %>
+                      <div class="fw-bold" style="color: var(--haiti-charcoal);"><i class="ri-store-2-line me-2" style="color: var(--haiti-gold);"></i>Zèllus Biznis</div>
                       <div style="color: var(--haiti-olive); font-size: 11px; white-space: normal;">Aksepte peman Zèllus, voye peman dirèk, eskane kòd QR pèsonalize ou.</div>
                     <% end %>
                   </li>
                   <li>
+                    <%= link_to ajan_info_path, class: "dropdown-item rounded p-3" do %>
+                      <div class="fw-bold" style="color: var(--haiti-charcoal);"><i class="ri-user-location-line me-2" style="color: var(--haiti-gold);"></i>Zèllus Ajan</div>
+                      <div style="color: var(--haiti-olive); font-size: 11px; white-space: normal;">Touche 2% komisyon sou depo lajan kach.</div>
+                    <% end %>
+                  </li>
+                  <%# ── Zèllus Sòl / Bousad / Onèt Byento — re-enable when ready to deploy ── %>
+                  <% if false %>
+                  <li>
                     <%= link_to priosol_info_path, class: "dropdown-item rounded p-3" do %>
-                      <div class="fw-bold" style="color: var(--haiti-charcoal);"><i class="ri-loop-right-line me-2" style="color: var(--haiti-gold);"></i>Zellus Sòl</div>
+                      <div class="fw-bold" style="color: var(--haiti-charcoal);"><i class="ri-loop-right-line me-2" style="color: var(--haiti-gold);"></i>Zèllus Sòl <span class="badge-soon">Byento</span></div>
                       <div style="color: var(--haiti-olive); font-size: 11px; white-space: normal;">Kreye Sòl ak zanmi, fanmi'w oswa kominote'w pou w ka ekonomize.</div>
                     <% end %>
                   </li>
                   <li><hr class="dropdown-divider"></li>
                   <li>
                     <%= link_to priobousad_info_path, class: "dropdown-item rounded p-3" do %>
-                      <div class="fw-bold" style="color: var(--haiti-charcoal);"><i class="ri-hand-coin-line me-2" style="color: var(--haiti-gold);"></i>Zellus Bousad</div>
+                      <div class="fw-bold" style="color: var(--haiti-charcoal);"><i class="ri-hand-coin-line me-2" style="color: var(--haiti-gold);"></i>Zèllus Bousad <span class="badge-soon">Byento</span></div>
                       <div style="color: var(--haiti-olive); font-size: 11px; white-space: normal;">Aplike pou yon prè pou bay biznis ou bousad.</div>
                     <% end %>
                   </li>
                   <li>
                     <%= link_to prionet_info_path, class: "dropdown-item rounded p-3" do %>
-                      <div class="fw-bold" style="color: var(--haiti-charcoal);"><i class="ri-medal-line me-2" style="color: var(--haiti-gold);"></i>Zellus Onèt</div>
+                      <div class="fw-bold" style="color: var(--haiti-charcoal);"><i class="ri-medal-line me-2" style="color: var(--haiti-gold);"></i>Zèllus Onèt <span class="badge-soon">Byento</span></div>
                       <div style="color: var(--haiti-olive); font-size: 11px; white-space: normal;">Bati kredi ou ak biznis ou pou debloke plis kapital.</div>
+                    <% end %>
+                  </li>
+                  <% end %>
+                  <li><hr class="dropdown-divider"></li>
+                  <li>
+                    <%= link_to apwopo_path, class: "dropdown-item rounded p-3" do %>
+                      <div class="fw-bold" style="color: var(--haiti-charcoal);"><i class="ri-information-line me-2" style="color: var(--haiti-gold);"></i>Apwopo</div>
+                      <div style="color: var(--haiti-olive); font-size: 11px; white-space: normal;">Aprann plis sou Zèllus ak misyon nou.</div>
+                    <% end %>
+                  </li>
+                  <li>
+                    <%= link_to faq_path, class: "dropdown-item rounded p-3" do %>
+                      <div class="fw-bold" style="color: var(--haiti-charcoal);"><i class="ri-question-line me-2" style="color: var(--haiti-gold);"></i>FAQ</div>
+                      <div style="color: var(--haiti-olive); font-size: 11px; white-space: normal;">Kesyon yo poze souvan sou Zèllus.</div>
                     <% end %>
                   </li>
                 </ul>
               </li>
-              <li class="nav-item"><%= link_to "Kijan Sa Mache?", "#", class: "nav-link text-white fw-bold small" %></li>
-              <li class="nav-item"><%= link_to "Apwopo", "#", class: "nav-link text-white fw-bold small" %></li>
-              <li class="nav-item ms-lg-2">
-                <%= link_to "Konekte", new_user_session_path, class: "nav-link text-white fw-bold small" %>
+              <li class="nav-item"><%= link_to "Jwenn yon Ajan Zèllus", annye_path, class: "nav-link text-white fw-bold small" %></li>
+              <li class="nav-item"><%= link_to "Apwopo", apwopo_path, class: "nav-link text-white fw-bold small" %></li>
+              <li class="nav-item"><%= link_to "FAQ", faq_path, class: "nav-link text-white fw-bold small" %></li>
+              <li class="nav-item mt-3 mt-lg-0 ms-lg-2">
+                <%= link_to new_user_session_path, class: "nav-link d-lg-none text-decoration-none fw-bold py-2", style: "color: var(--haiti-gold) !important; font-size: 14px;" do %>
+                  <i class="ri-login-box-line me-2"></i>Konekte
+                <% end %>
+                <%= link_to new_user_session_path, class: "btn fw-bold rounded-pill px-4 py-2 d-none d-lg-inline-block", style: "background: transparent; color: var(--haiti-gold); border: 2px solid var(--haiti-gold); font-size: 13px;" do %>
+                  <i class="ri-login-box-line me-1"></i>Konekte
+                <% end %>
               </li>
-              <li class="nav-item">
-                <%= link_to "Kòmanse", new_user_registration_path, class: "btn btn-prestige btn-sm px-4 rounded-pill shadow-sm", style: "text-transform: none; font-weight: 700; letter-spacing: 0.3px;" %>
+              <li class="nav-item mt-2 mt-lg-0 ms-lg-2">
+                <%= link_to new_user_registration_path, class: "nav-link d-lg-none text-decoration-none fw-bold py-2", style: "color: var(--haiti-gold) !important; font-size: 14px;" do %>
+                  <i class="ri-user-add-line me-2"></i>Kreye Kont
+                <% end %>
+                <%= link_to new_user_registration_path, class: "btn fw-bold rounded-pill px-4 py-2 shadow-sm d-none d-lg-inline-block", style: "background: var(--haiti-gold); color: var(--haiti-charcoal); font-size: 13px; border: 2px solid var(--haiti-gold);" do %>
+                  <i class="ri-user-add-line me-1"></i>Kreye Kont
+                <% end %>
               </li>
             </ul>
           <% end %>
@@ -459,75 +929,96 @@
 
     <% if user_signed_in? %>
       <div class="d-flex" style="min-height: calc(100vh - 70px);">
-        <%# ── App Sidebar (desktop only) ── %>
-        <nav class="d-none d-lg-block flex-shrink-0" style="width: 240px; background: var(--haiti-cream); border-right: 1px solid rgba(93,99,69,0.12); padding: 24px 16px; overflow-y: auto;">
+        <%# ══════════════════════════════════════════════════════
+            APP SIDEBAR — Desktop only, collapsible
+            ══════════════════════════════════════════════════════ %>
+        <% nav_active = ->(path) { request.path.start_with?(path) ? "user-nav-active" : "" } %>
+        <nav id="user-sidebar" class="user-sidebar d-none d-lg-flex flex-shrink-0">
 
-          <%# ── LAKAY ── %>
-          <div class="mb-1" style="font-size: 11px; font-weight: 700; color: var(--haiti-olive); letter-spacing: 1.5px; text-transform: uppercase; padding-left: 8px;">LAKAY</div>
-          <%= link_to root_path, class: "d-flex align-items-center gap-3 px-2 py-2 rounded-3 text-decoration-none mb-1", style: "color: var(--haiti-charcoal);" do %>
-            <i class="ri-home-5-fill" style="font-size: 20px; color: var(--haiti-gold);"></i>
-            <div>
-              <div class="fw-bold" style="font-size: 13px;">Lakay</div>
-              <div style="font-size: 11px; color: var(--haiti-olive);">Wè balans ak tranzaksyon ou</div>
-            </div>
-          <% end %>
+          <%# ── Account Switcher — removed for now ── %>
 
-          <%# ── BIZNIS ── %>
-          <div class="mt-3 mb-1" style="font-size: 11px; font-weight: 700; color: var(--haiti-olive); letter-spacing: 1.5px; text-transform: uppercase; padding-left: 8px;">BIZNIS</div>
-          <%= link_to dashboard_business_path, class: "d-flex align-items-center gap-3 px-2 py-2 rounded-3 text-decoration-none mb-1", style: "color: var(--haiti-charcoal);" do %>
-            <i class="ri-layout-grid-line" style="font-size: 20px; color: var(--haiti-gold);"></i>
-            <div>
-              <div class="fw-bold" style="font-size: 13px;">Tablo Biznis</div>
-              <div style="font-size: 11px; color: var(--haiti-olive);">Wè peman ak estatistik</div>
+          <%# ── Scrollable Nav ── %>
+          <div class="user-sidebar-scroll">
+
+            <%# ── LAKAY ── %>
+            <div class="user-nav-section">
+              <div class="user-nav-header">LAKAY</div>
+              <%= link_to wallet_path, class: "user-nav-item #{(request.path == '/' || request.path == '/wallet') && params[:action_panel].blank? ? 'user-nav-active' : ''}", data: { tooltip: "Pòtfèy" } do %>
+                <div class="user-nav-item-icon"><i class="ri-wallet-3-line"></i></div>
+                <span class="user-nav-item-label">Pòtfèy</span>
+              <% end %>
             </div>
-          <% end %>
-          <%= link_to business_path, class: "d-flex align-items-center gap-3 px-2 py-2 rounded-3 text-decoration-none mb-1", style: "color: var(--haiti-charcoal);" do %>
-            <i class="ri-store-2-line" style="font-size: 20px; color: var(--haiti-gold);"></i>
-            <div class="fw-bold" style="font-size: 13px;">Pwofil Biznis</div>
-          <% end %>
-          <% if current_user.business.present? %>
-            <%= link_to public_business_path(current_user.business.slug), class: "d-flex align-items-center gap-3 px-2 py-2 rounded-3 text-decoration-none mb-1", style: "color: var(--haiti-charcoal);" do %>
-              <i class="ri-pages-line" style="font-size: 20px; color: var(--haiti-gold);"></i>
-              <div class="fw-bold" style="font-size: 13px;">Paj Piblik</div>
+
+            <%# ── AKSYON (with quick-action + buttons) ── %>
+            <div class="user-nav-section">
+              <div class="user-nav-header">AKSYON</div>
+              <%= link_to wallet_path(action_panel: "convert"), class: "user-nav-item #{params[:action_panel] == 'convert' ? 'user-nav-active' : ''}", data: { tooltip: "Konvèti" } do %>
+                <div class="user-nav-item-icon"><i class="ri-exchange-2-line"></i></div>
+                <span class="user-nav-item-label">Konvèti</span>
+              <% end %>
+              <%= link_to wallet_path(action_panel: "deposit"), class: "user-nav-item #{params[:action_panel] == 'deposit' ? 'user-nav-active' : ''}", data: { tooltip: "Depoze" } do %>
+                <div class="user-nav-item-icon"><i class="ri-arrow-down-circle-line"></i></div>
+                <span class="user-nav-item-label">Depoze</span>
+              <% end %>
+              <%= link_to wallet_path(action_panel: "withdraw"), class: "user-nav-item #{params[:action_panel] == 'withdraw' ? 'user-nav-active' : ''}", data: { tooltip: "Retire" } do %>
+                <div class="user-nav-item-icon"><i class="ri-arrow-up-circle-line"></i></div>
+                <span class="user-nav-item-label">Retire</span>
+              <% end %>
+            </div>
+
+            <%# ── AJAN — re-enable BIZNIS items when ready to deploy ── %>
+            <div class="user-nav-section">
+              <div class="user-nav-header">AJAN</div>
+              <%= link_to annye_path, class: "user-nav-item #{request.path == '/annye' ? 'user-nav-active' : ''}", data: { tooltip: "Jwenn yon Ajan Zèllus" } do %>
+                <div class="user-nav-item-icon"><i class="ri-user-location-line"></i></div>
+                <span class="user-nav-item-label">Jwenn yon Ajan Zèllus</span>
+              <% end %>
+              <% if false %>
+              <%= link_to dashboard_business_path, class: "user-nav-item #{nav_active.call('/business/dashboard')}", data: { tooltip: "Dashboard" } do %>
+                <div class="user-nav-item-icon"><i class="ri-pie-chart-2-line"></i></div>
+                <span class="user-nav-item-label">Dashboard</span>
+              <% end %>
+              <%= link_to payments_business_path, class: "user-nav-item #{nav_active.call('/business/payments')}", data: { tooltip: "Aktivite" } do %>
+                <div class="user-nav-item-icon"><i class="ri-exchange-funds-line"></i></div>
+                <span class="user-nav-item-label">Aktivite</span>
+              <% end %>
+              <%= link_to analytics_business_path, class: "user-nav-item #{nav_active.call('/business/analytics')}", data: { tooltip: "Analitik" } do %>
+                <div class="user-nav-item-icon"><i class="ri-bar-chart-grouped-line"></i></div>
+                <span class="user-nav-item-label">Analitik</span>
+              <% end %>
+              <%= link_to business_path, class: "user-nav-item #{request.path == '/business' ? 'user-nav-active' : ''}", data: { tooltip: "Pwofil" } do %>
+                <div class="user-nav-item-icon"><i class="ri-store-2-line"></i></div>
+                <span class="user-nav-item-label">Pwofil</span>
+              <% end %>
+              <div class="sidebar-divider"></div>
+              <%= link_to business_payment_links_path, class: "user-nav-item #{nav_active.call('/business/payment_links')}", data: { tooltip: "Lyen Pèman" } do %>
+                <div class="user-nav-item-icon"><i class="ri-link"></i></div>
+                <span class="user-nav-item-label">Lyen Pèman</span>
+              <% end %>
+              <%= link_to button_business_path, class: "user-nav-item #{nav_active.call('/business/button')}", data: { tooltip: "Bouton" } do %>
+                <div class="user-nav-item-icon"><i class="ri-code-s-slash-line"></i></div>
+                <span class="user-nav-item-label">Bouton</span>
+              <% end %>
+              <% end %>
+            </div>
+
+            <%# ── SÒL (disabled — coming soon) ── %>
+            <%# ── BOUSAD (disabled — coming soon) ── %>
+
+            <%# ── Security footer (inside scroll area) ── %>
+            <% if current_user.bonid_verified? %>
+              <div class="js-bonid-security-footer" style="padding: 8px 14px 4px;">
+                <div class="sidebar-security-badge">
+                  <i class="ri-shield-check-fill"></i> Idantite Verifye
+                </div>
+              </div>
             <% end %>
-          <% end %>
+          </div>
 
-          <%# ── SÒL ── %>
-          <div class="mt-3 mb-1" style="font-size: 11px; font-weight: 700; color: var(--haiti-olive); letter-spacing: 1.5px; text-transform: uppercase; padding-left: 8px;">SÒL</div>
-          <%= link_to priosol_path, class: "d-flex align-items-center gap-3 px-2 py-2 rounded-3 text-decoration-none mb-1", style: "color: var(--haiti-charcoal);" do %>
-            <i class="ri-layout-grid-line" style="font-size: 20px; color: var(--haiti-gold);"></i>
-            <div>
-              <div class="fw-bold" style="font-size: 13px;">Tablo Sòl</div>
-              <div style="font-size: 11px; color: var(--haiti-olive);">Rezime sèk ak kontribisyon</div>
-            </div>
-          <% end %>
-          <%= link_to new_sol_circle_path, class: "d-flex align-items-center gap-3 px-2 py-2 rounded-3 text-decoration-none mb-1", style: "color: var(--haiti-charcoal);" do %>
-            <i class="ri-add-circle-line" style="font-size: 20px; color: var(--haiti-gold);"></i>
-            <div class="fw-bold" style="font-size: 13px;">Kreye Yon Sol</div>
-          <% end %>
-          <%= link_to sol_circles_path, class: "d-flex align-items-center gap-3 px-2 py-2 rounded-3 text-decoration-none mb-1", style: "color: var(--haiti-charcoal);" do %>
-            <i class="ri-history-line" style="font-size: 20px; color: var(--haiti-gold);"></i>
-            <div class="fw-bold" style="font-size: 13px;">Aktivite</div>
-          <% end %>
-
-          <%# ── BOUSAD ── %>
-          <div class="mt-3 mb-1" style="font-size: 11px; font-weight: 700; color: var(--haiti-olive); letter-spacing: 1.5px; text-transform: uppercase; padding-left: 8px;">BOUSAD</div>
-          <%= link_to priobousad_path, class: "d-flex align-items-center gap-3 px-2 py-2 rounded-3 text-decoration-none mb-1", style: "color: var(--haiti-charcoal);" do %>
-            <i class="ri-layout-grid-line" style="font-size: 20px; color: var(--haiti-gold);"></i>
-            <div>
-              <div class="fw-bold" style="font-size: 13px;">Tablo Bousad</div>
-              <div style="font-size: 11px; color: var(--haiti-olive);">Rezime prè ak peman</div>
-            </div>
-          <% end %>
-          <%= link_to new_loan_path, class: "d-flex align-items-center gap-3 px-2 py-2 rounded-3 text-decoration-none mb-1", style: "color: var(--haiti-charcoal);" do %>
-            <i class="ri-add-circle-line" style="font-size: 20px; color: var(--haiti-gold);"></i>
-            <div class="fw-bold" style="font-size: 13px;">Mande Yon Bousad</div>
-          <% end %>
-          <%= link_to priobousad_path, class: "d-flex align-items-center gap-3 px-2 py-2 rounded-3 text-decoration-none mb-1", style: "color: var(--haiti-charcoal);" do %>
-            <i class="ri-history-line" style="font-size: 20px; color: var(--haiti-gold);"></i>
-            <div class="fw-bold" style="font-size: 13px;">Aktivite</div>
-          <% end %>
-
+          <%# ── Collapse Toggle ── %>
+          <div class="sidebar-collapse-btn" id="sidebar-toggle" title="Redui baryè lateral (Ctrl+B)">
+            <i class="ri-side-bar-line"></i>
+          </div>
         </nav>
 
         <%# ── Main Content ── %>
@@ -535,6 +1026,9 @@
           <%= yield %>
         </main>
       </div>
+
+      <%# Mobile bottom nav removed — duplicated sidebar + hamburger menu %>
+
     <% else %>
       <main class="<%= content_for?(:full_width) ? '' : 'container' %>">
         <%= yield %>
@@ -543,7 +1037,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-    <%# ── Turbo Drive: progress bar + loading overlay + button disable ── %>
+    <%# ── Turbo Drive: progress bar + overlay + ⚡ Lightning first-load ── %>
     <script>
     (function() {
       var bar = document.getElementById('turbo-progress');
@@ -570,15 +1064,49 @@
         }, 250);
       }
 
-      // Turbo navigation (link clicks)
+      // ── Turbo navigation (link clicks) — overlay only after 500ms delay ──
+      var navOverlayTimer = null;
       document.addEventListener('turbo:before-fetch-request', function(e) {
-        // Only show progress bar for navigation, not form submissions
-        if (!e.target.closest('form')) startBar();
+        if (!e.target.closest('form')) {
+          startBar();
+          // Only show full overlay if load takes > 500ms
+          navOverlayTimer = setTimeout(function() {
+            overlay.classList.add('active');
+          }, 500);
+        }
       });
-      document.addEventListener('turbo:before-fetch-response', finishBar);
-      document.addEventListener('turbo:load', finishBar);
+      document.addEventListener('turbo:before-fetch-response', function() {
+        clearTimeout(navOverlayTimer);
+        finishBar();
+        overlay.classList.remove('active');
+      });
+      document.addEventListener('turbo:load', function() {
+        clearTimeout(navOverlayTimer);
+        finishBar();
+        overlay.classList.remove('active');
+      });
 
-      // Turbo form submissions → show overlay + disable button
+      // ── Initial page load: ⚡ Power Charge ──
+      var chargeStartTime = window.__zellusChargeStart || Date.now();
+
+      function finishCharge() {
+        var elapsed = Date.now() - chargeStartTime;
+        var remaining = Math.max(0, 3500 - elapsed);
+        setTimeout(function() {
+          if (window.ZellusSplash) {
+            window.ZellusSplash.fadeOut();
+          }
+        }, remaining);
+      }
+
+      if (document.readyState === 'complete') {
+        finishCharge();
+      } else {
+        window.addEventListener('load', finishCharge);
+      }
+
+      // ── Turbo form submissions → overlay + disable button ──
+      var overlayTimeout;
       document.addEventListener('turbo:submit-start', function(e) {
         overlay.classList.add('active');
         var btn = e.target.querySelector('[type="submit"], button:not([type="button"])');
@@ -586,11 +1114,22 @@
           btn.dataset.turboDisabled = 'true';
           btn.dataset.originalHtml = btn.innerHTML;
           btn.disabled = true;
-          btn.innerHTML = '<i class="ri-loader-4-line me-1" style="animation: spin 0.7s linear infinite; display: inline-block;"></i>Chajman...';
+          btn.innerHTML = '<i class="ri-loader-4-line me-1" style="animation: spin 0.7s linear infinite; display: inline-block;"></i>Chaje..';
         }
+        clearTimeout(overlayTimeout);
+        overlayTimeout = setTimeout(function() {
+          overlay.classList.remove('active');
+          document.querySelectorAll('[data-turbo-disabled]').forEach(function(b) {
+            b.disabled = false;
+            if (b.dataset.originalHtml) b.innerHTML = b.dataset.originalHtml;
+            delete b.dataset.turboDisabled;
+            delete b.dataset.originalHtml;
+          });
+        }, 10000);
       });
 
       document.addEventListener('turbo:submit-end', function(e) {
+        clearTimeout(overlayTimeout);
         overlay.classList.remove('active');
         var btn = e.target.querySelector('[data-turbo-disabled]');
         if (btn) {
@@ -601,16 +1140,94 @@
         }
       });
 
-      // Fallback: also handle non-Turbo form submissions
+      // Non-Turbo form submissions: just progress bar
       document.addEventListener('submit', function(e) {
         var form = e.target;
         if (form.dataset.turbo === 'false' || form.closest('[data-turbo="false"]')) {
           startBar();
-          overlay.classList.add('active');
         }
       });
     })();
     </script>
+
+    <%# ── Sidebar: collapse toggle, search filter, Ctrl+B shortcut ── %>
+    <% if user_signed_in? %>
+    <script>
+    (function() {
+      var sidebar = document.getElementById('user-sidebar');
+      if (!sidebar) return;
+      var toggle = document.getElementById('sidebar-toggle');
+      var search = document.getElementById('sidebar-search');
+      var KEY = 'zellus-sidebar-collapsed';
+
+      // Restore saved state
+      if (localStorage.getItem(KEY) === '1') sidebar.classList.add('collapsed');
+
+      // Toggle collapse
+      if (toggle) {
+        toggle.addEventListener('click', function() {
+          sidebar.classList.toggle('collapsed');
+          localStorage.setItem(KEY, sidebar.classList.contains('collapsed') ? '1' : '0');
+        });
+      }
+
+      // Ctrl+B keyboard shortcut
+      document.addEventListener('keydown', function(e) {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'b' && !e.shiftKey && !e.altKey) {
+          var tag = document.activeElement.tagName;
+          if (tag === 'INPUT' || tag === 'TEXTAREA' || document.activeElement.isContentEditable) return;
+          e.preventDefault();
+          sidebar.classList.toggle('collapsed');
+          localStorage.setItem(KEY, sidebar.classList.contains('collapsed') ? '1' : '0');
+        }
+      });
+
+      // Quick search filter
+      if (search) {
+        var items = sidebar.querySelectorAll('.user-nav-item');
+        var sections = sidebar.querySelectorAll('.user-nav-section');
+        search.addEventListener('input', function() {
+          var q = this.value.toLowerCase().trim();
+          if (!q) {
+            items.forEach(function(el) { el.style.display = ''; });
+            sections.forEach(function(s) { s.style.display = ''; });
+            return;
+          }
+          sections.forEach(function(s) {
+            var any = false;
+            s.querySelectorAll('.user-nav-item').forEach(function(el) {
+              var label = el.querySelector('.user-nav-item-label');
+              var text = label ? label.textContent.toLowerCase() : '';
+              var match = text.includes(q);
+              el.style.display = match ? '' : 'none';
+              if (match) any = true;
+            });
+            s.style.display = any ? '' : 'none';
+          });
+        });
+        // Ctrl+K to focus search
+        document.addEventListener('keydown', function(e) {
+          if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+            e.preventDefault();
+            if (sidebar.classList.contains('collapsed')) {
+              sidebar.classList.remove('collapsed');
+              localStorage.setItem(KEY, '0');
+            }
+            search.focus();
+          }
+        });
+        // ESC to clear search
+        search.addEventListener('keydown', function(e) {
+          if (e.key === 'Escape') {
+            this.value = '';
+            this.dispatchEvent(new Event('input'));
+            this.blur();
+          }
+        });
+      }
+    })();
+    </script>
+    <% end %>
 
     <%# ── Re-initialize Bootstrap components after Turbo navigation ── %>
     <script>
@@ -794,7 +1411,7 @@
       }
 
       // ── 4c. Toast notification popup ──
-      function showNotifToast(title, type) {
+      function showNotifToast(title, type, avatarUrl) {
         // Remove existing toast if any
         var old = document.getElementById('zellus-notif-toast');
         if (old) old.remove();
@@ -808,10 +1425,17 @@
         };
         var c = colors[type] || { bg: '#FFF8E7', border: '#C5A059', icon: 'ri-notification-3-line', color: '#2E2E38' };
 
+        var iconHtml;
+        if (avatarUrl) {
+          iconHtml = '<img src="' + avatarUrl + '" style="width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid ' + c.border + ';" alt="">';
+        } else {
+          iconHtml = '<i class="' + c.icon + '" style="font-size:20px;color:' + c.color + ';flex-shrink:0;"></i>';
+        }
+
         var toast = document.createElement('div');
         toast.id = 'zellus-notif-toast';
         toast.style.cssText = 'position:fixed;top:20px;right:20px;z-index:9999;background:' + c.bg + ';border:1px solid ' + c.border + ';border-radius:14px;padding:14px 18px;max-width:340px;box-shadow:0 8px 24px rgba(0,0,0,0.15);display:flex;align-items:center;gap:10px;animation:slideInRight 0.3s ease;cursor:pointer;';
-        toast.innerHTML = '<i class="' + c.icon + '" style="font-size:20px;color:' + c.color + ';flex-shrink:0;"></i>' +
+        toast.innerHTML = iconHtml +
           '<div style="font-size:13px;font-weight:600;color:#2E2E38;line-height:1.4;">' + title + '</div>';
         toast.onclick = function() { toast.remove(); window.location.href = '/notifications'; };
         document.body.appendChild(toast);
@@ -884,6 +1508,79 @@
         setEl('asset-eth-usd', (b.eth * ethUsd).toFixed(2));
       }
 
+      // ── 4b. BonID revocation handler — updates UI in real-time ──
+      function handleBonidRevoked(msg) {
+        console.log('[Zèllus] 🔴 BonID REVOKED — updating UI');
+
+        // Update body data attribute
+        document.body.dataset.bonidVerified = 'false';
+
+        var fallbackName = msg.display_name || document.body.dataset.userDisplayName || '';
+
+        // 1. Remove all verification badges (green dots, verified icons)
+        document.querySelectorAll('.js-bonid-badge').forEach(function(el) {
+          el.style.display = 'none';
+        });
+
+        // 2. Revert names to display_name (non-BonID name)
+        var nameEl = document.querySelector('.js-bonid-name');
+        if (nameEl) nameEl.textContent = fallbackName;
+
+        var fullnameEl = document.querySelector('.js-bonid-fullname');
+        if (fullnameEl) fullnameEl.textContent = fallbackName;
+
+        var sidebarNameEl = document.querySelector('.js-bonid-sidebar-name');
+        if (sidebarNameEl) sidebarNameEl.textContent = fallbackName;
+
+        // 3. Hide blood type badge
+        var bloodEl = document.querySelector('.js-bonid-blood');
+        if (bloodEl) bloodEl.style.display = 'none';
+
+        // 4. Hide the verified menu item in dropdown, show CTA instead
+        var menuItem = document.querySelector('.js-bonid-menu-item');
+        if (menuItem) menuItem.style.display = 'none';
+
+        // Show the BonID CTA (it was hidden because user was verified)
+        // We need to inject it if it doesn't exist (since ERB didn't render it)
+        var existingCta = document.querySelector('.js-bonid-cta');
+        if (!existingCta) {
+          // Find the dropdown KONT section header and insert CTA before it
+          var sectionHeaders = document.querySelectorAll('.dropdown-menu span');
+          var insertBefore = null;
+          sectionHeaders.forEach(function(s) {
+            if (s.textContent.trim() === 'KONT') insertBefore = s.closest('li');
+          });
+          if (insertBefore) {
+            var ctaLi = document.createElement('li');
+            ctaLi.className = 'js-bonid-cta';
+            ctaLi.style.cssText = 'padding: 8px 10px 4px;';
+            ctaLi.innerHTML = '<a href="/bonid_verification" class="d-block text-decoration-none" style="background: linear-gradient(135deg, #00209F 0%, #0035d4 100%); border-radius: 12px; padding: 12px 14px; transition: transform 0.15s, box-shadow 0.15s;">' +
+              '<div class="d-flex align-items-center gap-3">' +
+              '<div style="width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.15); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">' +
+              '<i class="ri-shield-check-line" style="color: #fff; font-size: 18px;"></i></div>' +
+              '<div style="flex: 1;"><div class="fw-bold" style="color: #fff; font-size: 13px;">Verifye ak BonID</div>' +
+              '<div style="color: rgba(255,255,255,0.65); font-size: 10px;">Debloke pi gwo limit ak fonksyon</div></div>' +
+              '<i class="ri-arrow-right-s-line" style="color: rgba(255,255,255,0.5); font-size: 20px;"></i></div></a>';
+            insertBefore.parentNode.insertBefore(ctaLi, insertBefore);
+          }
+        }
+
+        // 5. Hide sidebar security footer
+        var secFooter = document.querySelector('.js-bonid-security-footer');
+        if (secFooter) secFooter.style.display = 'none';
+
+        // 6. Show a toast notification about the revocation
+        if (typeof showNotifToast === 'function') {
+          showNotifToast(msg.message || 'Aksè BonID ou te revoke.', 'bonid_revoked', null);
+        }
+
+        // 7. If user is on BonID verification page or transfer page, reload to reflect changes
+        if (window.location.pathname.indexOf('/bonid_verification') !== -1 ||
+            window.location.pathname.indexOf('/transfers') !== -1) {
+          setTimeout(function() { window.location.reload(); }, 2000);
+        }
+      }
+
       // ── 5. Direct WebSocket to ActionCable (no CDN dependency) ──
       var ws = null;
       var wsRetries = 0;
@@ -928,12 +1625,21 @@
           // Actual notification message
           if (data.identifier === channelId && data.message) {
             console.log('[Zèllus] 🔔 Notification received:', JSON.stringify(data.message));
-            if (data.message.play_sound) playDepositChime();
+            if (data.message.play_sound) {
+              playDepositChime();
+              // Sync poll baseline so it doesn't double-play
+              fetch('/notifications/poll', { credentials: 'same-origin' })
+                .then(function(r) { return r.json(); })
+                .then(function(d) { if (d.latest_sound_id) lastSeenSoundId = d.latest_sound_id; })
+                .catch(function() {});
+            }
             if (data.message.type === 'balance_update') {
               updateBalances(data.message);
+            } else if (data.message.type === 'bonid_revoked') {
+              handleBonidRevoked(data.message);
             } else {
               bumpNotificationBadge(data.message.unread_count);
-              if (data.message.title) showNotifToast(data.message.title, data.message.type);
+              if (data.message.title) showNotifToast(data.message.title, data.message.type, data.message.avatar_url);
             }
           }
         };
@@ -951,8 +1657,8 @@
 
       function retryConnect() {
         wsRetries++;
-        if (wsRetries > 10) {
-          console.warn('[Zèllus] Giving up after 10 retries');
+        if (wsRetries > 20) {
+          console.warn('[Zèllus] Pausing retries (will resume on visibility/online)');
           return;
         }
         var delay = Math.min(1000 * Math.pow(2, wsRetries - 1), 30000);
@@ -960,7 +1666,57 @@
         setTimeout(connectCable, delay);
       }
 
-      // ── 6. Test helpers (run in browser console) ──
+      // ── Mobile resilience: reconnect on wake / network change ──
+      function forceReconnect() {
+        if (ws && ws.readyState === WebSocket.OPEN) return; // already connected
+        console.log('[Zèllus] Force reconnecting (visibility/online)');
+        wsRetries = 0; // reset retry counter
+        if (ws) { try { ws.close(); } catch(e) {} ws = null; }
+        connectCable();
+      }
+
+      document.addEventListener('visibilitychange', function() {
+        if (!document.hidden) forceReconnect();
+      });
+      window.addEventListener('online', forceReconnect);
+      window.addEventListener('focus', forceReconnect);
+
+      // ── 6. Polling fallback: catch missed deposit sounds ──
+      // If WebSocket was disconnected when the broadcast fired, the sound
+      // is lost. This lightweight poll checks every 20s for new unread
+      // sound-eligible notifications and plays the chime if one appeared.
+      var lastSeenSoundId = 0;
+      var pollTimer = null;
+
+      function pollForMissedSounds() {
+        fetch('/notifications/poll', { credentials: 'same-origin' })
+          .then(function(r) { return r.json(); })
+          .then(function(d) {
+            if (d.latest_sound_id && d.latest_sound_id > lastSeenSoundId) {
+              if (lastSeenSoundId > 0) {
+                // New notification appeared since last poll — play sound
+                console.log('[Zèllus] Poll detected missed sound, id=' + d.latest_sound_id);
+                playDepositChime();
+              }
+              lastSeenSoundId = d.latest_sound_id;
+            }
+            // Update badge from poll too
+            if (typeof d.unread_count === 'number') {
+              bumpNotificationBadge(d.unread_count);
+            }
+          })
+          .catch(function(e) {
+            console.warn('[Zèllus] Poll error:', e.message);
+          });
+      }
+
+      // Start polling after initial load (first poll sets baseline, doesn't trigger sound)
+      setTimeout(function() {
+        pollForMissedSounds();
+        pollTimer = setInterval(pollForMissedSounds, 20000);
+      }, 3000);
+
+      // ── 7. Test helpers (run in browser console) ──
       // _testSound()     → play chime directly (tests audio only)
       // _testBroadcast() → hit test_sound endpoint via AJAX (tests full chain)
       window._testSound = function() {
