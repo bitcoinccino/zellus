@@ -98,6 +98,6 @@ group :test do
   gem "capybara"
   gem "selenium-webdriver"
   # Pin minitest to 5.x — minitest 6.0 broke run() arity for Rails 8.0.x
-  gem "minitest", "~> 5.25"
+  gem "minitest", "~> 6.0"
 end
 gem 'connection_pool', '2.4.1'
