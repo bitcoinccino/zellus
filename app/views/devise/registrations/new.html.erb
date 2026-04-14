@@ -170,24 +170,24 @@
             <div id="reg-step-1">
               <div class="mb-3">
                 <label class="small fw-bold text-uppercase mb-1" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">IMÈL</label>
-                <div class="input-group">
-                  <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);">
+                <div class="input-group" style="border: 1.5px solid rgba(46,46,56,0.12); border-radius: 12px; overflow: hidden;">
+                  <span class="input-group-text border-0" style="background-color: var(--haiti-mint); color: var(--haiti-gold);">
                     <i class="ri-mail-fill"></i>
                   </span>
                   <%= f.email_field :email, autofocus: true, autocomplete: "email", placeholder: "ou@egzanp.com",
-                      class: "form-control border-0 fw-bold shadow-none p-3 bb-dark-field",
-                      style: "background-color: var(--haiti-charcoal); color: white;" %>
+                      class: "form-control border-0 fw-bold shadow-none p-3",
+                      style: "background-color: var(--haiti-mint); color: var(--haiti-charcoal);" %>
                 </div>
               </div>
 
               <%# ── Zèllustag ── %>
               <div class="mb-3">
                 <label class="small fw-bold text-uppercase mb-1" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">ZÈLLUSTAG</label>
-                <div class="input-group">
-                  <span class="input-group-text border-0 fw-bold" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 16px;">$</span>
+                <div class="input-group" style="border: 1.5px solid rgba(46,46,56,0.12); border-radius: 12px; overflow: hidden;">
+                  <span class="input-group-text border-0 fw-bold" style="background-color: var(--haiti-mint); color: var(--haiti-gold); font-size: 16px;">$</span>
                   <%= f.text_field :cashtag, placeholder: "nonpa", maxlength: 20, autocomplete: "off", id: "user_cashtag",
-                      class: "form-control border-0 fw-bold shadow-none p-3 bb-dark-field",
-                      style: "background-color: var(--haiti-charcoal); color: white;" %>
+                      class: "form-control border-0 fw-bold shadow-none p-3",
+                      style: "background-color: var(--haiti-mint); color: var(--haiti-charcoal);" %>
                 </div>
                 <div id="cashtag-availability" class="small mt-1" style="font-size: 11px; min-height: 16px;"></div>
               </div>
@@ -199,18 +199,18 @@
                     <span class="ms-1" style="font-weight: 400; text-transform: none;">(<%= @minimum_password_length %> karaktè min)</span>
                   <% end %>
                 </label>
-                <div class="input-group">
-                  <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);">
+                <div class="input-group" style="border: 1.5px solid rgba(46,46,56,0.12); border-radius: 12px; overflow: hidden;">
+                  <span class="input-group-text border-0" style="background-color: var(--haiti-mint); color: var(--haiti-gold);">
                     <i class="ri-lock-2-fill"></i>
                   </span>
                   <%= f.password_field :password, autocomplete: "new-password", placeholder: "••••••••",
-                      class: "form-control border-0 fw-bold shadow-none p-3 bb-dark-field",
-                      style: "background-color: var(--haiti-charcoal); color: white;" %>
+                      class: "form-control border-0 fw-bold shadow-none p-3",
+                      style: "background-color: var(--haiti-mint); color: var(--haiti-charcoal);" %>
                 </div>
               </div>
 
               <button type="button" id="reg-next-btn" class="btn w-100 py-3 fw-bold border-0 text-uppercase"
-                  style="background: var(--haiti-charcoal); color: var(--haiti-gold); border-radius: 8px; letter-spacing: 1px; font-size: 14px;">
+                  style="background: var(--haiti-gold); color: var(--haiti-charcoal); border-radius: 12px; letter-spacing: 1px; font-size: 14px; font-family: 'Space Grotesk', sans-serif;">
                 KREYE KONT
               </button>
             </div>
@@ -235,13 +235,13 @@
                 <label class="small fw-bold text-uppercase mb-1" style="color: var(--haiti-gold); font-size: 10px; letter-spacing: 1px;">
                   <i class="ri-key-2-line me-1"></i>KÒD ENVITASYON
                 </label>
-                <div class="input-group">
-                  <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);">
+                <div class="input-group" style="border: 1.5px solid rgba(46,46,56,0.12); border-radius: 12px; overflow: hidden;">
+                  <span class="input-group-text border-0" style="background-color: var(--haiti-mint); color: var(--haiti-gold);">
                     <i class="ri-ticket-line"></i>
                   </span>
                   <%= f.text_field :raw_invite_code, placeholder: "KDF-XXXX", required: true, autocomplete: "off", maxlength: 10, id: "invite_code_field",
-                      class: "form-control border-0 fw-bold shadow-none p-3 bb-dark-field text-uppercase",
-                      style: "background-color: var(--haiti-charcoal); color: white; letter-spacing: 2px;" %>
+                      class: "form-control border-0 fw-bold shadow-none p-3 text-uppercase",
+                      style: "background-color: var(--haiti-mint); color: var(--haiti-charcoal); letter-spacing: 2px;" %>
                 </div>
                 <div class="small mt-1" style="color: var(--haiti-olive); font-size: 10px;">
                   <i class="ri-map-pin-line me-1"></i>Zèllus disponib nan Côtes-de-Fer sèlman pou kounye a
@@ -273,7 +273,7 @@
             </div>
             <style>@keyframes bonidSpin { to { transform: rotate(360deg); } }</style>
 
-            <%= button_to user_bonid_omniauth_authorize_path, method: :post, id: "bonid-form-reg", class: "btn w-100 border-0 p-3", style: "background: var(--haiti-charcoal); color: var(--haiti-gold); font-weight: 700; font-size: 14px; border-radius: 8px; opacity: 0.6;" do %>
+            <%= button_to user_bonid_omniauth_authorize_path, method: :post, id: "bonid-form-reg", class: "btn w-100 border-0 p-3", style: "background: var(--haiti-mint); color: var(--haiti-charcoal); font-weight: 700; font-size: 14px; border-radius: 12px; border: 1px solid rgba(46,46,56,0.1);" do %>
               <i class="ri-shield-check-fill me-2"></i>Enskri ak BonID
             <% end %>
 
