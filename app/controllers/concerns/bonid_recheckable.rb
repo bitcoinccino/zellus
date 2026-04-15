@@ -41,14 +41,10 @@ module BonidRecheckable
         revoke_bonid_locally!(current_user, "API recheck: verified=false")
       end
     else
-      # API error — check if it's an auth failure (revoked partner access)
-      if result[:error]&.include?("Otorizasyon") || result[:error]&.include?("401")
-        revoke_bonid_locally!(current_user, "API recheck: 401 auth failure")
-      else
-        # Network/transient error — don't revoke, just log and let through
-        Rails.logger.warn "BonID recheck failed for user #{current_user.id}: #{result[:error]} — allowing through"
-        current_user.update_columns(bonid_rechecked_at: Time.current)
-      end
+      # API error — never revoke on API failures (could be bad API key, network issue, etc.)
+      # Only revoke when BonID explicitly says verified=false (handled above)
+      Rails.logger.warn "BonID recheck failed for user #{current_user.id}: #{result[:error]} — allowing through (not revoking)"
+      current_user.update_columns(bonid_rechecked_at: Time.current)
     end
 
     true
