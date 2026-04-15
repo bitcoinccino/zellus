@@ -120,8 +120,8 @@
           <% end %>
         </div>
 
-        <%# ── Note (inline in hero if present) ── %>
-        <% if @transfer.note.present? %>
+        <%# ── Note (hide when BonID action is needed — focus on verification) ── %>
+        <% if @transfer.note.present? && !@transfer.failure_reason.in?(["BonID pa verifye", "BonID consent endiponib"]) %>
           <div class="text-center mt-3 pt-3" style="border-top: 1px solid rgba(255,255,255,0.06);">
             <div class="d-inline-flex align-items-center gap-2" style="max-width: 100%;">
               <i class="ri-chat-quote-line flex-shrink-0" style="color: var(--haiti-gold); font-size: 14px;"></i>
