@@ -142,10 +142,10 @@
             <span style="color: var(--haiti-charcoal); font-size: 13px; font-weight: 700;">Verifikasyon BonID pa t ka fèt</span>
           </div>
           <p style="color: var(--haiti-olive); font-size: 12px; margin: 0 0 8px 0; line-height: 1.5;">
-            Transfè sa a depase limit ki mande apwobasyon BonID, men sistèm nan pa t ka kontakte BonID pou verifye. <strong>Lajan ou retounen nan pòtfèy ou.</strong>
+            Transfè sa a depase limit ki mande apwobasyon BonID, men sistèm nan pa t ka kontakte BonID pou verifye. <strong>Lajan ou toujou nan pòtfèy ou.</strong>
           </p>
           <div class="d-flex align-items-center gap-1 mb-2" style="color: #065f46; font-size: 11px; font-weight: 600;">
-            <i class="ri-checkbox-circle-fill" style="font-size: 14px;"></i> Ranbouse: <%= @transfer.amount.to_i %> HTG retounen nan pòtfèy
+            <i class="ri-wallet-3-line" style="font-size: 14px;"></i> <%= number_with_delimiter(@transfer.amount.to_i) %> HTG toujou nan pòtfèy ou
           </div>
           <%= link_to new_transfer_path(receiver_lookup: @transfer.receiver_cashtag.presence || @transfer.receiver_phone, amount: @transfer.amount.to_i), class: "btn w-100 py-3 fw-black rounded-3 border-0 d-flex align-items-center justify-content-center gap-2", style: "background: var(--haiti-gold); color: var(--haiti-charcoal); font-family: 'Space Grotesk', sans-serif; font-size: 14px;" do %>
             <i class="ri-refresh-line me-1"></i>Eseye Ankò
@@ -156,10 +156,10 @@
             <span style="color: var(--haiti-charcoal); font-size: 13px; font-weight: 700;">BonID obligatwa pou montan sa a</span>
           </div>
           <p style="color: var(--haiti-olive); font-size: 12px; margin: 0 0 8px 0; line-height: 1.5;">
-            Pou pwoteje kont ou, tout transfè <strong><%= number_with_delimiter(BonIdService::CONSENT_THRESHOLD.to_i) %> HTG oswa plis</strong> mande verifikasyon BonID. Lajan ou retounen nan pòtfèy ou.
+            Pou pwoteje kont ou, tout transfè <strong><%= number_with_delimiter(BonIdService::CONSENT_THRESHOLD.to_i) %> HTG oswa plis</strong> mande verifikasyon BonID. Verifye idantite ou epi eseye ankò.
           </p>
           <div class="d-flex align-items-center gap-1 mb-2" style="color: #065f46; font-size: 11px; font-weight: 600;">
-            <i class="ri-checkbox-circle-fill" style="font-size: 14px;"></i> Ranbouse: <%= @transfer.amount.to_i %> HTG retounen nan pòtfèy
+            <i class="ri-wallet-3-line" style="font-size: 14px;"></i> <%= number_with_delimiter(@transfer.amount.to_i) %> HTG toujou nan pòtfèy ou
           </div>
           <%= link_to bonid_verification_path, class: "btn w-100 py-3 fw-black rounded-3 border-0 d-flex align-items-center justify-content-center gap-2", style: "background: var(--haiti-gold); color: var(--haiti-charcoal); font-family: 'Space Grotesk', sans-serif; font-size: 14px;" do %>
             <i class="ri-shield-check-line me-1"></i>Verifye BonID Ou
