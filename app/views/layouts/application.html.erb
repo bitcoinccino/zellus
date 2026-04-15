@@ -860,18 +860,18 @@
               <li class="nav-item"><%= link_to "Apwopo", apwopo_path, class: "nav-link text-white fw-bold small" %></li>
               <li class="nav-item"><%= link_to "FAQ", faq_path, class: "nav-link text-white fw-bold small" %></li>
               <li class="nav-item mt-3 mt-lg-0 ms-lg-2">
-                <%= link_to new_user_session_path, class: "nav-link d-lg-none text-decoration-none fw-bold py-2", style: "color: var(--haiti-gold) !important; font-size: 14px;" do %>
+                <%= link_to new_user_session_path(modal: "signin"), class: "nav-link d-lg-none text-decoration-none fw-bold py-2", style: "color: var(--haiti-gold) !important; font-size: 14px;" do %>
                   <i class="ri-login-box-line me-2"></i>Konekte
                 <% end %>
-                <%= link_to new_user_session_path, class: "btn fw-bold rounded-pill px-4 py-2 d-none d-lg-inline-block", style: "background: transparent; color: var(--haiti-gold); border: 2px solid var(--haiti-gold); font-size: 13px;" do %>
+                <%= link_to new_user_session_path(modal: "signin"), class: "btn fw-bold rounded-pill px-4 py-2 d-none d-lg-inline-block", style: "background: transparent; color: var(--haiti-gold); border: 2px solid var(--haiti-gold); font-size: 13px;" do %>
                   <i class="ri-login-box-line me-1"></i>Konekte
                 <% end %>
               </li>
               <li class="nav-item mt-2 mt-lg-0 ms-lg-2">
-                <%= link_to new_user_registration_path, class: "nav-link d-lg-none text-decoration-none fw-bold py-2", style: "color: var(--haiti-gold) !important; font-size: 14px;" do %>
+                <%= link_to new_user_session_path(modal: "register"), class: "nav-link d-lg-none text-decoration-none fw-bold py-2", style: "color: var(--haiti-gold) !important; font-size: 14px;" do %>
                   <i class="ri-user-add-line me-2"></i>Kreye Kont
                 <% end %>
-                <%= link_to new_user_registration_path, class: "btn fw-bold rounded-pill px-4 py-2 shadow-sm d-none d-lg-inline-block", style: "background: var(--haiti-gold); color: var(--haiti-charcoal); font-size: 13px; border: 2px solid var(--haiti-gold);" do %>
+                <%= link_to new_user_session_path(modal: "register"), class: "btn fw-bold rounded-pill px-4 py-2 shadow-sm d-none d-lg-inline-block", style: "background: var(--haiti-gold); color: var(--haiti-charcoal); font-size: 13px; border: 2px solid var(--haiti-gold);" do %>
                   <i class="ri-user-add-line me-1"></i>Kreye Kont
                 <% end %>
               </li>

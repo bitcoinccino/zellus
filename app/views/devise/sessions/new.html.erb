@@ -284,15 +284,7 @@
           <span>Disponib kounye a nan <strong style="color: #fff;">Côtes-de-Fer</strong></span>
         </div>
 
-        <%# ── CTA Buttons ── %>
-        <div class="d-flex flex-wrap gap-3">
-          <button class="bon-cta-btn" id="open-signin-modal" type="button">
-            <i class="ri-login-box-line"></i> KONEKTE
-          </button>
-          <button class="bon-cta-secondary" id="open-register-modal" type="button">
-            <i class="ri-user-add-line"></i> KREYE KONT
-          </button>
-        </div>
+        <%# Hero CTA buttons removed — using navbar Konekte + Kreye Kont instead %>
       </div>
 
       <%# ── RIGHT: HERO IMAGE ── %>
@@ -707,6 +699,12 @@
     <% if resource.errors.any? %>
       showModal(signinModal);
     <% end %>
+
+    // Auto-open modal from URL param (?modal=signin or ?modal=register)
+    var urlParams = new URLSearchParams(window.location.search);
+    var autoModal = urlParams.get('modal');
+    if (autoModal === 'signin') showModal(signinModal);
+    if (autoModal === 'register') showModal(registerModal);
   })();
 </script>
 
