@@ -156,7 +156,7 @@
             <span style="color: var(--haiti-charcoal); font-size: 13px; font-weight: 700;">BonID obligatwa pou montan sa a</span>
           </div>
           <p style="color: var(--haiti-olive); font-size: 12px; margin: 0 0 8px 0; line-height: 1.5;">
-            Pou pwoteje kont ou, transfè >= <%= BonIdService::CONSENT_THRESHOLD.to_i %> HTG mande verifikasyon BonID. <strong>Lajan ou retounen nan pòtfèy ou.</strong>
+            Pou pwoteje kont ou, tout transfè <strong><%= number_with_delimiter(BonIdService::CONSENT_THRESHOLD.to_i) %> HTG oswa plis</strong> mande verifikasyon BonID. Lajan ou retounen nan pòtfèy ou.
           </p>
           <div class="d-flex align-items-center gap-1 mb-2" style="color: #065f46; font-size: 11px; font-weight: 600;">
             <i class="ri-checkbox-circle-fill" style="font-size: 14px;"></i> Ranbouse: <%= @transfer.amount.to_i %> HTG retounen nan pòtfèy
