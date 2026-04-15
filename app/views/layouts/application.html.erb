@@ -696,7 +696,7 @@
                               <i class="ri-verified-badge-fill js-bonid-badge" style="color: #16a34a; font-size: 15px; flex-shrink: 0;" title="Verifye"></i>
                             <% end %>
                           </div>
-                          <div class="text-truncate" style="color: rgba(255,255,255,0.5); font-size: 11px;"><%= current_user.email.gsub(/(.{2})(.*)(@.*)/) { $1 + '•' * [$2.length, 4].min + $3 } %></div>
+                          <div class="text-truncate" style="color: var(--haiti-gold); font-size: 12px; font-weight: 700;">$<%= current_user.cashtag %></div>
                           <div class="d-flex align-items-center gap-2 mt-2">
                             <span class="badge rounded-pill" style="background: rgba(197,160,89,0.2); color: var(--haiti-gold); font-size: 9px; font-weight: 800; padding: 3px 8px;">
                               <%= current_user.credit_tier %>
