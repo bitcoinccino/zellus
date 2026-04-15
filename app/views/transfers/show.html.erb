@@ -71,7 +71,7 @@
 
         <%# ── Amount (XL focal point) ── %>
         <div class="text-center mb-2">
-          <div class="fw-black" style="color: #22c55e; font-size: 48px; letter-spacing: -2.5px; line-height: 1;">
+          <div class="fw-black" style="color: var(--haiti-gold); font-size: 48px; letter-spacing: -2.5px; line-height: 1;">
             <% if @transfer.usdc_wallet_transfer? %>
               <%= number_with_precision(@transfer.crypto_amount || @transfer.net_amount, precision: 2, strip_insignificant_zeros: true) %><span style="font-size: 14px; font-weight: 400; color: rgba(255,255,255,0.35); letter-spacing: 0.5px; vertical-align: super; margin-left: 4px;">USD</span>
             <% elsif @transfer.crypto_transfer? && @transfer.crypto_amount.present? %>
@@ -125,14 +125,14 @@
     <%# ── 3. FAILURE REASON                    ── %>
     <%# ══════════════════════════════════════════ %>
     <% if @transfer.failed? && @transfer.failure_reason.present? %>
-      <div class="rounded-3 mb-3 p-3" style="background: #fdf2f2; border: 1px solid #fca5a5;">
+      <div class="rounded-3 mb-3 p-3" style="background: var(--haiti-cream); border: 1px solid rgba(197,160,89,0.3);">
         <% case @transfer.failure_reason %>
         <% when "BonID consent endiponib" %>
           <div class="d-flex align-items-center gap-2 mb-2">
-            <i class="ri-shield-check-line" style="font-size: 18px; color: #991b1b; flex-shrink: 0;"></i>
-            <span style="color: #991b1b; font-size: 13px; font-weight: 700;">Verifikasyon BonID pa t ka fèt</span>
+            <i class="ri-shield-check-line" style="font-size: 18px; color: var(--haiti-gold); flex-shrink: 0;"></i>
+            <span style="color: var(--haiti-charcoal); font-size: 13px; font-weight: 700;">Verifikasyon BonID pa t ka fèt</span>
           </div>
-          <p style="color: #7f1d1d; font-size: 12px; margin: 0 0 8px 0; line-height: 1.5;">
+          <p style="color: var(--haiti-olive); font-size: 12px; margin: 0 0 8px 0; line-height: 1.5;">
             Transfè sa a depase limit ki mande apwobasyon BonID, men sistèm nan pa t ka kontakte BonID pou verifye. <strong>Lajan ou retounen nan pòtfèy ou.</strong>
           </p>
           <div class="d-flex align-items-center gap-1 mb-2" style="color: #065f46; font-size: 11px; font-weight: 600;">
@@ -143,10 +143,10 @@
           <% end %>
         <% when "BonID pa verifye" %>
           <div class="d-flex align-items-center gap-2 mb-2">
-            <i class="ri-shield-user-line" style="font-size: 18px; color: #991b1b; flex-shrink: 0;"></i>
-            <span style="color: #991b1b; font-size: 13px; font-weight: 700;">BonID obligatwa pou montan sa a</span>
+            <i class="ri-shield-user-line" style="font-size: 18px; color: var(--haiti-gold); flex-shrink: 0;"></i>
+            <span style="color: var(--haiti-charcoal); font-size: 13px; font-weight: 700;">BonID obligatwa pou montan sa a</span>
           </div>
-          <p style="color: #7f1d1d; font-size: 12px; margin: 0 0 8px 0; line-height: 1.5;">
+          <p style="color: var(--haiti-olive); font-size: 12px; margin: 0 0 8px 0; line-height: 1.5;">
             Pou pwoteje kont ou, transfè >= <%= BonIdService::CONSENT_THRESHOLD.to_i %> HTG mande verifikasyon BonID. <strong>Lajan ou retounen nan pòtfèy ou.</strong>
           </p>
           <div class="d-flex align-items-center gap-1 mb-2" style="color: #065f46; font-size: 11px; font-weight: 600;">
@@ -362,17 +362,17 @@
     <%# ══════════════════════════════════════════ %>
     <%# ── 7. DETAILS CARD (pushed to bottom)   ── %>
     <%# ══════════════════════════════════════════ %>
-    <div class="rounded-3 mb-3 overflow-hidden" style="background: var(--haiti-charcoal); box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
+    <div class="card-base rounded-3 mb-3 overflow-hidden">
       <div class="px-3 pt-2 pb-1">
-        <div class="fw-bold text-uppercase" style="color: rgba(255,255,255,0.3); font-size: 9px; letter-spacing: 1.5px;">
-          <i class="ri-file-list-3-line me-1"></i>Detay
+        <div class="fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 9px; letter-spacing: 1.5px;">
+          <i class="ri-file-list-3-line me-1" style="color: var(--haiti-gold);"></i>Detay
         </div>
       </div>
 
       <%# ── Payment Method ── %>
-      <div class="px-3 py-2 d-flex justify-content-between align-items-center" style="border-bottom: 1px solid rgba(255,255,255,0.06);">
-        <span style="color: rgba(255,255,255,0.4); font-size: 11px; font-weight: 600;">Peye Ak Pòtfèy</span>
-        <span class="fw-bold" style="font-size: 11px; color: white;">
+      <div class="px-3 py-2 d-flex justify-content-between align-items-center" style="border-bottom: 1px solid rgba(46,46,56,0.06);">
+        <span style="color: var(--haiti-olive); font-size: 11px; font-weight: 600;">Peye Ak Pòtfèy</span>
+        <span class="fw-bold" style="font-size: 11px; color: var(--haiti-charcoal);">
           <% if @transfer.business_id? %>
             <i class="ri-store-2-fill me-1" style="color: var(--haiti-gold);"></i>Biznis
           <% else %>
@@ -382,9 +382,9 @@
       </div>
 
       <%# ── Fee ── %>
-      <div class="px-3 py-2 d-flex justify-content-between align-items-center" style="border-bottom: 1px solid rgba(255,255,255,0.06);">
-        <span style="color: rgba(255,255,255,0.4); font-size: 11px; font-weight: 600;">Frè</span>
-        <span class="fw-bold" style="font-size: 11px; color: #4ade80;">
+      <div class="px-3 py-2 d-flex justify-content-between align-items-center" style="border-bottom: 1px solid rgba(46,46,56,0.06);">
+        <span style="color: var(--haiti-olive); font-size: 11px; font-weight: 600;">Frè</span>
+        <span class="fw-bold" style="font-size: 11px; color: #166534;">
           <% if @transfer.fee.to_f > 0 %>
             <% if @transfer.crypto_transfer? && @transfer.exchange_rate.to_f > 0 %>
               - <%= number_with_precision(@transfer.fee / @transfer.exchange_rate, precision: 2) %> <%= @transfer.asset_label %>
@@ -398,8 +398,8 @@
       </div>
 
       <%# ── Network / Method ── %>
-      <div class="px-3 py-2 d-flex justify-content-between align-items-center" style="border-bottom: 1px solid rgba(255,255,255,0.06);">
-        <span style="color: rgba(255,255,255,0.4); font-size: 11px; font-weight: 600;">Rezo</span>
+      <div class="px-3 py-2 d-flex justify-content-between align-items-center" style="border-bottom: 1px solid rgba(46,46,56,0.06);">
+        <span style="color: var(--haiti-olive); font-size: 11px; font-weight: 600;">Rezo</span>
         <span class="fw-bold" style="font-size: 11px; color: var(--haiti-gold);">
           <% if @transfer.bank_transfer? %>
             <i class="ri-bank-line me-1"></i><%= @transfer.receiver_bank_name || "UNIBANK" %>
@@ -417,9 +417,9 @@
 
       <%# ── Exchange Rate ── %>
       <% if @transfer.crypto_transfer? && @transfer.exchange_rate.present? %>
-        <div class="px-3 py-2 d-flex justify-content-between align-items-center" style="border-bottom: 1px solid rgba(255,255,255,0.06);">
-          <span style="color: rgba(255,255,255,0.4); font-size: 11px; font-weight: 600;">To Echanj</span>
-          <span class="fw-bold" style="font-size: 11px; color: white;">
+        <div class="px-3 py-2 d-flex justify-content-between align-items-center" style="border-bottom: 1px solid rgba(46,46,56,0.06);">
+          <span style="color: var(--haiti-olive); font-size: 11px; font-weight: 600;">To Echanj</span>
+          <span class="fw-bold" style="font-size: 11px; color: var(--haiti-charcoal);">
             1 <%= @transfer.asset_label %> = <%= number_with_delimiter(@transfer.exchange_rate.to_i) %> HTG
           </span>
         </div>
@@ -427,8 +427,8 @@
 
       <%# ── Date ── %>
       <div class="px-3 py-2 d-flex justify-content-between align-items-center">
-        <span style="color: rgba(255,255,255,0.4); font-size: 11px; font-weight: 600;">Dat</span>
-        <span style="font-size: 11px; color: rgba(255,255,255,0.6);"><%= @transfer.created_at.strftime("%d") %> <%= %w[Jan Fev Mas Avr Me Jen Jiy Out Sep Okt Nov Des][@transfer.created_at.month - 1] %> <%= @transfer.created_at.strftime("%Y, %H:%M") %></span>
+        <span style="color: var(--haiti-olive); font-size: 11px; font-weight: 600;">Dat</span>
+        <span style="font-size: 11px; color: var(--haiti-charcoal);"><%= @transfer.created_at.strftime("%d") %> <%= %w[Jan Fev Mas Avr Me Jen Jiy Out Sep Okt Nov Des][@transfer.created_at.month - 1] %> <%= @transfer.created_at.strftime("%Y, %H:%M") %></span>
       </div>
     </div>
 
@@ -437,18 +437,18 @@
     <%# ══════════════════════════════════════════ %>
     <% if @consent&.biometric_verification.present? %>
       <% bio = @consent.biometric_verification %>
-      <div class="rounded-3 mb-3 overflow-hidden" style="background: var(--haiti-charcoal); box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
+      <div class="card-base rounded-3 mb-3 overflow-hidden">
         <div class="px-3 pt-2 pb-1">
-          <div class="fw-bold text-uppercase" style="color: rgba(255,255,255,0.3); font-size: 9px; letter-spacing: 1.5px;">
-            <i class="ri-fingerprint-line me-1"></i>Verifikasyon Byometrik
+          <div class="fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 9px; letter-spacing: 1.5px;">
+            <i class="ri-fingerprint-line me-1" style="color: var(--haiti-gold);"></i>Verifikasyon Byometrik
           </div>
         </div>
 
         <% doc_label = { "bonid_selfie" => "ID BonID", "cin_front" => "CIN", "passport" => "Paspò" }[bio["compared_against"]] || "ID" %>
 
         <%# ── Liveness ── %>
-        <div class="px-3 py-2 d-flex justify-content-between align-items-center" style="border-bottom: 1px solid rgba(255,255,255,0.06);">
-          <span style="color: rgba(255,255,255,0.4); font-size: 11px; font-weight: 600;">Figi reyèl</span>
+        <div class="px-3 py-2 d-flex justify-content-between align-items-center" style="border-bottom: 1px solid rgba(46,46,56,0.06);">
+          <span style="color: var(--haiti-olive); font-size: 11px; font-weight: 600;">Figi reyèl</span>
           <span class="fw-bold" style="font-size: 11px;">
             <% if bio["liveness_passed"] %>
               <i class="ri-checkbox-circle-fill me-1" style="color: #4ade80;"></i><span style="color: #4ade80;"><%= number_with_precision(bio["liveness_confidence"], precision: 1, strip_insignificant_zeros: true) %>%</span>
@@ -459,8 +459,8 @@
         </div>
 
         <%# ── Face Match ── %>
-        <div class="px-3 py-2 d-flex justify-content-between align-items-center" style="border-bottom: 1px solid rgba(255,255,255,0.06);">
-          <span style="color: rgba(255,255,255,0.4); font-size: 11px; font-weight: 600;">Matche ak <%= doc_label %></span>
+        <div class="px-3 py-2 d-flex justify-content-between align-items-center" style="border-bottom: 1px solid rgba(46,46,56,0.06);">
+          <span style="color: var(--haiti-olive); font-size: 11px; font-weight: 600;">Matche ak <%= doc_label %></span>
           <span class="fw-bold" style="font-size: 11px;">
             <% if bio["face_matched"] %>
               <i class="ri-checkbox-circle-fill me-1" style="color: #4ade80;"></i><span style="color: #4ade80;"><%= number_with_precision(bio["face_similarity"], precision: 1, strip_insignificant_zeros: true) %>%</span>
@@ -475,7 +475,7 @@
           <% verified_time = Time.parse(bio["verified_at"]) rescue nil %>
           <% if verified_time %>
             <div class="px-3 py-2 d-flex justify-content-between align-items-center">
-              <span style="color: rgba(255,255,255,0.4); font-size: 11px; font-weight: 600;">Verifye</span>
+              <span style="color: var(--haiti-olive); font-size: 11px; font-weight: 600;">Verifye</span>
               <span style="font-size: 11px; color: rgba(255,255,255,0.6);"><%= verified_time.strftime("%d") %> <%= %w[Jan Fev Mas Avr Me Jen Jiy Out Sep Okt Nov Des][verified_time.month - 1] %> <%= verified_time.strftime("%Y, %H:%M") %></span>
             </div>
           <% end %>
@@ -555,7 +555,7 @@
       <%# ── Transfer Summary ── %>
       <div class="p-3 rounded-4 mb-3" style="background: var(--haiti-charcoal);">
         <div class="d-flex justify-content-between align-items-center mb-2">
-          <span style="color: rgba(255,255,255,0.4); font-size: 11px; font-weight: 600;">Montan</span>
+          <span style="color: var(--haiti-olive); font-size: 11px; font-weight: 600;">Montan</span>
           <span class="fw-black" style="color: white; font-size: 16px;">
             <% if @transfer.usdc_wallet_transfer? %>
               <%= number_with_precision(@transfer.crypto_amount || @transfer.net_amount, precision: 2, strip_insignificant_zeros: true) %> <small style="font-size: 11px;">USD</small>
@@ -566,12 +566,12 @@
         </div>
         <% if @transfer.crypto_transfer? && @transfer.crypto_amount.present? && !@transfer.usdc_wallet_transfer? %>
           <div class="d-flex justify-content-between mb-2">
-            <span style="color: rgba(255,255,255,0.4); font-size: 11px; font-weight: 600;">Kripto</span>
+            <span style="color: var(--haiti-olive); font-size: 11px; font-weight: 600;">Kripto</span>
             <span class="fw-bold" style="color: var(--haiti-gold); font-size: 12px;"><%= number_with_precision(@transfer.crypto_amount, precision: 6, strip_insignificant_zeros: true) %> <%= @transfer.asset_label %></span>
           </div>
         <% end %>
         <div class="d-flex justify-content-between align-items-center pt-2" style="border-top: 1px solid rgba(255,255,255,0.06);">
-          <span style="color: rgba(255,255,255,0.4); font-size: 11px; font-weight: 600;">Bay</span>
+          <span style="color: var(--haiti-olive); font-size: 11px; font-weight: 600;">Bay</span>
           <span class="fw-bold" style="color: var(--haiti-gold); font-size: 12px;"><%= @transfer.receiver_name.presence || @transfer.receiver_display %></span>
         </div>
       </div>
