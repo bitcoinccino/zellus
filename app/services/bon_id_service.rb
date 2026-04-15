@@ -104,6 +104,12 @@ class BonIdService
       return { success: false, error: "BonID sa a pa verifye. Tanpri tcheke nimewo a epi eseye ankò." }
     end
 
+    # Prevent one BonID from being used on multiple accounts
+    existing = User.where(bonid: result[:bonid]).where.not(id: user.id).first
+    if existing
+      return { success: false, error: "BonID sa a deja lye ak yon lòt kont Zèllus. Chak moun ka gen yon sèl kont." }
+    end
+
     identity = result[:identity] || {}
     user.update!(
       bonid: result[:bonid],

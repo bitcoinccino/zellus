@@ -38,6 +38,9 @@ class User < ApplicationRecord
             uniqueness: { case_sensitive: false },
             format: { with: CASHTAG_FORMAT, message: "dwe 5-20 karaktè alfanimerik" }
 
+  # ── BonID uniqueness (one identity per account) ──
+  validates :bonid, uniqueness: { message: "sa a deja lye ak yon lòt kont Zèllus" }, allow_nil: true
+
   validates :phone_number,
             format: { with: /\A509\d{8}\z/, message: "dwe fòma MonCash (509 + 8 chif)" },
             allow_blank: true,
