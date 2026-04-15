@@ -5,10 +5,12 @@ class BonidRevocationWebhooksController < ApplicationController
 
   # POST /bonid_revocation_webhook
   # Called by BonID when a citizen revokes a partner's access.
-  # Payload: { bonid: "VP-...", partner_id: "zellus", event: "partner_revoked" }
+  # BonID payload: { event: "consent.revoked", bonid: "MB-...", consent_id: 1, scopes: [...], data_erasure: {...}, timestamp: "..." }
   def create
     bonid = params[:bonid].to_s.strip
     event = params[:event].to_s
+
+    Rails.logger.info "BonID webhook received: event=#{event}, bonid=#{bonid}, params=#{params.except(:controller, :action).to_unsafe_h}"
 
     if bonid.blank?
       render json: { error: "bonid required" }, status: :bad_request
@@ -24,12 +26,15 @@ class BonidRevocationWebhooksController < ApplicationController
     end
 
     case event
-    when "partner_revoked"
-      # Always clear ALL BonID fields — don't gate on bonid_verified?
-      # This ensures revocation works even if data is in an inconsistent state.
+    when "consent.revoked", "partner_revoked"
       clear_bonid_verification!(user, bonid)
 
-    when "partner_restored"
+      # Handle data erasure request if present
+      if params[:data_erasure].present? && params.dig(:data_erasure, :requested) == true
+        Rails.logger.info "BonID data erasure requested for user #{user.id} (bonid: #{bonid})"
+      end
+
+    when "consent.restored", "partner_restored"
       # Never auto-verify — user must re-verify manually
       Rails.logger.info "BonID partner access restored for user #{user.id} (bonid: #{bonid}) — manual re-verification required"
     else
@@ -38,7 +43,7 @@ class BonidRevocationWebhooksController < ApplicationController
 
     head :ok
   rescue => e
-    Rails.logger.error "BonID revocation webhook error: #{e.message}"
+    Rails.logger.error "BonID revocation webhook error: #{e.class}: #{e.message}\n#{e.backtrace&.first(5)&.join("\n")}"
     head :internal_server_error
   end
 
@@ -49,7 +54,7 @@ class BonidRevocationWebhooksController < ApplicationController
     user = User.find_by(bonid: bonid)
     return user if user
 
-    # Try partial match on suffix (BonID format: XX-YYYY-X-XXXXX-X-NNNN-NNN)
+    # Try partial match on suffix (BonID format: XX-YYYY-X-XX-PNNNN-NNN)
     if bonid.include?("-")
       suffix = bonid.split("-").last(2).join("-")
       user = User.where("bonid LIKE ?", "%-#{suffix}").first if suffix.present?
@@ -61,7 +66,6 @@ class BonidRevocationWebhooksController < ApplicationController
   end
 
   def clear_bonid_verification!(user, bonid)
-    # Capture display name before clearing BonID fields
     fallback_name = user.display_name
 
     user.update!(
