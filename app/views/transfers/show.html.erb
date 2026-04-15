@@ -25,7 +25,11 @@
   when "refunded"
     ["ri-refund-2-line", "Ranbouse", nil, "#854d0e"]
   when "failed"
-    ["ri-close-circle-fill", "Echwe", nil, "#991b1b"]
+    if @transfer.failure_reason.in?(["BonID pa verifye", "BonID consent endiponib"])
+      ["ri-shield-check-line", "Aksyon Nesesè", "Verifye BonID ou pou konplete transfè sa a.", "var(--haiti-gold)"]
+    else
+      ["ri-close-circle-fill", "Echwe", nil, "#991b1b"]
+    end
   else
     ["ri-send-plane-fill", "Transfè", nil, "var(--haiti-olive)"]
   end %>
@@ -36,7 +40,12 @@
   when "funded", "sent"      then "color: #92400e; background: #fef3c7;"
   when "claimed"             then "color: #0369a1; background: #e0f2fe;"
   when "expired", "refunded" then "color: #854d0e; background: #fefce8;"
-  when "failed"              then "color: #991b1b; background: #fee2e2;"
+  when "failed"
+    if @transfer.failure_reason.in?(["BonID pa verifye", "BonID consent endiponib"])
+      "color: var(--haiti-charcoal); background: rgba(197,160,89,0.15);"
+    else
+      "color: #991b1b; background: #fee2e2;"
+    end
   when "pending"             then "color: var(--haiti-gold); background: rgba(197,160,89,0.15);"
   else                            "color: var(--haiti-olive); background: rgba(93,99,69,0.1);"
   end %>
@@ -138,7 +147,7 @@
           <div class="d-flex align-items-center gap-1 mb-2" style="color: #065f46; font-size: 11px; font-weight: 600;">
             <i class="ri-checkbox-circle-fill" style="font-size: 14px;"></i> Ranbouse: <%= @transfer.amount.to_i %> HTG retounen nan pòtfèy
           </div>
-          <%= link_to new_transfer_path(receiver_lookup: @transfer.receiver_cashtag.presence || @transfer.receiver_phone, amount: @transfer.amount.to_i), class: "btn btn-sm px-3 py-2", style: "background: var(--haiti-gold); color: #fff; border-radius: 10px; font-weight: 700; font-size: 11px;" do %>
+          <%= link_to new_transfer_path(receiver_lookup: @transfer.receiver_cashtag.presence || @transfer.receiver_phone, amount: @transfer.amount.to_i), class: "btn w-100 py-3 fw-black rounded-3 border-0 d-flex align-items-center justify-content-center gap-2", style: "background: var(--haiti-gold); color: var(--haiti-charcoal); font-family: 'Space Grotesk', sans-serif; font-size: 14px;" do %>
             <i class="ri-refresh-line me-1"></i>Eseye Ankò
           <% end %>
         <% when "BonID pa verifye" %>
@@ -152,7 +161,7 @@
           <div class="d-flex align-items-center gap-1 mb-2" style="color: #065f46; font-size: 11px; font-weight: 600;">
             <i class="ri-checkbox-circle-fill" style="font-size: 14px;"></i> Ranbouse: <%= @transfer.amount.to_i %> HTG retounen nan pòtfèy
           </div>
-          <%= link_to bonid_verification_path, class: "btn btn-sm px-3 py-2", style: "background: var(--haiti-gold); color: #fff; border-radius: 10px; font-weight: 700; font-size: 11px;" do %>
+          <%= link_to bonid_verification_path, class: "btn w-100 py-3 fw-black rounded-3 border-0 d-flex align-items-center justify-content-center gap-2", style: "background: var(--haiti-gold); color: var(--haiti-charcoal); font-family: 'Space Grotesk', sans-serif; font-size: 14px;" do %>
             <i class="ri-shield-check-line me-1"></i>Verifye BonID Ou
           <% end %>
         <% else %>
