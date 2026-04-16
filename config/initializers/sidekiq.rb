@@ -25,6 +25,9 @@ if defined?(Sidekiq)
       # Stuck transfer safety net — always runs (no treasury key needed)
       schedule_unique.call(StuckTransferMonitorWorker, 15)
 
+      # Stuck withdrawal safety net — auto-refunds wallet debits with no MonCash TX
+      schedule_unique.call(StuckWithdrawalMonitorWorker, 25)
+
       # Crypto deposit monitors — require treasury key
       if ENV['TREASURY_PRIVATE_KEY'].present?
         schedule_unique.call(UsdDepositMonitorWorker, 10)
