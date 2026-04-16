@@ -4,8 +4,8 @@
 
     <%# ── Back Link ── %>
     <div class="mb-3">
-      <%= link_to notifications_path, class: "small text-decoration-none fw-bold d-inline-flex align-items-center gap-1", style: "color: var(--haiti-olive);" do %>
-        <i class="ri-arrow-left-s-line" style="font-size: 18px;"></i>Notifikasyon
+      <%= link_to notifications_path, class: "small text-decoration-none fw-bold d-inline-flex align-items-center gap-1", style: "color: var(--haiti-gold);" do %>
+        <i class="ri-arrow-left-line" style="font-size: 16px;"></i>Notifikasyon
       <% end %>
     </div>
 
@@ -17,8 +17,8 @@
         <%# ── CONVERSION — same header as wallet entry page    ── %>
         <%# ══════════════════════════════════════════════════════ %>
         <div class="text-center mb-4">
-          <div class="d-inline-flex align-items-center justify-content-center mb-3 rounded-circle" style="width: 56px; height: 56px; background: var(--haiti-charcoal);">
-            <i class="ri-exchange-2-line ri-xl" style="color: var(--haiti-gold);"></i>
+          <div class="d-inline-flex align-items-center justify-content-center mb-3 rounded-circle" style="width: 56px; height: 56px; background: var(--haiti-gold);">
+            <i class="ri-exchange-2-line ri-xl" style="color: var(--haiti-charcoal);"></i>
           </div>
           <h2 class="h4 fw-black mb-1" style="color: var(--haiti-charcoal); letter-spacing: -0.5px;">Konvèsyon</h2>
           <p style="color: var(--haiti-olive); font-size: 11px; font-weight: 700; letter-spacing: 1px;" class="text-uppercase mb-0">
@@ -39,7 +39,7 @@
           <%= render partial: "shared/conversion_detail", locals: { cv_from: cv_from, cv_to: cv_to, cv_fee: cv_fee } %>
         <% end %>
 
-        <%= link_to wallet_path, class: "btn w-100 rounded-pill py-3 fw-bold", style: "background: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 14px;" do %>
+        <%= link_to wallet_path, class: "btn w-100 rounded-pill py-3 fw-black", style: "background: var(--haiti-gold); color: var(--haiti-charcoal); font-family: 'Space Grotesk', sans-serif; font-size: 14px;" do %>
           <i class="ri-arrow-left-line me-1"></i>Retounen nan Pòtfèy
         <% end %>
 
@@ -55,7 +55,7 @@
               <%= image_tag @actor.avatar, style: "width: 100%; height: 100%; object-fit: cover;" %>
             </div>
           <% elsif @actor.present? %>
-            <div class="d-inline-flex align-items-center justify-content-center" style="width: 56px; height: 56px; border-radius: 50%; background: var(--haiti-charcoal); border: 2.5px solid var(--haiti-gold);">
+            <div class="d-inline-flex align-items-center justify-content-center" style="width: 56px; height: 56px; border-radius: 50%; background: var(--haiti-mint); border: 2.5px solid var(--haiti-gold);">
               <span style="font-size: 24px;"><%= @actor.tier_icon %></span>
             </div>
           <% else %>
@@ -132,9 +132,19 @@
             <tr>
               <td class="fw-bold py-1" style="color: var(--haiti-olive);">Estati</td>
               <td class="py-1">
-                <% status_colors = { "completed" => "#166534", "failed" => "#991b1b", "pending" => "#92400e", "funded" => "#1d4ed8", "sent" => "#1d4ed8", "expired" => "#854d0e", "refunded" => "#1d4ed8" } %>
-                <% status_labels = { "completed" => "KONPLETE", "failed" => "ECHWE", "pending" => "AP TANN", "funded" => "FINANSE", "sent" => "VOYE", "expired" => "EKSPIRE", "refunded" => "RANBOUSE" } %>
-                <span class="badge rounded-pill px-2" style="background: <%= status_colors[xfer.status] || 'var(--haiti-olive)' %>; color: white; font-size: 10px;">
+                <%
+                  status_styles = {
+                    "completed" => "background: rgba(34,197,94,0.12); color: #166534;",
+                    "failed"    => "background: rgba(248,113,113,0.12); color: #991b1b;",
+                    "pending"   => "background: rgba(197,160,89,0.15); color: var(--haiti-charcoal);",
+                    "funded"    => "background: rgba(197,160,89,0.15); color: var(--haiti-charcoal);",
+                    "sent"      => "background: rgba(197,160,89,0.15); color: var(--haiti-charcoal);",
+                    "expired"   => "background: rgba(93,99,69,0.1); color: var(--haiti-olive);",
+                    "refunded"  => "background: rgba(93,99,69,0.1); color: var(--haiti-olive);"
+                  }
+                  status_labels = { "completed" => "KONPLETE", "failed" => "ECHWE", "pending" => "AP TANN", "funded" => "FINANSE", "sent" => "VOYE", "expired" => "EKSPIRE", "refunded" => "RANBOUSE" }
+                %>
+                <span class="badge rounded-pill px-2 fw-bold" style="<%= status_styles[xfer.status] || 'background: rgba(93,99,69,0.1); color: var(--haiti-olive);' %> font-size: 10px;">
                   <%= status_labels[xfer.status] || xfer.status.upcase %>
                 </span>
               </td>
@@ -165,7 +175,7 @@
         </div>
 
         <%# ── CTA ── %>
-        <%= link_to transfer_path(xfer), class: "btn w-100 rounded-pill py-3 fw-bold", style: "background: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 14px;" do %>
+        <%= link_to transfer_path(xfer), class: "btn w-100 rounded-pill py-3 fw-black", style: "background: var(--haiti-gold); color: var(--haiti-charcoal); font-family: 'Space Grotesk', sans-serif; font-size: 14px;" do %>
           <i class="ri-arrow-right-line me-1"></i>Wè Transfè
         <% end %>
 
@@ -189,8 +199,15 @@
             <tr>
               <td class="fw-bold py-1" style="color: var(--haiti-olive);">Estati</td>
               <td class="py-1">
-                <% pr_colors = { "paid" => "#166534", "pending" => "#92400e", "expired" => "#854d0e", "canceled" => "#991b1b" } %>
-                <span class="badge rounded-pill px-2" style="background: <%= pr_colors[pr.status] || 'var(--haiti-olive)' %>; color: white; font-size: 10px;">
+                <%
+                  pr_styles = {
+                    "paid"     => "background: rgba(34,197,94,0.12); color: #166534;",
+                    "pending"  => "background: rgba(197,160,89,0.15); color: var(--haiti-charcoal);",
+                    "expired"  => "background: rgba(93,99,69,0.1); color: var(--haiti-olive);",
+                    "canceled" => "background: rgba(248,113,113,0.12); color: #991b1b;"
+                  }
+                %>
+                <span class="badge rounded-pill px-2 fw-bold" style="<%= pr_styles[pr.status] || 'background: rgba(93,99,69,0.1); color: var(--haiti-olive);' %> font-size: 10px;">
                   <%= pr.status.upcase %>
                 </span>
               </td>
@@ -203,13 +220,13 @@
         </div>
 
         <%# ── CTA ── %>
-        <%= link_to public_payment_request_path(pr.token), class: "btn w-100 rounded-pill py-3 fw-bold", style: "background: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 14px;" do %>
+        <%= link_to public_payment_request_path(pr.token), class: "btn w-100 rounded-pill py-3 fw-black", style: "background: var(--haiti-gold); color: var(--haiti-charcoal); font-family: 'Space Grotesk', sans-serif; font-size: 14px;" do %>
           <i class="ri-arrow-right-line me-1"></i>Wè Demann
         <% end %>
 
       <% else %>
         <%# ── Generic (deposit/withdrawal — no notifiable) ── %>
-        <%= link_to wallet_path, class: "btn w-100 rounded-pill py-3 fw-bold", style: "background: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 14px;" do %>
+        <%= link_to wallet_path, class: "btn w-100 rounded-pill py-3 fw-black", style: "background: var(--haiti-gold); color: var(--haiti-charcoal); font-family: 'Space Grotesk', sans-serif; font-size: 14px;" do %>
           <i class="ri-arrow-left-line me-1"></i>Retounen nan Pòtfèy
         <% end %>
       <% end %>

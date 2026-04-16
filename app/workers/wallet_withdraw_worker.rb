@@ -22,7 +22,7 @@ class WalletWithdrawWorker
       customer_check = MoncashService.customer_status(phone)
       unless customer_check[:success] && customer_check[:active]
         refund_withdrawal!(wallet, user, refund_total, source,
-          "Retrè echwe: Kont MonCash #{phone} pa aktif — ranbouse #{refund_total.to_i} HTG")
+          "Retrè a pa t reyisi, lajan retounen nan bous")
         NotificationService.withdrawal_failed(user, refund_total, "Kont MonCash pa aktif")
         Rails.logger.error "WalletWithdraw: MonCash account #{phone} not active [user=#{user_id}]"
         return
@@ -50,7 +50,7 @@ class WalletWithdrawWorker
       unless status_check[:success]
         friendly = friendly_moncash_error(result[:error])
         refund_withdrawal!(wallet, user, refund_total, source,
-          "Retrè echwe: #{friendly}. Lajan ou ranbouse.")
+          "Retrè a pa t reyisi, lajan retounen nan bous")
         NotificationService.withdrawal_failed(user, refund_total, friendly)
         WebhookService.dispatch("withdrawal.failed", user: user, payload: {
           amount: refund_total.to_s, asset: "htg", method: "moncash", reason: friendly
@@ -66,7 +66,7 @@ class WalletWithdrawWorker
       if wallet
         friendly_msg = "Erè teknik — tanpri eseye ankò pita"
         refund_withdrawal!(wallet, user, amount.to_d, source,
-          "Retrè echwe: #{friendly_msg} — ranbouse #{amount.to_i} HTG")
+          "Retrè a pa t reyisi, lajan retounen nan bous")
         NotificationService.withdrawal_failed(user, amount.to_d, friendly_msg)
         Rails.logger.error "WalletWithdraw: raw error: #{e.message}"
       end

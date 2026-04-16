@@ -39,7 +39,7 @@ class StuckWithdrawalMonitorWorker
           asset: "htg",
           amount: entry.amount,
           balance_after: new_balance,
-          description: "Ranbouse: retrè a pa t reyisi. Lajan ou tounen nan pòtfèy ou."
+          description: "Retrè a pa t reyisi, lajan retounen nan bous"
         )
         wallet.update!(htg_balance: new_balance)
 
