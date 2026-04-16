@@ -517,9 +517,16 @@
                        placeholder="Montan (HTG)" min="131" max="327678" step="1" required style="background-color: var(--haiti-mint); color: var(--haiti-charcoal);">
                 <span class="input-group-text border-0 fw-bold" style="background-color: var(--haiti-mint); color: var(--haiti-olive); font-size: 11px;"><%= currency_label("htg") %></span>
               </div>
-              <div class="d-flex justify-content-between mb-3">
-                <span class="small" style="color: var(--haiti-olive); font-size: 10px;">Min: 131 HTG</span>
-                <span class="small" style="color: var(--haiti-olive); font-size: 10px;">Max: 327,678 HTG</span>
+              <div id="deposit-limit-chip" class="d-flex align-items-center justify-content-between p-2 rounded-3 mb-3" style="background: rgba(93,99,69,0.06); font-size: 11px;">
+                <span style="color: var(--haiti-olive);">
+                  <i class="ri-information-line me-1" style="color: var(--haiti-gold);"></i>
+                  <span id="deposit-limit-text">Minimum: 500 HTG · Maksimòm: 65,000 HTG</span>
+                </span>
+                <% unless current_user.bonid_verified? %>
+                  <%= link_to bonid_verification_path, class: "fw-bold text-decoration-none", style: "color: var(--haiti-gold); font-size: 10px;" do %>
+                    Verifye 2× <i class="ri-arrow-right-s-line"></i>
+                  <% end %>
+                <% end %>
               </div>
 
               <%# ── MonCash Number ── %>
@@ -931,6 +938,18 @@
                        placeholder="Montan (HTG)" min="100" max="50000" step="1" required oninput="updateFeePreview()"
                        style="background-color: var(--haiti-mint); color: var(--haiti-charcoal);">
                 <span class="input-group-text border-0 fw-bold" style="background-color: var(--haiti-mint); color: var(--haiti-olive); font-size: 11px;"><%= currency_label("htg") %></span>
+              </div>
+              <%# ── Daily limit chip ── %>
+              <div id="withdraw-limit-chip" class="d-flex align-items-center justify-content-between p-2 rounded-3 mb-3" style="background: rgba(93,99,69,0.06); font-size: 11px;">
+                <span style="color: var(--haiti-olive);">
+                  <i class="ri-time-line me-1" style="color: var(--haiti-gold);"></i>
+                  <span id="withdraw-limit-text">Ou ka retire jiska 50,000 HTG jodi a</span>
+                </span>
+                <% unless current_user.bonid_verified? %>
+                  <%= link_to bonid_verification_path, class: "fw-bold text-decoration-none", style: "color: var(--haiti-gold); font-size: 10px;" do %>
+                    Verifye 2× <i class="ri-arrow-right-s-line"></i>
+                  <% end %>
+                <% end %>
               </div>
               <div class="d-flex align-items-center justify-content-between p-3 rounded-3 mb-3" style="background: rgba(93,99,69,0.06); border: 1px solid rgba(93,99,69,0.15);">
                 <div class="d-flex align-items-center gap-2">
@@ -1444,6 +1463,19 @@
                 <span class="small fw-bold" style="color: var(--haiti-olive); font-size: 11px;">
                   <i class="ri-time-line me-1" style="color: var(--haiti-gold);"></i>Konvèsyon sa a ap vini byento
                 </span>
+              </div>
+
+              <%# ── Daily limit chip ── %>
+              <div id="convert-limit-chip" class="d-flex align-items-center justify-content-between p-2 rounded-3 mb-3" style="background: rgba(93,99,69,0.06); font-size: 11px;">
+                <span style="color: var(--haiti-olive);">
+                  <i class="ri-time-line me-1" style="color: var(--haiti-gold);"></i>
+                  <span id="convert-limit-text">Limit jounalye: $250</span>
+                </span>
+                <% unless current_user.bonid_verified? %>
+                  <%= link_to bonid_verification_path, class: "fw-bold text-decoration-none", style: "color: var(--haiti-gold); font-size: 10px;" do %>
+                    Verifye 2× <i class="ri-arrow-right-s-line"></i>
+                  <% end %>
+                <% end %>
               </div>
 
               <button type="button" id="cv-continue-btn" onclick="showConvertReview()" class="btn w-100 fw-black rounded-pill border-0 d-flex align-items-center justify-content-center gap-2"
@@ -2522,6 +2554,80 @@ var BIZ_BALS = {
   htg: <%= @business ? @business.total_received.to_f : 0 %>,
   usd: <%= @business ? @business.usdc_balance.to_f : 0 %>
 };
+
+// ── Live limits (fetched from /wallet/limits.json) ──
+function fmtNum(n, decimals) {
+  return Number(n).toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+}
+
+function colorChip(elId, used, max) {
+  var chip = document.getElementById(elId);
+  if (!chip) return;
+  var pct = max > 0 ? (used / max) : 0;
+  var color = 'var(--haiti-olive)';
+  if (pct >= 0.9) color = '#991b1b';
+  else if (pct >= 0.7) color = 'var(--haiti-gold)';
+  chip.querySelector('span').style.color = color;
+}
+
+function refreshLimits() {
+  fetch('/wallet/limits.json', { credentials: 'same-origin' })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      // Deposit (Buy USD): show min/max + remaining USD
+      var dt = document.getElementById('deposit-limit-text');
+      if (dt) {
+        if (d.buy.platform_paused) {
+          dt.textContent = 'Sèvis pa disponib pou kounye a (rezèv ba)';
+        } else {
+          dt.textContent = 'Min: ' + fmtNum(d.buy.min_htg, 0) + ' · Max: ' + fmtNum(d.buy.max_htg, 0) + ' HTG · ' +
+                           '$' + fmtNum(d.buy.daily_remaining_usd, 0) + ' rete jodi a';
+        }
+        colorChip('deposit-limit-chip', d.buy.daily_used_usd, d.buy.daily_max_usd);
+      }
+
+      // Withdraw HTG: show remaining HTG today
+      var wt = document.getElementById('withdraw-limit-text');
+      if (wt) {
+        if (d.withdraw.platform_paused) {
+          wt.textContent = 'Sèvis pa disponib pou kounye a (rezèv ba)';
+        } else {
+          wt.textContent = 'Ou ka retire jiska ' + fmtNum(d.withdraw.daily_remaining_htg, 0) + ' HTG jodi a';
+        }
+        colorChip('withdraw-limit-chip', d.withdraw.daily_used_htg, d.withdraw.daily_max_htg);
+      }
+
+      // Convert: show remaining USD or HTG depending on direction
+      var ct = document.getElementById('convert-limit-text');
+      if (ct) {
+        var fromAsset = (document.getElementById('convert-from-asset') || {}).value || 'htg';
+        if (fromAsset === 'htg') {
+          // HTG → USD: show USD remaining
+          if (d.convert.usdc_paused) {
+            ct.textContent = 'Sèvis pa disponib (rezèv USD ba)';
+          } else {
+            ct.textContent = 'Limit jounalye: $' + fmtNum(d.convert.daily_max_usd, 0) +
+                             ' · $' + fmtNum(d.convert.daily_remaining_usd, 0) + ' rete';
+          }
+          colorChip('convert-limit-chip', d.convert.daily_used_usd, d.convert.daily_max_usd);
+        } else {
+          // USD → HTG: show HTG remaining
+          if (d.convert.htg_paused) {
+            ct.textContent = 'Sèvis pa disponib (rezèv HTG ba)';
+          } else {
+            ct.textContent = 'Limit jounalye: ' + fmtNum(d.convert.daily_max_htg, 0) + ' HTG · ' +
+                             fmtNum(d.convert.daily_remaining_htg, 0) + ' rete';
+          }
+          colorChip('convert-limit-chip', d.convert.daily_used_htg, d.convert.daily_max_htg);
+        }
+      }
+    })
+    .catch(function(e) { console.warn('[limits] fetch failed', e); });
+}
+
+// Refresh on page load + after balance updates
+document.addEventListener('DOMContentLoaded', refreshLimits);
+window.addEventListener('zellus:balance-updated', refreshLimits);
 
 function microTick() {
   // Tick all rates — cents only, smooth counting
@@ -3762,6 +3868,9 @@ function updateConvertDirection() {
   var unsupported = document.getElementById('cv-unsupported');
   var continueBtn = document.getElementById('cv-continue-btn');
   var amountInput = document.getElementById('convert-amount');
+
+  // Refresh limit chip when direction changes
+  if (typeof refreshLimits === 'function') refreshLimits();
 
   // All pairs are supported (except same asset)
   var supported = cvFromAsset !== cvToAsset;

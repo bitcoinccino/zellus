@@ -151,6 +151,7 @@ Rails.application.routes.draw do
   resource :wallet, only: [:show] do
     get  :rates
     get  :balances
+    get  :limits
     get  :test_sound
     post :deposit
     get  :deposit_success

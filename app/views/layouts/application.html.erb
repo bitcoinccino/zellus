@@ -1515,6 +1515,9 @@
         setEl('asset-usd-htg', (bUsd * usdHtg).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}));
         setEl('asset-wbtc-usd', (bWbtc * btcUsd).toFixed(2));
         setEl('asset-eth-usd', (bEth * ethUsd).toFixed(2));
+
+        // Notify any listeners (e.g. limits chips) that balance changed
+        window.dispatchEvent(new CustomEvent('zellus:balance-updated'));
       }
 
       // ── 4b. BonID revocation handler — updates UI in real-time ──

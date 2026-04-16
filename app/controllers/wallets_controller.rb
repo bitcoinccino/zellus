@@ -387,6 +387,52 @@ class WalletsController < ApplicationController
     render plain: "Sound + balance broadcast sent to user #{current_user.id} (#{current_user.display_name})."
   end
 
+  # ── GET /wallet/limits.json — live limits for UI hints ──
+  def limits
+    svc = WalletLimitService.new(current_user)
+    cfg = WalletLimitService.config
+    health = WalletLimitService.platform_health
+
+    render json: {
+      verified: current_user.bonid_verified?,
+      buy: {
+        min_htg: cfg[:buy_min_htg].to_f,
+        max_htg: svc.buy_max_htg.to_f,
+        daily_max_usd: svc.buy_daily_max_usd.to_f,
+        daily_used_usd: svc.buy_used_today_usd.to_f,
+        daily_remaining_usd: [svc.buy_daily_max_usd - svc.buy_used_today_usd, 0].max.to_f,
+        platform_paused: health[:usdc][:paused]
+      },
+      withdraw: {
+        min_htg: cfg[:withdraw_min_htg].to_f,
+        max_htg: svc.withdraw_max_htg.to_f,
+        daily_max_htg: svc.withdraw_daily_max_htg.to_f,
+        daily_used_htg: svc.withdraw_htg_used_today.to_f,
+        daily_remaining_htg: [svc.withdraw_daily_max_htg - svc.withdraw_htg_used_today, 0].max.to_f,
+        platform_paused: health[:htg][:paused]
+      },
+      withdraw_usd: {
+        max_usd: svc.usdc_withdraw_max.to_f,
+        daily_max_usd: svc.usdc_daily_max.to_f,
+        daily_used_usd: svc.withdraw_usdc_used_today.to_f,
+        daily_remaining_usd: [svc.usdc_daily_max - svc.withdraw_usdc_used_today, 0].max.to_f,
+        platform_paused: health[:usdc][:paused]
+      },
+      convert: {
+        min_usd: cfg[:convert_min_usd].to_f,
+        max_usd: svc.convert_max_usd.to_f,
+        daily_max_usd: svc.convert_daily_max_usd.to_f,
+        daily_used_usd: svc.convert_usd_used_today.to_f,
+        daily_remaining_usd: [svc.convert_daily_max_usd - svc.convert_usd_used_today, 0].max.to_f,
+        daily_max_htg: svc.convert_daily_max_htg.to_f,
+        daily_used_htg: svc.convert_htg_used_today.to_f,
+        daily_remaining_htg: [svc.convert_daily_max_htg - svc.convert_htg_used_today, 0].max.to_f,
+        usdc_paused: health[:usdc][:paused],
+        htg_paused: health[:htg][:paused]
+      }
+    }
+  end
+
   # ── GET /wallet/balances.json — AJAX balance refresh ──
   def balances
     wallet = current_user.wallet
