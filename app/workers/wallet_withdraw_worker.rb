@@ -48,11 +48,12 @@ class WalletWithdrawWorker
     else
       status_check = MoncashService.prefunded_transaction_status(reference)
       unless status_check[:success]
+        friendly = friendly_moncash_error(result[:error])
         refund_withdrawal!(wallet, user, refund_total, source,
-          "Retrè echwe: #{result[:error]} — ranbouse #{refund_total.to_i} HTG")
-        NotificationService.withdrawal_failed(user, refund_total, result[:error].to_s)
+          "Retrè echwe: #{friendly}. Lajan ou ranbouse.")
+        NotificationService.withdrawal_failed(user, refund_total, friendly)
         WebhookService.dispatch("withdrawal.failed", user: user, payload: {
-          amount: refund_total.to_s, asset: "htg", method: "moncash", reason: result[:error].to_s
+          amount: refund_total.to_s, asset: "htg", method: "moncash", reason: friendly
         })
         Rails.logger.error "WalletWithdraw: payout failed [user=#{user_id}]: #{result[:error]}"
       end
@@ -76,6 +77,32 @@ class WalletWithdrawWorker
   end
 
   private
+
+  # Translate raw MonCash API errors to user-friendly Creole messages
+  def friendly_moncash_error(raw_error)
+    msg = raw_error.to_s
+
+    case msg
+    when /No short code/i, /short.*code.*not/i
+      "Kont MonCash sa a pa konfigire pou resevwa peman"
+    when /403|Forbidden/i
+      "MonCash refize peman an"
+    when /404|Not Found/i
+      "Kont MonCash pa egziste"
+    when /401|Unauthorized/i
+      "Erè otantifikasyon ak MonCash"
+    when /timeout|timed out/i
+      "MonCash pran twòp tan pou reponn"
+    when /insufficient|pa gen ase/i
+      "Sistèm pa gen ase fon pou trete retrè a"
+    when /invalid.*phone|phone.*invalid/i
+      "Nimewo MonCash pa valid"
+    when /500|503|502/, /server error/i
+      "Sèvis MonCash pa disponib pou kounye a"
+    else
+      "Erè teknik ak MonCash — tanpri eseye ankò pita"
+    end
+  end
 
   def refund_withdrawal!(wallet, user, amount, source, reason)
     if source == "biznis" && user.business.present?

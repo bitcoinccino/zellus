@@ -39,7 +39,7 @@ class StuckWithdrawalMonitorWorker
           asset: "htg",
           amount: entry.amount,
           balance_after: new_balance,
-          description: "Ranbouse otomatik: retrè echwe (Sidekiq pa t la) — #{entry.amount.to_i} HTG"
+          description: "Ranbouse: retrè a pa t reyisi. Lajan ou tounen nan pòtfèy ou."
         )
         wallet.update!(htg_balance: new_balance)
 
@@ -56,7 +56,7 @@ class StuckWithdrawalMonitorWorker
             asset: "htg",
             amount: fee_entry.amount,
             balance_after: new_balance,
-            description: "Ranbouse frè retrè echwe — #{fee_entry.amount.to_i} HTG"
+            description: "Ranbouse frè retrè"
           )
           wallet.update!(htg_balance: new_balance)
         end
