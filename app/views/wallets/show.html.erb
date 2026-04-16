@@ -517,13 +517,13 @@
                        placeholder="Montan (HTG)" min="131" max="327678" step="1" required style="background-color: var(--haiti-mint); color: var(--haiti-charcoal);">
                 <span class="input-group-text border-0 fw-bold" style="background-color: var(--haiti-mint); color: var(--haiti-olive); font-size: 11px;"><%= currency_label("htg") %></span>
               </div>
-              <div id="deposit-limit-chip" class="d-flex align-items-center justify-content-between p-2 rounded-3 mb-3" style="background: rgba(93,99,69,0.06); font-size: 11px;">
-                <span style="color: var(--haiti-olive);">
-                  <i class="ri-information-line me-1" style="color: var(--haiti-gold);"></i>
+              <div id="deposit-limit-chip" class="d-flex align-items-center justify-content-between gap-2 p-3 rounded-3 mb-3" style="background: rgba(197,160,89,0.1); border: 1.5px solid rgba(197,160,89,0.25); font-size: 13px; font-weight: 600;">
+                <span style="color: var(--haiti-charcoal); line-height: 1.4;">
+                  <i class="ri-information-fill me-1" style="color: var(--haiti-gold); font-size: 16px;"></i>
                   <span id="deposit-limit-text">Minimum: 500 HTG · Maksimòm: 65,000 HTG</span>
                 </span>
                 <% unless current_user.bonid_verified? %>
-                  <%= link_to bonid_verification_path, class: "fw-bold text-decoration-none", style: "color: var(--haiti-gold); font-size: 10px;" do %>
+                  <%= link_to bonid_verification_path, class: "fw-black text-decoration-none flex-shrink-0", style: "background: var(--haiti-gold); color: var(--haiti-charcoal); font-size: 11px; padding: 4px 10px; border-radius: 99px; white-space: nowrap;" do %>
                     Verifye 2× <i class="ri-arrow-right-s-line"></i>
                   <% end %>
                 <% end %>
@@ -940,13 +940,13 @@
                 <span class="input-group-text border-0 fw-bold" style="background-color: var(--haiti-mint); color: var(--haiti-olive); font-size: 11px;"><%= currency_label("htg") %></span>
               </div>
               <%# ── Daily limit chip ── %>
-              <div id="withdraw-limit-chip" class="d-flex align-items-center justify-content-between p-2 rounded-3 mb-3" style="background: rgba(93,99,69,0.06); font-size: 11px;">
-                <span style="color: var(--haiti-olive);">
-                  <i class="ri-time-line me-1" style="color: var(--haiti-gold);"></i>
+              <div id="withdraw-limit-chip" class="d-flex align-items-center justify-content-between gap-2 p-3 rounded-3 mb-3" style="background: rgba(197,160,89,0.1); border: 1.5px solid rgba(197,160,89,0.25); font-size: 13px; font-weight: 600;">
+                <span style="color: var(--haiti-charcoal); line-height: 1.4;">
+                  <i class="ri-time-fill me-1" style="color: var(--haiti-gold); font-size: 16px;"></i>
                   <span id="withdraw-limit-text">Ou ka retire jiska 50,000 HTG jodi a</span>
                 </span>
                 <% unless current_user.bonid_verified? %>
-                  <%= link_to bonid_verification_path, class: "fw-bold text-decoration-none", style: "color: var(--haiti-gold); font-size: 10px;" do %>
+                  <%= link_to bonid_verification_path, class: "fw-black text-decoration-none flex-shrink-0", style: "background: var(--haiti-gold); color: var(--haiti-charcoal); font-size: 11px; padding: 4px 10px; border-radius: 99px; white-space: nowrap;" do %>
                     Verifye 2× <i class="ri-arrow-right-s-line"></i>
                   <% end %>
                 <% end %>
@@ -1466,13 +1466,13 @@
               </div>
 
               <%# ── Daily limit chip ── %>
-              <div id="convert-limit-chip" class="d-flex align-items-center justify-content-between p-2 rounded-3 mb-3" style="background: rgba(93,99,69,0.06); font-size: 11px;">
-                <span style="color: var(--haiti-olive);">
-                  <i class="ri-time-line me-1" style="color: var(--haiti-gold);"></i>
+              <div id="convert-limit-chip" class="d-flex align-items-center justify-content-between gap-2 p-3 rounded-3 mb-3" style="background: rgba(197,160,89,0.1); border: 1.5px solid rgba(197,160,89,0.25); font-size: 13px; font-weight: 600;">
+                <span style="color: var(--haiti-charcoal); line-height: 1.4;">
+                  <i class="ri-time-fill me-1" style="color: var(--haiti-gold); font-size: 16px;"></i>
                   <span id="convert-limit-text">Limit jounalye: $250</span>
                 </span>
                 <% unless current_user.bonid_verified? %>
-                  <%= link_to bonid_verification_path, class: "fw-bold text-decoration-none", style: "color: var(--haiti-gold); font-size: 10px;" do %>
+                  <%= link_to bonid_verification_path, class: "fw-black text-decoration-none flex-shrink-0", style: "background: var(--haiti-gold); color: var(--haiti-charcoal); font-size: 11px; padding: 4px 10px; border-radius: 99px; white-space: nowrap;" do %>
                     Verifye 2× <i class="ri-arrow-right-s-line"></i>
                   <% end %>
                 <% end %>
@@ -2564,10 +2564,19 @@ function colorChip(elId, used, max) {
   var chip = document.getElementById(elId);
   if (!chip) return;
   var pct = max > 0 ? (used / max) : 0;
-  var color = 'var(--haiti-olive)';
-  if (pct >= 0.9) color = '#991b1b';
-  else if (pct >= 0.7) color = 'var(--haiti-gold)';
-  chip.querySelector('span').style.color = color;
+  if (pct >= 0.9) {
+    // Critical: red background
+    chip.style.background = 'rgba(153,27,27,0.08)';
+    chip.style.borderColor = 'rgba(153,27,27,0.3)';
+  } else if (pct >= 0.7) {
+    // Warning: stronger gold background
+    chip.style.background = 'rgba(197,160,89,0.18)';
+    chip.style.borderColor = 'rgba(197,160,89,0.45)';
+  } else {
+    // Safe: default gold tint
+    chip.style.background = 'rgba(197,160,89,0.1)';
+    chip.style.borderColor = 'rgba(197,160,89,0.25)';
+  }
 }
 
 function refreshLimits() {
