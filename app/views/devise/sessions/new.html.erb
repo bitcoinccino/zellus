@@ -663,21 +663,21 @@
       hideModal(registerModal);
     }
 
-    // Open buttons
-    openSignin.addEventListener('click', function() { showModal(signinModal); });
-    openRegister.addEventListener('click', function() { showModal(registerModal); });
+    // Open buttons (may not exist if hero CTA buttons were removed)
+    if (openSignin) openSignin.addEventListener('click', function() { showModal(signinModal); });
+    if (openRegister) openRegister.addEventListener('click', function() { showModal(registerModal); });
 
     // Close buttons
-    closeSignin.addEventListener('click', function() { hideModal(signinModal); });
-    closeRegister.addEventListener('click', function() { hideModal(registerModal); });
+    if (closeSignin) closeSignin.addEventListener('click', function() { hideModal(signinModal); });
+    if (closeRegister) closeRegister.addEventListener('click', function() { hideModal(registerModal); });
 
     // Switch between modals
-    switchToReg.addEventListener('click', function(e) {
+    if (switchToReg) switchToReg.addEventListener('click', function(e) {
       e.preventDefault();
       hideModal(signinModal);
       setTimeout(function() { showModal(registerModal); }, 150);
     });
-    switchToSign.addEventListener('click', function(e) {
+    if (switchToSign) switchToSign.addEventListener('click', function(e) {
       e.preventDefault();
       hideModal(registerModal);
       setTimeout(function() { showModal(signinModal); }, 150);
