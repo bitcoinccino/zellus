@@ -1463,13 +1463,19 @@
         var hero = document.getElementById('section-hero');
         if (!hero) return; // not on wallet page
 
-        var usdcHtg = parseFloat(hero.dataset.usdcHtg) || 135.50;
-        var btcUsd  = parseFloat(hero.dataset.btcUsd)  || 95000;
-        var ethUsd  = parseFloat(hero.dataset.ethUsd)  || 3500;
+        var usdHtg = parseFloat(hero.dataset.usdHtg) || 135.50;
+        var btcUsd = parseFloat(hero.dataset.btcUsd) || 95000;
+        var ethUsd = parseFloat(hero.dataset.ethUsd) || 3500;
+
+        // Defensive: coerce to numbers, fallback to 0
+        var bHtg  = parseFloat(b.htg)  || 0;
+        var bUsd  = parseFloat(b.usd  || b.usdc) || 0;
+        var bEth  = parseFloat(b.eth)  || 0;
+        var bWbtc = parseFloat(b.wbtc) || 0;
 
         // Compute totals
-        var totalHtg = b.htg + (b.usdc * usdcHtg) + (b.wbtc * btcUsd * usdcHtg) + (b.eth * ethUsd * usdcHtg);
-        var totalUsd = b.usdc + (b.wbtc * btcUsd) + (b.eth * ethUsd) + (b.htg / usdcHtg);
+        var totalHtg = bHtg + (bUsd * usdHtg) + (bWbtc * btcUsd * usdHtg) + (bEth * ethUsd * usdHtg);
+        var totalUsd = bUsd + (bWbtc * btcUsd) + (bEth * ethUsd) + (bHtg / usdHtg);
 
         // Helper: update element text + flash green
         function setEl(id, text) {
@@ -1493,22 +1499,22 @@
         setEl('hero-usd-dec', ('0' + (Math.floor(totalUsd * 100) % 100)).slice(-2));
 
         // Mini breakdown
-        setEl('mini-htg-bal', fmt(b.htg));
-        setEl('mini-usdc-bal', b.usdc.toFixed(2));
-        setEl('mini-eth-bal', b.eth.toFixed(4));
-        setEl('mini-wbtc-bal', b.wbtc.toFixed(6));
+        setEl('mini-htg-bal', fmt(bHtg));
+        setEl('mini-usd-bal', bUsd.toFixed(2));
+        setEl('mini-eth-bal', bEth.toFixed(4));
+        setEl('mini-wbtc-bal', bWbtc.toFixed(6));
 
         // Asset card balances
-        setEl('asset-htg-bal', b.htg.toFixed(2));
-        setEl('asset-usdc-bal', b.usdc.toFixed(2));
-        setEl('asset-wbtc-bal', b.wbtc > 0 ? b.wbtc.toFixed(8).replace(/0+$/, '').replace(/\.$/, '.0') : '0');
-        setEl('asset-eth-bal', b.eth > 0 ? b.eth.toFixed(6).replace(/0+$/, '').replace(/\.$/, '.0') : '0');
+        setEl('asset-htg-bal', bHtg.toFixed(2));
+        setEl('asset-usd-bal', bUsd.toFixed(2));
+        setEl('asset-wbtc-bal', bWbtc > 0 ? bWbtc.toFixed(8).replace(/0+$/, '').replace(/\.$/, '.0') : '0');
+        setEl('asset-eth-bal', bEth > 0 ? bEth.toFixed(6).replace(/0+$/, '').replace(/\.$/, '.0') : '0');
 
         // Asset card equivalents
-        setEl('asset-htg-usd', (b.htg / usdcHtg).toFixed(2));
-        setEl('asset-usdc-htg', (b.usdc * usdcHtg).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}));
-        setEl('asset-wbtc-usd', (b.wbtc * btcUsd).toFixed(2));
-        setEl('asset-eth-usd', (b.eth * ethUsd).toFixed(2));
+        setEl('asset-htg-usd', (bHtg / usdHtg).toFixed(2));
+        setEl('asset-usd-htg', (bUsd * usdHtg).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}));
+        setEl('asset-wbtc-usd', (bWbtc * btcUsd).toFixed(2));
+        setEl('asset-eth-usd', (bEth * ethUsd).toFixed(2));
       }
 
       // ── 4b. BonID revocation handler — updates UI in real-time ──
