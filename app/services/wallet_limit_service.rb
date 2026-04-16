@@ -80,36 +80,47 @@ class WalletLimitService
   end
 
   # ── Allow checks (returns [allowed?, reason] tuple) ──
+  # Smart block: only reject if THIS SPECIFIC AMOUNT exceeds remaining reserve.
   def allow_buy?(usd_amount)
-    return [false, "Sistèm pa disponib pou kounye a"] if self.class.platform_paused?(:usdc)
     return [false, "Limit jounalye depase"] if buy_used_today_usd + usd_amount.to_d > buy_daily_max_usd
+    if self.class.platform_paused?(:usdc, usd_amount.to_d)
+      return [false, "Sèvis pa disponib pou montan sa a kounye a"]
+    end
     [true, nil]
   end
 
   def allow_convert_to_usd?(usd_amount)
-    return [false, "Sistèm pa disponib pou kounye a"] if self.class.platform_paused?(:usdc)
     return [false, "Montan twòp gran"] if usd_amount.to_d > convert_max_usd
     return [false, "Limit jounalye depase"] if convert_usd_used_today + usd_amount.to_d > convert_daily_max_usd
+    if self.class.platform_paused?(:usdc, usd_amount.to_d)
+      return [false, "Sèvis pa disponib pou montan sa a kounye a"]
+    end
     [true, nil]
   end
 
   def allow_convert_to_htg?(htg_amount)
-    return [false, "Sistèm pa disponib pou kounye a"] if self.class.platform_paused?(:htg)
     return [false, "Limit jounalye depase"] if convert_htg_used_today + htg_amount.to_d > convert_daily_max_htg
+    if self.class.platform_paused?(:htg, htg_amount.to_d)
+      return [false, "Sèvis pa disponib pou montan sa a kounye a"]
+    end
     [true, nil]
   end
 
   def allow_withdraw_htg?(htg_amount)
-    return [false, "Sistèm pa disponib pou kounye a"] if self.class.platform_paused?(:htg)
     return [false, "Montan twòp gran (max #{withdraw_max_htg.to_i} HTG)"] if htg_amount.to_d > withdraw_max_htg
     return [false, "Limit jounalye depase"] if withdraw_htg_used_today + htg_amount.to_d > withdraw_daily_max_htg
+    if self.class.platform_paused?(:htg, htg_amount.to_d)
+      return [false, "Sèvis pa disponib pou montan sa a kounye a"]
+    end
     [true, nil]
   end
 
   def allow_withdraw_usdc?(usd_amount)
-    return [false, "Sistèm pa disponib pou kounye a"] if self.class.platform_paused?(:usdc)
     return [false, "Montan twòp gran (max $#{usdc_withdraw_max.to_i})"] if usd_amount.to_d > usdc_withdraw_max
     return [false, "Limit jounalye depase"] if withdraw_usdc_used_today + usd_amount.to_d > usdc_daily_max
+    if self.class.platform_paused?(:usdc, usd_amount.to_d)
+      return [false, "Sèvis pa disponib pou montan sa a kounye a"]
+    end
     [true, nil]
   end
 
@@ -122,12 +133,20 @@ class WalletLimitService
     User.joins(:wallet).where(email: ENV["ADMIN_EMAIL"].to_s.strip).first&.wallet&.htg_balance.to_d
   end
 
-  def self.platform_paused?(asset)
+  # Smart pause: blocks only if executing this amount would drop the reserve
+  # below the safety floor. If amount is nil, returns the "general" paused state
+  # (used by the limit chip UI to show a soft warning).
+  def self.platform_paused?(asset, amount = nil)
     cfg = config
-    case asset
-    when :usdc then platform_usdc_reserve < cfg[:platform_usdc_reserve_min]
-    when :htg  then platform_htg_reserve < cfg[:platform_htg_reserve_min]
-    else false
+    reserve = asset == :usdc ? platform_usdc_reserve : platform_htg_reserve
+    floor   = asset == :usdc ? cfg[:platform_usdc_reserve_min] : cfg[:platform_htg_reserve_min]
+
+    if amount.nil?
+      # General check: are we already at/below floor?
+      reserve <= floor
+    else
+      # Smart check: would executing this amount push us below floor?
+      (reserve - amount.to_d) < floor
     end
   end
 

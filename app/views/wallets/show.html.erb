@@ -2586,7 +2586,9 @@ function refreshLimits() {
       // Deposit (Buy USD): show min/max + remaining USD
       var dt = document.getElementById('deposit-limit-text');
       if (dt) {
-        if (d.buy.platform_paused) {
+        if (d.buy.platform_paused && d.buy.platform_headroom_usd > 0) {
+          dt.textContent = 'Maksimòm pou kounye a: $' + fmtNum(d.buy.platform_headroom_usd, 0);
+        } else if (d.buy.platform_paused) {
           dt.textContent = 'Sèvis pa disponib pou kounye a';
         } else {
           dt.textContent = 'Min: ' + fmtNum(d.buy.min_htg, 0) + ' · Max: ' + fmtNum(d.buy.max_htg, 0) + ' HTG · ' +
@@ -2598,7 +2600,9 @@ function refreshLimits() {
       // Withdraw HTG: show remaining HTG today
       var wt = document.getElementById('withdraw-limit-text');
       if (wt) {
-        if (d.withdraw.platform_paused) {
+        if (d.withdraw.platform_paused && d.withdraw.platform_headroom_htg > 0) {
+          wt.textContent = 'Maksimòm pou kounye a: ' + fmtNum(d.withdraw.platform_headroom_htg, 0) + ' HTG';
+        } else if (d.withdraw.platform_paused) {
           wt.textContent = 'Sèvis pa disponib pou kounye a';
         } else {
           wt.textContent = 'Ou ka retire jiska ' + fmtNum(d.withdraw.daily_remaining_htg, 0) + ' HTG jodi a';
@@ -2612,7 +2616,9 @@ function refreshLimits() {
         var fromAsset = (document.getElementById('convert-from-asset') || {}).value || 'htg';
         if (fromAsset === 'htg') {
           // HTG → USD: show USD remaining
-          if (d.convert.usdc_paused) {
+          if (d.convert.usdc_paused && d.convert.platform_headroom_usd > 0) {
+            ct.textContent = 'Maksimòm pou kounye a: $' + fmtNum(d.convert.platform_headroom_usd, 0);
+          } else if (d.convert.usdc_paused) {
             ct.textContent = 'Sèvis pa disponib pou kounye a';
           } else {
             ct.textContent = 'Limit jounalye: $' + fmtNum(d.convert.daily_max_usd, 0) +
@@ -2621,7 +2627,9 @@ function refreshLimits() {
           colorChip('convert-limit-chip', d.convert.daily_used_usd, d.convert.daily_max_usd);
         } else {
           // USD → HTG: show HTG remaining
-          if (d.convert.htg_paused) {
+          if (d.convert.htg_paused && d.convert.platform_headroom_htg > 0) {
+            ct.textContent = 'Maksimòm pou kounye a: ' + fmtNum(d.convert.platform_headroom_htg, 0) + ' HTG';
+          } else if (d.convert.htg_paused) {
             ct.textContent = 'Sèvis pa disponib pou kounye a';
           } else {
             ct.textContent = 'Limit jounalye: ' + fmtNum(d.convert.daily_max_htg, 0) + ' HTG · ' +
