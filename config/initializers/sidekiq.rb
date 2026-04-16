@@ -28,6 +28,9 @@ if defined?(Sidekiq)
       # Stuck withdrawal safety net — auto-refunds wallet debits with no MonCash TX
       schedule_unique.call(StuckWithdrawalMonitorWorker, 25)
 
+      # Platform reserve alert — emails admin when USDC/HTG reserves run low
+      schedule_unique.call(ReserveAlertWorker, 60)
+
       # Crypto deposit monitors — require treasury key
       if ENV['TREASURY_PRIVATE_KEY'].present?
         schedule_unique.call(UsdDepositMonitorWorker, 10)

@@ -124,6 +124,13 @@ class WalletsController < ApplicationController
       return
     end
 
+    # Daily user + platform circuit breaker
+    ok, msg = WalletLimitService.new(current_user).allow_withdraw_htg?(amount)
+    unless ok
+      redirect_to wallet_path, alert: msg
+      return
+    end
+
     unless phone.match?(/\A509\d{8}\z/)
       redirect_to wallet_path, alert: "Tanpri antre yon nimewo MonCash valid (509 + 8 chif)."
       return
@@ -193,6 +200,13 @@ class WalletsController < ApplicationController
 
     if amount < USD_WITHDRAW_MIN || amount > USD_WITHDRAW_MAX
       redirect_to wallet_path, alert: "Montan retrè USD dwe ant #{USD_WITHDRAW_MIN} ak #{USD_WITHDRAW_MAX} USD."
+      return
+    end
+
+    # Daily user + platform circuit breaker
+    ok, msg = WalletLimitService.new(current_user).allow_withdraw_usdc?(amount)
+    unless ok
+      redirect_to wallet_path, alert: msg
       return
     end
 
@@ -429,12 +443,23 @@ class WalletsController < ApplicationController
       return
     end
 
-    # Daily swap limit check (USD→HTG only)
-    if from_asset == "usd" && to_asset == "htg"
-      limit_svc = WalletLimitService.new(current_user)
-      unless limit_svc.swap_allowed?(amount)
-        remaining = limit_svc.daily_swap_remaining
-        redirect_to wallet_path, alert: "Ou rive nan limit konvèsyon jounalye ou (#{limit_svc.limits[:daily_swap_usd].to_i} USD/jou). Ou ka konvèti #{remaining.to_f.round(2)} USD ankò jodi a."
+    # Daily user + platform circuit breaker for both directions
+    limit_svc = WalletLimitService.new(current_user)
+    if from_asset == "htg" && to_asset == "usd"
+      # HTG → USD: depletes USDC reserve
+      htg_amount = amount
+      usd_equiv = htg_amount / (RateService.buy_rate.to_f.nonzero? || 135.5)
+      ok, msg = limit_svc.allow_convert_to_usd?(usd_equiv)
+      unless ok
+        redirect_to wallet_path, alert: msg
+        return
+      end
+    elsif from_asset == "usd" && to_asset == "htg"
+      # USD → HTG: depletes HTG reserve
+      htg_equiv = amount * (RateService.sell_rate.to_f.nonzero? || 135.5)
+      ok, msg = limit_svc.allow_convert_to_htg?(htg_equiv)
+      unless ok
+        redirect_to wallet_path, alert: msg
         return
       end
     end

@@ -415,9 +415,14 @@ end
 
   def buy_amount_limit_error(amount)
     value = amount.to_f
-    return "Enter a valid HTG amount." if value <= 0
-    return "Minimum buy amount is #{format_limit(@buy_min_htg)} HTG." if value < @buy_min_htg
-    return "Maximum buy amount is #{format_limit(@buy_max_htg)} HTG." if value > @buy_max_htg
+    return "Tanpri antre yon montan HTG valid." if value <= 0
+    return "Minimòm pou achte se #{format_limit(@buy_min_htg)} HTG." if value < @buy_min_htg
+    return "Maksimòm pou achte se #{format_limit(@buy_max_htg)} HTG." if value > @buy_max_htg
+
+    # Daily user + platform circuit breaker (USD-equivalent)
+    usd_amount = (value / (@buy_exchange_rate.to_f.nonzero? || 135.5))
+    ok, msg = WalletLimitService.new(current_user).allow_buy?(usd_amount)
+    return msg unless ok
 
     nil
   end
