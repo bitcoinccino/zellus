@@ -860,20 +860,20 @@
               <li class="nav-item"><%= link_to "Apwopo", apwopo_path, class: "nav-link text-white fw-bold small" %></li>
               <li class="nav-item"><%= link_to "FAQ", faq_path, class: "nav-link text-white fw-bold small" %></li>
               <li class="nav-item mt-3 mt-lg-0 ms-lg-2">
-                <%= link_to new_user_session_path(modal: "signin"), class: "nav-link d-lg-none text-decoration-none fw-bold py-2", style: "color: var(--haiti-gold) !important; font-size: 14px;" do %>
+                <a href="<%= new_user_session_path(modal: 'signin') %>" class="nav-link d-lg-none text-decoration-none fw-bold py-2 js-open-signin" style="color: var(--haiti-gold) !important; font-size: 14px;">
                   <i class="ri-login-box-line me-2"></i>Konekte
-                <% end %>
-                <%= link_to new_user_session_path(modal: "signin"), class: "btn fw-bold rounded-pill px-4 py-2 d-none d-lg-inline-block", style: "background: transparent; color: var(--haiti-gold); border: 2px solid var(--haiti-gold); font-size: 13px;" do %>
+                </a>
+                <a href="<%= new_user_session_path(modal: 'signin') %>" class="btn fw-bold rounded-pill px-4 py-2 d-none d-lg-inline-block js-open-signin" style="background: transparent; color: var(--haiti-gold); border: 2px solid var(--haiti-gold); font-size: 13px;">
                   <i class="ri-login-box-line me-1"></i>Konekte
-                <% end %>
+                </a>
               </li>
               <li class="nav-item mt-2 mt-lg-0 ms-lg-2">
-                <%= link_to new_user_session_path(modal: "register"), class: "nav-link d-lg-none text-decoration-none fw-bold py-2", style: "color: var(--haiti-gold) !important; font-size: 14px;" do %>
+                <a href="<%= new_user_session_path(modal: 'register') %>" class="nav-link d-lg-none text-decoration-none fw-bold py-2 js-open-register" style="color: var(--haiti-gold) !important; font-size: 14px;">
                   <i class="ri-user-add-line me-2"></i>Kreye Kont
-                <% end %>
-                <%= link_to new_user_session_path(modal: "register"), class: "btn fw-bold rounded-pill px-4 py-2 shadow-sm d-none d-lg-inline-block", style: "background: var(--haiti-gold); color: var(--haiti-charcoal); font-size: 13px; border: 2px solid var(--haiti-gold);" do %>
+                </a>
+                <a href="<%= new_user_session_path(modal: 'register') %>" class="btn fw-bold rounded-pill px-4 py-2 shadow-sm d-none d-lg-inline-block js-open-register" style="background: var(--haiti-gold); color: var(--haiti-charcoal); font-size: 13px; border: 2px solid var(--haiti-gold);">
                   <i class="ri-user-add-line me-1"></i>Kreye Kont
-                <% end %>
+                </a>
               </li>
             </ul>
           <% end %>
@@ -1738,5 +1738,36 @@
     })();
     </script>
     <% end %>
+    <%# ── Navbar modal openers: if modals exist on page, open them directly ── %>
+    <script>
+    (function() {
+      var signinModal = document.getElementById('signin-modal');
+      var registerModal = document.getElementById('register-modal');
+      if (!signinModal || !registerModal) return; // Not on login page
+
+      function openModal(modal) {
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        setTimeout(function() {
+          var field = modal.querySelector('input[type="email"]');
+          if (field) field.focus();
+        }, 300);
+      }
+
+      document.querySelectorAll('.js-open-signin').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+          e.preventDefault();
+          openModal(signinModal);
+        });
+      });
+
+      document.querySelectorAll('.js-open-register').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+          e.preventDefault();
+          openModal(registerModal);
+        });
+      });
+    })();
+    </script>
   </body>
 </html>
