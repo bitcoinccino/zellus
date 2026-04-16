@@ -2587,7 +2587,7 @@ function refreshLimits() {
       var dt = document.getElementById('deposit-limit-text');
       if (dt) {
         if (d.buy.platform_paused) {
-          dt.textContent = 'Sèvis pa disponib pou kounye a (rezèv ba)';
+          dt.textContent = 'Sèvis pa disponib pou kounye a';
         } else {
           dt.textContent = 'Min: ' + fmtNum(d.buy.min_htg, 0) + ' · Max: ' + fmtNum(d.buy.max_htg, 0) + ' HTG · ' +
                            '$' + fmtNum(d.buy.daily_remaining_usd, 0) + ' rete jodi a';
@@ -2599,7 +2599,7 @@ function refreshLimits() {
       var wt = document.getElementById('withdraw-limit-text');
       if (wt) {
         if (d.withdraw.platform_paused) {
-          wt.textContent = 'Sèvis pa disponib pou kounye a (rezèv ba)';
+          wt.textContent = 'Sèvis pa disponib pou kounye a';
         } else {
           wt.textContent = 'Ou ka retire jiska ' + fmtNum(d.withdraw.daily_remaining_htg, 0) + ' HTG jodi a';
         }
@@ -2613,7 +2613,7 @@ function refreshLimits() {
         if (fromAsset === 'htg') {
           // HTG → USD: show USD remaining
           if (d.convert.usdc_paused) {
-            ct.textContent = 'Sèvis pa disponib (rezèv USD ba)';
+            ct.textContent = 'Sèvis pa disponib pou kounye a';
           } else {
             ct.textContent = 'Limit jounalye: $' + fmtNum(d.convert.daily_max_usd, 0) +
                              ' · $' + fmtNum(d.convert.daily_remaining_usd, 0) + ' rete';
@@ -2622,7 +2622,7 @@ function refreshLimits() {
         } else {
           // USD → HTG: show HTG remaining
           if (d.convert.htg_paused) {
-            ct.textContent = 'Sèvis pa disponib (rezèv HTG ba)';
+            ct.textContent = 'Sèvis pa disponib pou kounye a';
           } else {
             ct.textContent = 'Limit jounalye: ' + fmtNum(d.convert.daily_max_htg, 0) + ' HTG · ' +
                              fmtNum(d.convert.daily_remaining_htg, 0) + ' rete';
