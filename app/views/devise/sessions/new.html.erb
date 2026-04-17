@@ -522,99 +522,101 @@
 <%# ══════════════════════════════════════ %>
 <%# ── FOOTER                          ── %>
 <%# ══════════════════════════════════════ %>
-<footer style="background: var(--haiti-charcoal); border-top: 1px solid rgba(197,160,89,0.15);">
+<footer style="background: var(--haiti-charcoal); border-top: 3px solid var(--haiti-gold);">
   <div class="container py-5">
     <div class="row g-4">
 
-      <%# ── Col 1: Zèllus ── %>
-      <div class="col-lg-3 col-md-6">
-        <div class="mb-3">
-          <%= image_tag "zellus_square.png", size: "32x32", alt: "Zèllus", style: "border-radius: 8px;" %>
+      <%# ── Col 1: Brand ── %>
+      <div class="col-lg-4 col-md-6">
+        <div class="d-flex align-items-center gap-2 mb-3">
+          <%= image_tag "zellus_square.png", size: "36x36", alt: "Zèllus", style: "border-radius: 10px;" %>
+          <span class="fw-black" style="color: #fff; font-size: 18px; font-family: 'Space Grotesk', sans-serif;">Zèllus</span>
         </div>
-        <p style="color: rgba(255,255,255,0.6); font-size: 13px; line-height: 1.6;">
-          Libète finansyè ou kòmanse isit la.
+        <p style="color: rgba(255,255,255,0.6); font-size: 13px; line-height: 1.7; max-width: 300px;">
+          Libète finansyè ou kòmanse isit la. Voye, resevwa, ak jere lajan ou san konplikasyon.
         </p>
-        <p style="color: rgba(255,255,255,0.45); font-size: 11px; font-style: italic;">
-          <i class="ri-heart-fill me-1" style="color: var(--haiti-gold); font-size: 10px;"></i>Bati ak lanmou nan Côtes-de-Fer
-        </p>
-        <p style="color: rgba(255,255,255,0.35); font-size: 11px;">
-          &copy; <%= Date.today.year %> Zèllus. Tout dwa rezève.
-        </p>
-      </div>
-
-      <%# ── Col 2: Apwopo ── %>
-      <div class="col-lg-3 col-md-6">
-        <h6 class="fw-black text-uppercase mb-3" style="color: var(--haiti-gold); font-size: 11px; letter-spacing: 1.5px;">Apwopo</h6>
-        <ul class="list-unstyled" style="font-size: 13px;">
-          <li class="mb-2">
-            <%= link_to "#apwopo", class: "text-decoration-none", style: "color: rgba(255,255,255,0.7);" do %>
-              Kiyès Nou Ye
-            <% end %>
-          </li>
-          <li class="mb-2">
-            <%= link_to "#misyon", class: "text-decoration-none", style: "color: rgba(255,255,255,0.7);" do %>
-              Misyon Nou
-            <% end %>
-          </li>
-          <li class="mb-2">
-            <%= link_to "#ekip", class: "text-decoration-none", style: "color: rgba(255,255,255,0.7);" do %>
-              Ekip Nou
-            <% end %>
-          </li>
-        </ul>
-      </div>
-
-      <%# ── Col 3: Pwodui ── %>
-      <div class="col-lg-3 col-md-6">
-        <h6 class="fw-black text-uppercase mb-3" style="color: var(--haiti-gold); font-size: 11px; letter-spacing: 1.5px;">Pwodui</h6>
-        <ul class="list-unstyled" style="font-size: 13px;">
-          <li class="mb-2">
-            <%= link_to zellus_info_path, class: "text-decoration-none", style: "color: rgba(255,255,255,0.7);" do %>
-              <i class="ri-send-plane-fill me-1" style="font-size: 12px;"></i>Zèllus Pay
-            <% end %>
-          </li>
-          <li class="mb-2">
-            <%= link_to annye_path, class: "text-decoration-none", style: "color: rgba(255,255,255,0.7);" do %>
-              <i class="ri-store-2-fill me-1" style="font-size: 12px;"></i>Zèllus Biznis
-            <% end %>
-          </li>
-          <li class="mb-2">
-            <%= link_to ajan_info_path, class: "text-decoration-none", style: "color: rgba(255,255,255,0.7);" do %>
-              <i class="ri-user-location-fill me-1" style="font-size: 12px;"></i>Zèllus Ajan
-            <% end %>
-          </li>
-          <%# ── Zèllus Sòl / Bousad / Onèt Byento — re-enable when ready to deploy ── %>
-          <% if false %>
-          <li class="mb-2">
-            <%= link_to priosol_info_path, class: "text-decoration-none", style: "color: rgba(255,255,255,0.7);" do %>
-              <i class="ri-loop-right-fill me-1" style="font-size: 12px;"></i>Zèllus Sòl <span class="badge-soon">Byento</span>
-            <% end %>
-          </li>
-          <li class="mb-2">
-            <%= link_to priobousad_info_path, class: "text-decoration-none", style: "color: rgba(255,255,255,0.7);" do %>
-              <i class="ri-hand-coin-fill me-1" style="font-size: 12px;"></i>Zèllus Bousad <span class="badge-soon">Byento</span>
-            <% end %>
-          </li>
-          <li class="mb-2">
-            <%= link_to prionet_info_path, class: "text-decoration-none", style: "color: rgba(255,255,255,0.7);" do %>
-              <i class="ri-medal-fill me-1" style="font-size: 12px;"></i>Zèllus Onèt <span class="badge-soon">Byento</span>
-            <% end %>
-          </li>
-          <% end %>
-        </ul>
-      </div>
-
-      <%# ── Col 4: Kontakte Nou ── %>
-      <div class="col-lg-3 col-md-6">
-        <h6 class="fw-black text-uppercase mb-3" style="color: var(--haiti-gold); font-size: 11px; letter-spacing: 1.5px;">Kontakte Nou</h6>
-        <div class="d-flex gap-3">
-          <a href="https://x.com/zellus" target="_blank" class="d-flex align-items-center justify-content-center rounded-circle"
-             style="width: 36px; height: 36px; background: rgba(255,255,255,0.08); border: 1px solid rgba(197,160,89,0.25); color: #fff; text-decoration: none;">
-            <i class="ri-twitter-x-fill" style="font-size: 16px;"></i>
+        <div class="d-flex gap-2 mt-3">
+          <a href="https://x.com/zellusapp" target="_blank" class="d-flex align-items-center justify-content-center rounded-circle"
+             style="width: 36px; height: 36px; background: rgba(197,160,89,0.1); color: var(--haiti-gold); text-decoration: none; transition: background 0.15s;"
+             onmouseover="this.style.background='rgba(197,160,89,0.25)'" onmouseout="this.style.background='rgba(197,160,89,0.1)'">
+            <i class="ri-twitter-x-fill" style="font-size: 15px;"></i>
+          </a>
+          <a href="mailto:support@zellus.app" class="d-flex align-items-center justify-content-center rounded-circle"
+             style="width: 36px; height: 36px; background: rgba(197,160,89,0.1); color: var(--haiti-gold); text-decoration: none; transition: background 0.15s;"
+             onmouseover="this.style.background='rgba(197,160,89,0.25)'" onmouseout="this.style.background='rgba(197,160,89,0.1)'">
+            <i class="ri-mail-fill" style="font-size: 15px;"></i>
           </a>
         </div>
       </div>
 
+      <%# ── Col 2: Pwodui ── %>
+      <div class="col-lg-2 col-md-6">
+        <h6 class="fw-black text-uppercase mb-3" style="color: var(--haiti-gold); font-size: 10px; letter-spacing: 1.5px;">Pwodui</h6>
+        <ul class="list-unstyled" style="font-size: 13px;">
+          <li class="mb-2">
+            <%= link_to zellus_info_path, class: "text-decoration-none", style: "color: rgba(255,255,255,0.6);" do %>
+              Zèllus Pay
+            <% end %>
+          </li>
+          <li class="mb-2">
+            <%= link_to annye_path, class: "text-decoration-none", style: "color: rgba(255,255,255,0.6);" do %>
+              Jwenn yon Ajan
+            <% end %>
+          </li>
+          <li class="mb-2">
+            <%= link_to ajan_info_path, class: "text-decoration-none", style: "color: rgba(255,255,255,0.6);" do %>
+              Vin Ajan
+            <% end %>
+          </li>
+        </ul>
+      </div>
+
+      <%# ── Col 3: Apwopo ── %>
+      <div class="col-lg-2 col-md-6">
+        <h6 class="fw-black text-uppercase mb-3" style="color: var(--haiti-gold); font-size: 10px; letter-spacing: 1.5px;">Apwopo</h6>
+        <ul class="list-unstyled" style="font-size: 13px;">
+          <li class="mb-2">
+            <%= link_to apwopo_path, class: "text-decoration-none", style: "color: rgba(255,255,255,0.6);" do %>
+              Kiyès Nou Ye
+            <% end %>
+          </li>
+          <li class="mb-2">
+            <%= link_to faq_path, class: "text-decoration-none", style: "color: rgba(255,255,255,0.6);" do %>
+              FAQ
+            <% end %>
+          </li>
+        </ul>
+      </div>
+
+      <%# ── Col 4: Sekirite ── %>
+      <div class="col-lg-4 col-md-6">
+        <h6 class="fw-black text-uppercase mb-3" style="color: var(--haiti-gold); font-size: 10px; letter-spacing: 1.5px;">Sekirite</h6>
+        <div class="d-flex flex-column gap-2" style="font-size: 12px; color: rgba(255,255,255,0.5); line-height: 1.6;">
+          <div class="d-flex align-items-start gap-2">
+            <i class="ri-shield-check-fill flex-shrink-0" style="color: var(--haiti-gold); font-size: 14px; margin-top: 2px;"></i>
+            <span>Tout balans USD yo apiye 1:1 ak USDC sou Base</span>
+          </div>
+          <div class="d-flex align-items-start gap-2">
+            <i class="ri-lock-fill flex-shrink-0" style="color: var(--haiti-gold); font-size: 14px; margin-top: 2px;"></i>
+            <span>Verifikasyon idantite ak BonID</span>
+          </div>
+          <div class="d-flex align-items-start gap-2">
+            <i class="ri-fingerprint-fill flex-shrink-0" style="color: var(--haiti-gold); font-size: 14px; margin-top: 2px;"></i>
+            <span>PIN 4 chif pou chak tranzaksyon</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <%# ── Bottom bar ── %>
+    <div class="mt-4 pt-4 d-flex flex-column flex-md-row align-items-center justify-content-between gap-2" style="border-top: 1px solid rgba(197,160,89,0.1);">
+      <span style="color: rgba(255,255,255,0.3); font-size: 11px;">
+        &copy; <%= Date.today.year %> Zèllus · Tout dwa rezève
+      </span>
+      <span style="color: rgba(255,255,255,0.3); font-size: 11px;">
+        <i class="ri-heart-fill me-1" style="color: var(--haiti-gold); font-size: 10px;"></i>Bati ak lanmou nan Côtes-de-Fer, Ayiti
+      </span>
     </div>
   </div>
 </footer>
