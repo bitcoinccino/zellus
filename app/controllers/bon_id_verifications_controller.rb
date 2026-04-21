@@ -3,6 +3,10 @@ class BonIdVerificationsController < ApplicationController
   before_action :authenticate_user!
 
   def show
+    # Store the current user's ID so the OAuth callback knows who's linking
+    # (session may persist even if Devise loses the signed-in state during redirect)
+    session[:bonid_linking_user_id] = current_user.id
+
     # Always recheck with BonID API (throttled to 15min in concern)
     recheck_bonid!
     current_user.reload

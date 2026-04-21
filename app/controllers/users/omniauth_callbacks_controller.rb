@@ -19,24 +19,26 @@ class Users::OmniauthCallbacksController < Devise::OmniauthCallbacksController
     check_crime_status!(bonid_id, oauth_token)
 
     # ── CASE 1: User is already signed in → linking BonID to current account ──
-    if current_user
+    # Also check session[:bonid_linking_user_id] in case session was lost during OAuth redirect
+    linking_user = current_user || (session[:bonid_linking_user_id] && User.find_by(id: session.delete(:bonid_linking_user_id)))
+    if linking_user
       # Check if this BonID is already linked to a DIFFERENT account
-      existing = User.where(bonid: bonid_id).where.not(id: current_user.id).first
+      existing = User.where(bonid: bonid_id).where.not(id: linking_user.id).first
       if existing
         redirect_to bonid_verification_path,
           alert: "BonID sa a deja lye ak yon lòt kont Zèllus. Chak moun ka gen yon sèl kont."
         return
       end
 
-      # Check if current user is already verified
-      if current_user.bonid_verified?
+      # Check if this user is already verified
+      if linking_user.bonid_verified?
         redirect_to bonid_verification_path, notice: "Ou deja verifye ak BonID."
         return
       end
 
-      # Link BonID to current account
+      # Link BonID to THIS user's account (not the BonID email owner)
       identity = auth.info
-      current_user.update!(
+      linking_user.update!(
         bonid: bonid_id,
         bonid_verified_at: Time.current,
         bonid_first_name: identity["first_name"],
@@ -51,6 +53,8 @@ class Users::OmniauthCallbacksController < Devise::OmniauthCallbacksController
         bonid_blood_type: identity["blood_type"]
       )
 
+      # Ensure we're signed in as the linking user (not the email-matched user)
+      sign_in(linking_user) unless current_user&.id == linking_user.id
       redirect_to bonid_verification_path, notice: "Idantite'w verifye ak siksè! Limit kredi'w ogmante."
       return
     end
