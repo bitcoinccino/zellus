@@ -768,6 +768,16 @@
                       <span class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;">Paramèt Kont</span>
                     <% end %>
                   </li>
+                  <% if current_user.bonid_verified? && current_user.business.present? && !current_user.business.is_agent? %>
+                    <li style="padding: 0 10px;">
+                      <%= link_to ajan_info_path, class: "d-flex align-items-center gap-3 text-decoration-none", style: "padding: 10px 10px; border-radius: 10px; transition: background 0.15s; min-height: 44px;", onmouseover: "this.style.background='var(--haiti-mint)'", onmouseout: "this.style.background='transparent'" do %>
+                        <div style="width: 32px; height: 32px; border-radius: 10px; background: rgba(197,160,89,0.1); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                          <i class="ri-user-location-line" style="color: var(--haiti-gold); font-size: 16px;"></i>
+                        </div>
+                        <span class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;">Vin Ajan Zèllus</span>
+                      <% end %>
+                    </li>
+                  <% end %>
                   <% if current_user.email == ENV['ADMIN_EMAIL'].to_s.strip %>
                     <li style="padding: 0 10px;">
                       <%= link_to admin_root_path, class: "d-flex align-items-center gap-3 text-decoration-none", style: "padding: 10px 10px; border-radius: 10px; transition: background 0.15s; min-height: 44px;", onmouseover: "this.style.background='var(--haiti-mint)'", onmouseout: "this.style.background='transparent'" do %>
