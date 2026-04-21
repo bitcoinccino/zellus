@@ -662,7 +662,7 @@
                       <% end %>
                     </div>
                   <% end %>
-                  <span class="small fw-bold js-bonid-name"><%= current_user.bonid_verified? && current_user.bonid_full_name.present? ? current_user.bonid_first_name : current_user.display_name %></span>
+                  <span class="small fw-bold" style="color: var(--haiti-gold);">$<%= current_user.cashtag %></span>
                 </a>
 
                 <ul class="dropdown-menu dropdown-menu-end shadow-lg p-0 mt-2" style="min-width: 320px; width: 340px; border: 1px solid rgba(46,46,56,0.08); border-radius: 16px; overflow: hidden;">
@@ -697,18 +697,6 @@
                             <% end %>
                           </div>
                           <div class="text-truncate" style="color: var(--haiti-gold); font-size: 12px; font-weight: 700;">$<%= current_user.cashtag %></div>
-                          <div class="d-flex align-items-center gap-2 mt-2">
-                            <span class="badge rounded-pill" style="background: rgba(197,160,89,0.2); color: var(--haiti-gold); font-size: 9px; font-weight: 800; padding: 3px 8px;">
-                              <%= current_user.credit_tier %>
-                            </span>
-                            <span style="color: rgba(255,255,255,0.35); font-size: 10px;"><%= current_user.credit_score || 0 %> pwen</span>
-                            <% if current_user.bonid_blood_type.present? %>
-                              <span class="d-flex align-items-center gap-1 js-bonid-blood" style="margin-left: auto;">
-                                <i class="ri-heart-pulse-line" style="color: #f87171; font-size: 11px;"></i>
-                                <span style="color: #f87171; font-size: 9px; font-weight: 700;"><%= current_user.bonid_blood_type %></span>
-                              </span>
-                            <% end %>
-                          </div>
                         </div>
                       </div>
                     </div>
