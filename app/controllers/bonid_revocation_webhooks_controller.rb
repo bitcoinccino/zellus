@@ -1,7 +1,8 @@
 class BonidRevocationWebhooksController < ApplicationController
-  skip_before_action :verify_authenticity_token
-  skip_before_action :require_cashtag!
-  skip_before_action :authenticate_user! if method_defined?(:authenticate_user!)
+  skip_before_action :verify_authenticity_token, raise: false
+  skip_forgery_protection
+  skip_before_action :require_cashtag!, raise: false
+  skip_before_action :authenticate_user!, raise: false
 
   # POST /bonid_revocation_webhook
   # Called by BonID when a citizen revokes a partner's access.
