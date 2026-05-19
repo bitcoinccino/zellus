@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_03_29_100000) do
+ActiveRecord::Schema[8.0].define(version: 2026_05_19_215039) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -239,6 +239,20 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_29_100000) do
     t.index ["status"], name: "index_checkout_sessions_on_status"
     t.index ["token"], name: "index_checkout_sessions_on_token", unique: true
     t.index ["transfer_id"], name: "index_checkout_sessions_on_transfer_id"
+  end
+
+  create_table "email_otps", force: :cascade do |t|
+    t.string "email", null: false
+    t.string "code_digest", null: false
+    t.datetime "expires_at", null: false
+    t.integer "attempts", default: 0, null: false
+    t.datetime "consumed_at"
+    t.string "last_request_ip"
+    t.string "purpose", default: "login", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["email", "consumed_at", "expires_at"], name: "idx_email_otps_lookup"
+    t.index ["email"], name: "index_email_otps_on_email"
   end
 
   create_table "exchange_rates", force: :cascade do |t|
