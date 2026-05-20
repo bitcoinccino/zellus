@@ -70,7 +70,32 @@ Rails.application.routes.draw do
   end
 
   # --- Identity & Security ---
-  devise_for :users, controllers: { omniauth_callbacks: "users/omniauth_callbacks", registrations: "users/registrations" }
+  devise_for :users, controllers: {
+    omniauth_callbacks: "users/omniauth_callbacks",
+    registrations:      "users/registrations",
+    sessions:           "users/sessions"
+  }
+
+  # OTP sign-in / sign-up (replaces password login). Old /users/sign_in still
+  # exists via Devise but redirects to /login below.
+  get  "login",        to: "otp_auth#new",     as: :login
+  post "login",        to: "otp_auth#create"
+  get  "login/verify", to: "otp_auth#verify",  as: :login_verify
+  post "login/verify", to: "otp_auth#confirm"
+
+  devise_scope :user do
+    get "/users/sign_in", to: redirect("/login")
+    get "/users/sign_up", to: redirect("/login")
+  end
+
+  # New-user onboarding gate (set in OtpAuthController#confirm)
+  get  "onboarding/profile",        to: "onboarding#profile",                as: :onboarding_profile
+  post "onboarding/profile",        to: "onboarding#update_profile"
+  get  "onboarding/pin",            to: "onboarding#pin",                    as: :onboarding_pin
+  post "onboarding/pin",            to: "onboarding#update_pin"
+  get  "onboarding/payment_method", to: "onboarding#payment_method",         as: :onboarding_payment_method
+  post "onboarding/payment_method", to: "onboarding#update_payment_method"
+
   resource :bonid_verification, only: [:show, :create], controller: "bon_id_verifications"
   get  "users/check_cashtag", to: "users#check_cashtag", as: :check_cashtag
   get  "users/lookup",        to: "users#lookup",         as: :user_lookup

@@ -15,7 +15,7 @@
             <% if resource.avatar.attached? && resource.avatar.blob&.persisted? %>
               <%= image_tag resource.avatar.variant(resize_to_fill: [180, 180]), style: "width: 100%; height: 100%; object-fit: cover;", id: "avatar-preview" %>
             <% else %>
-              <span style="font-size: 2.8rem;" id="avatar-emoji"><%= resource.tier_icon %></span>
+              <i class="ri-user-fill" id="avatar-emoji" style="font-size: 44px; color: var(--haiti-gold);"></i>
             <% end %>
           </div>
           <%# Camera button overlay %>
@@ -30,15 +30,6 @@
         <div class="fw-black" style="color: var(--haiti-charcoal); font-size: 18px; font-family: 'Space Grotesk', sans-serif;">
           <% if resource.cashtag.present? %>$<%= resource.cashtag %><% else %><%= resource.display_name %><% end %>
         </div>
-        <div class="d-flex align-items-center justify-content-center gap-2 mt-1">
-          <span class="badge rounded-pill" style="background-color: var(--haiti-gold); color: var(--haiti-charcoal); font-size: 10px; font-weight: 800;">
-            <%= resource.tier_icon %> <%= resource.credit_tier %>
-          </span>
-          <span class="badge rounded-pill" style="background-color: var(--haiti-mint); color: var(--haiti-olive); font-size: 10px; font-weight: 700;">
-            <i class="ri-copper-coin-line me-1" style="color: var(--haiti-gold);"></i><%= resource.credit_score || 0 %> pwen
-          </span>
-        </div>
-
         <% if resource.avatar.attached? && resource.avatar.blob&.persisted? %>
           <div class="mt-2">
             <%= link_to remove_avatar_path,
@@ -171,57 +162,6 @@
           </div>
         </div>
 
-        <%# ── 3. Sekirite ── %>
-        <div class="card-base overflow-hidden">
-          <button type="button" class="settings-accordion-btn w-100 border-0 p-3 d-flex align-items-center gap-3 text-start"
-                  onclick="toggleSettingsSection('security')"
-                  style="background: transparent; cursor: pointer;">
-            <div class="d-flex align-items-center justify-content-center rounded-3"
-                 style="width: 36px; height: 36px; background: var(--haiti-gold); flex-shrink: 0;">
-              <i class="ri-lock-line" style="color: var(--haiti-charcoal); font-size: 16px;"></i>
-            </div>
-            <div class="flex-grow-1">
-              <div class="fw-black small text-uppercase" style="color: var(--haiti-charcoal); font-size: 12px; letter-spacing: 0.5px;">Sekirite</div>
-              <div style="color: var(--haiti-olive); font-size: 10px;">Chanje modpas</div>
-            </div>
-            <i class="ri-arrow-down-s-line settings-chevron" id="chevron-security" style="color: var(--haiti-olive); font-size: 18px; transition: transform 0.2s;"></i>
-          </button>
-          <div id="section-security" class="px-3 pb-3" style="display: none;">
-
-            <div class="mb-3">
-              <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 0.5px;">
-                Nouvo Modpas
-              </label>
-              <span class="small" style="color: var(--haiti-olive); font-size: 9px;">(kite vid si ou pa vle chanje li)</span>
-              <% if @minimum_password_length %>
-                <span class="small" style="color: var(--haiti-olive); font-size: 9px;"> · min <%= @minimum_password_length %> karaktè</span>
-              <% end %>
-              <%= f.password_field :password, autocomplete: "new-password",
-                  class: "form-control shadow-none rounded-3",
-                  style: "border: 1.5px solid rgba(46,46,56,0.12); background-color: var(--haiti-mint); color: var(--haiti-charcoal); font-size: 13px;" %>
-            </div>
-
-            <div class="mb-3">
-              <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 0.5px;">
-                Konfime Nouvo Modpas
-              </label>
-              <%= f.password_field :password_confirmation, autocomplete: "new-password",
-                  class: "form-control shadow-none rounded-3",
-                  style: "border: 1.5px solid rgba(46,46,56,0.12); background-color: var(--haiti-mint); color: var(--haiti-charcoal); font-size: 13px;" %>
-            </div>
-
-            <div class="mb-0">
-              <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 0.5px;">
-                <i class="ri-shield-keyhole-line me-1"></i>Modpas Aktyèl
-              </label>
-              <span class="small" style="color: var(--haiti-olive); font-size: 9px;">(obligatwa pou chanje modpas/imèl)</span>
-              <%= f.password_field :current_password, autocomplete: "current-password",
-                  class: "form-control shadow-none rounded-3",
-                  style: "border: 1.5px solid rgba(46,46,56,0.12); background-color: var(--haiti-mint); color: var(--haiti-charcoal); font-size: 13px;" %>
-            </div>
-          </div>
-        </div>
-
       </div>
 
       <%# ══════════════════════════════════════ %>
@@ -263,7 +203,7 @@ function previewAvatar(input) {
     var reader = new FileReader();
     reader.onload = function(e) {
       var container = input.closest('.card-base').querySelector('div[style*="border-radius: 50%"]');
-      var existing = container.querySelector('img, span');
+      var existing = container.querySelector('img, span, i');
       if (existing) {
         if (existing.tagName === 'IMG') {
           existing.src = e.target.result;

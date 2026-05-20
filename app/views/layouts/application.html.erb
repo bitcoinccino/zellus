@@ -475,11 +475,14 @@
                   <%= link_to zellus_info_path, class: "d-block text-white text-decoration-none py-1 px-3", style: "font-size: 12px;" do %>
                     <i class="ri-send-plane-fill me-1" style="color: var(--haiti-gold);"></i> Zèllus Pay
                   <% end %>
+                  <%# ── Zèllus Biznis / Ajan — paused while focusing on core wallet actions ── %>
+                  <% if false %>
                   <%= link_to annye_path, class: "d-block text-white text-decoration-none py-1 px-3", style: "font-size: 12px;" do %>
                     <i class="ri-store-2-line me-1" style="color: var(--haiti-gold);"></i> Zèllus Biznis
                   <% end %>
                   <%= link_to ajan_info_path, class: "d-block text-white text-decoration-none py-1 px-3", style: "font-size: 12px;" do %>
                     <i class="ri-user-location-line me-1" style="color: var(--haiti-gold);"></i> Zèllus Ajan
+                  <% end %>
                   <% end %>
                   <%# ── Zèllus Sòl / Bousad / Onèt Byento — re-enable when ready to deploy ── %>
                   <% if false %>
@@ -518,6 +521,8 @@
                       <div style="color: var(--haiti-olive); font-size: 11px; white-space: normal;">Voye ak resevwa lajan gratis.</div>
                     <% end %>
                   </li>
+                  <%# ── Zèllus Biznis / Ajan — paused while focusing on core wallet actions ── %>
+                  <% if false %>
                   <li>
                     <%= link_to annye_path, class: "dropdown-item rounded p-3" do %>
                       <div class="fw-bold" style="color: var(--haiti-charcoal);"><i class="ri-store-2-line me-2" style="color: var(--haiti-gold);"></i>Zèllus Biznis</div>
@@ -530,6 +535,7 @@
                       <div style="color: var(--haiti-olive); font-size: 11px; white-space: normal;">Touche 2% komisyon sou depo lajan kach.</div>
                     <% end %>
                   </li>
+                  <% end %>
                   <%# ── Zèllus Sòl / Bousad / Onèt Byento — re-enable when ready to deploy ── %>
                   <% if false %>
                   <li>
@@ -580,14 +586,23 @@
               <%# ── Notification Bell ── %>
               <li class="nav-item dropdown ms-lg-2">
                 <a href="#" role="button" data-bs-toggle="dropdown"
-                   class="nav-link p-0 position-relative"
+                   class="nav-link p-0"
                    style="color: var(--haiti-gold); font-size: 20px;">
-                  <i class="ri-notification-3-line"></i>
-                  <% if unread_notification_count > 0 %>
-                    <span id="notif-bell-badge" class="position-absolute d-flex align-items-center justify-content-center" style="top: -6px; right: -10px; background: var(--haiti-gold); color: var(--haiti-charcoal); font-size: 9px; font-weight: 800; width: 20px; height: 20px; border-radius: 50%;">
+                  <span style="position: relative; display: inline-block; line-height: 1;">
+                    <i class="ri-notification-3-line"></i>
+                    <span id="notif-bell-badge"
+                          style="position: absolute; top: -5px; right: -7px;
+                                 display: <%= unread_notification_count > 0 ? 'flex' : 'none' %>;
+                                 align-items: center; justify-content: center;
+                                 min-width: 16px; height: 16px; padding: 0 4px;
+                                 background: #DC2626; color: #fff;
+                                 font-size: 9px; font-weight: 800;
+                                 border-radius: 999px;
+                                 border: 1.5px solid var(--haiti-charcoal);
+                                 line-height: 1;">
                       <%= unread_notification_count %>
                     </span>
-                  <% end %>
+                  </span>
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end p-0 mt-2" style="min-width: 340px; max-height: 420px; overflow: hidden; border: 1px solid rgba(46,46,56,0.1); border-radius: 16px; box-shadow: 0 10px 25px rgba(46,46,56,0.2);">
                   <li>
@@ -653,10 +668,12 @@
                       <% end %>
                     </div>
                   <% else %>
-                    <div style="position: relative;">
-                      <span style="font-size: 1.3rem;"><%= current_user.tier_icon %></span>
+                    <div style="position: relative; width: 30px; height: 30px;">
+                      <div style="width: 30px; height: 30px; border-radius: 50%; background: rgba(197,160,89,0.15); border: 2px solid var(--haiti-gold); display: flex; align-items: center; justify-content: center;">
+                        <i class="ri-user-fill" style="font-size: 15px; color: var(--haiti-gold);"></i>
+                      </div>
                       <% if current_user.bonid_verified? %>
-                        <div class="js-bonid-badge" style="position: absolute; bottom: -2px; right: -4px; width: 14px; height: 14px; background: #16a34a; border-radius: 50%; border: 2px solid var(--haiti-charcoal); display: flex; align-items: center; justify-content: center;">
+                        <div class="js-bonid-badge" style="position: absolute; bottom: -2px; right: -2px; width: 14px; height: 14px; background: #16a34a; border-radius: 50%; border: 2px solid var(--haiti-charcoal); display: flex; align-items: center; justify-content: center;">
                           <i class="ri-check-line" style="color: #fff; font-size: 8px;"></i>
                         </div>
                       <% end %>
@@ -677,7 +694,7 @@
                             <%= image_tag current_user.avatar, style: "width: 44px; height: 44px; border-radius: 50%; object-fit: cover; border: 2px solid var(--haiti-gold);", alt: "" %>
                           <% else %>
                             <div style="width: 44px; height: 44px; border-radius: 50%; background: rgba(197,160,89,0.15); border: 2px solid var(--haiti-gold); display: flex; align-items: center; justify-content: center;">
-                              <span style="font-size: 1.3rem;"><%= current_user.tier_icon %></span>
+                              <i class="ri-user-fill" style="font-size: 22px; color: var(--haiti-gold);"></i>
                             </div>
                           <% end %>
                           <% if current_user.bonid_verified? %>
@@ -805,6 +822,8 @@
                       <div style="color: var(--haiti-olive); font-size: 11px; white-space: normal;">Voye ak resevwa lajan gratis.</div>
                     <% end %>
                   </li>
+                  <%# ── Zèllus Biznis / Ajan — paused while focusing on core wallet actions ── %>
+                  <% if false %>
                   <li>
                     <%= link_to annye_path, class: "dropdown-item rounded p-3" do %>
                       <div class="fw-bold" style="color: var(--haiti-charcoal);"><i class="ri-store-2-line me-2" style="color: var(--haiti-gold);"></i>Zèllus Biznis</div>
@@ -817,6 +836,7 @@
                       <div style="color: var(--haiti-olive); font-size: 11px; white-space: normal;">Touche 2% komisyon sou depo lajan kach.</div>
                     <% end %>
                   </li>
+                  <% end %>
                   <%# ── Zèllus Sòl / Bousad / Onèt Byento — re-enable when ready to deploy ── %>
                   <% if false %>
                   <li>
@@ -854,24 +874,15 @@
                   </li>
                 </ul>
               </li>
-              <li class="nav-item"><%= link_to "Jwenn yon Ajan Zèllus", annye_path, class: "nav-link text-white fw-bold small" %></li>
               <li class="nav-item"><%= link_to "Apwopo", apwopo_path, class: "nav-link text-white fw-bold small" %></li>
               <li class="nav-item"><%= link_to "FAQ", faq_path, class: "nav-link text-white fw-bold small" %></li>
               <li class="nav-item mt-3 mt-lg-0 ms-lg-2">
-                <a href="<%= new_user_session_path(modal: 'signin') %>" class="nav-link d-lg-none text-decoration-none fw-bold py-2 js-open-signin" style="color: var(--haiti-gold) !important; font-size: 14px;">
+                <%= link_to login_path, class: "nav-link d-lg-none text-decoration-none fw-bold py-2", style: "color: var(--haiti-gold) !important; font-size: 14px;" do %>
                   <i class="ri-login-box-line me-2"></i>Konekte
-                </a>
-                <a href="<%= new_user_session_path(modal: 'signin') %>" class="btn fw-bold rounded-pill px-4 py-2 d-none d-lg-inline-block js-open-signin" style="background: transparent; color: var(--haiti-gold); border: 2px solid var(--haiti-gold); font-size: 13px;">
+                <% end %>
+                <%= link_to login_path, class: "btn fw-bold rounded-pill px-4 py-2 d-none d-lg-inline-block", style: "background: var(--haiti-gold); color: var(--haiti-charcoal); border: 2px solid var(--haiti-gold); font-size: 13px;" do %>
                   <i class="ri-login-box-line me-1"></i>Konekte
-                </a>
-              </li>
-              <li class="nav-item mt-2 mt-lg-0 ms-lg-2">
-                <a href="<%= new_user_session_path(modal: 'register') %>" class="nav-link d-lg-none text-decoration-none fw-bold py-2 js-open-register" style="color: var(--haiti-gold) !important; font-size: 14px;">
-                  <i class="ri-user-add-line me-2"></i>Kreye Kont
-                </a>
-                <a href="<%= new_user_session_path(modal: 'register') %>" class="btn fw-bold rounded-pill px-4 py-2 shadow-sm d-none d-lg-inline-block js-open-register" style="background: var(--haiti-gold); color: var(--haiti-charcoal); font-size: 13px; border: 2px solid var(--haiti-gold);">
-                  <i class="ri-user-add-line me-1"></i>Kreye Kont
-                </a>
+                <% end %>
               </li>
             </ul>
           <% end %>
@@ -899,7 +910,7 @@
             toast.style.transform = 'translateX(-50%) translateY(-10px)';
             setTimeout(function() { toast.remove(); }, 600);
           }
-        }, 2500);
+        }, 5000);
       </script>
     <% end %>
 
@@ -968,7 +979,10 @@
             </div>
 
             <%# ── AJAN — re-enable BIZNIS items when ready to deploy ── %>
-            <div class="user-nav-section">
+            <div class="user-nav-section" style="display: none;">
+              <%# Annye / "Find an Agent" — paused while we focus on the core
+                  wallet actions (peye, mande, konvèti, depoze, retire).
+                  Restore by removing the display: none above. %>
               <div class="user-nav-header">AJAN</div>
               <%= link_to annye_path, class: "user-nav-item #{request.path == '/annye' ? 'user-nav-active' : ''}", data: { tooltip: "Jwenn yon Ajan Zèllus" } do %>
                 <div class="user-nav-item-icon"><i class="ri-user-location-line"></i></div>
@@ -1401,7 +1415,7 @@
         if (badge) {
           var c = serverCount || (parseInt(badge.textContent || '0', 10) + 1);
           badge.textContent = c;
-          badge.style.display = c > 0 ? 'inline-block' : 'none';
+          badge.style.display = c > 0 ? 'flex' : 'none';
           console.log('[Zèllus] Badge updated to', c);
         }
         // Also update dropdown header badge
@@ -1773,6 +1787,55 @@
           e.preventDefault();
           openModal(registerModal);
         });
+      });
+    })();
+    </script>
+
+    <%# ── Cookie consent banner — dismissed value persisted in localStorage. ── %>
+    <div id="cookie-banner"
+         role="dialog"
+         aria-live="polite"
+         aria-label="Avi sou cookies"
+         style="display: none; position: fixed; left: 16px; right: 16px; bottom: 16px;
+                z-index: 2000; max-width: 720px; margin: 0 auto;
+                background: var(--haiti-charcoal); color: #fff;
+                border: 1.5px solid var(--haiti-gold); border-radius: 14px;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+                padding: 14px 16px;">
+      <div class="d-flex align-items-center gap-3 flex-wrap">
+        <i class="ri-shield-user-line" style="color: var(--haiti-gold); font-size: 22px; flex-shrink: 0;"></i>
+        <div class="flex-grow-1" style="font-size: 12px; line-height: 1.5; min-width: 200px;">
+          Nou itilize cookies pou sit sa a travay byen epi pou kenbe ou konekte ak Zèllus.
+          <% if defined?(apwopo_path) %>
+            <%= link_to "Aprann plis", apwopo_path, style: "color: var(--haiti-gold); text-decoration: underline; font-weight: 700;" %>.
+          <% end %>
+        </div>
+        <button type="button" id="cookie-banner-accept"
+                class="btn fw-bold rounded-pill border-0"
+                style="background: var(--haiti-gold); color: var(--haiti-charcoal);
+                       font-size: 12px; padding: 8px 18px; white-space: nowrap;">
+          Aksepte
+        </button>
+      </div>
+    </div>
+
+    <script>
+    (function() {
+      var KEY = 'zellus_cookie_consent_v1';
+      try {
+        if (localStorage.getItem(KEY) === 'accepted') return;
+      } catch (e) {
+        // localStorage blocked (private mode, etc.) — show the banner; just won't persist.
+      }
+
+      var banner = document.getElementById('cookie-banner');
+      var accept = document.getElementById('cookie-banner-accept');
+      if (!banner || !accept) return;
+
+      banner.style.display = 'block';
+      accept.addEventListener('click', function() {
+        try { localStorage.setItem(KEY, 'accepted'); } catch (e) {}
+        banner.style.display = 'none';
       });
     })();
     </script>

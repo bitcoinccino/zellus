@@ -1,6 +1,12 @@
 class Users::RegistrationsController < Devise::RegistrationsController
   before_action :configure_permitted_parameters
 
+  # Password signup is gone — funnel any POST /users to the OTP form.
+  def create
+    email = params.dig(:user, :email)
+    redirect_to login_path(email: email), status: :see_other
+  end
+
   # Override update to handle Turbo + non-password updates
   def update
     self.resource = resource_class.to_adapter.get!(send(:"current_#{resource_name}").to_key)
@@ -31,7 +37,8 @@ class Users::RegistrationsController < Devise::RegistrationsController
     ])
 
     devise_parameter_sanitizer.permit(:sign_up, keys: [
-      :first_name, :last_name, :email, :phone, :cashtag, :avatar
+      :first_name, :last_name, :email, :phone, :cashtag, :avatar,
+      :raw_invite_code
     ])
   end
 

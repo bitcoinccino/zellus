@@ -1,0 +1,91 @@
+<div class="container py-5" style="min-height: calc(100vh - 64px);">
+  <div class="row justify-content-center">
+    <div class="col-12 col-md-7 col-lg-5">
+
+      <%# ── Step indicator ── %>
+      <div class="d-flex align-items-center justify-content-center gap-2 mb-4">
+        <% [
+          { n: 1, label: "Pwofil",   active: true,  done: false },
+          { n: 2, label: "PIN",      active: false, done: false },
+          { n: 3, label: "MonCash",  active: false, done: false }
+        ].each_with_index do |s, i| %>
+          <div class="d-flex align-items-center gap-1">
+            <div class="d-flex align-items-center justify-content-center rounded-circle fw-black"
+                 style="width: 28px; height: 28px; font-size: 12px;
+                        background: <%= s[:active] ? 'var(--haiti-gold)' : 'rgba(46,46,56,0.1)' %>;
+                        color: <%= s[:active] ? 'var(--haiti-charcoal)' : 'var(--haiti-olive)' %>;">
+              <%= s[:n] %>
+            </div>
+            <span class="fw-bold d-none d-sm-inline" style="font-size: 11px; color: <%= s[:active] ? 'var(--haiti-charcoal)' : 'var(--haiti-olive)' %>;">
+              <%= s[:label] %>
+            </span>
+          </div>
+          <% unless i == 2 %>
+            <div style="width: 24px; height: 1px; background: rgba(46,46,56,0.15);"></div>
+          <% end %>
+        <% end %>
+      </div>
+
+      <div class="text-center mb-4">
+        <h1 class="fw-black mb-1" style="color: var(--haiti-charcoal); font-size: 22px; font-family: 'Space Grotesk', sans-serif;">Chwazi $cashtag ou</h1>
+        <p class="small" style="color: var(--haiti-olive);">Sa moun ap sèvi pou peye w nan Zèllus.</p>
+      </div>
+
+      <div class="p-4 rounded-4" style="background: #fff; border: 1px solid rgba(46,46,56,0.08); box-shadow: 0 4px 14px rgba(46,46,56,0.06);">
+
+        <% if @user.errors.any? %>
+          <div class="p-3 mb-3 rounded-3 d-flex align-items-start gap-2"
+               style="background-color: #fdf2f2; border: 1px solid #fee2e2;">
+            <i class="ri-error-warning-fill" style="color: #D8000C; font-size: 16px;"></i>
+            <div class="small" style="color: var(--haiti-charcoal); line-height: 1.5;">
+              <% if @user.errors.count == 1 %>
+                <%= @user.errors.first.message %>
+              <% else %>
+                <ul class="mb-0 ps-3">
+                  <% @user.errors.each do |err| %><li><%= err.message %></li><% end %>
+                </ul>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+
+        <%= form_with url: onboarding_profile_path, method: :post, model: @user, scope: :user, local: true do |f| %>
+
+          <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">$Cashtag</label>
+          <div class="input-group mb-3" style="border: 1.5px solid rgba(46,46,56,0.12); border-radius: 12px; overflow: hidden;">
+            <span class="input-group-text border-0 fw-black" style="background-color: var(--haiti-mint); color: var(--haiti-gold);">$</span>
+            <%= f.text_field :cashtag,
+                  required: true,
+                  autofocus: true,
+                  maxlength: 20,
+                  autocomplete: "off",
+                  placeholder: "nonpa",
+                  class: "form-control border-0 fw-bold shadow-none p-3",
+                  style: "font-size: 14px; color: var(--haiti-charcoal);" %>
+          </div>
+          <div class="small mb-3" style="color: var(--haiti-olive); font-size: 11px;">
+            5–20 karaktè, lèt ak chif sèlman.
+          </div>
+
+          <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Kòd Envitasyon</label>
+          <div class="input-group mb-3" style="border: 1.5px solid rgba(46,46,56,0.12); border-radius: 12px; overflow: hidden;">
+            <span class="input-group-text border-0" style="background-color: var(--haiti-mint); color: var(--haiti-gold);">
+              <i class="ri-ticket-2-line"></i>
+            </span>
+            <%= f.text_field :raw_invite_code,
+                  required: true,
+                  maxlength: 10,
+                  autocomplete: "off",
+                  placeholder: "KDF-XXXX",
+                  class: "form-control border-0 fw-bold shadow-none p-3 text-uppercase",
+                  style: "font-size: 14px; color: var(--haiti-charcoal);" %>
+          </div>
+
+          <%= f.submit "Kontinye",
+                class: "btn w-100 fw-bold rounded-pill py-3 border-0",
+                style: "background: var(--haiti-gold); color: var(--haiti-charcoal); font-size: 13px; letter-spacing: 0.5px;" %>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>
