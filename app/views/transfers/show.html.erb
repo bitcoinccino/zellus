@@ -85,7 +85,7 @@
         <div class="text-center mb-2">
           <div class="fw-black" style="color: var(--haiti-gold); font-size: 48px; letter-spacing: -2.5px; line-height: 1;">
             <% if @transfer.usdc_wallet_transfer? %>
-              <%= number_with_precision(@transfer.crypto_amount || @transfer.net_amount, precision: 2, strip_insignificant_zeros: true) %><span style="font-size: 14px; font-weight: 400; color: rgba(255,255,255,0.35); letter-spacing: 0.5px; vertical-align: super; margin-left: 4px;">USD</span>
+              <%= number_with_precision(@transfer.crypto_amount || @transfer.net_amount, precision: 2) %><span style="font-size: 14px; font-weight: 400; color: rgba(255,255,255,0.35); letter-spacing: 0.5px; vertical-align: super; margin-left: 4px;">USD</span>
             <% elsif @transfer.crypto_transfer? && @transfer.crypto_amount.present? %>
               <%= number_with_precision(@transfer.crypto_amount, precision: @transfer.asset == "wbtc" ? 8 : (@transfer.asset == "eth" ? 8 : 6), strip_insignificant_zeros: true) %><span style="font-size: 14px; font-weight: 400; color: rgba(255,255,255,0.35); letter-spacing: 0.5px; vertical-align: super; margin-left: 4px;"><%= @transfer.asset_label %></span>
             <% else %>
@@ -562,7 +562,7 @@
           <span style="color: var(--haiti-olive); font-size: 11px; font-weight: 600;">Montan</span>
           <span class="fw-black" style="color: white; font-size: 16px;">
             <% if @transfer.usdc_wallet_transfer? %>
-              <%= number_with_precision(@transfer.crypto_amount || @transfer.net_amount, precision: 2, strip_insignificant_zeros: true) %> <small style="font-size: 11px;">USD</small>
+              <%= number_with_precision(@transfer.crypto_amount || @transfer.net_amount, precision: 2) %> <small style="font-size: 11px;">USD</small>
             <% else %>
               <%= number_to_currency(@transfer.amount, unit: "", precision: 0) %> <small style="font-size: 11px;">HTG</small>
             <% end %>
@@ -729,9 +729,11 @@
           </button>
         </div>
 
-        <div class="col-12 text-center">
-          <a href="#" id="pin-cancel-btn" class="small text-decoration-none fw-bold" style="color: var(--haiti-olive);">
-            <i class="ri-close-line me-1"></i>Anile
+        <div class="col-12">
+          <a href="#" id="pin-cancel-btn"
+             class="btn w-100 py-3 fw-bold rounded-4 d-flex align-items-center justify-content-center gap-2"
+             style="background: transparent; color: var(--haiti-olive); border: 1.5px solid rgba(46,46,56,0.15); font-size: 14px;">
+            <i class="ri-close-line"></i>Anile
           </a>
         </div>
       <% end %>
