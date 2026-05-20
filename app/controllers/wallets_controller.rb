@@ -141,7 +141,7 @@ class WalletsController < ApplicationController
       return
     end
 
-    fee = instant ? WalletService.calculate_instant_fee(amount) : WalletService.calculate_standard_fee(amount)
+    fee = WalletService.calculate_instant_fee(amount)
     payout = amount - fee  # What user actually receives
 
     # Pre-check: verify MonCash treasury has enough HTG to cover payout
