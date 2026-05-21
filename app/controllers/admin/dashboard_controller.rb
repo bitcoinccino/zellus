@@ -205,18 +205,36 @@ class Admin::DashboardController < Admin::BaseController
       moncash_error = e.message
     end
 
-    # Internal wallet balances (database-tracked)
-    internal_usd = Wallet.sum(:usd_balance).to_f
+    # Internal wallet balances (database-tracked) — column is `usdc_balance`
+    internal_usdc = Wallet.sum(:usdc_balance).to_f
     internal_htg  = Wallet.sum(:htg_balance).to_f
 
+    # Reserve coverage (USDC only — HTG has no on-chain backing).
+    # surplus = treasury - liabilities; ratio = treasury / liabilities.
+    # When liabilities are zero, ratio is infinite — display as nil to
+    # let the JS render "—" rather than "Infinityx".
+    reserve_surplus = (usd - internal_usdc).round(2)
+    reserve_ratio   = internal_usdc.positive? ? (usd / internal_usdc).round(2) : nil
+    reserve_status  =
+      if internal_usdc.zero?           then "healthy"
+      elsif reserve_ratio >= 1.10      then "healthy"
+      elsif reserve_ratio >= 1.00      then "tight"
+      else                                  "insolvent"
+      end
+
+    # JSON keys match what the JS handlers expect (admin.html.erb +
+    # dashboard/index.html.erb both read `usdc_balance` / `internal_usdc`).
     render json: {
       eth_balance: eth.round(6),
-      usd_balance: usd.round(2),
-      internal_usd: internal_usd.round(2),
+      usdc_balance: usd.round(2),
+      internal_usdc: internal_usdc.round(2),
       internal_htg: internal_htg.round(0),
       moncash_balance: moncash_balance&.to_f&.round(0),
       moncash_error: moncash_error&.to_s&.truncate(30),
-      gas_low: eth < 0.005
+      gas_low: eth < 0.005,
+      reserve_surplus: reserve_surplus,
+      reserve_ratio: reserve_ratio,
+      reserve_status: reserve_status
     }
   rescue => e
     Rails.logger.error "Admin system_health error: #{e.message}"

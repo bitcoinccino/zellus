@@ -90,7 +90,7 @@
             <div class="px-3 pt-2 pb-1" style="font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--haiti-olive);">Lajan</div>
             <% [
               { key: "htg", label: "HTG", sub: "Goud Ayisyen", logo: :htg_logo_svg, bal: pr_htg_bal },
-              { key: "usdc", label: "USD", sub: "Dola Ameriken", logo: :usd_logo, bal: pr_usdc_bal }
+              { key: "usd", label: "USD", sub: "Dola Ameriken", logo: :usd_logo, bal: pr_usdc_bal }
             ].each do |a| %>
               <% has_balance = a[:bal] > 0 %>
               <button type="button" <%= "onclick=selectPrAsset('#{a[:key]}',this)".html_safe if has_balance %>
@@ -192,9 +192,9 @@
           </button>
         </div>
 
-        <div class="text-center mt-3">
-          <%= link_to wallet_path, class: "small text-decoration-none fw-bold", style: "color: var(--haiti-olive);" do %>
-            <i class="ri-arrow-left-line me-1"></i>Retounen nan Pòtfèy
+        <div class="mt-2">
+          <%= link_to wallet_path, class: "btn w-100 py-3 fw-bold rounded-4 d-flex align-items-center justify-content-center gap-2", style: "background: transparent; color: var(--haiti-olive); border: 1.5px solid rgba(46,46,56,0.15); font-size: 14px;" do %>
+            <i class="ri-close-line"></i>Anile
           <% end %>
         </div>
       <% end %>
@@ -243,7 +243,7 @@
             <i class="ri-lock-2-line"></i>
           </span>
           <input type="password" id="pr-pin-modal-input"
-                 class="form-control border-0 fw-bold shadow-none p-3 bb-dark-field text-center"
+                 class="form-control border-0 fw-bold shadow-none p-3 text-center"
                  maxlength="4" pattern="\d{4}" inputmode="numeric" placeholder="• • • •" autocomplete="off"
                  style="background-color: var(--haiti-mint); color: var(--haiti-charcoal); letter-spacing: 12px; font-size: 1.4rem;">
         </div>
@@ -255,9 +255,11 @@
         <i class="ri-send-plane-fill"></i> Voye Demann
       </button>
 
-      <div class="text-center mt-3">
-        <a href="#" id="pr-pin-cancel" class="small text-decoration-none fw-bold" style="color: var(--haiti-olive);">
-          <i class="ri-close-line me-1"></i>Anile
+      <div class="mt-2">
+        <a href="#" id="pr-pin-cancel"
+           class="btn w-100 py-3 fw-bold rounded-4 d-flex align-items-center justify-content-center gap-2"
+           style="background: transparent; color: var(--haiti-olive); border: 1.5px solid rgba(46,46,56,0.15); font-size: 14px;">
+          <i class="ri-close-line"></i>Anile
         </a>
       </div>
     </div>
@@ -282,7 +284,7 @@ var assetDropdownOpen = false;
 
 // ── Asset labels for display ──
 var assetLabels = {
-  htg: 'HTG', usdc: 'USD', eth: 'ETH', wbtc: 'wBTC',
+  htg: 'HTG', usd: 'USD', eth: 'ETH', wbtc: 'wBTC',
   tslax: 'TSLAX', nvdax: 'NVDAX', aaplx: 'AAPLX', coinx: 'COINX', googlx: 'GOOGLX'
 };
 

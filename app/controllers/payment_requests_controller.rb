@@ -195,7 +195,21 @@ class PaymentRequestsController < ApplicationController
   private
 
   def set_payment_request
-    @payment_request = current_user.payment_requests.find(params[:id])
+    # Route declares `param: :token`, so the URL :token maps to
+    # params[:token] (NOT params[:id]).
+    pr = PaymentRequest.find_by(token: params[:token])
+    return raise(ActiveRecord::RecordNotFound) if pr.nil?
+
+    if pr.user_id == current_user.id
+      # Owner — render the management view (status, cancel, mark paid).
+      @payment_request = pr
+    elsif pr.payer_id == current_user.id
+      # Payer landed on the owner URL — bounce them to the public pay page.
+      redirect_to public_payment_request_path(pr.token) and return
+    else
+      # Unrelated user — treat as 404 rather than leak existence.
+      raise ActiveRecord::RecordNotFound
+    end
   end
 
   def payment_request_params

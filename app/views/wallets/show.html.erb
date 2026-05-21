@@ -296,8 +296,10 @@
             <div class="small fw-bold text-charcoal">PIN Obligatwa pou Retrè</div>
             <div class="text-olive text-xs">Kreye yon PIN 4 chif anvan ou ka retire lajan.</div>
           </div>
-          <%= link_to new_transfer_path, class: "btn btn-charcoal btn-sm rounded-pill px-3 ms-auto", style: "font-size: 11px; white-space: nowrap; min-height: auto; padding: 8px 16px;" do %>
-            Kreye PIN
+          <%= link_to new_transfer_path,
+                class: "btn btn-sm rounded-pill px-3 ms-auto fw-bold border-0",
+                style: "background: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 11px; white-space: nowrap; min-height: auto; padding: 8px 16px;" do %>
+            <i class="ri-lock-line me-1"></i>Kreye PIN
           <% end %>
         </div>
       </div>
@@ -1581,27 +1583,67 @@
           </div>
 
           <% @incoming_requests.each do |req| %>
-            <div class="d-flex align-items-center gap-2 p-2 rounded-3 mb-1" style="background: rgba(255,255,255,0.7);">
-              <%= link_to public_payment_request_path(req.token), class: "d-flex align-items-center justify-content-between flex-grow-1 text-decoration-none", style: "min-width: 0;" do %>
-                <div>
-                  <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 12px;">
-                    <%= req.user.display_name %> mande ou lajan
-                  </div>
-                  <div style="color: var(--haiti-olive); font-size: 10px;">
-                    <%= req.note.presence || "Pa gen nòt" %> · <%= req.expiry_countdown_label %>
-                  </div>
+            <%
+              # Urgency from countdown (uses model helper if available)
+              hours_left = req.respond_to?(:hours_until_expiry) ? req.hours_until_expiry.to_f : nil
+              urgency_color =
+                if    hours_left.nil?     then "var(--haiti-olive)"
+                elsif hours_left < 1      then "#991b1b"   # red
+                elsif hours_left < 12     then "var(--haiti-gold)"
+                else                           "var(--haiti-olive)"
+                end
+              amount_str =
+                if req.htg?
+                  "HTG #{number_with_precision(req.amount, precision: 0)}"
+                else
+                  "#{number_with_precision(req.amount, precision: 2)} #{req.asset == 'usd' ? 'USD' : req.asset.upcase}"
+                end
+              initial = req.user.display_name.to_s.strip.chars.first&.upcase || "?"
+            %>
+            <div class="d-flex align-items-center gap-3 p-3 rounded-3 mb-2" style="background: #ffffff; border: 1px solid rgba(46,46,56,0.06);">
+              <%# Avatar circle (first letter of payer) %>
+              <div class="d-flex align-items-center justify-content-center flex-shrink-0 fw-black"
+                   style="width: 38px; height: 38px; border-radius: 50%; background: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 14px;">
+                <%= initial %>
+              </div>
+
+              <%# Body — name, note, countdown — wraps to next line on overflow %>
+              <%= link_to public_payment_request_path(req.token), class: "flex-grow-1 text-decoration-none", style: "min-width: 0;" do %>
+                <div class="fw-bold text-truncate" style="color: var(--haiti-charcoal); font-size: 13px;">
+                  $<%= req.user.cashtag.presence || req.user.display_name %>
+                  <span style="color: var(--haiti-olive); font-weight: 500;">mande ou</span>
                 </div>
-                <div class="text-end">
-                  <div class="fw-black" style="color: var(--haiti-gold); font-size: 14px;">
-                    <%= req.htg? ? "HTG #{number_with_precision(req.amount, precision: 0)}" : "#{number_with_precision(req.amount, precision: 2)} #{req.asset == 'usd' ? 'USD' : req.asset.upcase}" %>
-                  </div>
-                  <div style="font-size: 9px; color: #166534; font-weight: 700;">
-                    <i class="ri-arrow-right-s-line"></i> Peye
-                  </div>
+                <div class="d-flex align-items-center gap-1 text-truncate" style="font-size: 11px;">
+                  <% if req.note.present? %>
+                    <span style="color: var(--haiti-olive);"><%= req.note %></span>
+                    <span style="color: rgba(46,46,56,0.25);">·</span>
+                  <% end %>
+                  <span class="fw-bold" style="color: <%= urgency_color %>;">
+                    <i class="ri-time-line me-1"></i><%= req.expiry_countdown_label %>
+                  </span>
                 </div>
               <% end %>
-              <%= button_to dismiss_payment_request_path(req.token), method: :post, class: "btn btn-sm p-0 border-0 bg-transparent flex-shrink-0", style: "width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;", title: "Kache", data: { turbo_confirm: "Kache demann #{req.user.display_name}?" } do %>
-                <i class="ri-close-line" style="font-size: 16px; color: #991b1b;"></i>
+
+              <%# Right — amount + Peye pill %>
+              <div class="d-flex flex-column align-items-end gap-1 flex-shrink-0">
+                <div class="fw-black" style="color: var(--haiti-charcoal); font-size: 14px; line-height: 1;">
+                  <%= amount_str %>
+                </div>
+                <%= link_to public_payment_request_path(req.token),
+                      class: "btn btn-sm fw-bold rounded-pill border-0 d-inline-flex align-items-center gap-1",
+                      style: "background: var(--haiti-gold); color: var(--haiti-charcoal); font-size: 11px; padding: 4px 12px; line-height: 1.2;" do %>
+                  Peye <i class="ri-arrow-right-s-line" style="font-size: 13px;"></i>
+                <% end %>
+              </div>
+
+              <%# Dismiss (X) — neutral grey hover into red %>
+              <%= button_to dismiss_payment_request_path(req.token),
+                    method: :post,
+                    class: "btn btn-sm p-0 border-0 bg-transparent flex-shrink-0",
+                    style: "width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; color: rgba(46,46,56,0.35);",
+                    title: "Kache",
+                    data: { turbo_confirm: "Kache demann #{req.user.display_name}?" } do %>
+                <i class="ri-close-line" style="font-size: 16px;"></i>
               <% end %>
             </div>
           <% end %>
@@ -1644,8 +1686,10 @@
     <%# ── LAJAN TAB (Assets + Rates)    ──  %>
     <%# ══════════════════════════════════════ %>
     <div id="section-lajan" class="mb-3">
-      <% htg_usd = htg_bal / usd_htg %>
-      <% usd_htg_val = usd_bal * usd_htg %>
+      <%# Convert from the *displayed* (2-decimal) balance so a dust amount
+          that shows as "0.00" doesn't show a non-zero equivalent next to it. %>
+      <% htg_usd = htg_bal.round(2) / usd_htg %>
+      <% usd_htg_val = usd_bal.round(2) * usd_htg %>
       <% wbtc_usd_val = wbtc_bal * btc_usd %>
       <% eth_usd_val  = eth_bal * eth_usd %>
 
@@ -1687,8 +1731,8 @@
             </div>
           </div>
 
-      <%# ── "Vin Ajan" promo card (only show to eligible users: BonID verified + has business) ── %>
-      <% if !@is_agent && current_user.bonid_verified? && @business.present? %>
+      <%# ── "Vin Ajan" promo card — paused while focusing on core wallet actions ── %>
+      <% if false && !@is_agent && current_user.bonid_verified? && @business.present? %>
         <div class="rounded-3 p-3 mt-3" style="background: var(--haiti-charcoal);">
           <div class="d-flex align-items-center gap-3">
             <div class="d-flex align-items-center justify-content-center rounded-circle flex-shrink-0"
@@ -2087,8 +2131,27 @@
           receiver_users_by_tag = out_cashtags.any? ? User.where(cashtag: out_cashtags).index_by(&:cashtag) : {}
         %>
         <div style="max-height: 400px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--haiti-olive) transparent;">
+          <% current_group_date = nil %>
           <% @ledger_entries.each do |entry| %>
             <% next if entry.entry_type == "conversion_fee" %>
+
+            <%# ── Date group header (Jodi a / Yè / date) ── %>
+            <% entry_date = entry.created_at.to_date %>
+            <% if entry_date != current_group_date %>
+              <% current_group_date = entry_date %>
+              <%
+                group_label =
+                  if    entry_date == Date.current   then "Jodi a"
+                  elsif entry_date == Date.yesterday then "Yè"
+                  else
+                    km = %w[Jan Fev Mas Avr Me Jen Jiy Out Sep Okt Nov Des]
+                    "#{entry_date.day} #{km[entry_date.month - 1]} #{entry_date.year}"
+                  end
+              %>
+              <div class="px-3 pt-3 pb-1" style="color: var(--haiti-olive); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
+                <%= group_label %>
+              </div>
+            <% end %>
             <%
               xfer = (entry.reference_type == "Transfer") ? entry.reference : nil
               is_biz = xfer&.business_id.present?
@@ -2126,14 +2189,12 @@
               end
               amount_color = entry.credit? ? "#166534" : "#991b1b"
               time_full = entry.created_at.strftime("%b %d, %Y %l:%M %p").strip
+              # Day is carried by the date group header above; the per-row
+              # time is just relative (last hour) or clock time.
               time_short = if entry.created_at > 1.hour.ago
                   time_ago_in_words(entry.created_at) + " pase"
-                elsif entry.created_at > 1.day.ago
-                  entry.created_at.strftime("%l:%M %p").strip
-                elsif entry.created_at > 7.days.ago
-                  entry.created_at.strftime("%A").strip
                 else
-                  entry.created_at.strftime("%-d %b %Y").strip
+                  entry.created_at.strftime("%l:%M %p").strip
                 end
             %>
             <%= link_to entry_wallet_path(entry.token), class: "d-flex align-items-center gap-3 p-3 text-decoration-none ledger-entry-link", title: time_full do %>
@@ -2151,7 +2212,7 @@
                   </div>
                 <% elsif avatar_user.present? %>
                   <div style="width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: var(--haiti-charcoal); border: 1.5px solid var(--haiti-gold);">
-                    <span style="font-size: 16px;"><%= avatar_user.tier_icon %></span>
+                    <i class="ri-user-fill" style="font-size: 18px; color: var(--haiti-gold);"></i>
                   </div>
                 <% else %>
                   <div class="ledger-icon <%= badge_type %>">
@@ -2180,7 +2241,12 @@
                 <% else %>
                   <div class="fw-bold text-truncate" style="color: var(--haiti-charcoal); font-size: 13px;">
                     <% feed_label = case entry.entry_type
-                       when "deposit"        then "Ou depoze #{amt_str} #{entry.asset_label}"
+                       when "deposit"
+                         if entry.moncash_transaction_id.to_s.start_with?("admin-credit-")
+                           "Ou resevwa yon kredi: #{amt_str} #{entry.asset_label}"
+                         else
+                           "Ou depoze #{amt_str} #{entry.asset_label}"
+                         end
                        when "withdrawal"     then "Ou retire #{amt_str} #{entry.asset_label}"
                        when "conversion_out"
                          ctx = entry.source_context == "biznis" ? "Biznis" : "Pèsonèl"
@@ -2215,14 +2281,6 @@
           <div class="small" style="opacity: 0.6;">Tranzaksyon ou yo ap parèt la a.</div>
         </div>
       <% end %>
-    </div>
-
-    <%# ── USD Disclaimer Footer ── %>
-    <div class="text-center mt-3 pt-3" style="border-top: 1px solid rgba(93,99,69,0.08);">
-      <div style="color: var(--haiti-olive); font-size: 10px; font-weight: 600;">
-        <i class="ri-shield-check-line me-1" style="color: var(--haiti-gold);"></i>
-        Tout balans USD yo apiye 1:1 ak USD sou rezo Base.
-      </div>
     </div>
 
     </div>
@@ -2674,9 +2732,10 @@ function microTick() {
   tickRate('coinx');
   tickRate('googlx');
 
-  // Asset card equivalents
-  var htgUsd  = BALS.htg / RATES.usd_htg;
-  var usdHtg = BALS.usd * RATES.usd_htg;
+  // Asset card equivalents — convert from the displayed (2-decimal) balance
+  // so dust that renders as "0.00" doesn't show a non-zero equivalent.
+  var htgUsd  = (Math.round(BALS.htg * 100) / 100) / RATES.usd_htg;
+  var usdHtg  = (Math.round(BALS.usd * 100) / 100) * RATES.usd_htg;
   var wbtcUsd = BALS.wbtc * RATES.btc_usd;
   var ethUsd  = BALS.eth  * RATES.eth_usd;
 
@@ -2797,14 +2856,12 @@ sparkKeys.forEach(function(k) { buildSparkPath(k); });
 function tickHeroDecimals(elId, baseVal) {
   var el = document.getElementById(elId);
   if (!el) return;
-  var oldDec = parseInt(el.textContent);
-  // Subtle jitter: ±1 cent only
-  var jitter = (Math.random() < 0.5 ? -1 : 1);
-  var newDec = Math.max(0, Math.min(99, oldDec + jitter));
-  el.textContent = ('0' + newDec).slice(-2);
-  var up = newDec > oldDec;
-  el.className = 'tick-decimals ' + (up ? 'tick-up' : 'tick-down');
-  setTimeout(function() { el.className = 'tick-decimals'; }, 1200);
+
+  // Always show the real decimals — no fake ±1c jitter. Drift was
+  // misleading on a wallet ("Why does my $1.00 look like $1.02?").
+  var dec = (!baseVal || baseVal < 0.01) ? 0 : Math.floor((baseVal * 100) % 100);
+  el.textContent = ('0' + dec).slice(-2);
+  el.className = 'tick-decimals';
 }
 
 function tickDecimalEl(elId, val) {

@@ -351,19 +351,6 @@
       </div>
     <% end %>
 
-    <%# ══════════════════════════════════════════ %>
-    <%# ── 6. ACTION BUTTON (full-width)        ── %>
-    <%# ══════════════════════════════════════════ %>
-    <div class="d-grid gap-2 mb-3">
-      <% if @needs_pin %>
-        <button type="button" onclick="openPinModal()"
-            class="btn w-100 py-3 fw-black rounded-3 border-0 d-flex align-items-center justify-content-center gap-2"
-            style="background: var(--haiti-gold); color: var(--haiti-charcoal); font-size: 15px; letter-spacing: 0.3px; box-shadow: 0 4px 14px rgba(197,160,89,0.35);">
-          <i class="ri-flashlight-fill"></i> Konfime & Peye
-        </button>
-      <% end %>
-    </div>
-
     <%# ═══ SECTION 3: Details footer (inside unified receipt) ═══ %>
       <div>
       <div class="px-3 pt-2 pb-1">
@@ -534,6 +521,19 @@
             <i class="ri-timer-line me-1"></i>Ekspire: <%= @transfer.expires_at.strftime("%d %b %Y %H:%M") %>
           </div>
         <% end %>
+      </div>
+    <% end %>
+
+    <%# ══════════════════════════════════════════ %>
+    <%# ── ACTION BUTTON (full-width, page bottom) ── %>
+    <%# ══════════════════════════════════════════ %>
+    <% if @needs_pin %>
+      <div class="d-grid gap-2 mb-3">
+        <button type="button" onclick="openPinModal()"
+            class="btn w-100 py-3 fw-black rounded-3 border-0 d-flex align-items-center justify-content-center gap-2"
+            style="background: var(--haiti-gold); color: var(--haiti-charcoal); font-size: 15px; letter-spacing: 0.3px; box-shadow: 0 4px 14px rgba(197,160,89,0.35);">
+          <i class="ri-flashlight-fill"></i> Konfime & Peye
+        </button>
       </div>
     <% end %>
 

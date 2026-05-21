@@ -1,7 +1,7 @@
 <%# ── Activity Card for Notification Feed ── %>
 <%= link_to notification_path(notif),
     class: "activity-card #{'unread' if notif.unread?}",
-    data: { category: notif.activity_category, source: notif.activity_source } do %>
+    data: { category: notif.activity_category, source: notif.activity_source, date: notif.created_at.to_date.iso8601 } do %>
 
   <%# ── Avatar / Icon (48px) with category badge ── %>
   <% cat_color = notif.activity_color %>
@@ -34,7 +34,7 @@
     </div>
   <% elsif actor.present? %>
     <div class="notif-avatar-initials" style="position: relative;">
-      <span style="font-size: 18px;"><%= actor.tier_icon %></span>
+      <i class="ri-user-fill" style="font-size: 18px; color: var(--haiti-gold);"></i>
       <div class="category-badge" style="background: <%= cat_color %>;">
         <i class="<%= cat_icon %>" style="font-size: 9px; color: #fff;"></i>
       </div>

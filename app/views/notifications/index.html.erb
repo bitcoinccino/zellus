@@ -16,7 +16,7 @@
         <button id="mark-all-read-btn" type="button" class="btn btn-sm rounded-pill px-3 fw-bold"
             style="background: transparent; color: var(--haiti-olive); border: 1.5px solid rgba(93,99,69,0.2); font-size: 11px;"
             onclick="markAllRead(this)">
-          <i class="ri-check-double-line me-1"></i>MWen Li Tout Deja
+          <i class="ri-check-double-line me-1"></i>Mwen Li Tout Deja
         </button>
       <% end %>
     </div>
@@ -31,12 +31,15 @@
       <button class="notif-source-tab" data-source="pesonel" onclick="switchSource('pesonel')">
         <i class="ri-user-line me-1"></i>Pesonèl
       </button>
+      <%# ── Biznis / Ajan tabs paused while focusing on core wallet ── %>
+      <% if false %>
       <button class="notif-source-tab" data-source="biznis" onclick="switchSource('biznis')">
         <i class="ri-store-2-line me-1"></i>Biznis
       </button>
       <button class="notif-source-tab" data-source="ajans" onclick="switchSource('ajans')">
         <i class="ri-bank-line me-1"></i>Ajan
       </button>
+      <% end %>
     </div>
 
     <%# ══════════════════════════════════ %>
@@ -548,6 +551,39 @@
         }
       }
     }
+    regroupFeed();
+  }
+
+  // ── Date-group headers (Jodi a / Yè / date) ──
+  function notifDateLabel(iso) {
+    var d = new Date(iso + 'T00:00:00');
+    var today = new Date(); today.setHours(0, 0, 0, 0);
+    var diff = Math.round((today - d) / 86400000);
+    if (diff === 0) return 'Jodi a';
+    if (diff === 1) return 'Yè';
+    var km = ['Jan','Fev','Mas','Avr','Me','Jen','Jiy','Out','Sep','Okt','Nov','Des'];
+    return d.getDate() + ' ' + km[d.getMonth()] + ' ' + d.getFullYear();
+  }
+
+  // Rebuilds date headers from the currently-VISIBLE cards, so it stays
+  // correct under filtering and after infinite-scroll appends.
+  function regroupFeed() {
+    var feed = document.getElementById('notif-feed');
+    if (!feed) return;
+    feed.querySelectorAll('.notif-date-header').forEach(function(h) { h.remove(); });
+    var lastDate = null;
+    feed.querySelectorAll('.activity-card').forEach(function(card) {
+      if (card.style.display === 'none') return;
+      var date = card.getAttribute('data-date');
+      if (!date || date === lastDate) return;
+      lastDate = date;
+      var h = document.createElement('div');
+      h.className = 'notif-date-header';
+      h.textContent = notifDateLabel(date);
+      h.style.cssText = 'color: var(--haiti-olive); font-size: 10px; font-weight: 700; ' +
+                        'text-transform: uppercase; letter-spacing: 0.5px; padding: 10px 4px 2px;';
+      feed.insertBefore(h, card);
+    });
   }
 
   // ══════════════════════════════════
@@ -663,4 +699,5 @@
 
   // ── Initialize pills on page load ──
   renderPills('all');
+  regroupFeed();
 </script>

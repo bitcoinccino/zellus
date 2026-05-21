@@ -215,6 +215,15 @@
     <% end %>
 
     <%# ── PIN Setup (blocks form if no PIN) ── %>
+    <%# Inline confirmation when the PIN setup just succeeded — toast can be missed. %>
+    <% if flash[:notice].present? && current_user.transfer_pin_set? %>
+      <div class="p-3 mb-3 rounded-4 d-flex align-items-center gap-2"
+           style="background: rgba(2,115,10,0.08); border: 1px solid rgba(2,115,10,0.35); color: var(--haiti-charcoal);">
+        <i class="ri-shield-check-fill" style="color: #02730A; font-size: 18px;"></i>
+        <div class="small fw-bold"><%= flash[:notice] %></div>
+      </div>
+    <% end %>
+
     <% unless current_user.transfer_pin_set? %>
       <div class="p-3 mb-3 rounded-4" style="background-color: rgba(197,160,89,0.12); border: 1px solid rgba(197,160,89,0.55);">
         <div class="small fw-bold text-uppercase mb-2" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">
@@ -229,7 +238,18 @@
                 <i class="ri-lock-2-line"></i>
               </span>
               <input type="password" name="transfer_pin" class="form-control border-0 fw-bold shadow-none p-3 bb-dark-field text-center"
-                     maxlength="4" pattern="\d{4}" inputmode="numeric" placeholder="• • • •" required
+                     maxlength="4" pattern="\d{4}" inputmode="numeric" placeholder="• • • •" required autocomplete="new-password"
+                     style="background-color: var(--haiti-charcoal); color: white; letter-spacing: 10px;">
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Konfime PIN</label>
+            <div class="input-group" style="border: 1.5px solid rgba(46,46,56,0.12); border-radius: 12px; overflow: hidden;">
+              <span class="input-group-text border-0" style="background-color: var(--haiti-mint); color: var(--haiti-gold);">
+                <i class="ri-shield-keyhole-line"></i>
+              </span>
+              <input type="password" name="transfer_pin_confirmation" class="form-control border-0 fw-bold shadow-none p-3 bb-dark-field text-center"
+                     maxlength="4" pattern="\d{4}" inputmode="numeric" placeholder="• • • •" required autocomplete="new-password"
                      style="background-color: var(--haiti-charcoal); color: white; letter-spacing: 10px;">
             </div>
           </div>
@@ -833,8 +853,12 @@ function switchDestination(dest) {
     }
   }
 
-  // Update hidden fields
-  document.getElementById("asset-hidden").value = cfg.asset;
+  // Update hidden fields. Map the UI key "usdc" -> the model enum value
+  // "usd" — the Transfer model + controller only accept "htg"/"usd"/etc.
+  // (Submitting "usdc" would silently be coerced to "htg" by the
+  // controller whitelist.)
+  var serverAsset = (cfg.asset === "usdc") ? "usd" : cfg.asset;
+  document.getElementById("asset-hidden").value = serverAsset;
   document.getElementById("receiver-mode").value = cfg.mode;
 
   // ── Zero-balance info (soft warning, form stays enabled) ──
@@ -974,7 +998,11 @@ function handleAmountInput() {
   var htgEquivalent = 0;
 
   if (currentAsset === "usdc") {
-    // Convert USDC to HTG for the backend
+    // The Transfer model stores `amount` in HTG (source of truth) and
+    // derives `crypto_amount` from it via the exchange rate. So we still
+    // submit the HTG-equivalent; the asset=usd flag (set elsewhere)
+    // tells the controller to debit usdc_balance and the show page
+    // displays crypto_amount as "$N USD".
     var htgAmount = Math.round(val * USDC_HTG_RATE);
     hiddenInput.value = htgAmount > 0 ? htgAmount : "";
     htgEquivalent = htgAmount;

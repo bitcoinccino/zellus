@@ -299,6 +299,14 @@
                 <span class="placeholder-glow"><span class="placeholder rounded" style="width: 70px; height: 12px; background: rgba(255,255,255,0.15);"></span></span>
               </span>
             </span>
+            <span style="color: rgba(255,255,255,0.12);">|</span>
+            <%# Reserve coverage (USDC) — single-line: surplus · ratio · status %>
+            <span class="d-flex align-items-center gap-1">
+              <span style="font-size: 10px; color: rgba(255,255,255,0.4);">Reserve:</span>
+              <span id="healthReserveValue" class="fw-bold" style="color: white;">
+                <span class="placeholder-glow"><span class="placeholder rounded" style="width: 110px; height: 12px; background: rgba(255,255,255,0.15);"></span></span>
+              </span>
+            </span>
           </div>
         </div>
 
@@ -430,6 +438,24 @@
           }
           if (trezEl) trezEl.textContent = '$' + d.usdc_balance + ' USDC';
           if (intEl) intEl.textContent = '$' + d.internal_usdc + ' · G ' + d.internal_htg;
+
+          var resEl = document.getElementById('healthReserveValue');
+          if (resEl) {
+            var surplus = (Number(d.reserve_surplus) || 0).toFixed(2);
+            var sign    = d.reserve_surplus >= 0 ? '+' : '';
+            var ratio   = d.reserve_ratio == null ? '—' : (d.reserve_ratio.toFixed(2) + '×');
+
+            // Color + label per status threshold.
+            var statusMap = {
+              healthy:   { label: '✓ Healthy',   color: '#22c55e' },
+              tight:     { label: '⚠ Tight',     color: '#f59e0b' },
+              insolvent: { label: '✕ Insolvent', color: '#ef4444' }
+            };
+            var s = statusMap[d.reserve_status] || statusMap.healthy;
+
+            resEl.style.color = s.color;
+            resEl.textContent = sign + '$' + surplus + '  ·  ' + ratio + '  ·  ' + s.label;
+          }
         })
         .catch(function() {
           var gasEl = document.getElementById('healthGasValue');

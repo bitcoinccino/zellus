@@ -476,6 +476,16 @@ class WalletsController < ApplicationController
   # ── GET /wallet/entries/:token ──
   def show_entry
     @entry = @wallet.wallet_ledger_entries.find_by!(token: params[:token])
+
+    # Transfer-type entries (transfer_out / transfer_in) describe the same
+    # money movement as the Transfer they reference — send the user to the
+    # canonical transfer page instead of a near-duplicate entry view.
+    # Deposit / withdrawal / conversion / refund / fee entries stay on
+    # show_entry even when they reference a Transfer (a fee or refund can).
+    if @entry.entry_type.in?(%w[transfer_out transfer_in]) && @entry.reference.is_a?(Transfer)
+      redirect_to transfer_path(@entry.reference) and return
+    end
+
     @btc_usd_rate = RateService.btc_usd_rate rescue 95_000.0
     @eth_usd_rate = RateService.eth_usd_rate rescue 3_500.0
   end
