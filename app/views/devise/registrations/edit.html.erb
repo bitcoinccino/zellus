@@ -4,27 +4,27 @@
 
     <%= render "devise/shared/error_messages", resource: resource %>
 
-    <%= form_for(resource, as: resource_name, url: registration_path(resource_name), html: { method: :put, multipart: true, data: { turbo: false } }) do |f| %>
-
-      <%# ══════════════════════════════════════ %>
-      <%# ── AVATAR HERO CARD                ── %>
-      <%# ══════════════════════════════════════ %>
+    <%# ══════════════════════════════════════ %>
+    <%# ── AVATAR HERO — auto-uploads on pick ── %>
+    <%# ══════════════════════════════════════ %>
+    <%= form_for(resource, as: resource_name, url: registration_path(resource_name),
+          html: { method: :put, multipart: true, data: { turbo: false }, id: "avatar-form" }) do |f| %>
       <div class="card-base p-4 mb-3 text-center">
         <div class="position-relative d-inline-block mb-3">
           <div style="width: 90px; height: 90px; border-radius: 50%; border: 3px solid var(--haiti-gold); overflow: hidden; background: var(--haiti-charcoal); display: flex; align-items: center; justify-content: center; margin: 0 auto;">
             <% if resource.avatar.attached? && resource.avatar.blob&.persisted? %>
               <%= image_tag resource.avatar.variant(resize_to_fill: [180, 180]), style: "width: 100%; height: 100%; object-fit: cover;", id: "avatar-preview" %>
             <% else %>
-              <i class="ri-user-fill" id="avatar-emoji" style="font-size: 44px; color: var(--haiti-gold);"></i>
+              <i class="ri-user-fill" style="font-size: 44px; color: var(--haiti-gold);"></i>
             <% end %>
           </div>
-          <%# Camera button overlay %>
+          <%# Camera button — picking a photo auto-submits the form. %>
           <label for="user_avatar" class="position-absolute d-flex align-items-center justify-content-center rounded-circle"
                  style="bottom: 0; right: -4px; width: 30px; height: 30px; background: var(--haiti-gold); border: 2px solid white; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
             <i class="ri-camera-line" style="color: var(--haiti-charcoal); font-size: 14px;"></i>
           </label>
           <%= f.file_field :avatar, accept: "image/*", direct_upload: true, id: "user_avatar",
-              style: "display: none;", onchange: "previewAvatar(this)" %>
+              style: "display: none;", onchange: "this.form.requestSubmit();" %>
         </div>
 
         <div class="fw-black" style="color: var(--haiti-charcoal); font-size: 18px; font-family: 'Space Grotesk', sans-serif;">
@@ -41,203 +41,45 @@
           </div>
         <% end %>
       </div>
-
-      <%# ══════════════════════════════════════ %>
-      <%# ── ACCORDION SECTIONS              ── %>
-      <%# ══════════════════════════════════════ %>
-      <div class="d-flex flex-column gap-2">
-
-        <%# ── 1. Pwofil ── %>
-        <div class="card-base overflow-hidden">
-          <button type="button" class="settings-accordion-btn w-100 border-0 p-3 d-flex align-items-center gap-3 text-start"
-                  onclick="toggleSettingsSection('profil')"
-                  style="background: transparent; cursor: pointer;">
-            <div class="d-flex align-items-center justify-content-center rounded-3"
-                 style="width: 36px; height: 36px; background: var(--haiti-gold); flex-shrink: 0;">
-              <i class="ri-user-3-line" style="color: var(--haiti-charcoal); font-size: 16px;"></i>
-            </div>
-            <div class="flex-grow-1">
-              <div class="fw-black small text-uppercase" style="color: var(--haiti-charcoal); font-size: 12px; letter-spacing: 0.5px;">Pwofil</div>
-              <div style="color: var(--haiti-olive); font-size: 10px;">Zèllustag, telefòn, imèl</div>
-            </div>
-            <i class="ri-arrow-down-s-line settings-chevron" id="chevron-profil" style="color: var(--haiti-olive); font-size: 18px; transition: transform 0.2s;"></i>
-          </button>
-          <div id="section-profil" class="px-3 pb-3" style="display: none;">
-
-            <%# Email %>
-            <div class="mb-3">
-              <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 0.5px;">
-                <i class="ri-mail-line me-1"></i>IMÈL
-              </label>
-              <%= f.email_field :email, autofocus: false, autocomplete: "email",
-                  class: "form-control shadow-none rounded-3",
-                  style: "border: 1.5px solid rgba(46,46,56,0.12); background-color: var(--haiti-mint); color: var(--haiti-charcoal); font-size: 13px;" %>
-              <% if devise_mapping.confirmable? && resource.pending_reconfirmation? %>
-                <div class="p-2 mt-2 rounded-3" style="background-color: #fef3c7; border: 1px solid #f59e0b;">
-                  <div class="small fw-bold" style="color: #92400e; font-size: 10px;">
-                    <i class="ri-information-line me-1"></i>Ap tann konfimasyon pou: <%= resource.unconfirmed_email %>
-                  </div>
-                </div>
-              <% end %>
-            </div>
-
-            <%# Zèllustag %>
-            <div class="mb-3">
-              <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 0.5px;">
-                <i class="ri-at-line me-1"></i>ZÈLLUSTAG
-              </label>
-              <div class="input-group">
-                <span class="input-group-text fw-bold rounded-start-3" style="background-color: var(--haiti-mint); border: 1.5px solid rgba(46,46,56,0.12); border-right: none; color: var(--haiti-gold); font-size: 15px;">$</span>
-                <%= f.text_field :cashtag, placeholder: "nonpa", maxlength: 20, autocomplete: "off", id: "user_cashtag",
-                    class: "form-control shadow-none rounded-end-3",
-                    style: "border: 1.5px solid rgba(46,46,56,0.12); border-left: none; background-color: var(--haiti-mint); color: var(--haiti-charcoal); font-size: 13px;" %>
-              </div>
-              <div id="cashtag-availability" class="small mt-1" style="font-size: 10px; min-height: 14px;"></div>
-              <div class="small" style="color: var(--haiti-olive); font-size: 9px;">
-                <i class="ri-information-line me-1"></i>Ou ka chanje Zèllustag ou 1 fwa pa mwa.
-              </div>
-            </div>
-
-            <%# Phone %>
-            <div class="mb-0">
-              <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 0.5px;">
-                <i class="ri-phone-line me-1"></i>NIMEWO TELEFON <span class="text-lowercase fw-normal">(opsyonèl)</span>
-              </label>
-              <%= f.telephone_field :phone_number, placeholder: "50912345678", maxlength: 11,
-                  class: "form-control shadow-none rounded-3",
-                  style: "border: 1.5px solid rgba(46,46,56,0.12); background-color: var(--haiti-mint); color: var(--haiti-charcoal); font-size: 13px;" %>
-            </div>
-          </div>
-        </div>
-
-        <%# ── 2. Preferans ── %>
-        <div class="card-base overflow-hidden">
-          <button type="button" class="settings-accordion-btn w-100 border-0 p-3 d-flex align-items-center gap-3 text-start"
-                  onclick="toggleSettingsSection('prefs')"
-                  style="background: transparent; cursor: pointer;">
-            <div class="d-flex align-items-center justify-content-center rounded-3"
-                 style="width: 36px; height: 36px; background: var(--haiti-gold); flex-shrink: 0;">
-              <i class="ri-settings-4-line" style="color: var(--haiti-charcoal); font-size: 16px;"></i>
-            </div>
-            <div class="flex-grow-1">
-              <div class="fw-black small text-uppercase" style="color: var(--haiti-charcoal); font-size: 12px; letter-spacing: 0.5px;">Preferans</div>
-              <div style="color: var(--haiti-olive); font-size: 10px;">Peman Sol, ranbousman otomatik</div>
-            </div>
-            <i class="ri-arrow-down-s-line settings-chevron" id="chevron-prefs" style="color: var(--haiti-olive); font-size: 18px; transition: transform 0.2s;"></i>
-          </button>
-          <div id="section-prefs" class="px-3 pb-3" style="display: none;">
-
-            <%# Payout Preference %>
-            <div class="mb-3">
-              <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 0.5px;">
-                <i class="ri-exchange-funds-line me-1"></i>Preferans Peman Sol
-              </label>
-              <%= f.select :payout_preference,
-                    options_for_select([
-                      ["Otomatik (itilize sa ki disponib)", "auto"],
-                      ["Toujou HTG (MonCash)", "htg"],
-                      ["Toujou USD (Base Wallet)", "usdc"]
-                    ], resource.payout_preference),
-                    {},
-                    { class: "form-select shadow-none rounded-3",
-                      style: "border: 1.5px solid rgba(46,46,56,0.12); background-color: var(--haiti-mint); color: var(--haiti-charcoal); font-size: 13px;" } %>
-              <div class="small mt-1" style="color: var(--haiti-olive); font-size: 9px;">
-                <i class="ri-information-line me-1"></i>Kijan ou vle resevwa peman Sol ou
-              </div>
-            </div>
-
-            <%# Auto-Repay %>
-            <div class="mb-0">
-              <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 0.5px;">
-                <i class="ri-repeat-line me-1"></i>Ranbousman Otomatik
-              </label>
-              <div class="form-check form-switch p-3 rounded-3 d-flex align-items-center gap-3" style="background-color: var(--haiti-mint); border: 1.5px solid rgba(46,46,56,0.12);">
-                <%= f.check_box :auto_repay_enabled, class: "form-check-input shadow-none ms-0", style: "width: 40px; height: 20px; border-color: var(--haiti-olive); cursor: pointer;", role: "switch" %>
-                <div>
-                  <span class="d-block fw-bold" style="color: var(--haiti-charcoal); font-size: 11px;">Debite pòtfèy mwen otomatikman</span>
-                  <span style="color: var(--haiti-olive); font-size: 9px;">Si balans sifi → peye otomatik + 50 bònis pwen</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-      </div>
-
-      <%# ══════════════════════════════════════ %>
-      <%# ── SUBMIT                           ── %>
-      <%# ══════════════════════════════════════ %>
-      <div class="d-grid mt-3">
-        <%= f.submit "Sove Chanjman", class: "btn py-3 fw-black text-uppercase rounded-3",
-            style: "background-color: var(--haiti-gold); color: var(--haiti-charcoal); border: none; letter-spacing: 1px; font-size: 13px; font-family: 'Space Grotesk', sans-serif;" %>
-      </div>
-
     <% end %>
 
     <%# ══════════════════════════════════════ %>
-    <%# ── SEKIRITE & PEMAN (PIN + metòd peman) — own forms, outside     %>
-    <%# ── the Devise form so they post independently.                  %>
+    <%# ── SECTION ROWS — each opens a modal  ── %>
     <%# ══════════════════════════════════════ %>
-    <div class="card-base overflow-hidden mt-3">
-      <div class="p-3 d-flex align-items-center gap-3" style="border-bottom: 1px solid rgba(46,46,56,0.06);">
-        <div class="d-flex align-items-center justify-content-center rounded-3"
-             style="width: 36px; height: 36px; background: var(--haiti-gold); flex-shrink: 0;">
-          <i class="ri-shield-check-line" style="color: var(--haiti-charcoal); font-size: 16px;"></i>
-        </div>
-        <div>
-          <div class="fw-black small text-uppercase" style="color: var(--haiti-charcoal); font-size: 12px; letter-spacing: 0.5px;">Sekirite &amp; Peman</div>
-          <div style="color: var(--haiti-olive); font-size: 10px;">Kòd PIN ak metòd peman</div>
-        </div>
-      </div>
+    <div class="d-flex flex-column gap-2">
 
-      <div class="p-3">
-
-        <%# ── Transfer PIN ── %>
-        <% pin_set = current_user.transfer_pin_set? %>
-        <div class="d-flex align-items-center justify-content-between mb-2">
-          <label class="form-label small fw-bold text-uppercase mb-0" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 0.5px;">
-            <i class="ri-lock-2-line me-1"></i>Kòd PIN Transfè
-          </label>
-          <span class="badge rounded-pill" style="font-size: 9px; <%= pin_set ? 'background: rgba(2,115,10,0.12); color: #166534;' : 'background: #fee2e2; color: #991b1b;' %>">
-            <%= pin_set ? "✓ Konfigire" : "Pa konfigire" %>
-          </span>
-        </div>
-        <%= form_with url: set_pin_transfers_path, method: :post, local: true do %>
-          <div class="d-flex gap-2 mb-1">
-            <input type="password" name="transfer_pin" maxlength="4" pattern="\d{4}" inputmode="numeric"
-                   placeholder="PIN" required autocomplete="off"
-                   class="form-control shadow-none rounded-3 text-center fw-bold"
-                   style="border: 1.5px solid rgba(46,46,56,0.12); background: var(--haiti-mint); color: var(--haiti-charcoal); font-size: 13px; letter-spacing: 4px;">
-            <input type="password" name="transfer_pin_confirmation" maxlength="4" pattern="\d{4}" inputmode="numeric"
-                   placeholder="Konfime" required autocomplete="off"
-                   class="form-control shadow-none rounded-3 text-center fw-bold"
-                   style="border: 1.5px solid rgba(46,46,56,0.12); background: var(--haiti-mint); color: var(--haiti-charcoal); font-size: 13px; letter-spacing: 4px;">
-            <button type="submit" class="btn fw-bold rounded-3 px-3" style="background: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 12px; white-space: nowrap;">
-              <%= pin_set ? "Chanje" : "Mete" %>
-            </button>
+      <%# ── Pwofil → modal ── %>
+      <div class="card-base overflow-hidden">
+        <button type="button" class="settings-accordion-btn w-100 border-0 p-3 d-flex align-items-center gap-3 text-start"
+                onclick="openProfileModal()" style="background: transparent; cursor: pointer;">
+          <div class="d-flex align-items-center justify-content-center rounded-3"
+               style="width: 36px; height: 36px; background: var(--haiti-gold); flex-shrink: 0;">
+            <i class="ri-user-3-line" style="color: var(--haiti-charcoal); font-size: 16px;"></i>
           </div>
-        <% end %>
-        <div class="small mb-3" style="color: var(--haiti-olive); font-size: 9px;">
-          <i class="ri-information-line me-1"></i>PIN 4 chif pou apwouve transfè ak retrè.
-        </div>
-
-        <%# ── Payment method ── %>
-        <% pm_count = current_user.payment_methods.active.count %>
-        <div class="d-flex align-items-center justify-content-between mb-2 pt-2" style="border-top: 1px solid rgba(46,46,56,0.06);">
-          <label class="form-label small fw-bold text-uppercase mb-0" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 0.5px;">
-            <i class="ri-bank-card-line me-1"></i>Metòd Peman
-          </label>
-          <span class="badge rounded-pill" style="font-size: 9px; <%= pm_count.positive? ? 'background: rgba(2,115,10,0.12); color: #166534;' : 'background: #fee2e2; color: #991b1b;' %>">
-            <%= pm_count.positive? ? "#{pm_count} aktif" : "Pa gen" %>
-          </span>
-        </div>
-        <%= link_to payment_methods_path,
-              class: "btn w-100 fw-bold rounded-3 d-flex align-items-center justify-content-center gap-2",
-              style: "background: var(--haiti-mint); color: var(--haiti-charcoal); border: 1.5px solid rgba(46,46,56,0.12); font-size: 12px; padding: 10px;" do %>
-          <i class="ri-add-circle-line" style="color: var(--haiti-gold);"></i>
-          <%= pm_count.positive? ? "Jere Metòd Peman" : "Ajoute yon Metòd Peman" %>
-        <% end %>
+          <div class="flex-grow-1">
+            <div class="fw-black small text-uppercase" style="color: var(--haiti-charcoal); font-size: 12px; letter-spacing: 0.5px;">Pwofil</div>
+            <div style="color: var(--haiti-olive); font-size: 10px;">Zèllustag, telefòn, imèl</div>
+          </div>
+          <i class="ri-edit-line" style="color: var(--haiti-gold); font-size: 18px;"></i>
+        </button>
       </div>
+
+      <%# ── Sekirite → modal ── %>
+      <div class="card-base overflow-hidden">
+        <button type="button" class="settings-accordion-btn w-100 border-0 p-3 d-flex align-items-center gap-3 text-start"
+                onclick="openPinUpdateModal()" style="background: transparent; cursor: pointer;">
+          <div class="d-flex align-items-center justify-content-center rounded-3"
+               style="width: 36px; height: 36px; background: var(--haiti-gold); flex-shrink: 0;">
+            <i class="ri-lock-2-line" style="color: var(--haiti-charcoal); font-size: 16px;"></i>
+          </div>
+          <div class="flex-grow-1">
+            <div class="fw-black small text-uppercase" style="color: var(--haiti-charcoal); font-size: 12px; letter-spacing: 0.5px;">Sekirite</div>
+            <div style="color: var(--haiti-olive); font-size: 10px;">Kòd PIN transfè</div>
+          </div>
+          <i class="ri-edit-line" style="color: var(--haiti-gold); font-size: 18px;"></i>
+        </button>
+      </div>
+
     </div>
 
     <%# ── Danger Zone ── %>
@@ -262,40 +104,154 @@
   </div>
 </div>
 
+<%# ── Pwofil Modal (own form → Devise update) ── %>
+<div id="profile-modal" onclick="if (event.target === this) closeProfileModal()"
+     style="display:none; position:fixed; inset:0; z-index:1050; background:rgba(0,0,0,0.6);
+            backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px);
+            align-items:center; justify-content:center; padding:1rem;">
+  <div class="card-base p-4 w-100" style="max-width: 440px;">
+    <div class="text-center mb-3">
+      <div class="d-inline-flex align-items-center justify-content-center mb-2 rounded-3"
+           style="width: 48px; height: 48px; background-color: var(--haiti-gold);">
+        <i class="ri-user-3-fill ri-lg" style="color: var(--haiti-charcoal);"></i>
+      </div>
+      <h2 class="h6 fw-black mb-0" style="color: var(--haiti-charcoal);">Modifye Pwofil</h2>
+    </div>
+
+    <%= form_for(resource, as: resource_name, url: registration_path(resource_name),
+          html: { method: :put, data: { turbo: false }, id: "profile-form" }) do |f| %>
+
+      <%# Email %>
+      <div class="mb-3">
+        <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 0.5px;">
+          <i class="ri-mail-line me-1"></i>IMÈL
+        </label>
+        <%= f.email_field :email, autofocus: false, autocomplete: "email",
+            class: "form-control shadow-none rounded-3 p-3",
+            style: "border: 1.5px solid rgba(46,46,56,0.12); background-color: var(--haiti-mint); color: var(--haiti-charcoal); font-size: 13px;" %>
+        <% if devise_mapping.confirmable? && resource.pending_reconfirmation? %>
+          <div class="p-2 mt-2 rounded-3" style="background-color: #fef3c7; border: 1px solid #f59e0b;">
+            <div class="small fw-bold" style="color: #92400e; font-size: 10px;">
+              <i class="ri-information-line me-1"></i>Ap tann konfimasyon pou: <%= resource.unconfirmed_email %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+
+      <%# Zèllustag %>
+      <div class="mb-3">
+        <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 0.5px;">
+          <i class="ri-at-line me-1"></i>ZÈLLUSTAG
+        </label>
+        <div class="input-group">
+          <span class="input-group-text fw-bold rounded-start-3" style="background-color: var(--haiti-mint); border: 1.5px solid rgba(46,46,56,0.12); border-right: none; color: var(--haiti-gold); font-size: 15px;">$</span>
+          <%= f.text_field :cashtag, placeholder: "zellus", maxlength: 20, autocomplete: "off", id: "user_cashtag",
+              class: "form-control shadow-none rounded-end-3 p-3",
+              style: "border: 1.5px solid rgba(46,46,56,0.12); border-left: none; background-color: var(--haiti-mint); color: var(--haiti-charcoal); font-size: 13px;" %>
+        </div>
+        <div id="cashtag-availability" class="small mt-1" style="font-size: 10px; min-height: 14px;"></div>
+        <div class="small" style="color: var(--haiti-olive); font-size: 9px;">
+          <i class="ri-information-line me-1"></i>Ou ka chanje Zèllustag ou 1 fwa pa mwa.
+        </div>
+      </div>
+
+      <%# Phone — +509 prefix; the input holds the 8-digit local part only.
+          User#normalize_phone_number re-assembles it into "509XXXXXXXX". %>
+      <% phone_local = resource.phone_number.to_s.gsub(/\D/, "").delete_prefix("509") %>
+      <div class="mb-3">
+        <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 0.5px;">
+          <i class="ri-phone-line me-1"></i>NIMEWO TELEFON <span class="text-lowercase fw-normal">(opsyonèl)</span>
+        </label>
+        <div class="input-group">
+          <span class="input-group-text fw-bold rounded-start-3" style="background-color: var(--haiti-mint); border: 1.5px solid rgba(46,46,56,0.12); border-right: none; color: var(--haiti-gold); font-size: 13px;">+509</span>
+          <%= f.telephone_field :phone_number, id: "user_phone", autocomplete: "tel",
+              value: phone_local.gsub(/(\d{2})(?=\d)/, '\1 '),
+              placeholder: "XX XX XX XX", maxlength: 11,
+              class: "form-control shadow-none rounded-end-3 p-3",
+              style: "border: 1.5px solid rgba(46,46,56,0.12); border-left: none; background-color: var(--haiti-mint); color: var(--haiti-charcoal); font-size: 13px;" %>
+        </div>
+      </div>
+
+      <%= f.submit "Sove", class: "btn w-100 py-3 fw-bold rounded-3 border-0",
+            style: "background: var(--haiti-gold); color: var(--haiti-charcoal); font-size: 13px; letter-spacing: 0.5px;" %>
+    <% end %>
+
+    <div class="mt-2">
+      <a href="#" onclick="closeProfileModal(); return false;"
+         class="btn w-100 py-3 fw-bold rounded-4 d-flex align-items-center justify-content-center gap-2"
+         style="background: transparent; color: var(--haiti-olive); border: 1.5px solid rgba(46,46,56,0.15); font-size: 14px;">
+        Anile
+      </a>
+    </div>
+  </div>
+</div>
+
+<%# ── PIN Update Modal (own form → set_pin, returns here via redirect_back) ── %>
+<div id="pin-update-modal" onclick="if (event.target === this) closePinUpdateModal()"
+     style="display:none; position:fixed; inset:0; z-index:1050; background:rgba(0,0,0,0.6);
+            backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px);
+            align-items:center; justify-content:center; padding:1rem;">
+  <div class="card-base p-4 w-100" style="max-width: 420px;">
+    <div class="text-center mb-3">
+      <div class="d-inline-flex align-items-center justify-content-center mb-2 rounded-3"
+           style="width: 48px; height: 48px; background-color: var(--haiti-gold);">
+        <i class="ri-lock-2-fill ri-lg" style="color: var(--haiti-charcoal);"></i>
+      </div>
+      <h2 class="h6 fw-black mb-0" style="color: var(--haiti-charcoal);">Mizajou Kòd PIN</h2>
+      <p class="small mb-0" style="color: var(--haiti-olive);">Antre yon nouvo PIN 4 chif.</p>
+    </div>
+
+    <%= form_with url: set_pin_transfers_path, method: :post, local: true do %>
+      <div class="mb-2">
+        <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Nouvo PIN</label>
+        <input type="password" name="transfer_pin" maxlength="4" pattern="\d{4}" inputmode="numeric"
+               placeholder="• • • •" required autocomplete="off"
+               class="form-control border-0 fw-bold shadow-none p-3 text-center"
+               style="background: var(--haiti-mint); color: var(--haiti-charcoal); border-radius: 12px; letter-spacing: 10px; font-size: 20px;">
+      </div>
+      <div class="mb-3">
+        <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Konfime PIN</label>
+        <input type="password" name="transfer_pin_confirmation" maxlength="4" pattern="\d{4}" inputmode="numeric"
+               placeholder="• • • •" required autocomplete="off"
+               class="form-control border-0 fw-bold shadow-none p-3 text-center"
+               style="background: var(--haiti-mint); color: var(--haiti-charcoal); border-radius: 12px; letter-spacing: 10px; font-size: 20px;">
+      </div>
+      <%= submit_tag "Mizajou PIN", class: "btn w-100 py-3 fw-bold rounded-3 border-0",
+            style: "background: var(--haiti-gold); color: var(--haiti-charcoal); font-size: 13px; letter-spacing: 0.5px;" %>
+    <% end %>
+
+    <div class="mt-2">
+      <a href="#" onclick="closePinUpdateModal(); return false;"
+         class="btn w-100 py-3 fw-bold rounded-4 d-flex align-items-center justify-content-center gap-2"
+         style="background: transparent; color: var(--haiti-olive); border: 1.5px solid rgba(46,46,56,0.15); font-size: 14px;">
+        Anile
+      </a>
+    </div>
+  </div>
+</div>
+
 <script>
-// ── Avatar preview ──
-function previewAvatar(input) {
-  if (input.files && input.files[0]) {
-    var reader = new FileReader();
-    reader.onload = function(e) {
-      var container = input.closest('.card-base').querySelector('div[style*="border-radius: 50%"]');
-      var existing = container.querySelector('img, span, i');
-      if (existing) {
-        if (existing.tagName === 'IMG') {
-          existing.src = e.target.result;
-        } else {
-          container.innerHTML = '<img src="' + e.target.result + '" style="width: 100%; height: 100%; object-fit: cover;" id="avatar-preview">';
-        }
-      }
-    };
-    reader.readAsDataURL(input.files[0]);
-  }
+// ── Pwofil modal ──
+function openProfileModal() {
+  var m = document.getElementById('profile-modal');
+  if (m) { m.style.display = 'flex'; document.body.style.overflow = 'hidden'; }
+}
+function closeProfileModal() {
+  var m = document.getElementById('profile-modal');
+  if (m) { m.style.display = 'none'; document.body.style.overflow = ''; }
 }
 
-// ── Accordion sections ──
-function toggleSettingsSection(name) {
-  var section = document.getElementById('section-' + name);
-  var chevron = document.getElementById('chevron-' + name);
-  if (section.style.display === 'none') {
-    section.style.display = 'block';
-    chevron.style.transform = 'rotate(180deg)';
-  } else {
-    section.style.display = 'none';
-    chevron.style.transform = 'rotate(0)';
-  }
+// ── PIN update modal ──
+function openPinUpdateModal() {
+  var m = document.getElementById('pin-update-modal');
+  if (m) { m.style.display = 'flex'; document.body.style.overflow = 'hidden'; }
+}
+function closePinUpdateModal() {
+  var m = document.getElementById('pin-update-modal');
+  if (m) { m.style.display = 'none'; document.body.style.overflow = ''; }
 }
 
-// ── Cashtag live check ──
+// ── Live $Zèllustag availability check ──
 var cashtagTimer;
 var cashtagInput = document.getElementById('user_cashtag');
 var cashtagResult = document.getElementById('cashtag-availability');
@@ -321,6 +277,15 @@ if (cashtagInput) {
           }
         });
     }, 300);
+  });
+}
+
+// ── Phone formatter (Haiti: 8 local digits, grouped XX XX XX XX) ──
+var phoneInput = document.getElementById('user_phone');
+if (phoneInput) {
+  phoneInput.addEventListener('input', function() {
+    var d = this.value.replace(/\D/g, '').slice(0, 8);
+    this.value = d.replace(/(\d{2})(?=\d)/g, '$1 ');
   });
 }
 </script>

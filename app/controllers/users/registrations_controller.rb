@@ -31,9 +31,8 @@ class Users::RegistrationsController < Devise::RegistrationsController
 
   def configure_permitted_parameters
     devise_parameter_sanitizer.permit(:account_update, keys: [
-      :avatar, :email, :cashtag, :phone,
-      :payout_preference, :auto_repay_enabled,
-      :password, :password_confirmation, :current_password
+      :avatar, :email, :cashtag, :phone_number,
+      :payout_preference, :auto_repay_enabled
     ])
 
     devise_parameter_sanitizer.permit(:sign_up, keys: [
@@ -52,15 +51,12 @@ class Users::RegistrationsController < Devise::RegistrationsController
     edit_user_registration_path
   end
 
-  # Allow update without password for non-password fields
+  # Update the account without a password — password sign-in is gone.
+  # (Transfer PIN is updated separately via the Sekirite modal → set_pin.)
   def update_resource(resource, params)
-    if params[:password].blank? && params[:password_confirmation].blank?
-      params.delete(:password)
-      params.delete(:password_confirmation)
-      params.delete(:current_password)
-      resource.update(params)
-    else
-      super
-    end
+    params.delete(:password)
+    params.delete(:password_confirmation)
+    params.delete(:current_password)
+    resource.update(params)
   end
 end

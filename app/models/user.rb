@@ -41,6 +41,7 @@ class User < ApplicationRecord
   INVITE_POINTS = 5
 
   before_validation :normalize_cashtag
+  before_validation :normalize_phone_number
   before_validation :resolve_invite_code, on: :create
   after_create :redeem_invite_code!
 
@@ -396,6 +397,16 @@ class User < ApplicationRecord
 
   def normalize_cashtag
     self.cashtag = cashtag.to_s.strip.downcase.delete_prefix("$") if cashtag.present?
+  end
+
+  # Accepts the phone in any shape — "509XXXXXXXX", "+509 XX XX XX XX",
+  # or the 8-digit local part — and stores it as the canonical "509XXXXXXXX".
+  def normalize_phone_number
+    return if phone_number.blank?
+
+    digits = phone_number.gsub(/\D/, "")
+    digits = digits[3..] if digits.length == 11 && digits.start_with?("509")
+    self.phone_number = digits.present? ? "509#{digits}" : nil
   end
 
   def redeem_invite_code!
