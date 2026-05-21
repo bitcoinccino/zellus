@@ -82,19 +82,18 @@ Rails.application.routes.draw do
   post "login",        to: "otp_auth#create"
   get  "login/verify", to: "otp_auth#verify",  as: :login_verify
   post "login/verify", to: "otp_auth#confirm"
+  get  "login/pin",    to: "otp_auth#pin",     as: :login_pin
+  post "login/pin",    to: "otp_auth#unlock"
 
   devise_scope :user do
     get "/users/sign_in", to: redirect("/login")
     get "/users/sign_up", to: redirect("/login")
   end
 
-  # New-user onboarding gate (set in OtpAuthController#confirm)
-  get  "onboarding/profile",        to: "onboarding#profile",                as: :onboarding_profile
-  post "onboarding/profile",        to: "onboarding#update_profile"
-  get  "onboarding/pin",            to: "onboarding#pin",                    as: :onboarding_pin
-  post "onboarding/pin",            to: "onboarding#update_pin"
-  get  "onboarding/payment_method", to: "onboarding#payment_method",         as: :onboarding_payment_method
-  post "onboarding/payment_method", to: "onboarding#update_payment_method"
+  # New-user onboarding — single step: pick a $Zèllustag (creates the account).
+  # PIN is handled by the /login/pin gate; payment method is set in Paramèt.
+  get  "onboarding/profile", to: "onboarding#profile",        as: :onboarding_profile
+  post "onboarding/profile", to: "onboarding#update_profile"
 
   resource :bonid_verification, only: [:show, :create], controller: "bon_id_verifications"
   get  "users/check_cashtag", to: "users#check_cashtag", as: :check_cashtag

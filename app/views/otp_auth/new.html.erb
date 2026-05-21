@@ -1,37 +1,24 @@
-<div class="container py-5" style="min-height: calc(100vh - 64px);">
+<% content_for :hide_navbar, true %>
+<%# Konekte vs Kreye Kont is cosmetic framing — the OTP flow handles
+    sign-in / sign-up identically. mode=kreye switches the wording. %>
+<% signup = params[:mode].to_s == "kreye" %>
+
+<div class="container py-5" style="min-height: 100vh;">
   <div class="row justify-content-center">
     <div class="col-12 col-md-7 col-lg-5">
 
       <div class="text-center mb-4">
-        <div class="fw-black mb-2" style="font-family: 'Space Grotesk', sans-serif; font-size: 22px; letter-spacing: 4px; text-transform: uppercase; color: var(--haiti-gold);">Zèllus</div>
-        <h1 class="fw-black mb-1" style="color: var(--haiti-charcoal); font-size: 24px; font-family: 'Space Grotesk', sans-serif;">Konekte ak Imèl Ou</h1>
-        <p class="small" style="color: var(--haiti-olive);">N ap voye yon kòd 6 chif nan imèl ou.</p>
+        <%= link_to new_user_session_path, title: "Tounen nan paj prensipal" do %>
+          <%= image_tag "zellus_square.png", alt: "Zèllus", style: "width: 60px; height: 60px; border-radius: 14px; margin-bottom: 22px;" %>
+        <% end %>
+        <h1 class="fw-black mb-1" style="color: var(--haiti-charcoal); font-size: 24px; font-family: 'Space Grotesk', sans-serif;"><%= signup ? "Kreye Kont" : "Konekte" %></h1>
       </div>
 
       <div class="p-4 rounded-4" style="background: #fff; border: 1px solid rgba(46,46,56,0.08); box-shadow: 0 4px 14px rgba(46,46,56,0.06);">
 
-        <% if flash[:alert].present? %>
-          <div class="p-3 mb-3 rounded-3 d-flex align-items-start gap-2"
-               style="background-color: #fdf2f2; border: 1px solid #fee2e2;">
-            <i class="ri-error-warning-fill" style="color: #D8000C; font-size: 16px;"></i>
-            <div class="small" style="color: var(--haiti-charcoal); line-height: 1.5;"><%= flash[:alert] %></div>
-          </div>
-        <% end %>
-
-        <% if flash[:notice].present? %>
-          <div class="p-3 mb-3 rounded-3 d-flex align-items-start gap-2"
-               style="background-color: rgba(2,115,10,0.08); border: 1px solid rgba(2,115,10,0.35);">
-            <i class="ri-check-line" style="color: #02730A; font-size: 16px;"></i>
-            <div class="small" style="color: var(--haiti-charcoal); line-height: 1.5;"><%= flash[:notice] %></div>
-          </div>
-        <% end %>
-
         <%= form_with url: login_path, method: :post, local: true do |f| %>
           <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Imèl</label>
           <div class="input-group mb-3" style="border: 1.5px solid rgba(46,46,56,0.12); border-radius: 12px; overflow: hidden;">
-            <span class="input-group-text border-0" style="background-color: var(--haiti-mint); color: var(--haiti-gold);">
-              <i class="ri-mail-line"></i>
-            </span>
             <%= f.email_field :email,
                   value: params[:email],
                   required: true,
@@ -42,13 +29,20 @@
                   style: "font-size: 14px; color: var(--haiti-charcoal);" %>
           </div>
 
-          <%= f.submit "Voye Kòd",
+          <%= f.submit "Kontinye",
                 class: "btn w-100 fw-bold rounded-pill py-3 border-0",
                 style: "background: var(--haiti-gold); color: var(--haiti-charcoal); font-size: 13px; letter-spacing: 0.5px;" %>
+
+          <p class="text-center mt-3 mb-0" style="color: var(--haiti-olive); font-size: 10px; line-height: 1.5;">
+            Lè ou antre imèl ou epi klike Kontinye, ou aksepte
+            <span class="fw-bold" style="color: var(--haiti-gold);">Tèm</span>,
+            <span class="fw-bold" style="color: var(--haiti-gold);">Konsantman</span>, ak
+            <span class="fw-bold" style="color: var(--haiti-gold);">Politik Konfidansyalite</span> nou yo.
+          </p>
         <% end %>
 
         <div class="text-center my-3 small" style="color: var(--haiti-olive); font-size: 11px;">
-          <span style="background: #fff; padding: 0 8px; position: relative; z-index: 1;">OU</span>
+          <span style="background: #fff; padding: 0 8px; position: relative; z-index: 1;">Oswa</span>
           <hr style="margin-top: -10px; opacity: 0.15;">
         </div>
 
@@ -59,8 +53,12 @@
         <% end %>
       </div>
 
-      <div class="text-center mt-3 small" style="color: var(--haiti-olive); font-size: 11px;">
-        Pa gen kont? Tape imèl ou anwo — n ap kreye yon kont pou ou.
+      <div class="text-center mt-3" style="color: var(--haiti-olive); font-size: 13px;">
+        <% if signup %>
+          Gen yon kont deja? <%= link_to "Konekte", login_path, class: "fw-bold text-decoration-none", style: "color: var(--haiti-gold);" %>
+        <% else %>
+          Poko gen yon kont? <%= link_to "Kreye yon kont", login_path(mode: "kreye"), class: "fw-bold text-decoration-none", style: "color: var(--haiti-gold);" %>
+        <% end %>
       </div>
     </div>
   </div>

@@ -15,17 +15,25 @@ class TransfersController < ApplicationController
 
   # ── POST /transfers/set_pin — Set transfer PIN ──
   def set_pin
-    pin = params[:transfer_pin].to_s.strip
+    pin         = params[:transfer_pin].to_s.strip
+    confirm_pin = params[:transfer_pin_confirmation].to_s.strip
+
     unless pin.match?(/\A\d{4}\z/)
       flash[:alert] = "PIN dwe 4 chif."
-      redirect_to new_transfer_path
+      redirect_back fallback_location: new_transfer_path
+      return
+    end
+
+    if pin != confirm_pin
+      flash[:alert] = "De PIN yo pa menm. Tanpri verifye epi eseye ankò."
+      redirect_back fallback_location: new_transfer_path
       return
     end
 
     current_user.transfer_pin = pin
     current_user.save!
     flash[:notice] = "PIN transfè ou enstale avèk siksè!"
-    redirect_to new_transfer_path
+    redirect_back fallback_location: new_transfer_path
   end
 
   # ── POST /transfers ──
@@ -140,6 +148,14 @@ class TransfersController < ApplicationController
     @needs_pin = @transfer.pending? && current_user.transfer_pin_set?
     @receiver_user = find_receiver_user_for(@transfer)
     @consent = @transfer.bonid_consent_request
+
+    # Viewing the transaction marks its notification(s) read, so the unread
+    # bell total stays in sync whether the user arrives from the feed or
+    # opens the transfer directly. Runs before the view renders, so the
+    # unread_notification_count helper picks up the decremented count.
+    current_user.notifications.unread
+                .where(notifiable: @transfer)
+                .update_all(read_at: Time.current)
   end
 
   # ── POST /transfers/:token/confirm — PIN verification + initiate payment ──

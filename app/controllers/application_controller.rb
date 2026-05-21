@@ -11,6 +11,7 @@ class ApplicationController < ActionController::Base
 
   before_action :configure_permitted_parameters, if: :devise_controller?
   before_action :require_cashtag!, if: :user_signed_in?
+  before_action :require_pin_unlock!, if: :user_signed_in?
 
   helper_method :incoming_request_count, :unread_notification_count, :recent_notifications_for_dropdown
 
@@ -54,6 +55,17 @@ class ApplicationController < ActionController::Base
     return if devise_controller?
     return if controller_name == "users" && action_name.in?(%w[setup_cashtag save_cashtag check_cashtag])
     redirect_to setup_cashtag_path if current_user.cashtag.blank?
+  end
+
+  # Second factor: after OTP sign-in the session is authenticated but locked
+  # until the user passes the PIN gate (OtpAuthController#pin). The flag lives
+  # in the session, so every fresh login must re-unlock.
+  def require_pin_unlock!
+    return if devise_controller?
+    return if controller_name.in?(%w[otp_auth onboarding])
+    return if controller_name == "users" && action_name.in?(%w[setup_cashtag save_cashtag check_cashtag])
+    return if session[:pin_verified]
+    redirect_to login_pin_path
   end
 
   private

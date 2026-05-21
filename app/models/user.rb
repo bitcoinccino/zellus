@@ -386,35 +386,10 @@ class User < ApplicationRecord
     invited_by.increment!(:credit_score, INVITE_POINTS)
   end
 
-  # ── Onboarding gates (OTP signup flow) ──
-  # Step 1 — profile: cashtag must be set. Everything in the app addresses
-  # the user as $cashtag (display_name, transfer receiver lookup, UMA address).
-  # BonID OAuth signups get a temp cashtag and bypass this step.
-  def profile_complete?
-    cashtag.present?
-  end
-
-  # Step 2 — PIN: needed to authorize any outgoing transfer.
+  # Transfer PIN — the /login/pin gate uses this to decide between "create
+  # PIN" and "enter PIN" mode.
   def has_transfer_pin?
     transfer_pin_digest.present?
-  end
-
-  # Step 3 — payment method: at least one active method on record. We auto-link
-  # users.phone_number on creation so MonCash deposits/withdrawals work end-to-end.
-  def has_payment_method?
-    payment_methods.active.exists?
-  end
-
-  def onboarding_complete?
-    profile_complete? && has_transfer_pin? && has_payment_method?
-  end
-
-  # First incomplete step name — controllers use this to route to the right page.
-  def next_onboarding_step
-    return :profile         unless profile_complete?
-    return :pin             unless has_transfer_pin?
-    return :payment_method  unless has_payment_method?
-    nil
   end
 
   private

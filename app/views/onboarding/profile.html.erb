@@ -1,34 +1,19 @@
-<div class="container py-5" style="min-height: calc(100vh - 64px);">
+<% content_for :hide_navbar, true %>
+
+<div class="container py-5" style="min-height: 100vh;">
   <div class="row justify-content-center">
     <div class="col-12 col-md-7 col-lg-5">
 
-      <%# ── Step indicator ── %>
-      <div class="d-flex align-items-center justify-content-center gap-2 mb-4">
-        <% [
-          { n: 1, label: "Pwofil",   active: true,  done: false },
-          { n: 2, label: "PIN",      active: false, done: false },
-          { n: 3, label: "MonCash",  active: false, done: false }
-        ].each_with_index do |s, i| %>
-          <div class="d-flex align-items-center gap-1">
-            <div class="d-flex align-items-center justify-content-center rounded-circle fw-black"
-                 style="width: 28px; height: 28px; font-size: 12px;
-                        background: <%= s[:active] ? 'var(--haiti-gold)' : 'rgba(46,46,56,0.1)' %>;
-                        color: <%= s[:active] ? 'var(--haiti-charcoal)' : 'var(--haiti-olive)' %>;">
-              <%= s[:n] %>
-            </div>
-            <span class="fw-bold d-none d-sm-inline" style="font-size: 11px; color: <%= s[:active] ? 'var(--haiti-charcoal)' : 'var(--haiti-olive)' %>;">
-              <%= s[:label] %>
-            </span>
-          </div>
-          <% unless i == 2 %>
-            <div style="width: 24px; height: 1px; background: rgba(46,46,56,0.15);"></div>
-          <% end %>
+      <div class="text-center">
+        <%= link_to new_user_session_path, title: "Tounen nan paj prensipal" do %>
+          <%= image_tag "zellus_square.png", alt: "Zèllus", class: "mb-4", style: "width: 56px; height: 56px; border-radius: 13px;" %>
         <% end %>
       </div>
 
+
       <div class="text-center mb-4">
-        <h1 class="fw-black mb-1" style="color: var(--haiti-charcoal); font-size: 22px; font-family: 'Space Grotesk', sans-serif;">Chwazi $cashtag ou</h1>
-        <p class="small" style="color: var(--haiti-olive);">Sa moun ap sèvi pou peye w nan Zèllus.</p>
+        <h1 class="fw-black mb-1" style="color: var(--haiti-charcoal); font-size: 22px; font-family: 'Space Grotesk', sans-serif;">Chwazi $Zèllustag ou</h1>
+        <p class="small" style="color: var(--haiti-olive);">Se avel pou moun peye w nan Zèllus.</p>
       </div>
 
       <div class="p-4 rounded-4" style="background: #fff; border: 1px solid rgba(46,46,56,0.08); box-shadow: 0 4px 14px rgba(46,46,56,0.06);">
@@ -51,27 +36,25 @@
 
         <%= form_with url: onboarding_profile_path, method: :post, model: @user, scope: :user, local: true do |f| %>
 
-          <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">$Cashtag</label>
+          <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">$Zèllustag</label>
           <div class="input-group mb-3" style="border: 1.5px solid rgba(46,46,56,0.12); border-radius: 12px; overflow: hidden;">
             <span class="input-group-text border-0 fw-black" style="background-color: var(--haiti-mint); color: var(--haiti-gold);">$</span>
             <%= f.text_field :cashtag,
+                  id: "ob-cashtag",
                   required: true,
                   autofocus: true,
                   maxlength: 20,
                   autocomplete: "off",
-                  placeholder: "nonpa",
+                  placeholder: "zellus",
                   class: "form-control border-0 fw-bold shadow-none p-3",
                   style: "font-size: 14px; color: var(--haiti-charcoal);" %>
           </div>
-          <div class="small mb-3" style="color: var(--haiti-olive); font-size: 11px;">
+          <div id="ob-cashtag-status" class="small mb-3" style="color: var(--haiti-olive); font-size: 11px;">
             5–20 karaktè, lèt ak chif sèlman.
           </div>
 
           <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Kòd Envitasyon</label>
           <div class="input-group mb-3" style="border: 1.5px solid rgba(46,46,56,0.12); border-radius: 12px; overflow: hidden;">
-            <span class="input-group-text border-0" style="background-color: var(--haiti-mint); color: var(--haiti-gold);">
-              <i class="ri-ticket-2-line"></i>
-            </span>
             <%= f.text_field :raw_invite_code,
                   required: true,
                   maxlength: 10,
@@ -85,7 +68,54 @@
                 class: "btn w-100 fw-bold rounded-pill py-3 border-0",
                 style: "background: var(--haiti-gold); color: var(--haiti-charcoal); font-size: 13px; letter-spacing: 0.5px;" %>
         <% end %>
+
+        <div class="mt-2">
+          <%= link_to "Anile", new_user_session_path,
+                class: "btn w-100 py-3 fw-bold rounded-4 d-flex align-items-center justify-content-center gap-2",
+                style: "background: transparent; color: var(--haiti-olive); border: 1.5px solid rgba(46,46,56,0.15); font-size: 14px;" %>
+        </div>
       </div>
     </div>
   </div>
 </div>
+
+<%# ── Live $Zèllustag availability check (debounced) ── %>
+<script>
+(function() {
+  var input  = document.getElementById('ob-cashtag');
+  var status = document.getElementById('ob-cashtag-status');
+  if (!input || !status) return;
+
+  var defaultText = status.textContent;
+  var timer = null;
+
+  function setStatus(text, color) {
+    status.textContent = text;
+    status.style.color = color;
+  }
+
+  input.addEventListener('input', function() {
+    clearTimeout(timer);
+    var val = input.value.trim();
+
+    if (val.length < 5) {
+      setStatus(defaultText, 'var(--haiti-olive)');
+      return;
+    }
+
+    setStatus('Ap tcheke…', 'var(--haiti-olive)');
+    timer = setTimeout(function() {
+      fetch('<%= check_cashtag_path %>?cashtag=' + encodeURIComponent(val), {
+        headers: { 'Accept': 'application/json' }
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        setStatus(data.message, data.available ? '#166534' : '#991b1b');
+      })
+      .catch(function() {
+        setStatus(defaultText, 'var(--haiti-olive)');
+      });
+    }, 350);
+  });
+})();
+</script>

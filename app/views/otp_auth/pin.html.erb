@@ -1,0 +1,65 @@
+<% content_for :hide_navbar, true %>
+
+<div class="container py-5" style="min-height: 100vh;">
+  <div class="row justify-content-center">
+    <div class="col-12 col-md-7 col-lg-5">
+
+      <div class="text-center mb-4">
+        <%= image_tag "zellus_square.png", alt: "Zèllus", style: "width: 60px; height: 60px; border-radius: 14px; margin-bottom: 22px;" %>
+        <h1 class="fw-black mb-1" style="color: var(--haiti-charcoal); font-size: 22px; font-family: 'Space Grotesk', sans-serif;">
+          <%= @needs_pin_setup ? "Kreye PIN Ou" : "Antre PIN Ou" %>
+        </h1>
+        <p class="small mb-0" style="color: var(--haiti-olive);">
+          <% if @needs_pin_setup %>
+            Kreye yon PIN 4 chif pou pwoteje kont ou.
+          <% else %>
+            Antre PIN 4 chif ou pou antre nan kont ou.
+          <% end %>
+        </p>
+      </div>
+
+      <div class="p-4 rounded-4" style="background: #fff; border: 1px solid rgba(46,46,56,0.08); box-shadow: 0 4px 14px rgba(46,46,56,0.06);">
+
+        <%= form_with url: login_pin_path, method: :post, local: true do %>
+          <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">
+            PIN 4 Chif
+          </label>
+          <div class="input-group mb-3" style="border: 1.5px solid rgba(46,46,56,0.12); border-radius: 12px; overflow: hidden;">
+            <input type="password" name="pin"
+                   class="form-control border-0 fw-bold shadow-none p-3 text-center"
+                   maxlength="4" pattern="\d{4}" inputmode="numeric"
+                   autocomplete="off" autofocus required
+                   placeholder="• • • •"
+                   style="color: var(--haiti-charcoal); letter-spacing: 10px; font-size: 22px;">
+          </div>
+
+          <% if @needs_pin_setup %>
+            <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">
+              Konfime PIN
+            </label>
+            <div class="input-group mb-3" style="border: 1.5px solid rgba(46,46,56,0.12); border-radius: 12px; overflow: hidden;">
+              <input type="password" name="pin_confirmation"
+                     class="form-control border-0 fw-bold shadow-none p-3 text-center"
+                     maxlength="4" pattern="\d{4}" inputmode="numeric"
+                     autocomplete="off" required
+                     placeholder="• • • •"
+                     style="color: var(--haiti-charcoal); letter-spacing: 10px; font-size: 22px;">
+            </div>
+          <% end %>
+
+          <%= submit_tag(@needs_pin_setup ? "Kreye PIN" : "Antre",
+                class: "btn w-100 fw-bold rounded-pill py-3 border-0",
+                style: "background: var(--haiti-gold); color: var(--haiti-charcoal); font-size: 13px; letter-spacing: 0.5px;") %>
+        <% end %>
+
+        <div class="text-center mt-3">
+          <%= button_to destroy_user_session_path, method: :delete,
+                class: "btn btn-link p-0 small fw-bold text-decoration-none",
+                style: "color: var(--haiti-olive); font-size: 11px;" do %>
+            <% if @needs_pin_setup %>Dekonekte<% else %>Bliye PIN? Dekonekte<% end %>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

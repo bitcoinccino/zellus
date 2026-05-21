@@ -59,6 +59,8 @@
       .navbar {
         margin-bottom: 0 !important;
         z-index: 1030;
+        position: sticky;
+        top: 0;
       }
 
       .btn-prestige {
@@ -154,7 +156,12 @@
         flex-direction: column;
         overflow: hidden;
         transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-        position: relative;
+        /* Pinned below the 70px navbar; align-self stops the flex row from
+           stretching it past the viewport so .user-sidebar-scroll can scroll. */
+        position: sticky;
+        top: 70px;
+        align-self: flex-start;
+        height: calc(100vh - 70px);
       }
       .user-sidebar.collapsed { width: 64px; }
 
@@ -442,6 +449,7 @@
     <%# ── Loading overlay (navigation + forms) ── %>
     <div id="loading-overlay"><div class="spinner"></div><div style="color: var(--haiti-gold); font-size: 13px; font-weight: 700;">Chaje..</div></div>
 
+    <% unless content_for?(:hide_navbar) %>
     <nav class="navbar navbar-expand-lg py-3 shadow-sm" style="background-color: var(--haiti-charcoal); border-bottom: 3px solid var(--haiti-gold);">
       <div class="container">
         <%= link_to root_path, class: "navbar-brand d-flex align-items-center me-4" do %>
@@ -466,112 +474,12 @@
                   <% end %>
                 </li>
               <% end %>
-              <%# ── Pwodui link (mobile) ── %>
+              <%# ── Apwopo / FAQ — mobile only (desktop: in user sidebar) ── %>
               <li class="nav-item d-lg-none">
-                <a class="nav-link text-white fw-bold py-2 px-3" style="font-size: 14px;" data-bs-toggle="collapse" href="#mobile-pwodui-menu" role="button">
-                  <i class="ri-apps-line me-2" style="color: var(--haiti-gold);"></i> Pwodui <i class="ri-arrow-down-s-line" style="font-size: 12px;"></i>
-                </a>
-                <div class="collapse ps-4" id="mobile-pwodui-menu">
-                  <%= link_to zellus_info_path, class: "d-block text-white text-decoration-none py-1 px-3", style: "font-size: 12px;" do %>
-                    <i class="ri-send-plane-fill me-1" style="color: var(--haiti-gold);"></i> Zèllus Pay
-                  <% end %>
-                  <%# ── Zèllus Biznis / Ajan — paused while focusing on core wallet actions ── %>
-                  <% if false %>
-                  <%= link_to annye_path, class: "d-block text-white text-decoration-none py-1 px-3", style: "font-size: 12px;" do %>
-                    <i class="ri-store-2-line me-1" style="color: var(--haiti-gold);"></i> Zèllus Biznis
-                  <% end %>
-                  <%= link_to ajan_info_path, class: "d-block text-white text-decoration-none py-1 px-3", style: "font-size: 12px;" do %>
-                    <i class="ri-user-location-line me-1" style="color: var(--haiti-gold);"></i> Zèllus Ajan
-                  <% end %>
-                  <% end %>
-                  <%# ── Zèllus Sòl / Bousad / Onèt Byento — re-enable when ready to deploy ── %>
-                  <% if false %>
-                  <%= link_to priosol_info_path, class: "d-block text-white text-decoration-none py-1 px-3", style: "font-size: 12px;" do %>
-                    <i class="ri-loop-right-line me-1" style="color: var(--haiti-gold);"></i> Zèllus Sòl <span class="badge-soon">Byento</span>
-                  <% end %>
-                  <hr class="my-1" style="border-color: rgba(255,255,255,0.1);">
-                  <%= link_to priobousad_info_path, class: "d-block text-white text-decoration-none py-1 px-3", style: "font-size: 12px;" do %>
-                    <i class="ri-hand-coin-line me-1" style="color: var(--haiti-gold);"></i> Zèllus Bousad <span class="badge-soon">Byento</span>
-                  <% end %>
-                  <%= link_to prionet_info_path, class: "d-block text-white text-decoration-none py-1 px-3", style: "font-size: 12px;" do %>
-                    <i class="ri-medal-line me-1" style="color: var(--haiti-gold);"></i> Zèllus Onèt <span class="badge-soon">Byento</span>
-                  <% end %>
-                  <% end %>
-                  <hr class="my-1" style="border-color: rgba(255,255,255,0.1);">
-                  <%= link_to apwopo_path, class: "d-block text-white text-decoration-none py-1 px-3", style: "font-size: 12px;" do %>
-                    <i class="ri-information-line me-1" style="color: var(--haiti-gold);"></i> Apwopo
-                  <% end %>
-                  <%= link_to faq_path, class: "d-block text-white text-decoration-none py-1 px-3", style: "font-size: 12px;" do %>
-                    <i class="ri-question-line me-1" style="color: var(--haiti-gold);"></i> FAQ
-                  <% end %>
-                </div>
+                <%= link_to "Apwopo", apwopo_path, class: "nav-link text-white fw-bold py-2 px-3", style: "font-size: 14px;" %>
               </li>
-              <%# Ajan link moved to mobile bottom nav %>
-              <li class="nav-item d-lg-none"><hr class="my-2" style="border-color: rgba(255,255,255,0.15);"></li>
-
-              <%# ── Pwodui dropdown (desktop) ── %>
-              <li class="nav-item dropdown d-none d-lg-block">
-                <a class="nav-link dropdown-toggle text-white fw-bold small" href="#" role="button" data-bs-toggle="dropdown">
-                  Pwodui
-                </a>
-                <ul class="dropdown-menu shadow-lg p-2" style="min-width: 320px; border: none; border-radius: 16px;">
-                  <li>
-                    <%= link_to zellus_info_path, class: "dropdown-item rounded p-3" do %>
-                      <div class="fw-bold" style="color: var(--haiti-charcoal);"><i class="ri-send-plane-fill me-2" style="color: var(--haiti-gold);"></i>Zèllus Pay</div>
-                      <div style="color: var(--haiti-olive); font-size: 11px; white-space: normal;">Voye ak resevwa lajan gratis.</div>
-                    <% end %>
-                  </li>
-                  <%# ── Zèllus Biznis / Ajan — paused while focusing on core wallet actions ── %>
-                  <% if false %>
-                  <li>
-                    <%= link_to annye_path, class: "dropdown-item rounded p-3" do %>
-                      <div class="fw-bold" style="color: var(--haiti-charcoal);"><i class="ri-store-2-line me-2" style="color: var(--haiti-gold);"></i>Zèllus Biznis</div>
-                      <div style="color: var(--haiti-olive); font-size: 11px; white-space: normal;">Aksepte peman Zèllus, voye peman dirèk, eskane kòd QR pèsonalize ou.</div>
-                    <% end %>
-                  </li>
-                  <li>
-                    <%= link_to ajan_info_path, class: "dropdown-item rounded p-3" do %>
-                      <div class="fw-bold" style="color: var(--haiti-charcoal);"><i class="ri-user-location-line me-2" style="color: var(--haiti-gold);"></i>Zèllus Ajan</div>
-                      <div style="color: var(--haiti-olive); font-size: 11px; white-space: normal;">Touche 2% komisyon sou depo lajan kach.</div>
-                    <% end %>
-                  </li>
-                  <% end %>
-                  <%# ── Zèllus Sòl / Bousad / Onèt Byento — re-enable when ready to deploy ── %>
-                  <% if false %>
-                  <li>
-                    <%= link_to priosol_info_path, class: "dropdown-item rounded p-3" do %>
-                      <div class="fw-bold" style="color: var(--haiti-charcoal);"><i class="ri-loop-right-line me-2" style="color: var(--haiti-gold);"></i>Zèllus Sòl <span class="badge-soon">Byento</span></div>
-                      <div style="color: var(--haiti-olive); font-size: 11px; white-space: normal;">Kreye Sòl ak zanmi, fanmi'w oswa kominote'w pou w ka ekonomize.</div>
-                    <% end %>
-                  </li>
-                  <li><hr class="dropdown-divider"></li>
-                  <li>
-                    <%= link_to priobousad_info_path, class: "dropdown-item rounded p-3" do %>
-                      <div class="fw-bold" style="color: var(--haiti-charcoal);"><i class="ri-hand-coin-line me-2" style="color: var(--haiti-gold);"></i>Zèllus Bousad <span class="badge-soon">Byento</span></div>
-                      <div style="color: var(--haiti-olive); font-size: 11px; white-space: normal;">Aplike pou yon prè pou bay biznis ou bousad.</div>
-                    <% end %>
-                  </li>
-                  <li>
-                    <%= link_to prionet_info_path, class: "dropdown-item rounded p-3" do %>
-                      <div class="fw-bold" style="color: var(--haiti-charcoal);"><i class="ri-medal-line me-2" style="color: var(--haiti-gold);"></i>Zèllus Onèt <span class="badge-soon">Byento</span></div>
-                      <div style="color: var(--haiti-olive); font-size: 11px; white-space: normal;">Bati kredi ou ak biznis ou pou debloke plis kapital.</div>
-                    <% end %>
-                  </li>
-                  <% end %>
-                  <li><hr class="dropdown-divider"></li>
-                  <li>
-                    <%= link_to apwopo_path, class: "dropdown-item rounded p-3" do %>
-                      <div class="fw-bold" style="color: var(--haiti-charcoal);"><i class="ri-information-line me-2" style="color: var(--haiti-gold);"></i>Apwopo</div>
-                      <div style="color: var(--haiti-olive); font-size: 11px; white-space: normal;">Aprann plis sou Zèllus ak misyon nou.</div>
-                    <% end %>
-                  </li>
-                  <li>
-                    <%= link_to faq_path, class: "dropdown-item rounded p-3" do %>
-                      <div class="fw-bold" style="color: var(--haiti-charcoal);"><i class="ri-question-line me-2" style="color: var(--haiti-gold);"></i>FAQ</div>
-                      <div style="color: var(--haiti-olive); font-size: 11px; white-space: normal;">Kesyon yo poze souvan sou Zèllus.</div>
-                    <% end %>
-                  </li>
-                </ul>
+              <li class="nav-item d-lg-none">
+                <%= link_to "FAQ", faq_path, class: "nav-link text-white fw-bold py-2 px-3", style: "font-size: 14px;" %>
               </li>
 
               <%# ── Resevwa Button (desktop) ── %>
@@ -609,7 +517,7 @@
                     <div class="px-3 py-2 d-flex align-items-center justify-content-between" style="background: var(--haiti-charcoal);">
                       <span class="fw-black small" style="color: var(--haiti-gold); font-family: 'Space Grotesk', sans-serif;">Notifikasyon</span>
                       <% if unread_notification_count > 0 %>
-                        <span id="notif-dropdown-count" class="badge rounded-pill" style="background: var(--haiti-gold); color: var(--haiti-charcoal); font-size: 9px; font-weight: 800;"><%= unread_notification_count %></span>
+                        <span id="notif-dropdown-count" style="color: var(--haiti-gold); font-size: 11px;"><%= unread_notification_count %></span>
                       <% end %>
                     </div>
                   </li>
@@ -617,7 +525,7 @@
                     <li style="background: var(--haiti-cream);">
                       <div class="p-2" style="max-height: 340px; overflow-y: auto;">
                         <% recent_notifications_for_dropdown.each do |notif| %>
-                          <%= link_to mark_read_notification_path(notif), class: "d-flex align-items-center gap-2 rounded-3 p-2 mb-1 text-decoration-none", style: "border-bottom: 1px solid var(--haiti-mint); #{notif.unread? ? 'border-left: 3px solid var(--haiti-gold); background: rgba(197,160,89,0.05);' : ''}" do %>
+                          <%= link_to mark_read_notification_path(notif), class: "d-flex align-items-center gap-2 rounded-3 p-2 mb-1 text-decoration-none", style: "border-bottom: 1px solid var(--haiti-mint); #{notif.unread? ? 'background: rgba(197,160,89,0.05);' : ''}" do %>
                             <div style="width: 32px; height: 32px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; border-radius: 50%; border: 1px solid rgba(197,160,89,0.3); background: rgba(197,160,89,0.06);">
                               <i class="<%= notif.icon_class %>" style="font-size: 16px; color: var(--haiti-gold);"></i>
                             </div>
@@ -890,6 +798,7 @@
         </div>
       </div>
     </nav>
+    <% end %>
 
     <%# ── Global auto-dismiss flash toast ── %>
     <% if flash[:notice].present? %>
@@ -939,7 +848,7 @@
       </script>
     <% end %>
 
-    <% if user_signed_in? %>
+    <% if user_signed_in? && !content_for?(:hide_navbar) %>
       <div class="d-flex" style="min-height: calc(100vh - 70px);">
         <%# ══════════════════════════════════════════════════════
             APP SIDEBAR — Desktop only, collapsible
@@ -1019,6 +928,19 @@
 
             <%# ── SÒL (disabled — coming soon) ── %>
             <%# ── BOUSAD (disabled — coming soon) ── %>
+
+            <%# ── PLIS (Apwopo / FAQ — moved here from the navbar Pwodui menu) ── %>
+            <div class="user-nav-section">
+              <div class="user-nav-header">PLIS</div>
+              <%= link_to apwopo_path, class: "user-nav-item #{request.path == apwopo_path ? 'user-nav-active' : ''}", data: { tooltip: "Apwopo" } do %>
+                <div class="user-nav-item-icon"><i class="ri-information-line"></i></div>
+                <span class="user-nav-item-label">Apwopo</span>
+              <% end %>
+              <%= link_to faq_path, class: "user-nav-item #{request.path == faq_path ? 'user-nav-active' : ''}", data: { tooltip: "FAQ" } do %>
+                <div class="user-nav-item-icon"><i class="ri-question-line"></i></div>
+                <span class="user-nav-item-label">FAQ</span>
+              <% end %>
+            </div>
 
             <%# ── Security footer (inside scroll area) ── %>
             <% if current_user.bonid_verified? %>
