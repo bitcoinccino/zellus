@@ -1,2 +1,17 @@
 #!/usr/bin/env bash
-exec foreman start -f Procfile.dev -p 0 "$@"
+
+# Run Rails server, Tailwind watcher, and Sidekiq side-by-side in development.
+# Replaces the foreman-based version so there's no global gem to install.
+# Process output is interleaved; use `foreman start -f Procfile.dev` or
+# `overmind start -f Procfile.dev` if you want prefixed/colored output.
+
+set -e
+
+# Forward Ctrl-C / SIGTERM to all child processes so the whole stack stops together.
+trap 'kill 0' SIGINT SIGTERM
+
+bin/rails server -p 3000 &
+bin/rails tailwindcss:watch &
+bundle exec sidekiq &
+
+wait
