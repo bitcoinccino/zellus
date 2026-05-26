@@ -4,7 +4,23 @@
 
 <style>
   /* bb-dark-field base styles in application.css; page-specific overrides here */
-  .bb-dark-field::placeholder { opacity: 1; font-weight: 400 !important; }
+  .bb-dark-field::placeholder {
+    color: rgba(255,255,255,0.5) !important;
+    opacity: 1;
+    font-weight: 400 !important;
+  }
+
+  /* Withdraw + Deposit panels: un-bold placeholders on light-background fields too
+     (fw-bold on the input bleeds into the placeholder otherwise) */
+  #panel-withdraw .form-control::placeholder,
+  #panel-deposit .form-control::placeholder {
+    font-weight: 400 !important;
+    opacity: 1;
+  }
+  #panel-withdraw .form-control:not(.bb-dark-field)::placeholder,
+  #panel-deposit .form-control:not(.bb-dark-field)::placeholder {
+    color: rgba(46,46,56,0.4) !important;
+  }
   .bb-dark-select { color: #fff !important; }
   .bb-dark-select option { background: #fff; color: #111827; }
 
@@ -166,6 +182,31 @@
   .stock-price-tag {
     display: inline-block; padding: 2px 7px; border-radius: 6px;
     font-size: 9px; font-weight: 700; letter-spacing: 0.3px;
+  }
+
+  /* Bank-pick pills inside the custom withdraw form */
+  .wd-bank-pill {
+    flex: 1;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(255,255,255,0.06);
+    border: 1.5px solid transparent;
+    border-radius: 10px;
+    padding: 9px 8px;
+    text-align: center;
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.7);
+    transition: all 0.15s;
+    margin: 0;
+    user-select: none;
+  }
+  .wd-bank-pill input { position: absolute; opacity: 0; pointer-events: none; }
+  .wd-bank-pill:hover { background: rgba(255,255,255,0.1); color: #fff; }
+  .wd-bank-pill:has(input:checked) {
+    border-color: var(--haiti-gold);
+    background: rgba(197,160,89,0.18);
+    color: #fff;
   }
 </style>
 
@@ -784,8 +825,6 @@
                   <div id="wd-dest-icon">
                     <% if @moncash_methods.any? %>
                       <%= moncash_logo_svg(size: 34) %>
-                    <% elsif @bank_methods.any? %>
-                      <%= unibank_logo_svg(size: 34) %>
                     <% else %>
                       <div class="d-flex align-items-center justify-content-center rounded-circle"
                            style="width: 34px; height: 34px; min-width: 34px; background: rgba(255,255,255,0.12);">
@@ -798,7 +837,7 @@
                       <% if @moncash_methods.any? %>
                         MonCash
                       <% elsif @bank_methods.any? %>
-                        UniBank
+                        <%= @bank_methods.first.provider_display_name %>
                       <% else %>
                         Chwazi destinasyon
                       <% end %>
@@ -809,7 +848,7 @@
                         <%= first_mc.account_number[0..2] %>····<%= first_mc.account_number.last(4) %>
                       <% elsif @bank_methods.any? %>
                         <% first_bk = @bank_methods.first %>
-                        ····<%= first_bk.account_number.last(4) %>
+                        ····<%= first_bk.bank_account_number.to_s.last(4) %>
                       <% end %>
                     </div>
                   </div>
@@ -838,19 +877,24 @@
                 </div>
               <% end %>
 
-              <%# ── Bank accounts ── %>
+              <%# ── Bank accounts (UniBank, Sogebank, Capital Bank) ── %>
               <% @bank_methods.each do |b| %>
+                <% last4 = b.bank_account_number.to_s.last(4) %>
                 <div class="wd-src-option"
-                     data-dest="bank" data-value="<%= b.account_number %>"
-                     data-label="UniBank" data-detail="····<%= b.account_number.last(4) %>"
+                     data-dest="bank" data-value="<%= b.bank_account_number %>"
+                     data-label="<%= b.provider_display_name %>" data-detail="····<%= last4 %>"
                      data-holder="<%= b.account_holder_name %>"
+                     data-bank-provider="<%= b.provider %>"
                      onclick="selectWdDest(this)">
                   <div class="d-flex align-items-center justify-content-between">
                     <div class="d-flex align-items-center gap-3">
-                      <%= unibank_logo_svg(size: 32) %>
+                      <div class="d-flex align-items-center justify-content-center rounded-circle"
+                           style="width: 32px; height: 32px; min-width: 32px; background: rgba(46,46,56,0.06);">
+                        <i class="ri-bank-line" style="font-size: 16px; color: var(--haiti-charcoal);"></i>
+                      </div>
                       <div>
-                        <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;">UniBank</div>
-                        <div style="font-size: 10px; color: var(--haiti-olive);">····<%= b.account_number.last(4) %></div>
+                        <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;"><%= b.provider_display_name %></div>
+                        <div style="font-size: 10px; color: var(--haiti-olive);">····<%= last4 %></div>
                       </div>
                     </div>
                     <i class="ri-check-line wd-dest-check" style="color: var(--haiti-gold); font-size: 18px; visibility: hidden;"></i>
@@ -858,37 +902,37 @@
                 </div>
               <% end %>
 
-              <%# ── Add new MonCash ── %>
-              <div class="wd-src-option" data-dest="moncash" data-value="custom"
-                   data-label="MonCash" data-detail="Lòt nimewo"
-                   onclick="selectWdDest(this)">
-                <div class="d-flex align-items-center justify-content-between">
+              <%# ── Empty state: no saved MonCash ── %>
+              <% if @moncash_methods.empty? %>
+                <%= link_to payment_methods_path, class: "wd-src-option text-decoration-none", style: "display: block;" do %>
                   <div class="d-flex align-items-center gap-3">
-                    <%= moncash_logo_svg(size: 32) %>
+                    <div class="d-flex align-items-center justify-content-center rounded-circle"
+                         style="width: 32px; height: 32px; min-width: 32px; background: rgba(46,46,56,0.06);">
+                      <i class="ri-add-line" style="font-size: 18px; color: var(--haiti-olive);"></i>
+                    </div>
                     <div>
-                      <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;">Lòt nimewo MonCash</div>
-                      <div style="font-size: 10px; color: var(--haiti-olive);">Antre yon nimewo manyèlman</div>
+                      <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;">Ajoute yon kont MonCash</div>
+                      <div style="font-size: 10px; color: var(--haiti-olive);">Ale nan Metòd Peman pou anrejistre</div>
                     </div>
                   </div>
-                  <i class="ri-check-line wd-dest-check" style="color: var(--haiti-gold); font-size: 18px; visibility: hidden;"></i>
-                </div>
-              </div>
+                <% end %>
+              <% end %>
 
-              <%# ── Add new Bank ── %>
-              <div class="wd-src-option" data-dest="bank" data-value="custom"
-                   data-label="UniBank" data-detail="Nouvo kont"
-                   onclick="selectWdDest(this)">
-                <div class="d-flex align-items-center justify-content-between">
+              <%# ── Empty state: no saved banks ── %>
+              <% if @bank_methods.empty? %>
+                <%= link_to payment_methods_path, class: "wd-src-option text-decoration-none", style: "display: block;" do %>
                   <div class="d-flex align-items-center gap-3">
-                    <%= unibank_logo_svg(size: 32) %>
+                    <div class="d-flex align-items-center justify-content-center rounded-circle"
+                         style="width: 32px; height: 32px; min-width: 32px; background: rgba(46,46,56,0.06);">
+                      <i class="ri-add-line" style="font-size: 18px; color: var(--haiti-olive);"></i>
+                    </div>
                     <div>
-                      <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;">Nouvo kont UniBank</div>
-                      <div style="font-size: 10px; color: var(--haiti-olive);">Antre enfòmasyon kont</div>
+                      <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;">Ajoute yon kont bank</div>
+                      <div style="font-size: 10px; color: var(--haiti-olive);">Ale nan Metòd Peman pou anrejistre</div>
                     </div>
                   </div>
-                  <i class="ri-check-line wd-dest-check" style="color: var(--haiti-gold); font-size: 18px; visibility: hidden;"></i>
-                </div>
-              </div>
+                <% end %>
+              <% end %>
 
               <%# ── USD on Base ── %>
               <div class="wd-src-option" data-dest="usd" data-value="external"
@@ -919,19 +963,6 @@
             <input type="hidden" name="moncash_phone" id="wd-dest-moncash-val" value="<%= @moncash_methods.first&.account_number %>">
 
             <div id="wd-step1-lajan">
-              <%# ── Custom phone input (hidden unless "Lòt nimewo" selected) ── %>
-              <div id="wd-custom-phone-row" class="mb-2" style="display: none;">
-                <div class="mb-1 fw-bold d-flex align-items-center gap-1" style="font-size: 11px; color: var(--haiti-olive);">
-                  <%= moncash_logo_svg(size: 14) %> Nimewo MonCash:
-                </div>
-                <div class="input-group" style="border: 1.5px solid rgba(46,46,56,0.12); border-radius: 12px; overflow: hidden;">
-                  <span class="input-group-text border-0" style="background-color: var(--haiti-mint); color: var(--haiti-gold);"><%= moncash_logo_svg(size: 20) %></span>
-                  <input type="tel" id="wd-lajan-phone-custom" name="moncash_phone_custom"
-                         class="form-control border-0 fw-bold shadow-none p-3"
-                         placeholder="509XXXXXXXX" pattern="509\d{8}"
-                         style="background-color: var(--haiti-mint); color: var(--haiti-charcoal);">
-                </div>
-              </div>
 
               <div class="mb-1 fw-bold" style="font-size: 11px; color: var(--haiti-olive);">Montan</div>
               <div class="input-group mb-2" style="border: 1.5px solid rgba(46,46,56,0.12); border-radius: 12px; overflow: hidden;">
@@ -1030,31 +1061,11 @@
         <div id="wd-section-bank" style="display: none;">
           <%= form_with(url: withdraw_bank_wallet_path, method: :post, local: true, id: "withdraw-bank-form") do %>
             <input type="hidden" name="source" id="wd-bank-source-field" value="personal">
-            <input type="hidden" name="bank_account_number" id="wd-dest-bank-val" value="<%= @bank_methods.first&.account_number %>">
+            <input type="hidden" name="bank_account_number" id="wd-dest-bank-val" value="<%= @bank_methods.first&.bank_account_number %>">
             <input type="hidden" name="account_holder_name" id="wd-dest-bank-holder" value="<%= @bank_methods.first&.account_holder_name %>">
+            <input type="hidden" name="bank_provider" id="wd-dest-bank-provider" value="<%= @bank_methods.first&.provider || 'unibank' %>">
 
             <div id="wd-step1-bank">
-              <%# ── Custom bank inputs (shown only for "Nouvo kont") ── %>
-              <div id="wd-custom-bank-row" style="display: none;">
-                <div class="mb-1 fw-bold d-flex align-items-center gap-1" style="font-size: 11px; color: var(--haiti-olive);">
-                  <%= unibank_logo_svg(size: 14) %> Nimewo Kont UniBank:
-                </div>
-                <div class="input-group mb-2">
-                  <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);"><i class="ri-bank-line"></i></span>
-                  <input type="text" id="wd-bank-account-custom" class="form-control border-0 fw-bold shadow-none p-3 bb-dark-field"
-                         placeholder="Nimewo kont"
-                         style="background-color: var(--haiti-charcoal); color: white;"
-                         oninput="document.getElementById('wd-dest-bank-val').value = this.value;">
-                </div>
-                <div class="mb-1 fw-bold" style="font-size: 11px; color: var(--haiti-olive);">Non Titilè Kont:</div>
-                <div class="input-group mb-2">
-                  <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);"><i class="ri-user-line"></i></span>
-                  <input type="text" id="wd-bank-holder-custom" class="form-control border-0 fw-bold shadow-none p-3 bb-dark-field"
-                         placeholder="Non konplè"
-                         style="background-color: var(--haiti-charcoal); color: white;"
-                         oninput="document.getElementById('wd-dest-bank-holder').value = this.value;">
-                </div>
-              </div>
 
               <div class="mb-1 fw-bold" style="font-size: 11px; color: var(--haiti-olive);">Montan</div>
               <div class="input-group mb-2">
@@ -1092,6 +1103,10 @@
                 <div class="d-flex justify-content-between small mb-1">
                   <span style="color: var(--haiti-olive);">Montan</span>
                   <span id="wd-review-amount-bank" class="fw-bold" style="color: var(--haiti-charcoal);"></span>
+                </div>
+                <div class="d-flex justify-content-between small mb-1">
+                  <span style="color: var(--haiti-olive);">Bank</span>
+                  <span id="wd-review-bank-bank" class="fw-bold" style="color: var(--haiti-charcoal);"></span>
                 </div>
                 <div class="d-flex justify-content-between small mb-1">
                   <span style="color: var(--haiti-olive);">Kont</span>
@@ -3344,15 +3359,16 @@ document.addEventListener('click', function(e) {
 });
 
 var WD_MONCASH_ICON = '<%= j moncash_logo_svg(size: 34) %>';
-var WD_UNIBANK_ICON = '<%= j unibank_logo_svg(size: 34) %>';
+var WD_BANK_ICON = '<div class="d-flex align-items-center justify-content-center rounded-circle" style="width: 34px; height: 34px; min-width: 34px; background: rgba(255,255,255,0.12);"><i class="ri-bank-line" style="font-size: 17px; color: var(--haiti-gold);"></i></div>';
 var WD_USD_ICON    = '<%= j usd_logo(size: 34) %>';
 
 function selectWdDest(el) {
   var dest   = el.dataset.dest;   // 'moncash', 'bank', or 'usd'
   var value  = el.dataset.value;  // account number, 'custom', or 'external'
-  var label  = el.dataset.label;  // 'MonCash', 'UniBank', or 'USD (Base)'
+  var label  = el.dataset.label;  // 'MonCash', bank provider name, or 'USD (Base)'
   var detail = el.dataset.detail; // masked number or 'Adrès ekstèn'
   var holder = el.dataset.holder || '';
+  var bankProvider = el.dataset.bankProvider || '';
 
   currentWdMethod = dest;
 
@@ -3364,51 +3380,29 @@ function selectWdDest(el) {
   el.classList.add('selected');
 
   // Update toggle display
-  var destIcon = dest === 'moncash' ? WD_MONCASH_ICON : (dest === 'usd' ? WD_USD_ICON : WD_UNIBANK_ICON);
+  var destIcon = dest === 'moncash' ? WD_MONCASH_ICON : (dest === 'usd' ? WD_USD_ICON : WD_BANK_ICON);
   document.getElementById('wd-dest-icon').innerHTML = destIcon;
   document.getElementById('wd-dest-name').textContent = label;
-  document.getElementById('wd-dest-detail').textContent = value === 'custom' ? (dest === 'moncash' ? 'Lòt nimewo' : 'Nouvo kont') : detail;
+  document.getElementById('wd-dest-detail').textContent = detail;
 
   // Show/hide form sections
   document.getElementById('wd-section-lajan').style.display  = dest === 'moncash' ? '' : 'none';
   document.getElementById('wd-section-bank').style.display   = dest === 'bank' ? '' : 'none';
   document.getElementById('wd-section-kripto').style.display  = dest === 'usd' ? '' : 'none';
 
-  // MonCash: set hidden phone value + show/hide custom input
+  // MonCash: set hidden phone from the selected saved method
   if (dest === 'moncash') {
-    var phoneHidden = document.getElementById('wd-dest-moncash-val');
-    var customRow   = document.getElementById('wd-custom-phone-row');
-    var customInput = document.getElementById('wd-lajan-phone-custom');
-    if (value === 'custom') {
-      customRow.style.display = '';
-      customInput.required = true;
-      customInput.name = 'moncash_phone';
-      phoneHidden.disabled = true;
-      customInput.focus();
-    } else {
-      customRow.style.display = 'none';
-      customInput.required = false;
-      customInput.name = 'moncash_phone_custom';
-      phoneHidden.disabled = false;
-      phoneHidden.value = value;
-    }
+    document.getElementById('wd-dest-moncash-val').value = value;
   }
 
-  // Bank: set hidden account + holder values + show/hide custom inputs
+  // Bank: set hidden account + holder + provider from the selected saved method
   if (dest === 'bank') {
-    var bankHidden   = document.getElementById('wd-dest-bank-val');
-    var holderHidden = document.getElementById('wd-dest-bank-holder');
-    var customBankRow = document.getElementById('wd-custom-bank-row');
-    if (value === 'custom') {
-      customBankRow.style.display = '';
-      bankHidden.value = '';
-      holderHidden.value = '';
-      document.getElementById('wd-bank-account-custom').focus();
-    } else {
-      customBankRow.style.display = 'none';
-      bankHidden.value = value;
-      holderHidden.value = holder;
-    }
+    var bankHidden     = document.getElementById('wd-dest-bank-val');
+    var holderHidden   = document.getElementById('wd-dest-bank-holder');
+    var providerHidden = document.getElementById('wd-dest-bank-provider');
+    bankHidden.value = value;
+    holderHidden.value = holder;
+    if (providerHidden && bankProvider) providerHidden.value = bankProvider;
   }
 
   // Close dropdown
@@ -3459,16 +3453,18 @@ function showBankWithdrawReview() {
   var amount = parseFloat(amountEl.value);
   if (!amount || amount < 500) { amountEl.focus(); amountEl.reportValidity(); return; }
 
-  // Read account from hidden field (populated by destination dropdown or custom input)
+  // Read account from hidden field (populated by destination dropdown)
   var acctVal = document.getElementById('wd-dest-bank-val').value.trim();
   if (!acctVal) {
-    var customAcct = document.getElementById('wd-bank-account-custom');
-    if (customAcct) { customAcct.focus(); customAcct.reportValidity(); }
+    alert('Tanpri chwazi yon kont bank nan Metòd Peman.');
     return;
   }
 
   var sourceLabel = currentWdSource === 'biznis' ? 'Pòtfèy Biznis' : 'Pòtfèy Pèsonèl';
+  var bankProvider = document.getElementById('wd-dest-bank-provider').value;
+  var bankNameMap = {'unibank': 'UniBank', 'sogebank': 'Sogebank', 'capital_bank': 'Capital Bank'};
   document.getElementById('wd-review-source-bank').textContent = sourceLabel;
+  document.getElementById('wd-review-bank-bank').textContent = bankNameMap[bankProvider] || 'Bank';
   document.getElementById('wd-review-amount-bank').textContent = Math.round(amount).toLocaleString('fr') + ' HTG';
   document.getElementById('wd-review-account-bank').textContent = acctVal.length > 6 ? acctVal.slice(0,3) + '···' + acctVal.slice(-4) : acctVal;
   var fee = Math.max(Math.round(amount * 0.01), 25);
@@ -3590,13 +3586,9 @@ function showWithdrawReview(section) {
 
     // Validate phone — from hidden field or custom input
     var phoneHidden = document.getElementById('wd-dest-moncash-val');
-    var phoneCustom = document.getElementById('wd-lajan-phone-custom');
-    var phoneVal = (phoneHidden && !phoneHidden.disabled) ? phoneHidden.value.trim() : (phoneCustom ? phoneCustom.value.trim() : '');
+    var phoneVal = phoneHidden ? phoneHidden.value.trim() : '';
     if (!phoneVal) {
-      if (phoneCustom && phoneCustom.style.display !== 'none') {
-        phoneCustom.focus();
-        phoneCustom.reportValidity();
-      }
+      alert('Tanpri chwazi yon kont MonCash nan Metòd Peman.');
       return;
     }
 

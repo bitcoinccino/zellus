@@ -49,7 +49,6 @@ class PaymentMethodsController < ApplicationController
   def load_payment_methods
     @payment_methods = current_user.payment_methods.order(is_default: :desc, active: :desc, created_at: :desc)
     @mobile_wallet_methods = @payment_methods.select(&:mobile_wallet?)
-    @crypto_wallet_methods = @payment_methods.select(&:crypto_wallet?)
     @bank_account_methods  = @payment_methods.select(&:bank_account?)
   end
 

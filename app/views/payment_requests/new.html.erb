@@ -1,6 +1,15 @@
 <style>
   .bb-dark-field { color: #fff !important; }
   .bb-dark-field::placeholder { color: rgba(255,255,255,0.5) !important; opacity:1; font-weight:400 !important; }
+
+  /* Un-bold placeholders inside the Mande Lajan form (inputs are fw-bold for typed text) */
+  #pr-form .form-control::placeholder,
+  #pr-form input::placeholder,
+  #pr-form textarea::placeholder {
+    font-weight: 400 !important;
+    color: rgba(46,46,56,0.4) !important;
+    opacity: 1;
+  }
 </style>
 
 <% wallet = current_user.ensure_wallet! %>
@@ -162,16 +171,16 @@
           <input type="hidden" name="payment_request[payer_id]" id="pr-payer-id" value="">
         </div>
 
-        <%# ── 4. Reason/Note ── %>
+        <%# ── 4. Reason/Note (required) ── %>
         <div class="mb-3">
           <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">
-            <i class="ri-price-tag-3-line me-1"></i>Poukisa
+            <i class="ri-price-tag-3-line me-1"></i>Poukisa <span style="color: var(--haiti-gold);">*</span>
           </label>
           <div class="input-group" style="border: 1.5px solid rgba(46,46,56,0.12); border-radius: 12px; overflow: hidden;">
             <span class="input-group-text border-0" style="background-color: var(--haiti-mint); color: var(--haiti-gold);">
               <i class="ri-price-tag-3-line"></i>
             </span>
-            <%= f.text_field :note, placeholder: "Ou pat peye byè a yè swa", maxlength: 140,
+            <%= f.text_field :note, placeholder: "Ou pat peye byè a yè swa", maxlength: 140, required: true,
                 class: "form-control border-0 fw-bold shadow-none p-3",
                 style: "background-color: var(--haiti-mint); color: var(--haiti-charcoal);" %>
           </div>

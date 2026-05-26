@@ -21,7 +21,7 @@ class PaymentRequest < ApplicationRecord
   validates :token, presence: true, uniqueness: true
   validates :asset, presence: true
   validates :amount, presence: true, numericality: { greater_than: 0 }
-  validates :note, length: { maximum: 140 }, allow_blank: true
+  validates :note, presence: true, length: { maximum: 140 }
   validates :receiver_account_number,
             format: { with: /\A509\d{8}\z/, message: "must be a valid MonCash number (509 + 8 digits)" },
             allow_blank: true

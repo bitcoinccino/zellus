@@ -4,6 +4,12 @@ class RateService
   DEFAULT_ETH_USD_FALLBACK = 3_500.0
   DEFAULT_CACHE_TTL_SECONDS = 300
 
+  # Sanity band for USD→HTG. Anything outside this range is almost certainly
+  # an API glitch or stale/corrupted cache entry, not a real market move.
+  # HTG has hovered around 100-170 per USD for years. Reject and use fallback.
+  MIN_REASONABLE_USD_HTG = 50.0
+  MAX_REASONABLE_USD_HTG = 300.0
+
   # Approximate fallback prices (USD) for tokenized stocks
   STOCK_FALLBACKS = {
     "tslax"  => 395.0,
@@ -46,10 +52,22 @@ class RateService
     end
 
     def usd_htg_rate
-      Rails.cache.fetch("rates/usd_htg", expires_in: cache_ttl_seconds.seconds) do
+      raw = Rails.cache.fetch("rates/usd_htg", expires_in: cache_ttl_seconds.seconds) do
         rate = fetch_usd_htg_rate || fallback_rate
         write_fetched_timestamp
         rate
+      end.to_f
+
+      # Guard against poisoned cache entries / API glitches. HTG/USD has
+      # hovered around 100-170 for years — anything outside the sanity band
+      # is almost certainly a bad API response (e.g. 0.303 instead of 135.50)
+      # that would render conversions like "4.49 USD ≈ 1.36 HTG".
+      if raw.between?(MIN_REASONABLE_USD_HTG, MAX_REASONABLE_USD_HTG)
+        raw
+      else
+        Rails.logger.error "RateService: USD/HTG out of sanity band (#{raw.inspect}) — using fallback #{fallback_rate}"
+        Rails.cache.delete("rates/usd_htg") rescue nil
+        fallback_rate
       end
     rescue => e
       Rails.logger.error "RateService cache/fetch error: #{e.message}"
@@ -164,6 +182,12 @@ class RateService
       rate = data["result"] || data.dig("info", "rate") || data.dig("rates", "HTG")
       rate = rate.to_f
       return nil if rate <= 0
+
+      # Drop obviously bad values at the source so they never reach the cache.
+      unless rate.between?(MIN_REASONABLE_USD_HTG, MAX_REASONABLE_USD_HTG)
+        Rails.logger.error "RateService USD/HTG fetch returned out-of-band value #{rate} — ignoring"
+        return nil
+      end
 
       Rails.logger.info "RateService USD/HTG fetched: #{rate}"
       rate.round(4)

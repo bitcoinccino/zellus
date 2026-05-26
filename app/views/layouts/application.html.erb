@@ -1220,17 +1220,20 @@
           }).catch(function() {});
         }
 
-        // Also prime HTML5 Audio (Safari needs audible play from gesture)
-        chimeAudio.volume = 0.01;
+        // Prime HTML5 Audio with a silent play so Safari allows future playback.
+        // muted=true ensures the unlock itself is inaudible.
+        chimeAudio.muted = true;
         var p = chimeAudio.play();
         if (p && p.then) {
           p.then(function() {
             chimeAudio.pause();
             chimeAudio.currentTime = 0;
+            chimeAudio.muted = false;
             chimeAudio.volume = 0.6;
             audioUnlocked = true;
             console.log('[Zèllus] Audio unlocked ✓');
           }).catch(function() {
+            chimeAudio.muted = false;
             // HTML5 Audio failed but AudioContext may work
             if (audioCtx && audioCtx.state === 'running') {
               audioUnlocked = true;
@@ -1622,10 +1625,15 @@
       }
 
       document.addEventListener('visibilitychange', function() {
-        if (!document.hidden) forceReconnect();
+        if (!document.hidden) {
+          forceReconnect();
+          // Also kick off an immediate poll so wallet balances refresh right
+          // away when the user returns to the tab (don't wait the 20s tick).
+          pollForMissedSounds();
+        }
       });
-      window.addEventListener('online', forceReconnect);
-      window.addEventListener('focus', forceReconnect);
+      window.addEventListener('online', function() { forceReconnect(); pollForMissedSounds(); });
+      window.addEventListener('focus', function() { forceReconnect(); pollForMissedSounds(); });
 
       // ── 6. Polling fallback: catch missed deposit sounds ──
       // If WebSocket was disconnected when the broadcast fired, the sound
@@ -1649,6 +1657,11 @@
             // Update badge from poll too
             if (typeof d.unread_count === 'number') {
               bumpNotificationBadge(d.unread_count);
+            }
+            // Self-heal wallet balances if the page is showing them and we
+            // missed a real-time broadcast.
+            if (d.balances && typeof updateBalances === 'function') {
+              updateBalances({ balances: d.balances });
             }
           })
           .catch(function(e) {

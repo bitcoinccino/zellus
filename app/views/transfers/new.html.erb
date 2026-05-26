@@ -199,6 +199,45 @@
     margin-top: 2px;
     padding-top: 10px;
   }
+
+  /* Un-bold placeholders inside this form (inputs are fw-bold for typed text) */
+  #transfer-form .form-control::placeholder,
+  #transfer-form input::placeholder,
+  #transfer-form textarea::placeholder {
+    font-weight: 400 !important;
+    color: rgba(46,46,56,0.4) !important;
+    opacity: 1;
+  }
+
+  /* Header kebab menu */
+  .hdr-kebab-btn {
+    width: 36px; height: 36px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    background: transparent; border: none; cursor: pointer;
+    color: var(--haiti-olive); transition: all 0.15s ease;
+  }
+  .hdr-kebab-btn:hover { background: rgba(46,46,56,0.06); color: var(--haiti-charcoal); }
+  .hdr-kebab-menu {
+    position: absolute; right: 0; top: calc(100% + 6px);
+    min-width: 180px;
+    background: #fff;
+    border: 1px solid rgba(46,46,56,0.1);
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+    padding: 6px;
+    z-index: 100;
+    display: none;
+  }
+  .hdr-kebab-menu.open { display: block; }
+  .hdr-kebab-item {
+    display: flex; align-items: center; gap: 10px;
+    width: 100%; padding: 10px 12px;
+    background: transparent; border: none; border-radius: 8px;
+    font-size: 13px; font-weight: 600; color: var(--haiti-charcoal);
+    cursor: pointer; text-align: left;
+  }
+  .hdr-kebab-item:hover { background: rgba(197,160,89,0.08); color: var(--haiti-gold); }
+  .hdr-kebab-item i { font-size: 16px; color: var(--haiti-gold); }
 </style>
 
 <% content_for :full_width, true %>
@@ -341,21 +380,26 @@
 
       <% user_wallet = current_user.wallet %>
       <% total_htg = (user_wallet&.htg_balance || 0) + ((user_wallet&.usdc_balance || 0) * (@usdc_htg_rate || 135.50)) + ((user_wallet&.eth_balance || 0) * (@eth_htg_rate || 390000)) + ((user_wallet&.wbtc_balance || 0) * (@wbtc_htg_rate || 12872500)) + %w[tslax nvdax aaplx coinx googlx].sum { |t| (user_wallet&.send(:"#{t}_balance") || 0) * (@stock_htg_rates&.fetch(t, 0) || 0) } %>
-      <div class="mb-2">
-        <%= link_to wallet_path, class: "small text-decoration-none fw-bold", style: "color: var(--haiti-olive);" do %>
-          <i class="ri-arrow-left-line me-1"></i>Retounen nan Pòtfèy
-        <% end %>
-      </div>
-      <div class="d-flex align-items-start justify-content-between gap-3 mb-3">
-        <div>
+      <%# Default the "Map peye ak" picker to whichever asset has funds.
+          Prefer HTG (local currency) when it has balance OR when both are empty;
+          switch to USD only when HTG is empty AND USD has balance. %>
+      <% default_asset = (user_wallet&.htg_balance.to_f <= 0 && user_wallet&.usdc_balance.to_f > 0) ? "usd" : "htg" %>
+      <% default_is_usd = default_asset == "usd" %>
+      <div class="mb-3">
+        <div class="d-flex align-items-center justify-content-between gap-3">
           <h1 class="h5 fw-black mb-0" style="color: var(--haiti-charcoal);">Peye oswa Voye Lajan</h1>
-          <p class="mb-0 mt-1" style="font-size: 12px; color: var(--haiti-olive); line-height: 1.4;">Peye oswa voye lajan bay nenp&ograve;t moun sou Z&egrave;llus rapid e ak sekirite.</p>
+          <div class="position-relative flex-shrink-0" id="hdr-kebab">
+            <button type="button" class="hdr-kebab-btn" onclick="toggleHdrKebab(event)" aria-label="Plis opsyon">
+              <i class="ri-more-fill" style="font-size: 20px;"></i>
+            </button>
+            <div class="hdr-kebab-menu" id="hdr-kebab-menu">
+              <button type="button" class="hdr-kebab-item" onclick="document.getElementById('hdr-kebab-menu').classList.remove('open'); openQrScanner();">
+                <i class="ri-qr-scan-2-line"></i> Eskane QR
+              </button>
+            </div>
+          </div>
         </div>
-        <button type="button" onclick="openQrScanner()"
-                class="btn btn-sm d-flex align-items-center gap-1 rounded-pill px-3 py-2 fw-bold"
-                style="background: transparent; color: var(--haiti-gold); border: 1.5px solid var(--haiti-gold); font-size: 12px;">
-          <i class="ri-qr-scan-2-line" style="font-size: 15px;"></i> Eskane
-        </button>
+        <p class="mb-0 mt-1" style="font-size: 12px; color: var(--haiti-olive); line-height: 1.4;">Peye oswa voye lajan bay nenp&ograve;t moun sou Z&egrave;llus rapid e ak sekirite.</p>
       </div>
 
       <%= form_with(model: @transfer, url: transfers_path, method: :post, local: true, class: "row g-2", id: "transfer-form") do |f| %>
@@ -372,8 +416,8 @@
           <div class="position-relative" id="dest-dropdown">
             <button type="button" onclick="toggleDestDropdown()" class="d-flex align-items-center gap-2 w-100 p-3 rounded-3 fw-bold"
                     style="background-color: var(--haiti-mint); border: 1px solid rgba(46,46,56,0.1); color: var(--haiti-charcoal); font-size: 13px; cursor: pointer;">
-              <span id="dest-selected-logo" class="d-inline-flex align-items-center"><%= htg_logo_svg(size: 22) %></span>
-              <span id="dest-selected-label" class="flex-grow-1 text-start">HTG</span>
+              <span id="dest-selected-logo" class="d-inline-flex align-items-center"><%= default_is_usd ? usd_logo(size: 22) : htg_logo_svg(size: 22) %></span>
+              <span id="dest-selected-label" class="flex-grow-1 text-start"><%= default_is_usd ? "USD" : "HTG" %></span>
               <i class="ri-arrow-down-s-line" style="color: var(--haiti-olive);"></i>
             </button>
             <div id="dest-dropdown-menu" class="position-absolute w-100 rounded-3 shadow-lg overflow-auto"
@@ -394,13 +438,13 @@
               </div>
               <button type="button" class="dest-item d-flex align-items-center gap-2 w-100 px-3 py-2 border-0"
                       data-value="zellus-htg" onclick="selectDest('zellus-htg', this)"
-                      style="background: rgba(197,160,89,0.06); color: var(--haiti-charcoal); font-size: 13px; font-weight: 600; cursor: pointer;">
+                      style="background: <%= default_is_usd ? 'transparent' : 'rgba(197,160,89,0.06)' %>; color: var(--haiti-charcoal); font-size: 13px; font-weight: 600; cursor: pointer;">
                 <span class="d-inline-flex align-items-center"><%= htg_logo_svg(size: 20) %></span> HTG
                 <span class="ms-auto" style="color: var(--haiti-gold); font-size: 11px; font-weight: 400;"><%= htg_bal %></span>
               </button>
               <button type="button" class="dest-item d-flex align-items-center gap-2 w-100 px-3 py-2 border-0"
                       data-value="zellus-usdc" onclick="selectDest('zellus-usdc', this)"
-                      style="background: transparent; color: var(--haiti-charcoal); font-size: 13px; font-weight: 600; cursor: pointer;">
+                      style="background: <%= default_is_usd ? 'rgba(197,160,89,0.06)' : 'transparent' %>; color: var(--haiti-charcoal); font-size: 13px; font-weight: 600; cursor: pointer;">
                 <span class="d-inline-flex align-items-center"><%= usd_logo(size: 20) %></span> USD
                 <span class="ms-auto" style="color: var(--haiti-gold); font-size: 11px; font-weight: 400;"><%= usdc_bal %></span>
               </button>
@@ -431,7 +475,7 @@
               <% end %>
             </div>
           </div>
-          <input type="hidden" name="asset" id="asset-hidden" value="htg">
+          <input type="hidden" name="asset" id="asset-hidden" value="<%= default_asset %>">
           <input type="hidden" name="receiver_mode" id="receiver-mode" value="wallet">
 
           <%# ── Mobile contextual tip (hidden on desktop) ── %>
@@ -517,14 +561,14 @@
           <div id="usdc-tag-result" class="mt-1" style="display: none;"></div>
         </div>
 
-        <%# ── Note ── %>
+        <%# ── Note (required) ── %>
         <div class="col-12">
-          <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Pou Kisa</label>
+          <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Pou Kisa <span style="color: var(--haiti-gold);">*</span></label>
           <div class="input-group" style="border: 1.5px solid rgba(46,46,56,0.12); border-radius: 12px; overflow: hidden;">
             <span class="input-group-text border-0 align-items-start pt-3" style="background-color: var(--haiti-mint); color: var(--haiti-gold);">
               <i class="ri-chat-1-line"></i>
             </span>
-            <%= f.text_area :note, rows: 2, maxlength: 280, placeholder: "Pou kisa lajan sa a ye?",
+            <%= f.text_area :note, rows: 2, maxlength: 280, required: true, placeholder: "Pou kisa lajan sa a ye?",
                 class: "form-control border-0 fw-bold shadow-none p-3",
                 style: "background-color: var(--haiti-mint); color: var(--haiti-charcoal);" %>
           </div>
@@ -986,7 +1030,27 @@ document.addEventListener('click', function(e) {
   if (dd && !dd.contains(e.target)) {
     document.getElementById('dest-dropdown-menu').style.display = 'none';
   }
+  var kebab = document.getElementById('hdr-kebab');
+  if (kebab && !kebab.contains(e.target)) {
+    var km = document.getElementById('hdr-kebab-menu');
+    if (km) km.classList.remove('open');
+  }
 });
+
+function toggleHdrKebab(ev) {
+  if (ev) ev.stopPropagation();
+  var menu = document.getElementById('hdr-kebab-menu');
+  if (menu) menu.classList.toggle('open');
+}
+
+<% if default_is_usd %>
+// Server picked USD as default (HTG balance empty, USD has funds).
+// Trigger the existing selectDest so the amount label, limits, suffix etc. all align.
+document.addEventListener('DOMContentLoaded', function() {
+  var btn = document.querySelector('[data-value="zellus-usdc"]');
+  if (btn && typeof selectDest === 'function') selectDest('zellus-usdc', btn);
+});
+<% end %>
 
 // ── Handle amount input: sync visible → hidden (convert USDC → HTG if needed) ──
 function handleAmountInput() {

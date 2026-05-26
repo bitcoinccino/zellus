@@ -40,7 +40,7 @@ Rails.application.configure do
   config.action_mailer.perform_caching = false
 
   # Set localhost to be used by links generated in mailer templates.
-  config.action_mailer.default_url_options = { host: "elaina-nonorthographical-bromidically.ngrok-free.dev", protocol: "https" }
+  config.action_mailer.default_url_options = { host: "zellus.ht.ngrok.dev", protocol: "https" }
 
   # Print deprecation notices to the Rails logger.
   config.active_support.deprecation = :log

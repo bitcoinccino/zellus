@@ -2,7 +2,26 @@ class PaymentMethod < ApplicationRecord
   belongs_to :user
 
   enum :category, { mobile_wallet: "mobile_wallet", crypto_wallet: "crypto_wallet", bank_account: "bank_account" }
-  enum :provider, { moncash: "moncash", base: "base", unibank: "unibank" }
+  enum :provider, {
+    moncash: "moncash",
+    natcash: "natcash",
+    base: "base",
+    unibank: "unibank",
+    sogebank: "sogebank",
+    capital_bank: "capital_bank"
+  }
+
+  PROVIDER_DISPLAY_NAMES = {
+    "moncash" => "MonCash",
+    "natcash" => "Natcash",
+    "base" => "Base USD",
+    "unibank" => "UniBank",
+    "sogebank" => "Sogebank",
+    "capital_bank" => "Capital Bank"
+  }.freeze
+
+  MOBILE_WALLET_PROVIDERS = %w[moncash natcash].freeze
+  BANK_PROVIDERS = %w[unibank sogebank capital_bank].freeze
   enum :network, { base_network: "base" }, prefix: :network
   enum :asset, { usd: "usd", eth: "eth" }, prefix: :asset
 
@@ -22,7 +41,7 @@ class PaymentMethod < ApplicationRecord
   validates :label, length: { maximum: 50 }, allow_blank: true
 
   validates :account_number, presence: true,
-            format: { with: /\A509\d{8}\z/, message: "must be a valid MonCash number (509 + 8 digits)" },
+            format: { with: /\A509\d{8}\z/, message: "must be a valid Haitian mobile number (509 + 8 digits)" },
             if: :mobile_wallet?
   validates :account_number, uniqueness: { scope: [:user_id, :provider, :category], message: "is already saved" }, if: :mobile_wallet?
 
@@ -39,10 +58,23 @@ class PaymentMethod < ApplicationRecord
     label.presence || default_label
   end
 
+  def provider_display_name
+    PROVIDER_DISPLAY_NAMES[provider.to_s] || provider.to_s.titleize
+  end
+
   def masked_account_number
     return account_number if account_number.blank? || account_number.length < 4
 
-    "(509) •••• #{account_number.last(4)}"
+    "+509 •••• #{account_number.last(4)}"
+  end
+
+  def local_account_number
+    return "" if account_number.blank?
+
+    digits = account_number.to_s.delete_prefix("509")
+    return account_number if digits.length != 8
+
+    "#{digits[0..3]} #{digits[4..7]}"
   end
 
   def masked_wallet_address
@@ -95,14 +127,13 @@ class PaymentMethod < ApplicationRecord
       self.provider ||= "unibank"
       self.network = nil
       self.asset = nil
-      self.bank_name ||= "UNIBANK"
+      self.bank_name = provider_display_name.upcase
       self.wallet_address = nil if wallet_address.blank?
     end
   end
 
   def default_label
-    return "MonCash" if mobile_wallet?
-    return bank_name.presence || "UNIBANK" if bank_account?
+    return provider_display_name if mobile_wallet? || bank_account?
 
     parts = ["Base"]
     parts << asset.to_s.upcase if asset.present?

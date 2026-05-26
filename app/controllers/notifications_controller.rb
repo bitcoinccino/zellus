@@ -91,10 +91,24 @@ class NotificationsController < ApplicationController
 
     unread_count = current_user.notifications.unread.count
 
+    # Include current wallet balances so the wallet page can self-heal
+    # when ActionCable broadcasts are missed (dropped WebSocket on mobile,
+    # ngrok tunnel hiccup, idle disconnect, etc.).
+    wallet = current_user.wallet
+    balances = if wallet
+      {
+        htg:  wallet.htg_balance.to_f.round(2),
+        usd:  wallet.usd_balance.to_f.round(2),
+        eth:  wallet.eth_balance.to_f.round(6),
+        wbtc: wallet.wbtc_balance.to_f.round(8)
+      }
+    end
+
     render json: {
       unread_count: unread_count,
       latest_sound_id: latest_sound&.first,
-      latest_sound_at: latest_sound&.last&.iso8601
+      latest_sound_at: latest_sound&.last&.iso8601,
+      balances: balances
     }
   end
 

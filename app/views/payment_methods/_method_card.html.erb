@@ -89,9 +89,14 @@
       <% if pm.mobile_wallet? %>
         <div>
           <label class="form-label small fw-bold text-uppercase mb-1" style="color: var(--haiti-olive); font-size: 9px; letter-spacing: 1px;">Nimewo MonCash</label>
-          <%= f.text_field :account_number, value: pm.account_number, inputmode: "tel",
-              class: "form-control fw-bold shadow-none p-3",
-              style: "background-color: var(--haiti-mint); color: var(--haiti-charcoal); border: 1.5px solid rgba(46,46,56,0.12); border-radius: 10px; font-size: 13px;" %>
+          <div class="input-group" style="border: 1.5px solid rgba(46,46,56,0.12); border-radius: 10px; overflow: hidden;">
+            <span class="input-group-text border-0 fw-bold" style="background-color: var(--haiti-mint); color: var(--haiti-olive); font-size: 13px; letter-spacing: 0.5px;">
+              +509
+            </span>
+            <%= f.text_field :account_number, value: pm.local_account_number, inputmode: "tel", maxlength: 9, placeholder: "3712 9864",
+                class: "form-control border-0 fw-bold shadow-none p-3 pm-phone-input",
+                style: "background-color: var(--haiti-mint); color: var(--haiti-charcoal); font-size: 13px;" %>
+          </div>
         </div>
       <% elsif pm.bank_account? %>
         <div>

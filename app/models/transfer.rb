@@ -37,7 +37,7 @@ class Transfer < ApplicationRecord
   validates :status, presence: true
 
   validates :receiver_name, length: { maximum: 100 }, allow_blank: true
-  validates :note, length: { maximum: 280 }, allow_blank: true
+  validates :note, presence: true, length: { maximum: 280 }
 
   validates :receiver_phone,
             format: { with: /\A509\d{8}\z/, message: "dwe yon nimewo MonCash valid (509 + 8 chif)" },

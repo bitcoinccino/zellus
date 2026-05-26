@@ -1,7 +1,4 @@
 <% content_for :hide_navbar, true %>
-<%# Konekte vs Kreye Kont is cosmetic framing — the OTP flow handles
-    sign-in / sign-up identically. mode=kreye switches the wording. %>
-<% signup = params[:mode].to_s == "kreye" %>
 
 <div class="container py-5" style="min-height: 100vh;">
   <div class="row justify-content-center">
@@ -11,7 +8,10 @@
         <%= link_to new_user_session_path, title: "Tounen nan paj prensipal" do %>
           <%= image_tag "zellus_square.png", alt: "Zèllus", style: "width: 60px; height: 60px; border-radius: 14px; margin-bottom: 22px;" %>
         <% end %>
-        <h1 class="fw-black mb-1" style="color: var(--haiti-charcoal); font-size: 24px; font-family: 'Space Grotesk', sans-serif;"><%= signup ? "Kreye Kont" : "Konekte" %></h1>
+        <h1 class="fw-black mb-1" style="color: var(--haiti-charcoal); font-size: 24px; font-family: 'Space Grotesk', sans-serif;">Konekte</h1>
+        <p class="mb-0 mt-2 mx-auto" style="color: var(--haiti-olive); font-size: 12px; line-height: 1.5; max-width: 320px;">
+          Si imèl sa a gen yon kont Zellus deja, n ap konekte w. Si l nouvo, n ap kòmanse kreye yon nouvo kont Zellus pou ou.
+        </p>
       </div>
 
       <div class="p-4 rounded-4" style="background: #fff; border: 1px solid rgba(46,46,56,0.08); box-shadow: 0 4px 14px rgba(46,46,56,0.06);">
@@ -29,16 +29,21 @@
                   style: "font-size: 14px; color: var(--haiti-charcoal);" %>
           </div>
 
+          <div class="d-flex align-items-start gap-2 mb-3 mt-1">
+            <input type="checkbox" name="terms_accepted" id="terms_accepted" required
+                   class="flex-shrink-0"
+                   style="width: 16px; height: 16px; margin-top: 2px; accent-color: var(--haiti-gold); cursor: pointer;">
+            <label for="terms_accepted" class="mb-0" style="color: var(--haiti-olive); font-size: 11px; line-height: 1.5; cursor: pointer;">
+              Mwen aksepte
+              <span class="fw-bold" style="color: var(--haiti-gold);">Tèm</span>,
+              <span class="fw-bold" style="color: var(--haiti-gold);">Konsantman</span>, ak
+              <span class="fw-bold" style="color: var(--haiti-gold);">Politik Konfidansyalite</span> Zellus yo.
+            </label>
+          </div>
+
           <%= f.submit "Kontinye",
                 class: "btn w-100 fw-bold rounded-pill py-3 border-0",
                 style: "background: var(--haiti-gold); color: var(--haiti-charcoal); font-size: 13px; letter-spacing: 0.5px;" %>
-
-          <p class="text-center mt-3 mb-0" style="color: var(--haiti-olive); font-size: 10px; line-height: 1.5;">
-            Lè ou antre imèl ou epi klike Kontinye, ou aksepte
-            <span class="fw-bold" style="color: var(--haiti-gold);">Tèm</span>,
-            <span class="fw-bold" style="color: var(--haiti-gold);">Konsantman</span>, ak
-            <span class="fw-bold" style="color: var(--haiti-gold);">Politik Konfidansyalite</span> nou yo.
-          </p>
         <% end %>
 
         <div class="text-center my-3 small" style="color: var(--haiti-olive); font-size: 11px;">
@@ -50,14 +55,6 @@
               class: "btn w-100 fw-bold rounded-pill py-3 border-0 d-flex align-items-center justify-content-center gap-2",
               style: "background: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 13px;" do %>
           <i class="ri-shield-check-line"></i> Konekte ak BonID
-        <% end %>
-      </div>
-
-      <div class="text-center mt-3" style="color: var(--haiti-olive); font-size: 13px;">
-        <% if signup %>
-          Gen yon kont deja? <%= link_to "Konekte", login_path, class: "fw-bold text-decoration-none", style: "color: var(--haiti-gold);" %>
-        <% else %>
-          Poko gen yon kont? <%= link_to "Kreye yon kont", login_path(mode: "kreye"), class: "fw-bold text-decoration-none", style: "color: var(--haiti-gold);" %>
         <% end %>
       </div>
     </div>

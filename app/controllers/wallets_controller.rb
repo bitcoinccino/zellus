@@ -13,7 +13,7 @@ class WalletsController < ApplicationController
   def show
     @ledger_entries = @wallet.wallet_ledger_entries.recent_first.includes(:reference).limit(25)
     @moncash_methods = current_user.payment_methods.active.mobile_wallet.moncash.order(created_at: :desc)
-    @bank_methods = current_user.payment_methods.active.bank_account.where(provider: :unibank).order(created_at: :desc)
+    @bank_methods = current_user.payment_methods.active.bank_account.order(created_at: :desc)
     @treasury_address = CryptoKeyHelper.treasury_address
     @incoming_requests = PaymentRequest.incoming_for(current_user).includes(:user).recent_first
     @sell_rate = RateService.sell_rate  # USD→HTG: user gets this many HTG per USD
@@ -293,7 +293,8 @@ class WalletsController < ApplicationController
     amount       = params[:amount].to_f
     account_num  = params[:bank_account_number].to_s.strip
     holder_name  = params[:account_holder_name].to_s.strip
-    bank_name    = "UNIBANK"
+    bank_provider = params[:bank_provider].to_s.presence_in(PaymentMethod::BANK_PROVIDERS) || "unibank"
+    bank_name    = PaymentMethod::PROVIDER_DISPLAY_NAMES[bank_provider].to_s.upcase
 
     if amount < BankWithdrawal::MIN_AMOUNT || amount > BankWithdrawal::MAX_AMOUNT
       redirect_to wallet_path, alert: "Montan retrè bank dwe ant #{BankWithdrawal::MIN_AMOUNT} ak #{number_with_delimiter(BankWithdrawal::MAX_AMOUNT)} HTG."

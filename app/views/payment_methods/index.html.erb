@@ -2,6 +2,14 @@
   .bb-dark-field { color: #fff !important; }
   .bb-dark-field::placeholder { color: rgba(255,255,255,0.5) !important; opacity: 1; font-weight: 400 !important; }
 
+  /* Un-bold placeholders inside payment-method forms (inputs are fw-bold for typed text) */
+  .pm-form-panel .form-control::placeholder,
+  .pm-card .form-control::placeholder {
+    font-weight: 400 !important;
+    color: rgba(46,46,56,0.4) !important;
+    opacity: 1;
+  }
+
   /* ── Confirmation Modal ── */
   .pm-confirm-overlay {
     position: fixed; inset: 0; z-index: 10000;
@@ -182,6 +190,31 @@
     box-shadow: 0 0 0 2px rgba(197,160,89,0.15);
   }
 
+  /* Sub-provider pills (MonCash/Natcash, UniBank/Sogebank/Capital) */
+  .pm-subprovider-btn {
+    flex: 1;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(93,99,69,0.04);
+    border: 1.5px solid transparent;
+    border-radius: 10px;
+    padding: 10px 8px;
+    text-align: center;
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--haiti-olive);
+    transition: all 0.15s;
+    margin: 0;
+    user-select: none;
+  }
+  .pm-subprovider-btn input { position: absolute; opacity: 0; pointer-events: none; }
+  .pm-subprovider-btn:hover { background: rgba(93,99,69,0.08); }
+  .pm-subprovider-btn:has(input:checked) {
+    border-color: var(--haiti-gold);
+    background: rgba(197,160,89,0.08);
+    color: var(--haiti-charcoal);
+  }
+
   /* Form slide-in */
   .pm-form-panel { animation: pmSlideDown 0.2s ease; }
   @keyframes pmSlideDown { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
@@ -207,12 +240,12 @@
     <%# ── Registered Methods              ── %>
     <%# ══════════════════════════════════════ %>
 
-    <%# ── MonCash Methods ── %>
+    <%# ── Mobile Wallet Methods (MonCash, Natcash) ── %>
     <% if @mobile_wallet_methods.any? %>
       <div class="card-base p-3 mb-3">
         <div class="d-flex align-items-center gap-2 mb-3">
-          <%= moncash_logo_svg(size: 24) %>
-          <span class="fw-bold" style="color: var(--haiti-charcoal); font-size: 14px;">MonCash</span>
+          <i class="ri-smartphone-line" style="font-size: 22px; color: var(--haiti-charcoal);"></i>
+          <span class="fw-bold" style="color: var(--haiti-charcoal); font-size: 14px;">Pòtfey Mobil</span>
           <span class="pm-group-count ms-1">(<%= @mobile_wallet_methods.size %>)</span>
         </div>
         <% @mobile_wallet_methods.each do |pm| %>
@@ -221,26 +254,12 @@
       </div>
     <% end %>
 
-    <%# ── Base USDC Methods ── %>
-    <% if @crypto_wallet_methods.any? %>
-      <div class="card-base p-3 mb-3">
-        <div class="d-flex align-items-center gap-2 mb-3">
-          <%= usd_logo(size: 24) %>
-          <span class="fw-bold" style="color: var(--haiti-charcoal); font-size: 14px;">USD sou Base</span>
-          <span class="pm-group-count ms-1">(<%= @crypto_wallet_methods.size %>)</span>
-        </div>
-        <% @crypto_wallet_methods.each do |pm| %>
-          <%= render "method_card", pm: pm %>
-        <% end %>
-      </div>
-    <% end %>
-
-    <%# ── UniBank Methods ── %>
+    <%# ── Bank Methods (UniBank, Sogebank, Capital Bank) ── %>
     <% if @bank_account_methods.any? %>
       <div class="card-base p-3 mb-3">
         <div class="d-flex align-items-center gap-2 mb-3">
-          <%= unibank_logo_svg(size: 24) %>
-          <span class="fw-bold" style="color: var(--haiti-charcoal); font-size: 14px;">UniBank</span>
+          <i class="ri-bank-line" style="font-size: 22px; color: var(--haiti-charcoal);"></i>
+          <span class="fw-bold" style="color: var(--haiti-charcoal); font-size: 14px;">Bank</span>
           <span class="pm-group-count ms-1">(<%= @bank_account_methods.size %>)</span>
         </div>
         <% @bank_account_methods.each do |pm| %>
@@ -279,19 +298,15 @@
           </button>
         </div>
 
-        <%# Provider picker %>
+        <%# Category picker %>
         <div class="d-flex gap-2 mb-3">
           <button type="button" class="pm-provider-btn" data-target="form-moncash">
-            <div class="mb-1"><%= moncash_logo_svg(size: 28) %></div>
-            <div class="fw-bold" style="font-size: 11px;">MonCash</div>
-          </button>
-          <button type="button" class="pm-provider-btn" data-target="form-base-usdc">
-            <div class="mb-1"><%= usd_logo(size: 28) %></div>
-            <div class="fw-bold" style="font-size: 11px;">Base USD</div>
+            <div class="mb-1"><i class="ri-smartphone-line" style="font-size: 26px; color: var(--haiti-charcoal);"></i></div>
+            <div class="fw-bold" style="font-size: 11px;">Pòtfey Mobil</div>
           </button>
           <button type="button" class="pm-provider-btn" data-target="form-unibank">
-            <div class="mb-1"><%= unibank_logo_svg(size: 28) %></div>
-            <div class="fw-bold" style="font-size: 11px;">UniBank</div>
+            <div class="mb-1"><i class="ri-bank-line" style="font-size: 26px; color: var(--haiti-charcoal);"></i></div>
+            <div class="fw-bold" style="font-size: 11px;">Bank</div>
           </button>
         </div>
 
@@ -303,26 +318,39 @@
         <% end %>
 
         <%# ══════════════════════════════════ %>
-        <%# ── MonCash Form                ── %>
+        <%# ── Mobile Wallet Form          ── %>
         <%# ══════════════════════════════════ %>
         <div id="form-moncash" class="pm-form-panel" style="display: none;">
           <%= form_with model: @payment_method, url: payment_methods_path, local: true, class: "d-grid gap-3" do |f| %>
             <%= f.hidden_field :category, value: "mobile_wallet" %>
-            <%= f.hidden_field :provider, value: "moncash" %>
             <%= f.hidden_field :active, value: true %>
 
             <div>
-              <label class="form-label small fw-bold text-uppercase mb-1" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Nimewo MonCash</label>
+              <label class="form-label small fw-bold text-uppercase mb-1" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Founisè</label>
+              <div class="d-flex gap-2">
+                <label class="pm-subprovider-btn">
+                  <%= f.radio_button :provider, "moncash", checked: true %>
+                  <span>MonCash</span>
+                </label>
+                <label class="pm-subprovider-btn">
+                  <%= f.radio_button :provider, "natcash" %>
+                  <span>Natcash</span>
+                </label>
+              </div>
+            </div>
+
+            <div>
+              <label class="form-label small fw-bold text-uppercase mb-1" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Nimewo Telefòn</label>
               <div class="input-group" style="border: 1.5px solid rgba(46,46,56,0.12); border-radius: 12px; overflow: hidden;">
-                <span class="input-group-text border-0" style="background-color: var(--haiti-mint); color: var(--haiti-gold);">
-                  <i class="ri-phone-line"></i>
+                <span class="input-group-text border-0 fw-bold" style="background-color: var(--haiti-mint); color: var(--haiti-olive); font-size: 14px; letter-spacing: 0.5px;">
+                  +509
                 </span>
-                <%= f.text_field :account_number, placeholder: "50912345678", inputmode: "tel",
-                    class: "form-control border-0 fw-bold shadow-none p-3",
+                <%= f.text_field :account_number, placeholder: "3712 9864", inputmode: "tel", maxlength: 9,
+                    class: "form-control border-0 fw-bold shadow-none p-3 pm-phone-input",
                     style: "background-color: var(--haiti-mint); color: var(--haiti-charcoal);" %>
               </div>
               <div class="small mt-1" style="color: var(--haiti-olive); font-size: 10px;">
-                <i class="ri-information-line me-1"></i>509 + 8 chif. Egz: 50937123456
+                <i class="ri-information-line me-1"></i>Antre 8 chif nimewo telefòn ou.
               </div>
             </div>
 
@@ -330,68 +358,43 @@
               <label class="form-label small fw-bold text-uppercase mb-1" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">
                 Etikèt <span class="text-lowercase fw-normal">(opsyonèl)</span>
               </label>
-              <%= f.text_field :label, placeholder: "egz. MonCash Mwen",
+              <%= f.text_field :label, placeholder: "egz. Telefòn Mwen",
                   class: "form-control border-0 fw-bold shadow-none p-3",
                   style: "background-color: var(--haiti-mint); color: var(--haiti-charcoal);" %>
             </div>
 
             <button type="submit" class="btn w-100 py-3 fw-bold rounded-pill border-0"
                     style="background-color: var(--haiti-gold); color: var(--haiti-charcoal); font-family: 'Space Grotesk', sans-serif; font-size: 14px; font-weight: 800;">
-              <i class="ri-add-line me-1"></i>Ajoute MonCash
+              <i class="ri-add-line me-1"></i>Ajoute Pòtfey Mobil
             </button>
           <% end %>
         </div>
 
         <%# ══════════════════════════════════ %>
-        <%# ── Base USDC Form              ── %>
-        <%# ══════════════════════════════════ %>
-        <div id="form-base-usdc" class="pm-form-panel" style="display: none;">
-          <%= form_with model: @payment_method, url: payment_methods_path, local: true, class: "d-grid gap-3" do |f| %>
-            <%= f.hidden_field :category, value: "crypto_wallet" %>
-            <%= f.hidden_field :provider, value: "base" %>
-            <%= f.hidden_field :network, value: "base" %>
-            <%= f.hidden_field :asset, value: "usdc" %>
-            <%= f.hidden_field :active, value: true %>
-
-            <div>
-              <label class="form-label small fw-bold text-uppercase mb-1" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Adrès Potfey</label>
-              <div class="input-group" style="border: 1.5px solid rgba(46,46,56,0.12); border-radius: 12px; overflow: hidden;">
-                <span class="input-group-text border-0" style="background-color: var(--haiti-mint); color: var(--haiti-gold);">
-                  <i class="ri-wallet-3-line"></i>
-                </span>
-                <%= f.text_field :wallet_address, placeholder: "0x...",
-                    class: "form-control border-0 fw-bold shadow-none p-3",
-                    style: "background-color: var(--haiti-mint); color: var(--haiti-charcoal); font-size: 12px;" %>
-              </div>
-              <div class="small mt-1" style="color: var(--haiti-olive); font-size: 10px;">
-                <i class="ri-information-line me-1"></i>Adrès EVM sou rezo Base (0x + 40 karaktè)
-              </div>
-            </div>
-
-            <div>
-              <label class="form-label small fw-bold text-uppercase mb-1" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">
-                Etikèt <span class="text-lowercase fw-normal">(opsyonèl)</span>
-              </label>
-              <%= f.text_field :label, placeholder: "egz. Base Wallet Mwen",
-                  class: "form-control border-0 fw-bold shadow-none p-3",
-                  style: "background-color: var(--haiti-mint); color: var(--haiti-charcoal);" %>
-            </div>
-
-            <button type="submit" class="btn w-100 py-3 fw-bold rounded-pill border-0"
-                    style="background-color: var(--haiti-gold); color: var(--haiti-charcoal); font-family: 'Space Grotesk', sans-serif; font-size: 14px; font-weight: 800;">
-              <i class="ri-add-line me-1"></i>Ajoute Base USD
-            </button>
-          <% end %>
-        </div>
-
-        <%# ══════════════════════════════════ %>
-        <%# ── UniBank Form                ── %>
+        <%# ── Bank Form                   ── %>
         <%# ══════════════════════════════════ %>
         <div id="form-unibank" class="pm-form-panel" style="display: none;">
           <%= form_with model: @payment_method, url: payment_methods_path, local: true, class: "d-grid gap-3" do |f| %>
             <%= f.hidden_field :category, value: "bank_account" %>
-            <%= f.hidden_field :provider, value: "unibank" %>
             <%= f.hidden_field :active, value: true %>
+
+            <div>
+              <label class="form-label small fw-bold text-uppercase mb-1" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Bank</label>
+              <div class="d-flex gap-2">
+                <label class="pm-subprovider-btn">
+                  <%= f.radio_button :provider, "unibank", checked: true %>
+                  <span>UniBank</span>
+                </label>
+                <label class="pm-subprovider-btn">
+                  <%= f.radio_button :provider, "sogebank" %>
+                  <span>Sogebank</span>
+                </label>
+                <label class="pm-subprovider-btn">
+                  <%= f.radio_button :provider, "capital_bank" %>
+                  <span>Capital Bank</span>
+                </label>
+              </div>
+            </div>
 
             <div>
               <label class="form-label small fw-bold text-uppercase mb-1" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Nimewo Kont</label>
@@ -425,7 +428,7 @@
 
             <button type="submit" class="btn w-100 py-3 fw-bold rounded-pill border-0"
                     style="background-color: var(--haiti-gold); color: var(--haiti-charcoal); font-family: 'Space Grotesk', sans-serif; font-size: 14px; font-weight: 800;">
-              <i class="ri-add-line me-1"></i>Ajoute UniBank
+              <i class="ri-add-line me-1"></i>Ajoute Kont Bank
             </button>
           <% end %>
         </div>
@@ -542,6 +545,21 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 
+  // ── MonCash phone input: auto-space after 4 digits (XXXX XXXX) ──
+  function formatHaitiPhone(value) {
+    var digits = (value || '').replace(/\D/g, '').slice(0, 8);
+    if (digits.length > 4) return digits.slice(0, 4) + ' ' + digits.slice(4);
+    return digits;
+  }
+  document.querySelectorAll('.pm-phone-input').forEach(function(input) {
+    input.value = formatHaitiPhone(input.value);
+    input.addEventListener('input', function() {
+      var caretAtEnd = input.selectionStart === input.value.length;
+      input.value = formatHaitiPhone(input.value);
+      if (caretAtEnd) input.setSelectionRange(input.value.length, input.value.length);
+    });
+  });
+
   // ── Toggle inline edit form ──
   window.toggleEditForm = function(token) {
     var el = document.getElementById('pm-edit-' + token);
@@ -556,8 +574,6 @@ document.addEventListener('DOMContentLoaded', function() {
     if (panel) panel.style.display = 'block';
     <% if @payment_method.mobile_wallet? %>
       var autoBtn = document.querySelector('[data-target="form-moncash"]');
-    <% elsif @payment_method.crypto_wallet? %>
-      var autoBtn = document.querySelector('[data-target="form-base-usdc"]');
     <% elsif @payment_method.bank_account? %>
       var autoBtn = document.querySelector('[data-target="form-unibank"]');
     <% end %>
