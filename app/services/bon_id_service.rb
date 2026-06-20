@@ -2,13 +2,20 @@ class BonIdService
   BASE_URLS = {
     "production"  => "https://api.bonid.ht/api/v1",
     "sandbox"     => "https://sandbox.bonid.ht/api/v1",
-    "development" => "https://elaina-nonorthographical-bromidically.ngrok-free.dev/api/v1"
+    "development" => "https://bonid.ngrok.dev/api/v1"
   }.freeze
 
   def self.base_url
     raw = ENV.fetch("BONID_BASE_URL") { BASE_URLS[Rails.env] || BASE_URLS["sandbox"] }
     # Ensure the URL always ends with /api/v1
     raw.sub(%r{/?\z}, "").then { |u| u.match?(%r{/api/v\d+\z}) ? u : "#{u}/api/v1" }
+  end
+
+  # Bare BonID web host (no /api/v1) — for citizen-facing links like
+  # /citizens/otp_sign_in and /citizens/sign_up. Mirrors how the OmniAuth
+  # strategy derives its OAuth `site` from BONID_BASE_URL.
+  def self.web_url
+    base_url.sub(%r{/api/v\d+\z}, "")
   end
 
   def self.api_key
