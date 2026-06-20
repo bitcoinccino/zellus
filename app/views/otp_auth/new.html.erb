@@ -51,7 +51,9 @@
           <hr style="margin-top: -10px; opacity: 0.15;">
         </div>
 
-        <%= link_to user_bonid_omniauth_authorize_path, method: :post,
+        <%# Must be a real POST — omniauth-rails_csrf_protection rejects GET on the
+            request phase, and link_to method: :post issues a GET under Turbo/importmap. %>
+        <%= button_to user_bonid_omniauth_authorize_path, method: :post,
               class: "btn w-100 fw-bold rounded-pill py-3 border-0 d-flex align-items-center justify-content-center gap-2",
               style: "background: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 13px;" do %>
           <i class="ri-shield-check-line"></i> Konekte ak BonID
