@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_05_19_215039) do
+ActiveRecord::Schema[8.0].define(version: 2026_06_20_145207) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -637,6 +637,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_05_19_215039) do
     t.decimal "daily_transfer_limit_override"
     t.boolean "uma_enabled", default: true, null: false
     t.string "lightspark_customer_id"
+    t.integer "failed_pin_attempts", default: 0, null: false
+    t.datetime "pin_locked_until"
     t.index "lower((cashtag)::text)", name: "index_users_on_lower_cashtag"
     t.index ["bonid"], name: "index_users_on_bonid", unique: true, where: "(bonid IS NOT NULL)"
     t.index ["cashtag"], name: "index_users_on_cashtag", unique: true

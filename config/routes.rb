@@ -45,7 +45,9 @@ Rails.application.routes.draw do
     get "dashboard/chart_data", to: "dashboard#chart_data", as: :dashboard_chart_data
 
     # Users
-    get "users/analytics", to: "users#analytics", as: :users_analytics
+    get  "users/analytics",     to: "users#analytics",  as: :users_analytics
+    get  "users",               to: "users#index",      as: :users
+    post "users/:id/clear_pin", to: "users#clear_pin",  as: :clear_user_pin
 
     # Businesses
     get  "businesses/applicants",        to: "businesses#applicants",   as: :businesses_applicants
@@ -84,6 +86,10 @@ Rails.application.routes.draw do
   post "login/verify", to: "otp_auth#confirm"
   get  "login/pin",    to: "otp_auth#pin",     as: :login_pin
   post "login/pin",    to: "otp_auth#unlock"
+  # Forgot-PIN: re-verify control of the email via OTP, then set a new PIN.
+  post "login/pin/reset",        to: "otp_auth#request_pin_reset", as: :login_pin_reset
+  get  "login/pin/reset/verify", to: "otp_auth#pin_reset_verify",  as: :login_pin_reset_verify
+  post "login/pin/reset/verify", to: "otp_auth#confirm_pin_reset"
 
   devise_scope :user do
     get "/users/sign_in", to: redirect("/login")

@@ -60,6 +60,12 @@ class User < ApplicationRecord
   validates :payout_preference, inclusion: { in: %w[auto htg usd] }
 
   # ── Transfer PIN (4-digit, BCrypt-hashed) ──
+  # Wrong-PIN attempts are tracked in the DB (failed_pin_attempts) so the
+  # throttle survives logout/session clears. Hitting the ceiling sets a
+  # time-based lock (pin_locked_until); the OTP reset flow is the escape hatch.
+  MAX_PIN_ATTEMPTS     = 5
+  PIN_LOCKOUT_DURATION = 15.minutes
+
   def transfer_pin=(raw_pin)
     require "bcrypt"
     if raw_pin.present?
@@ -80,6 +86,40 @@ class User < ApplicationRecord
     return false unless transfer_pin_digest.present? && raw_pin.present?
 
     BCrypt::Password.new(transfer_pin_digest) == raw_pin.to_s
+  end
+
+  # True while a lockout window is still in effect.
+  def pin_locked?
+    pin_locked_until.present? && pin_locked_until.future?
+  end
+
+  def pin_lock_remaining_seconds
+    return 0 unless pin_locked?
+
+    (pin_locked_until - Time.current).ceil
+  end
+
+  def pin_attempts_remaining
+    [MAX_PIN_ATTEMPTS - failed_pin_attempts.to_i, 0].max
+  end
+
+  # Records one wrong PIN. On hitting the ceiling, starts a lockout window and
+  # zeroes the counter. Returns true if this attempt triggered the lock.
+  # Uses update_columns to skip the full User validation/callback chain.
+  def register_failed_pin_attempt!
+    attempts = failed_pin_attempts.to_i + 1
+    if attempts >= MAX_PIN_ATTEMPTS
+      update_columns(failed_pin_attempts: 0, pin_locked_until: Time.current + PIN_LOCKOUT_DURATION)
+      true
+    else
+      update_columns(failed_pin_attempts: attempts)
+      false
+    end
+  end
+
+  # Clears the counter and any active lock (correct PIN, PIN reset, admin clear).
+  def reset_pin_attempts!
+    update_columns(failed_pin_attempts: 0, pin_locked_until: nil)
   end
 
   # ── Wallet ──
