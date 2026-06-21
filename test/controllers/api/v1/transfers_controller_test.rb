@@ -18,7 +18,7 @@ class Api::V1::TransfersControllerTest < ActionDispatch::IntegrationTest
 
     assert_difference -> { Transfer.count }, 1 do
       post api_v1_transfers_url,
-           params: { receiver: "$receivergal", amount: 100, asset: "htg", pin: "1234" },
+           params: { note: "Test note", receiver: "$receivergal", amount: 100, asset: "htg", pin: "1234" },
            headers: api_auth_headers(@token)
     end
 
@@ -36,7 +36,7 @@ class Api::V1::TransfersControllerTest < ActionDispatch::IntegrationTest
   test "creates transfer to phone number" do
     assert_difference -> { Transfer.count }, 1 do
       post api_v1_transfers_url,
-           params: { receiver: "50987654321", amount: 200, asset: "htg", pin: "1234" },
+           params: { note: "Test note", receiver: "50987654321", amount: 200, asset: "htg", pin: "1234" },
            headers: api_auth_headers(@token)
     end
 
@@ -49,7 +49,7 @@ class Api::V1::TransfersControllerTest < ActionDispatch::IntegrationTest
   test "enqueues TransferPayoutWorker on successful transfer" do
     assert_difference -> { Transfer.count }, 1 do
       post api_v1_transfers_url,
-           params: { receiver: "$receivergal", amount: 100, asset: "htg", pin: "1234" },
+           params: { note: "Test note", receiver: "$receivergal", amount: 100, asset: "htg", pin: "1234" },
            headers: api_auth_headers(@token)
     end
 
@@ -63,7 +63,7 @@ class Api::V1::TransfersControllerTest < ActionDispatch::IntegrationTest
     wallet.update!(htg_balance: 5000)
 
     post api_v1_transfers_url,
-         params: { receiver: "$receivergal", amount: 100, asset: "htg", pin: "1234" },
+         params: { note: "Test note", receiver: "$receivergal", amount: 100, asset: "htg", pin: "1234" },
          headers: api_auth_headers(@token)
 
     assert_response :created
@@ -84,7 +84,7 @@ class Api::V1::TransfersControllerTest < ActionDispatch::IntegrationTest
     2.times do
       begin
         post api_v1_transfers_url,
-             params: { receiver: "$receivergal", amount: 200, asset: "htg", pin: "1234" },
+             params: { note: "Test note", receiver: "$receivergal", amount: 200, asset: "htg", pin: "1234" },
              headers: api_auth_headers(@token)
         results << response.status
       rescue => e
@@ -105,7 +105,7 @@ class Api::V1::TransfersControllerTest < ActionDispatch::IntegrationTest
     wallet.update!(htg_balance: 1000)
 
     post api_v1_transfers_url,
-         params: { receiver: "$receivergal", amount: 100, asset: "htg", pin: "1234" },
+         params: { note: "Test note", receiver: "$receivergal", amount: 100, asset: "htg", pin: "1234" },
          headers: api_auth_headers(@token)
 
     assert_response :created
@@ -125,7 +125,7 @@ class Api::V1::TransfersControllerTest < ActionDispatch::IntegrationTest
     # Transfer endpoint has limit: 10
     11.times do
       post api_v1_transfers_url,
-           params: { receiver: "$receivergal", amount: 50, asset: "htg", pin: "1234" },
+           params: { note: "Test note", receiver: "$receivergal", amount: 50, asset: "htg", pin: "1234" },
            headers: api_auth_headers(@token)
     end
 
@@ -139,7 +139,7 @@ class Api::V1::TransfersControllerTest < ActionDispatch::IntegrationTest
 
   test "transfer response matches expected JSON schema" do
     post api_v1_transfers_url,
-         params: { receiver: "$receivergal", amount: 100, asset: "htg", pin: "1234" },
+         params: { note: "Test note", receiver: "$receivergal", amount: 100, asset: "htg", pin: "1234" },
          headers: api_auth_headers(@token)
 
     assert_response :created
@@ -153,7 +153,7 @@ class Api::V1::TransfersControllerTest < ActionDispatch::IntegrationTest
   test "returns transfer details by token" do
     # Create a transfer first
     post api_v1_transfers_url,
-         params: { receiver: "$receivergal", amount: 100, asset: "htg", pin: "1234" },
+         params: { note: "Test note", receiver: "$receivergal", amount: 100, asset: "htg", pin: "1234" },
          headers: api_auth_headers(@token)
 
     assert_response :created
@@ -177,7 +177,7 @@ class Api::V1::TransfersControllerTest < ActionDispatch::IntegrationTest
 
   test "returns 401 with wrong PIN" do
     post api_v1_transfers_url,
-         params: { receiver: "$receivergal", amount: 100, asset: "htg", pin: "9999" },
+         params: { note: "Test note", receiver: "$receivergal", amount: 100, asset: "htg", pin: "9999" },
          headers: api_auth_headers(@token)
 
     assert_response :unauthorized
@@ -188,7 +188,7 @@ class Api::V1::TransfersControllerTest < ActionDispatch::IntegrationTest
     @sender.update_columns(transfer_pin_digest: nil, transfer_pin_set_at: nil)
 
     post api_v1_transfers_url,
-         params: { receiver: "$receivergal", amount: 100, asset: "htg", pin: "1234" },
+         params: { note: "Test note", receiver: "$receivergal", amount: 100, asset: "htg", pin: "1234" },
          headers: api_auth_headers(@token)
 
     assert_response :unprocessable_entity
@@ -199,7 +199,7 @@ class Api::V1::TransfersControllerTest < ActionDispatch::IntegrationTest
 
   test "returns 422 with missing receiver" do
     post api_v1_transfers_url,
-         params: { receiver: "", amount: 100, asset: "htg", pin: "1234" },
+         params: { note: "Test note", receiver: "", amount: 100, asset: "htg", pin: "1234" },
          headers: api_auth_headers(@token)
 
     assert_response :unprocessable_entity
@@ -208,7 +208,7 @@ class Api::V1::TransfersControllerTest < ActionDispatch::IntegrationTest
 
   test "returns 422 when amount below minimum (50 HTG)" do
     post api_v1_transfers_url,
-         params: { receiver: "$receivergal", amount: 10, asset: "htg", pin: "1234" },
+         params: { note: "Test note", receiver: "$receivergal", amount: 10, asset: "htg", pin: "1234" },
          headers: api_auth_headers(@token)
 
     assert_response :unprocessable_entity
@@ -217,7 +217,7 @@ class Api::V1::TransfersControllerTest < ActionDispatch::IntegrationTest
 
   test "returns 422 when amount above maximum (50000 HTG)" do
     post api_v1_transfers_url,
-         params: { receiver: "$receivergal", amount: 60_000, asset: "htg", pin: "1234" },
+         params: { note: "Test note", receiver: "$receivergal", amount: 60_000, asset: "htg", pin: "1234" },
          headers: api_auth_headers(@token)
 
     assert_response :unprocessable_entity
@@ -229,7 +229,7 @@ class Api::V1::TransfersControllerTest < ActionDispatch::IntegrationTest
     @sender.update!(daily_transfer_limit_override: 100)
 
     post api_v1_transfers_url,
-         params: { receiver: "$receivergal", amount: 200, asset: "htg", pin: "1234" },
+         params: { note: "Test note", receiver: "$receivergal", amount: 200, asset: "htg", pin: "1234" },
          headers: api_auth_headers(@token)
 
     assert_response :unprocessable_entity
@@ -240,7 +240,7 @@ class Api::V1::TransfersControllerTest < ActionDispatch::IntegrationTest
     wallets(:sender_wallet).update!(htg_balance: 10)
 
     post api_v1_transfers_url,
-         params: { receiver: "$receivergal", amount: 100, asset: "htg", pin: "1234" },
+         params: { note: "Test note", receiver: "$receivergal", amount: 100, asset: "htg", pin: "1234" },
          headers: api_auth_headers(@token)
 
     assert_response :unprocessable_entity
@@ -249,7 +249,7 @@ class Api::V1::TransfersControllerTest < ActionDispatch::IntegrationTest
 
   test "returns 422 with invalid asset" do
     post api_v1_transfers_url,
-         params: { receiver: "$receivergal", amount: 100, asset: "eur", pin: "1234" },
+         params: { note: "Test note", receiver: "$receivergal", amount: 100, asset: "eur", pin: "1234" },
          headers: api_auth_headers(@token)
 
     assert_response :unprocessable_entity
@@ -262,7 +262,7 @@ class Api::V1::TransfersControllerTest < ActionDispatch::IntegrationTest
     readonly_token = oauth_tokens(:sender_readonly).access_token
 
     post api_v1_transfers_url,
-         params: { receiver: "$receivergal", amount: 100, asset: "htg", pin: "1234" },
+         params: { note: "Test note", receiver: "$receivergal", amount: 100, asset: "htg", pin: "1234" },
          headers: api_auth_headers(readonly_token)
 
     assert_response :forbidden
@@ -275,7 +275,7 @@ class Api::V1::TransfersControllerTest < ActionDispatch::IntegrationTest
     wallets(:sender_wallet).update!(status: :held)
 
     post api_v1_transfers_url,
-         params: { receiver: "$receivergal", amount: 100, asset: "htg", pin: "1234" },
+         params: { note: "Test note", receiver: "$receivergal", amount: 100, asset: "htg", pin: "1234" },
          headers: api_auth_headers(@token)
 
     assert_response :forbidden
@@ -289,7 +289,7 @@ class Api::V1::TransfersControllerTest < ActionDispatch::IntegrationTest
 
     assert_difference -> { Transfer.count }, 1 do
       post api_v1_transfers_url,
-           params: { receiver: "$receivergal", amount: 100, asset: "htg", pin: "1234" },
+           params: { note: "Test note", receiver: "$receivergal", amount: 100, asset: "htg", pin: "1234" },
            headers: headers
     end
 
@@ -299,7 +299,7 @@ class Api::V1::TransfersControllerTest < ActionDispatch::IntegrationTest
     # Second request with same key — should NOT create a new transfer
     assert_no_difference -> { Transfer.count } do
       post api_v1_transfers_url,
-           params: { receiver: "$receivergal", amount: 100, asset: "htg", pin: "1234" },
+           params: { note: "Test note", receiver: "$receivergal", amount: 100, asset: "htg", pin: "1234" },
            headers: headers
     end
 
@@ -310,13 +310,13 @@ class Api::V1::TransfersControllerTest < ActionDispatch::IntegrationTest
   test "different idempotency key creates new resource" do
     assert_difference -> { Transfer.count }, 2 do
       post api_v1_transfers_url,
-           params: { receiver: "$receivergal", amount: 100, asset: "htg", pin: "1234" },
+           params: { note: "Test note", receiver: "$receivergal", amount: 100, asset: "htg", pin: "1234" },
            headers: api_auth_headers(@token).merge("X-Idempotency-Key" => "key-a")
 
       assert_response :created
 
       post api_v1_transfers_url,
-           params: { receiver: "$receivergal", amount: 100, asset: "htg", pin: "1234" },
+           params: { note: "Test note", receiver: "$receivergal", amount: 100, asset: "htg", pin: "1234" },
            headers: api_auth_headers(@token).merge("X-Idempotency-Key" => "key-b")
 
       assert_response :created
@@ -327,7 +327,7 @@ class Api::V1::TransfersControllerTest < ActionDispatch::IntegrationTest
     assert_difference -> { Transfer.count }, 2 do
       2.times do
         post api_v1_transfers_url,
-             params: { receiver: "$receivergal", amount: 100, asset: "htg", pin: "1234" },
+             params: { note: "Test note", receiver: "$receivergal", amount: 100, asset: "htg", pin: "1234" },
              headers: api_auth_headers(@token)
 
         assert_response :created
@@ -346,7 +346,7 @@ class Api::V1::TransfersControllerTest < ActionDispatch::IntegrationTest
     )
 
     post api_v1_transfers_url,
-         params: { receiver: "$receivergal", amount: 100, asset: "htg", pin: "1234" },
+         params: { note: "Test note", receiver: "$receivergal", amount: 100, asset: "htg", pin: "1234" },
          headers: api_auth_headers(@token).merge("X-Idempotency-Key" => key)
 
     assert_response :conflict
