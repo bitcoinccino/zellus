@@ -19,7 +19,7 @@ class BaseRpcClient
   class RpcError < StandardError; end
 
   def initialize(url: nil)
-    @url = url || ENV['BASE_RPC_URL'].presence || "https://mainnet.base.org"
+    @url = url || ENV["BASE_RPC_URL"].presence || "https://mainnet.base.org"
   end
 
   def call(method, params = [])
@@ -52,12 +52,12 @@ class BaseRpcClient
     end
 
     resp = conn.post do |req|
-      req.headers['Content-Type'] = 'application/json'
+      req.headers["Content-Type"] = "application/json"
       req.body = { jsonrpc: "2.0", id: 1, method: method, params: params }.to_json
     end
 
     body = JSON.parse(resp.body)
-    raise RpcError, "RPC error (#{method}): #{body['error']}" if body['error']
-    body['result']
+    raise RpcError, "RPC error (#{method}): #{body['error']}" if body["error"]
+    body["result"]
   end
 end

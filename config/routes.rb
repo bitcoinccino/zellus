@@ -22,7 +22,7 @@ Rails.application.routes.draw do
     post "bank_withdrawals/:id/fail",     to: "dashboard#fail_bank_withdrawal",     as: :fail_bank_withdrawal
 
     # Invite Codes
-    resources :invite_codes, only: [:index, :create, :destroy] do
+    resources :invite_codes, only: [ :index, :create, :destroy ] do
       post :toggle, on: :member
       post :expire, on: :member
     end
@@ -61,7 +61,7 @@ Rails.application.routes.draw do
     get  "bousad/activity",     to: "bousad#activity",    as: :bousad_activity
 
     # Developers (API clients + webhooks)
-    resources :developers, only: [:index, :show, :create, :update, :destroy] do
+    resources :developers, only: [ :index, :show, :create, :update, :destroy ] do
       member do
         post :regenerate_secret
         post :test_webhook
@@ -95,7 +95,7 @@ Rails.application.routes.draw do
   get  "onboarding/profile", to: "onboarding#profile",        as: :onboarding_profile
   post "onboarding/profile", to: "onboarding#update_profile"
 
-  resource :bonid_verification, only: [:show, :create], controller: "bon_id_verifications"
+  resource :bonid_verification, only: [ :show, :create ], controller: "bon_id_verifications"
   get  "users/check_cashtag", to: "users#check_cashtag", as: :check_cashtag
   get  "users/lookup",        to: "users#lookup",         as: :user_lookup
   get  "setup_cashtag",       to: "users#setup_cashtag",  as: :setup_cashtag
@@ -103,12 +103,12 @@ Rails.application.routes.draw do
   delete "remove_avatar",     to: "users#remove_avatar",  as: :remove_avatar
 
   # --- The Core Exchange Logic ---
-  resources :payment_methods, only: [:index, :create, :update, :destroy], param: :token do
+  resources :payment_methods, only: [ :index, :create, :update, :destroy ], param: :token do
     member do
       patch :set_default
     end
   end
-  resources :payment_requests, only: [:index, :new, :create, :show, :update, :destroy], param: :token
+  resources :payment_requests, only: [ :index, :new, :create, :show, :update, :destroy ], param: :token
   # --- Partner Checkout ---
   get  "pay/:token",          to: "checkouts#show",    as: :checkout_pay
   post "pay/:token/confirm",  to: "checkouts#confirm", as: :checkout_confirm
@@ -121,19 +121,19 @@ Rails.application.routes.draw do
   post "r/:token/decline", to: "payment_requests#decline",      as: :decline_payment_request
 
   # --- Notifikasyon ---
-  resources :notifications, only: [:index, :show] do
+  resources :notifications, only: [ :index, :show ] do
     member do
-      match :mark_read, via: [:get, :post]
+      match :mark_read, via: [ :get, :post ]
       post :send_thanks
     end
     collection do
-      match :mark_all_read, via: [:get, :post]
+      match :mark_all_read, via: [ :get, :post ]
       get :poll
     end
   end
 
   # --- Zèllus pou Biznis ---
-  resource :business, only: [:new, :create, :show, :edit, :update] do
+  resource :business, only: [ :new, :create, :show, :edit, :update ] do
     get :check_slug, on: :collection
     get :dashboard, on: :member
     get :payments, on: :member
@@ -142,9 +142,9 @@ Rails.application.routes.draw do
     post :apply_agent, on: :member
     get  :agent_kit, on: :member
     post :upload_signage, on: :member
-    resources :products, only: [:index, :new, :create, :edit, :update, :destroy]
-    resources :agent_transactions, only: [:create, :index]
-    resources :payment_links, only: [:index, :show, :new, :create, :edit, :update, :destroy], controller: "business_payment_links" do
+    resources :products, only: [ :index, :new, :create, :edit, :update, :destroy ]
+    resources :agent_transactions, only: [ :create, :index ]
+    resources :payment_links, only: [ :index, :show, :new, :create, :edit, :update, :destroy ], controller: "business_payment_links" do
       patch :toggle, on: :member
     end
   end
@@ -157,7 +157,7 @@ Rails.application.routes.draw do
   get "button/:slug.js", to: "businesses#button_js", as: :business_button_js
 
   # --- Zèllus Transfers (Send Money) ---
-  resources :transfers, only: [:new, :create, :show], param: :token do
+  resources :transfers, only: [ :new, :create, :show ], param: :token do
     collection do
       post :set_pin
     end
@@ -172,7 +172,7 @@ Rails.application.routes.draw do
   post "t/:token/claim",  to: "transfers#claim_confirm",  as: :confirm_claim_transfer
 
   # --- Zèllus Wallet ---
-  resource :wallet, only: [:show] do
+  resource :wallet, only: [ :show ] do
     get  :rates
     get  :balances
     get  :limits
@@ -188,11 +188,11 @@ Rails.application.routes.draw do
     post :convert
     post :claim_deposit
     post :verify_deposit_pin
-    get  'entries/:token', action: :show_entry, as: :entry
+    get  "entries/:token", action: :show_entry, as: :entry
   end
 
   # --- Pionye Loans (Repayment Integrated) ---
-  resources :loans, only: [:new, :create] do
+  resources :loans, only: [ :new, :create ] do
     member do
       post :repay         # Generates repayment transaction/request (MonCash/USDC)
       post :repay_wallet  # Instant wallet debit repayment
@@ -200,7 +200,7 @@ Rails.application.routes.draw do
   end
 
   # --- Standard Transactions (Buy/Sell) ---
-  resources :transactions, only: [:index, :new, :create, :show], param: :ref do
+  resources :transactions, only: [ :index, :new, :create, :show ], param: :ref do
     member do
       post :pay
       post :manual_confirm
@@ -243,16 +243,16 @@ Rails.application.routes.draw do
   end
 
   # --- Webhooks ---
-  get 'payment_success', to: 'transactions#success', as: :payment_success
-  post 'moncash_webhook', to: 'moncash_webhooks#create'
-  post 'bonid_consent_webhook', to: 'bonid_consent_webhooks#create'
-  post 'bonid_revocation_webhook', to: 'bonid_revocation_webhooks#create'
-  post 'circle_webhook', to: 'api/circle_webhooks#create'
-  post 'lightspark_webhook', to: 'lightspark_webhooks#create'
+  get "payment_success", to: "transactions#success", as: :payment_success
+  post "moncash_webhook", to: "moncash_webhooks#create"
+  post "bonid_consent_webhook", to: "bonid_consent_webhooks#create"
+  post "bonid_revocation_webhook", to: "bonid_revocation_webhooks#create"
+  post "circle_webhook", to: "api/circle_webhooks#create"
+  post "lightspark_webhook", to: "lightspark_webhooks#create"
 
   # --- UMA Protocol (Universal Money Address) ---
-  get  '.well-known/lnurlp/:username',        to: 'uma#lnurlp'
-  post '.well-known/lnurlp/:username/payreq',  to: 'uma#payreq'
+  get  ".well-known/lnurlp/:username",        to: "uma#lnurlp"
+  post ".well-known/lnurlp/:username/payreq",  to: "uma#payreq"
 
   # --- Product Dashboards ---
   get "priosol",    to: "dashboards#priosol",    as: :priosol

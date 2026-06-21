@@ -1,6 +1,7 @@
 # frozen_string_literal: true
-require 'sidekiq'
-require 'faraday'
+
+require "sidekiq"
+require "faraday"
 
 class TransactionConfirmationWorker
   include Sidekiq::Job
@@ -15,7 +16,7 @@ class TransactionConfirmationWorker
     return unless transaction.crypto_sent?
     return unless transaction.blockchain_tx_hash.present?
 
-    rpc_url = ENV['BASE_RPC_URL'].presence || "https://mainnet.base.org"
+    rpc_url = ENV["BASE_RPC_URL"].presence || "https://mainnet.base.org"
     receipt  = fetch_receipt(rpc_url, transaction.blockchain_tx_hash)
 
     if receipt.nil?
@@ -62,12 +63,12 @@ class TransactionConfirmationWorker
   def fetch_receipt(rpc_url, tx_hash)
     conn = Faraday.new(url: rpc_url)
     response = conn.post do |req|
-      req.headers['Content-Type'] = 'application/json'
+      req.headers["Content-Type"] = "application/json"
       req.body = {
         jsonrpc: "2.0",
         id:      1,
         method:  "eth_getTransactionReceipt",
-        params:  [tx_hash]
+        params:  [ tx_hash ]
       }.to_json
     end
 

@@ -1,5 +1,6 @@
 # frozen_string_literal: true
-require 'sidekiq'
+
+require "sidekiq"
 
 class TransferExpiryWorker
   include Sidekiq::Job

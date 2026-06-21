@@ -1,8 +1,8 @@
 module Api
   module V1
     class TransfersController < BaseController
-      before_action -> { api_rate_limit!(limit: 10) }, only: [:create]
-      before_action -> { api_rate_limit!(limit: 60) }, only: [:show]
+      before_action -> { api_rate_limit!(limit: 10) }, only: [ :create ]
+      before_action -> { api_rate_limit!(limit: 60) }, only: [ :show ]
 
       # POST /api/v1/transfers
       def create

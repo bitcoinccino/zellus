@@ -22,7 +22,7 @@ class SolMembershipsController < ApplicationController # Corrected inheritance
     next_position = @circle.sol_memberships.count + 1
 
     @membership = @circle.sol_memberships.new(
-      user: current_user, 
+      user: current_user,
       position: next_position
     )
 

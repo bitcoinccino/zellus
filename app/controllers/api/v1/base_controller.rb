@@ -27,7 +27,7 @@ module Api
             @auth_method = :oauth
           else
             render json: { error: "Token envalid oswa ekspire." }, status: :unauthorized
-            return
+            nil
           end
         elsif request.headers["X-Partner-Api-Key"].present?
           api_key = request.headers["X-Partner-Api-Key"].to_s.strip
@@ -35,7 +35,7 @@ module Api
             @auth_method = :api_key
           else
             render json: { error: "Kle API envalid." }, status: :unauthorized
-            return
+            nil
           end
         else
           render json: { error: "Otantifikasyon obligatwa. Itilize Bearer token oswa X-Partner-Api-Key." }, status: :unauthorized

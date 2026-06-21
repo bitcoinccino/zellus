@@ -44,8 +44,8 @@ module OmniAuth
         Rails.logger.warn "═══ BonID OAuth CALLBACK PHASE ═══" if defined?(Rails)
         Rails.logger.warn "  params: #{request.params.except('code').inspect}" if defined?(Rails)
         Rails.logger.warn "  code present: #{request.params['code'].present?}" if defined?(Rails)
-        Rails.logger.warn "  error: #{request.params['error']}" if request.params['error'] && defined?(Rails)
-        Rails.logger.warn "  error_description: #{request.params['error_description']}" if request.params['error_description'] && defined?(Rails)
+        Rails.logger.warn "  error: #{request.params['error']}" if request.params["error"] && defined?(Rails)
+        Rails.logger.warn "  error_description: #{request.params['error_description']}" if request.params["error_description"] && defined?(Rails)
         Rails.logger.warn "═══════════════════════════════════" if defined?(Rails)
         super
       end
@@ -59,7 +59,7 @@ module OmniAuth
           bonid:      raw_info["bonid"],
           first_name: raw_info["first_name"] || name_parts[0],
           last_name:  raw_info["last_name"]  || name_parts[1],
-          name:       raw_info["name"] || [raw_info["first_name"], raw_info["last_name"]].compact.join(" "),
+          name:       raw_info["name"] || [ raw_info["first_name"], raw_info["last_name"] ].compact.join(" "),
           email:      raw_info["email"],
           phone:      raw_info["phone"],
           image:      raw_info["photo_url"],

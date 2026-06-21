@@ -1,5 +1,6 @@
 # frozen_string_literal: true
-require 'sidekiq'
+
+require "sidekiq"
 
 class WbtcDepositMonitorWorker
   include Sidekiq::Job
@@ -23,11 +24,11 @@ class WbtcDepositMonitorWorker
     Rails.logger.info "WbtcDepositMonitor: paused (HTG+USD only mode)"
     return
 
-    rpc_url = ENV['BASE_RPC_URL'].presence || "https://mainnet.base.org"
+    rpc_url = ENV["BASE_RPC_URL"].presence || "https://mainnet.base.org"
 
     # Build lookup of ALL user deposit addresses → user_id
     @address_to_user = {}
-    User.where.not(deposit_address: [nil, ""]).find_each do |user|
+    User.where.not(deposit_address: [ nil, "" ]).find_each do |user|
       @address_to_user[user.deposit_address.downcase] = user.id
     end
 
@@ -50,10 +51,10 @@ class WbtcDepositMonitorWorker
 
     from_block = if monitor.last_processed_block > 0
                    monitor.last_processed_block + 1
-                 else
-                   [current_block - POLL_RANGE, 0].max
-                 end
-    to_block = [from_block + POLL_RANGE - 1, current_block].min
+    else
+                   [ current_block - POLL_RANGE, 0 ].max
+    end
+    to_block = [ from_block + POLL_RANGE - 1, current_block ].min
 
     if from_block > current_block
       schedule_next
@@ -63,14 +64,14 @@ class WbtcDepositMonitorWorker
     # Query in batches (eth_getLogs topics array has practical limits)
     deposits_count = 0
     all_addresses.each_slice(BATCH_SIZE) do |batch|
-      padded_batch = batch.map { |addr| "0x" + addr.delete_prefix("0x").rjust(64, '0') }
+      padded_batch = batch.map { |addr| "0x" + addr.delete_prefix("0x").rjust(64, "0") }
 
-      logs = rpc_call(rpc_url, "eth_getLogs", [{
+      logs = rpc_call(rpc_url, "eth_getLogs", [ {
         fromBlock: "0x#{from_block.to_s(16)}",
         toBlock:   "0x#{to_block.to_s(16)}",
         address:   WBTC_ADDRESS,
-        topics:    [TRANSFER_TOPIC, nil, padded_batch]
-      }])
+        topics:    [ TRANSFER_TOPIC, nil, padded_batch ]
+      } ])
 
       (logs || []).each do |log|
         if process_deposit_log(log)

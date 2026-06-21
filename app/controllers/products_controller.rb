@@ -1,7 +1,7 @@
 class ProductsController < ApplicationController
   before_action :authenticate_user!
   before_action :set_business
-  before_action :set_product, only: [:edit, :update, :destroy]
+  before_action :set_product, only: [ :edit, :update, :destroy ]
 
   # ── GET /business/products.json — list products for payment link picker ──
   def index

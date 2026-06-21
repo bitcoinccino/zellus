@@ -52,7 +52,7 @@ class FeeService
 
     tiers.each do |tier|
       ceiling   = tier[:upto]
-      slice_top = ceiling.nil? ? amt : [amt, ceiling].min
+      slice_top = ceiling.nil? ? amt : [ amt, ceiling ].min
       slice     = slice_top - lower
       break if slice <= 0
 
@@ -61,7 +61,7 @@ class FeeService
       break if ceiling.nil? || amt <= ceiling
     end
 
-    [fee, floor].max.round(2)
+    [ fee, floor ].max.round(2)
   end
 
   # ── Withdrawal fees ─────────────────────────────────────────────────────
@@ -81,11 +81,11 @@ class FeeService
   end
 
   def self.bank_withdraw_fee(amount)
-    [amount.to_d * BANK_WITHDRAW_FEE_RATE, BANK_WITHDRAW_FEE_MIN].max.round(2)
+    [ amount.to_d * BANK_WITHDRAW_FEE_RATE, BANK_WITHDRAW_FEE_MIN ].max.round(2)
   end
 
   def self.remittance_fee(htg_amount)
-    [htg_amount.to_d * REMITTANCE_FEE_RATE, REMITTANCE_FEE_MIN].max.round(2)
+    [ htg_amount.to_d * REMITTANCE_FEE_RATE, REMITTANCE_FEE_MIN ].max.round(2)
   end
 
   # ── Crypto / conversion fees ──

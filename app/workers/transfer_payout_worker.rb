@@ -1,6 +1,7 @@
 # frozen_string_literal: true
-require 'sidekiq'
-require 'faraday'
+
+require "sidekiq"
+require "faraday"
 
 class TransferPayoutWorker
   include Sidekiq::Job
@@ -30,7 +31,6 @@ class TransferPayoutWorker
   private
 
   def dispatch_payout(transfer)
-
     # Bank transfers are admin-processed — skip automatic payout
     if transfer.bank_transfer?
       Rails.logger.info "TransferPayout: bank transfer=#{transfer.id} skipped (admin-processed)"
@@ -414,8 +414,8 @@ class TransferPayoutWorker
   end
 
   def process_crypto_payout_self_hosted(transfer)
-    require 'digest/keccak'
-    require 'openssl'
+    require "digest/keccak"
+    require "openssl"
 
     begin
       EthAddressValidator.validate!(transfer.receiver_wallet_address)
@@ -433,8 +433,8 @@ class TransferPayoutWorker
       return
     end
 
-    rpc_url  = ENV['BASE_RPC_URL'].presence || "https://mainnet.base.org"
-    priv_hex = ENV['TREASURY_PRIVATE_KEY'].to_s.strip.delete_prefix("0x")
+    rpc_url  = ENV["BASE_RPC_URL"].presence || "https://mainnet.base.org"
+    priv_hex = ENV["TREASURY_PRIVATE_KEY"].to_s.strip.delete_prefix("0x")
     raise "TREASURY_PRIVATE_KEY not set" if priv_hex.empty?
 
     key    = build_ec_key(priv_hex)
@@ -465,7 +465,7 @@ class TransferPayoutWorker
 
       Rails.logger.info "TransferPayout: signing #{asset.upcase} tx [transfer=#{transfer.id}]"
 
-      tx_hash = rpc_call(rpc_url, "eth_sendRawTransaction", ["0x#{raw_tx}"])
+      tx_hash = rpc_call(rpc_url, "eth_sendRawTransaction", [ "0x#{raw_tx}" ])
       raise "RPC returned no tx hash" if tx_hash.blank?
 
       transfer.update!(
@@ -482,18 +482,18 @@ class TransferPayoutWorker
   # ── Crypto helpers (mirrored from CryptoTransferWorker) ─────────────────
 
   def build_ec_key(priv_hex)
-    priv_hex  = priv_hex.rjust(64, '0')
+    priv_hex  = priv_hex.rjust(64, "0")
     priv_bn   = OpenSSL::BN.new(priv_hex, 16)
-    group     = OpenSSL::PKey::EC::Group.new('secp256k1')
+    group     = OpenSSL::PKey::EC::Group.new("secp256k1")
     pub_point = group.generator.mul(priv_bn)
-    priv_bytes = [priv_hex].pack('H*')
+    priv_bytes = [ priv_hex ].pack("H*")
     pub_bytes  = pub_point.to_octet_string(:uncompressed)
 
     der = OpenSSL::ASN1::Sequence([
       OpenSSL::ASN1::Integer(OpenSSL::BN.new(1)),
       OpenSSL::ASN1::OctetString(priv_bytes),
-      OpenSSL::ASN1::ASN1Data.new([OpenSSL::ASN1::ObjectId('secp256k1')], 0, :CONTEXT_SPECIFIC),
-      OpenSSL::ASN1::ASN1Data.new([OpenSSL::ASN1::BitString(pub_bytes)],  1, :CONTEXT_SPECIFIC)
+      OpenSSL::ASN1::ASN1Data.new([ OpenSSL::ASN1::ObjectId("secp256k1") ], 0, :CONTEXT_SPECIFIC),
+      OpenSSL::ASN1::ASN1Data.new([ OpenSSL::ASN1::BitString(pub_bytes) ],  1, :CONTEXT_SPECIFIC)
     ]).to_der
 
     OpenSSL::PKey::EC.new(der)
@@ -502,18 +502,18 @@ class TransferPayoutWorker
   def derive_address(key)
     pub_bytes = key.public_key.to_octet_string(:uncompressed)[1..]
     addr_hash = Digest::Keccak.digest(pub_bytes, 256)
-    "0x" + addr_hash.unpack1('H*')[-40..]
+    "0x" + addr_hash.unpack1("H*")[-40..]
   end
 
   def build_transfer_calldata(to_address, amount_units)
-    addr_padded   = to_address.delete_prefix("0x").downcase.rjust(64, '0')
-    amount_padded = amount_units.to_s(16).rjust(64, '0')
+    addr_padded   = to_address.delete_prefix("0x").downcase.rjust(64, "0")
+    amount_padded = amount_units.to_s(16).rjust(64, "0")
     TRANSFER_SELECTOR + addr_padded + amount_padded
   end
 
   def build_and_sign_tx(nonce:, gas_price:, gas_limit:, to:, data:, key:, value: 0)
-    to_bytes   = [to.delete_prefix("0x")].pack('H*')
-    data_bytes = data.empty? ? "".b : [data].pack('H*')
+    to_bytes   = [ to.delete_prefix("0x") ].pack("H*")
+    data_bytes = data.empty? ? "".b : [ data ].pack("H*")
 
     unsigned = rlp_encode([
       encode_int(nonce), encode_int(gas_price), encode_int(gas_limit),
@@ -528,7 +528,7 @@ class TransferPayoutWorker
       encode_int(nonce), encode_int(gas_price), encode_int(gas_limit),
       to_bytes, encode_int(value), data_bytes,
       encode_int(v), encode_int(r), encode_int(s)
-    ]).unpack1('H*')
+    ]).unpack1("H*")
   end
 
   # Retry signing up to 5 times — OpenSSL ECDSA uses a random nonce k,
@@ -558,12 +558,12 @@ class TransferPayoutWorker
     rec_id = recovery_id(hash_bytes, r, s, key)
     v = rec_id + CHAIN_ID * 2 + 35
 
-    [r, s, v]
+    [ r, s, v ]
   end
 
   def recovery_id(hash_bytes, r, s, key)
-    expected = key.public_key.to_octet_string(:uncompressed)[1..].unpack1('H*')
-    [0, 1, 2, 3].each do |i|
+    expected = key.public_key.to_octet_string(:uncompressed)[1..].unpack1("H*")
+    [ 0, 1, 2, 3 ].each do |i|
       candidate = recover_public_key(hash_bytes, r, s, i)
       return i if candidate == expected
     end
@@ -573,7 +573,7 @@ class TransferPayoutWorker
   def recover_public_key(hash_bytes, r, s, rec_id)
     p_val  = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F
     order  = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141
-    hash_n = hash_bytes.unpack1('H*').to_i(16)
+    hash_n = hash_bytes.unpack1("H*").to_i(16)
 
     x    = r + rec_id * order
     return nil if x >= p_val
@@ -582,8 +582,8 @@ class TransferPayoutWorker
     y    = y_sq.pow((p_val + 1) / 4, p_val)
     y    = p_val - y if (y % 2) != (rec_id % 2)
 
-    point_hex = "04" + x.to_s(16).rjust(64, '0') + y.to_s(16).rjust(64, '0')
-    group     = OpenSSL::PKey::EC::Group.new('secp256k1')
+    point_hex = "04" + x.to_s(16).rjust(64, "0") + y.to_s(16).rjust(64, "0")
+    group     = OpenSSL::PKey::EC::Group.new("secp256k1")
     point     = OpenSSL::PKey::EC::Point.new(group, OpenSSL::BN.new(point_hex, 16))
 
     r_inv    = r.pow(order - 2, order)
@@ -593,7 +593,7 @@ class TransferPayoutWorker
                      .add(group.generator.mul(OpenSSL::BN.new(neg_hash.to_s(16), 16)))
                      .mul(OpenSSL::BN.new(r_inv.to_s(16), 16))
 
-    recovered.to_octet_string(:uncompressed)[1..].unpack1('H*')
+    recovered.to_octet_string(:uncompressed)[1..].unpack1("H*")
   rescue
     nil
   end
@@ -628,7 +628,7 @@ class TransferPayoutWorker
     return "".b if n == 0
     hex = n.to_s(16)
     hex = "0#{hex}" if hex.length.odd?
-    [hex].pack('H*').b
+    [ hex ].pack("H*").b
   end
 
   # ── JSON-RPC (delegated to BaseRpcClient with retry/backoff) ──────────
@@ -642,13 +642,13 @@ class TransferPayoutWorker
 
   def capped_gas_price(rpc_url)
     base_price = rpc_call(rpc_url, "eth_gasPrice", []).to_i(16)
-    [base_price * 2, MAX_GAS_PRICE].min
+    [ base_price * 2, MAX_GAS_PRICE ].min
   end
 
   def estimate_gas(url, from, to, data)
-    result = rpc_call(url, "eth_estimateGas", [{
+    result = rpc_call(url, "eth_estimateGas", [ {
       from: from, to: to, data: "0x#{data}", value: "0x0"
-    }])
+    } ])
     (result.to_i(16) * 1.2).to_i
   end
 

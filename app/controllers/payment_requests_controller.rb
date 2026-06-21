@@ -1,6 +1,6 @@
 class PaymentRequestsController < ApplicationController
-  before_action :authenticate_user!, except: [:public_show]
-  before_action :set_payment_request, only: [:show, :update, :destroy]
+  before_action :authenticate_user!, except: [ :public_show ]
+  before_action :set_payment_request, only: [ :show, :update, :destroy ]
 
   def index
     @payment_requests = current_user.payment_requests.recent_first
@@ -186,7 +186,7 @@ class PaymentRequestsController < ApplicationController
       unless @is_creator
         wallet = current_user.ensure_wallet!
         @payer_balance = wallet.balance_for(@payment_request.asset)
-        @balance_shortfall = [(@payment_request.amount - @payer_balance), 0].max
+        @balance_shortfall = [ (@payment_request.amount - @payer_balance), 0 ].max
         @can_pay_direct = @pin_set && @payer_balance >= @payment_request.amount
       end
     end
@@ -219,5 +219,4 @@ class PaymentRequestsController < ApplicationController
   def default_request_expiration_time
     48.hours.from_now.change(sec: 0)
   end
-
 end

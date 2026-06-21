@@ -74,9 +74,9 @@ class WalletService
     # HTG MonCash withdrawals always have a fee (instant or standard)
     fee = if asset == "htg"
             instant ? self.class.calculate_instant_fee(amount) : self.class.calculate_standard_fee(amount)
-          else
+    else
             BigDecimal("0")
-          end
+    end
     payout = amount.to_d - fee  # What user actually receives
 
     ActiveRecord::Base.transaction do
@@ -112,9 +112,9 @@ class WalletService
         running_balance -= fee
         fee_desc = if instant
                      "Frè retire instant (1.5%, min 25 maks 2,500 HTG)"
-                   else
+        else
                      "Frè retire estanda (1%, min 15 HTG)"
-                   end
+        end
         @wallet.wallet_ledger_entries.create!(
           user: @wallet.user,
           entry_type: instant ? "instant_fee" : "fee",
@@ -138,9 +138,9 @@ class WalletService
 
     fee = if asset == "htg"
             instant ? self.class.calculate_instant_fee(amount) : self.class.calculate_standard_fee(amount)
-          else
+    else
             BigDecimal("0")
-          end
+    end
     payout = amount.to_d - fee
 
     ActiveRecord::Base.transaction do

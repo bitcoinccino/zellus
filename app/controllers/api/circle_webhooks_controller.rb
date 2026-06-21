@@ -55,7 +55,7 @@ module Api
 
       unless ActiveSupport::SecurityUtils.secure_compare(expected, signature.to_s)
         Rails.logger.warn "CircleWebhook: invalid signature"
-        return head :unauthorized
+        head :unauthorized
       end
     end
 

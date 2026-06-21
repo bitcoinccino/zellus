@@ -49,7 +49,7 @@ class TransactionsController < ApplicationController
     end
     @exchange_rate   = if tx_type == "sell"
                          @sell_crypto == "wbtc" ? @wbtc_htg_sell_rate : @sell_exchange_rate
-                       else
+    else
                          case @buy_crypto
                          when "wbtc" then @wbtc_htg_buy_rate
                          when "eth"  then @eth_htg_buy_rate
@@ -57,7 +57,7 @@ class TransactionsController < ApplicationController
                            @stock_rates[@buy_crypto][:htg_buy]
                          else @buy_exchange_rate
                          end
-                       end
+    end
 
     if tx_type == "sell"
       selected_payment_method = current_user.payment_methods.active.mobile_wallet.moncash.find_by(id: params[:payment_method_id])
@@ -90,7 +90,7 @@ class TransactionsController < ApplicationController
         fee_amount:          fee_htg,
         exchange_rate:       @exchange_rate,
         moncash_phone:       payout_moncash_phone,
-        destination_address: ENV['TREASURY_ADDRESS'] || "0x9BAC1AC641d7c08caE0f524cC62a81C6abe73dEa",
+        destination_address: ENV["TREASURY_ADDRESS"] || "0x9BAC1AC641d7c08caE0f524cC62a81C6abe73dEa",
         status:              :pending
       )
       apply_request_receiver_override!(@transaction, tx_type: "sell")
@@ -129,10 +129,10 @@ class TransactionsController < ApplicationController
       @fee_percentage               = FeeService.crypto_fee_percent(@transaction.fiat_amount)
       net_fiat                      = @transaction.fiat_amount - @transaction.fee_amount
       precision = case @buy_crypto
-                  when "wbtc", "eth" then 8
-                  when "tslax", "nvdax", "aaplx", "coinx", "googlx" then 8
-                  else 6
-                  end
+      when "wbtc", "eth" then 8
+      when "tslax", "nvdax", "aaplx", "coinx", "googlx" then 8
+      else 6
+      end
       @transaction.crypto_amount    = (net_fiat / @exchange_rate).round(precision)
       @transaction.status           = :pending
       @transaction.exchange_rate    = @exchange_rate
@@ -165,10 +165,10 @@ class TransactionsController < ApplicationController
   # 5. Execute: Trigger the MonCash API
   def pay
     @transaction = current_user.transactions.find_by!(token: params[:ref])
-    
+
     # MoncashService.create_payment now updates @transaction.last_moncash_order_id internally
     url = MoncashService.create_payment(@transaction)
-    
+
     if url
       # Use allow_other_host: true for external redirects in Rails 7+
       redirect_to url, allow_other_host: true
@@ -228,7 +228,7 @@ class TransactionsController < ApplicationController
     redirect_to transaction_path(@transaction), notice: "Deposit TX hash submitted. We are verifying your #{crypto_label} transfer on Base."
   end
 
-  # 6. Success: Land here after paying on the Digicel site
+ # 6. Success: Land here after paying on the Digicel site
  def success
   @moncash_id  = params[:transactionId]
   @order_id    = params[:orderId]
@@ -279,7 +279,7 @@ class TransactionsController < ApplicationController
   end
 end
 
-  
+
   private
 
   def load_display_rates
@@ -328,7 +328,7 @@ end
   end
 
   def manual_confirm_allowed?
-    Rails.env.development? || current_user.email == ENV['ADMIN_EMAIL'].to_s.strip
+    Rails.env.development? || current_user.email == ENV["ADMIN_EMAIL"].to_s.strip
   end
 
   def transaction_params

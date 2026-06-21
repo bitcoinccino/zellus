@@ -32,7 +32,7 @@ class LoanAutoRepayWorker
 
         # Award on-time bonus points
         current_score = user.credit_score || 0
-        new_score = [current_score + ON_TIME_BONUS, User::MAX_CREDIT_SCORE].min
+        new_score = [ current_score + ON_TIME_BONUS, User::MAX_CREDIT_SCORE ].min
         user.update!(credit_score: new_score)
 
         # Send success email
