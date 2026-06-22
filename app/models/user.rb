@@ -100,7 +100,7 @@ class User < ApplicationRecord
   end
 
   def pin_attempts_remaining
-    [MAX_PIN_ATTEMPTS - failed_pin_attempts.to_i, 0].max
+    [ MAX_PIN_ATTEMPTS - failed_pin_attempts.to_i, 0 ].max
   end
 
   # Records one wrong PIN. On hitting the ceiling, starts a lockout window and
