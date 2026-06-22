@@ -435,6 +435,13 @@
 
       /* ── Page reveal: lightning loader covers screen on first load,
            overlay covers screen on navigation. No body opacity needed. ── */
+
+      /* ── Mobile: stop stray-wide content (e.g. a wallet activity row or
+           amount) from forcing horizontal page scroll, which pushed the
+           centered Pòtfèy card / activities sideways when switching tabs. ── */
+      @media (max-width: 991.98px) {
+        html, body { overflow-x: hidden; max-width: 100%; }
+      }
     </style>
     <%= yield :head %>
   </head>
@@ -456,9 +463,25 @@
           <%= image_tag "zellus_square.png", alt: "Zèllus", style: "height: 40px; width: 40px; border-radius: 10px;" %>
         <% end %>
 
-        <button class="navbar-toggler border-0 shadow-none py-2 px-3" type="button" data-bs-toggle="collapse" data-bs-target="#zellusNavbarContent">
-          <i class="ri-menu-3-line text-white" style="font-size: 1.5rem;"></i>
-        </button>
+        <%# ── Mobile-only: notification bell + hamburger (desktop has the bell
+            inside the collapsed menu, which is hidden behind the toggler on
+            mobile — so users couldn't see incoming-money alerts). ── %>
+        <%# NB: no ms-auto here — a global `.navbar .ms-auto` mobile rule forces
+            width:100%/margin-top (for the collapsed menu), which would drop this
+            group onto its own row under the logo. The navbar's space-between
+            already right-aligns it. ── %>
+        <div class="d-flex align-items-center gap-3 d-lg-none">
+          <% if user_signed_in? %>
+            <%= link_to notifications_path, class: "position-relative text-decoration-none d-inline-flex", style: "color: var(--haiti-gold); font-size: 22px; line-height: 1;", aria: { label: "Notifikasyon" } do %>
+              <i class="ri-notification-3-line"></i>
+              <%# Always render the badge (hidden at 0) so live updates can show it. %>
+              <span id="notif-bell-badge-m" style="position: absolute; top: -4px; right: -6px; min-width: 16px; height: 16px; padding: 0 4px; background: #DC2626; color: #fff; font-size: 9px; font-weight: 800; border-radius: 999px; border: 1.5px solid var(--haiti-charcoal); align-items: center; justify-content: center; line-height: 1; display: <%= unread_notification_count > 0 ? 'flex' : 'none' %>;"><%= unread_notification_count %></span>
+            <% end %>
+          <% end %>
+          <button class="navbar-toggler border-0 shadow-none p-0" type="button" data-bs-toggle="collapse" data-bs-target="#zellusNavbarContent">
+            <i class="ri-menu-3-line text-white" style="font-size: 1.5rem;"></i>
+          </button>
+        </div>
 
         <div class="collapse navbar-collapse" id="zellusNavbarContent">
 
@@ -474,13 +497,9 @@
                   <% end %>
                 </li>
               <% end %>
-              <%# ── Apwopo / FAQ — mobile only (desktop: in user sidebar) ── %>
-              <li class="nav-item d-lg-none">
-                <%= link_to "Apwopo", apwopo_path, class: "nav-link text-white fw-bold py-2 px-3", style: "font-size: 14px;" %>
-              </li>
-              <li class="nav-item d-lg-none">
-                <%= link_to "FAQ", faq_path, class: "nav-link text-white fw-bold py-2 px-3", style: "font-size: 14px;" %>
-              </li>
+              <%# Apwopo / FAQ intentionally NOT in the mobile hamburger — kept
+                  to the desktop sidebar to keep the mobile menu focused on
+                  wallet actions. %>
 
               <%# ── Resevwa Button (desktop) ── %>
               <% if current_user.uma_enabled? && LightsparkConfig.enabled? %>
@@ -491,8 +510,8 @@
                 </li>
               <% end %>
 
-              <%# ── Notification Bell ── %>
-              <li class="nav-item dropdown ms-lg-2">
+              <%# ── Notification Bell (desktop only — mobile has its own next to the hamburger) ── %>
+              <li class="nav-item dropdown ms-lg-2 d-none d-lg-block">
                 <a href="#" role="button" data-bs-toggle="dropdown"
                    class="nav-link p-0"
                    style="color: var(--haiti-gold); font-size: 20px;">
@@ -592,8 +611,10 @@
 
                 <ul class="dropdown-menu dropdown-menu-end shadow-lg p-0 mt-2" style="min-width: 320px; width: 340px; border: 1px solid rgba(46,46,56,0.08); border-radius: 16px; overflow: hidden;">
 
-                  <%# ── SECTION 1: Identity Header ── %>
-                  <li>
+                  <%# ── SECTION 1: Identity Header (desktop only — on mobile the
+                      collapsed-menu pill above already shows avatar + cashtag, so
+                      showing this header too looked like the profile twice). ── %>
+                  <li class="d-none d-lg-block">
                     <div style="padding: 16px 20px 14px; background: linear-gradient(135deg, var(--haiti-charcoal) 0%, #3a3a48 100%);">
                       <div class="d-flex align-items-center gap-3">
                         <%# Avatar with verification badge %>
@@ -1356,6 +1377,28 @@
           dropBadge.textContent = c;
         }
       }
+
+      // ── 4b. Mirror the desktop bell badge → the mobile bell badge ──
+      // Poll/WebSocket updates target #notif-bell-badge (desktop, hidden on
+      // mobile). This keeps the mobile bell's badge (#notif-bell-badge-m) in
+      // sync for live "you received money" alerts, without duplicating the
+      // update logic above.
+      (function () {
+        var src = document.getElementById('notif-bell-badge');
+        var dst = document.getElementById('notif-bell-badge-m');
+        if (!src || !dst) return;
+        var sync = function () {
+          var txt = (src.textContent || '').trim();
+          var n = parseInt(txt || '0', 10) || 0;
+          var shown = src.style.display !== 'none' && n > 0;
+          dst.textContent = txt;
+          dst.style.display = shown ? 'flex' : 'none';
+        };
+        new MutationObserver(sync).observe(src, {
+          childList: true, characterData: true, subtree: true,
+          attributes: true, attributeFilter: ['style']
+        });
+      })();
 
       // ── 4c. Toast notification popup ──
       function showNotifToast(title, type, avatarUrl) {
