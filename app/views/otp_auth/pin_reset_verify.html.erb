@@ -1,0 +1,52 @@
+<% content_for :hide_navbar, true %>
+
+<div class="container py-5" style="min-height: 100vh;">
+  <div class="row justify-content-center">
+    <div class="col-12 col-md-7 col-lg-5">
+
+      <div class="text-center mb-4">
+        <%= image_tag "zellus_square.png", alt: "Zèllus", style: "width: 60px; height: 60px; border-radius: 14px; margin-bottom: 22px;" %>
+        <h1 class="fw-black mb-1" style="color: var(--haiti-charcoal); font-size: 22px; font-family: 'Space Grotesk', sans-serif;">Reyinisyalize PIN</h1>
+        <p class="small mb-0" style="color: var(--haiti-olive);"><%= session[:otp_resent] ? "Nou voye yon lòt kòd 6 chif nan" : "Nou voye yon kòd 6 chif nan" %></p>
+        <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 14px;"><%= @email %></div>
+      </div>
+
+      <div class="p-4 rounded-4" style="background: #fff; border: 1px solid rgba(46,46,56,0.08); box-shadow: 0 4px 14px rgba(46,46,56,0.06);">
+
+        <%= form_with url: login_pin_reset_verify_path, method: :post, local: true do |f| %>
+          <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Kòd 6 Chif</label>
+          <div class="input-group mb-3" style="border: 1.5px solid rgba(46,46,56,0.12); border-radius: 12px; overflow: hidden;">
+            <%= f.text_field :code,
+                  required: true,
+                  autofocus: true,
+                  autocomplete: "one-time-code",
+                  inputmode: "numeric",
+                  pattern: "\\d{6}",
+                  maxlength: 6,
+                  placeholder: "••••••",
+                  class: "form-control border-0 fw-bold shadow-none p-3 text-center",
+                  style: "font-size: 22px; color: var(--haiti-charcoal); letter-spacing: 10px; font-family: 'Courier New', monospace;" %>
+          </div>
+
+          <%= f.submit "Verifye Kòd",
+                class: "btn w-100 fw-bold rounded-pill py-3 border-0",
+                style: "background: var(--haiti-gold); color: var(--haiti-charcoal); font-size: 13px; letter-spacing: 0.5px;" %>
+        <% end %>
+
+        <div class="text-center mt-3" style="color: var(--haiti-olive); font-size: 12px;">
+          Pa resevwa kòd la?
+          <%= button_to "Voye yon lòt", login_pin_reset_path,
+                form: { class: "d-inline" },
+                class: "btn btn-link p-0 align-baseline fw-bold text-decoration-none",
+                style: "color: var(--haiti-gold); font-size: 12px;" %>
+        </div>
+
+        <div class="text-center mt-2">
+          <%= link_to "← Tounen", login_pin_path,
+                class: "fw-bold text-decoration-none",
+                style: "color: var(--haiti-olive); font-size: 12px;" %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

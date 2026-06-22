@@ -20,43 +20,62 @@
 
       <div class="p-4 rounded-4" style="background: #fff; border: 1px solid rgba(46,46,56,0.08); box-shadow: 0 4px 14px rgba(46,46,56,0.06);">
 
-        <%= form_with url: login_pin_path, method: :post, local: true do %>
-          <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">
-            PIN 4 Chif
-          </label>
-          <div class="input-group mb-3" style="border: 1.5px solid rgba(46,46,56,0.12); border-radius: 12px; overflow: hidden;">
-            <input type="password" name="pin"
-                   class="form-control border-0 fw-bold shadow-none p-3 text-center"
-                   maxlength="4" pattern="\d{4}" inputmode="numeric"
-                   autocomplete="off" autofocus required
-                   placeholder="• • • •"
-                   style="color: var(--haiti-charcoal); letter-spacing: 10px; font-size: 22px;">
+        <% if @pin_locked %>
+          <%# Locked out — hide the PIN form; the only way forward is an OTP reset. %>
+          <div class="text-center mb-3">
+            <i class="ri-lock-2-line" style="font-size: 30px; color: var(--haiti-olive);"></i>
+            <p class="small mt-2 mb-0" style="color: var(--haiti-olive);">
+              Kont ou bloke tanporèman akòz twòp tès erè. Reyinisyalize PIN ou ak imèl ou pou kontinye.
+            </p>
           </div>
-
-          <% if @needs_pin_setup %>
+        <% else %>
+          <%= form_with url: login_pin_path, method: :post, local: true do %>
             <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">
-              Konfime PIN
+              PIN 4 Chif
             </label>
             <div class="input-group mb-3" style="border: 1.5px solid rgba(46,46,56,0.12); border-radius: 12px; overflow: hidden;">
-              <input type="password" name="pin_confirmation"
+              <input type="password" name="pin"
                      class="form-control border-0 fw-bold shadow-none p-3 text-center"
                      maxlength="4" pattern="\d{4}" inputmode="numeric"
-                     autocomplete="off" required
+                     autocomplete="off" autofocus required
                      placeholder="• • • •"
                      style="color: var(--haiti-charcoal); letter-spacing: 10px; font-size: 22px;">
             </div>
-          <% end %>
 
-          <%= submit_tag(@needs_pin_setup ? "Kreye PIN" : "Antre",
-                class: "btn w-100 fw-bold rounded-pill py-3 border-0",
-                style: "background: var(--haiti-gold); color: var(--haiti-charcoal); font-size: 13px; letter-spacing: 0.5px;") %>
+            <% if @needs_pin_setup %>
+              <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">
+                Konfime PIN
+              </label>
+              <div class="input-group mb-3" style="border: 1.5px solid rgba(46,46,56,0.12); border-radius: 12px; overflow: hidden;">
+                <input type="password" name="pin_confirmation"
+                       class="form-control border-0 fw-bold shadow-none p-3 text-center"
+                       maxlength="4" pattern="\d{4}" inputmode="numeric"
+                       autocomplete="off" required
+                       placeholder="• • • •"
+                       style="color: var(--haiti-charcoal); letter-spacing: 10px; font-size: 22px;">
+              </div>
+            <% end %>
+
+            <%= submit_tag(@needs_pin_setup ? "Kreye PIN" : "Antre",
+                  class: "btn w-100 fw-bold rounded-pill py-3 border-0",
+                  style: "background: var(--haiti-gold); color: var(--haiti-charcoal); font-size: 13px; letter-spacing: 0.5px;") %>
+          <% end %>
         <% end %>
 
-        <div class="text-center mt-3">
+        <%# Forgot-PIN reset (not shown during first-time setup — nothing to reset). %>
+        <% unless @needs_pin_setup %>
+          <div class="text-center mt-3">
+            <%= button_to "Bliye PIN? Reyinisyalize ak imèl", login_pin_reset_path,
+                  class: "btn btn-link p-0 small fw-bold text-decoration-none",
+                  style: "color: var(--haiti-gold); font-size: 12px;" %>
+          </div>
+        <% end %>
+
+        <div class="text-center mt-2">
           <%= button_to destroy_user_session_path, method: :delete,
                 class: "btn btn-link p-0 small fw-bold text-decoration-none",
                 style: "color: var(--haiti-olive); font-size: 11px;" do %>
-            <% if @needs_pin_setup %>Dekonekte<% else %>Bliye PIN? Dekonekte<% end %>
+            Dekonekte
           <% end %>
         </div>
       </div>

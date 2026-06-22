@@ -18,8 +18,6 @@ class OtpAuthController < ApplicationController
   skip_before_action :require_cashtag!, raise: false
   before_action      :redirect_if_signed_in, only: %i[new create verify confirm]
 
-  PIN_MAX_ATTEMPTS = 5
-
   # GET /login
   def new
   end
@@ -87,40 +85,100 @@ class OtpAuthController < ApplicationController
   def pin
     redirect_to(login_path) and return unless user_signed_in?
     @needs_pin_setup = !current_user.has_transfer_pin?
+    @pin_locked      = current_user.pin_locked?
   end
 
   # POST /login/pin
   def unlock
     redirect_to(login_path) and return unless user_signed_in?
 
-    if current_user.has_transfer_pin?
+    if current_user.pin_locked?
+      @needs_pin_setup = false
+      @pin_locked      = true
+      flash.now[:alert] = pin_locked_message
+      render :pin, status: :too_many_requests
+    elsif current_user.has_transfer_pin?
       verify_existing_pin
     else
       create_pin
     end
   end
 
+  # POST /login/pin/reset — email a fresh OTP to authorize a PIN reset
+  def request_pin_reset
+    redirect_to(login_path) and return unless user_signed_in?
+
+    result = OtpService.request_for!(current_user.email, ip: request.remote_ip, purpose: "pin_reset")
+
+    if result.success? || result.error == :rate_limited
+      session[:pin_reset]  = true
+      session[:otp_resent] = (result.error == :rate_limited)
+      notice = result.error == :rate_limited ? "Yon kòd deja voye nan imèl ou." : "Nou voye yon kòd 6 chif nan imèl ou."
+      redirect_to login_pin_reset_verify_path, notice: notice
+    else
+      redirect_to login_pin_path, alert: "Nou pa ka voye kòd la kounye a. Tanpri eseye ankò."
+    end
+  end
+
+  # GET /login/pin/reset/verify — enter the 6-digit code to confirm the reset
+  def pin_reset_verify
+    redirect_to(login_path) and return unless user_signed_in?
+    redirect_to(login_pin_path) and return unless session[:pin_reset]
+    @email = current_user.email
+  end
+
+  # POST /login/pin/reset/verify — verify code, clear the PIN, route to setup
+  def confirm_pin_reset
+    redirect_to(login_path) and return unless user_signed_in?
+    redirect_to(login_pin_path) and return unless session[:pin_reset]
+
+    result = OtpService.verify!(current_user.email, params[:code].to_s)
+
+    unless result.success?
+      @email = current_user.email
+      flash.now[:alert] = case result.error
+                          when :exhausted then "Twòp tès erè. Mande yon nouvo kòd."
+                          when :no_code   then "Pa gen kòd aktif. Mande yon nouvo kòd."
+                          else                 "Kòd la pa kòrèk. Eseye ankò."
+                          end
+      render :pin_reset_verify, status: :unprocessable_entity
+      return
+    end
+
+    # OTP confirmed control of the email — clear the PIN and the lockout so the
+    # gate prompts for a fresh PIN on the next screen.
+    current_user.transfer_pin = nil
+    current_user.save!
+    current_user.reset_pin_attempts!
+    session.delete(:pin_reset)
+    session.delete(:pin_verified)
+    redirect_to login_pin_path, notice: "Kòd verifye. Tanpri kreye yon nouvo PIN."
+  end
+
   private
 
   def verify_existing_pin
     if current_user.verify_transfer_pin(params[:pin].to_s.strip)
+      current_user.reset_pin_attempts!
       session[:pin_verified] = true
-      session.delete(:pin_attempts)
       redirect_to post_pin_unlock_path
+    elsif current_user.register_failed_pin_attempt!
+      @needs_pin_setup = false
+      @pin_locked      = true
+      flash.now[:alert] = pin_locked_message
+      render :pin, status: :too_many_requests
     else
-      session[:pin_attempts] = session[:pin_attempts].to_i + 1
-
-      if session[:pin_attempts] >= PIN_MAX_ATTEMPTS
-        session.delete(:pin_attempts)
-        sign_out(current_user)
-        redirect_to login_path, alert: "Twòp tès erè. Tanpri konekte ankò."
-      else
-        @needs_pin_setup = false
-        remaining = PIN_MAX_ATTEMPTS - session[:pin_attempts]
-        flash.now[:alert] = "PIN pa kòrèk. #{remaining} tès ki rete."
-        render :pin, status: :unprocessable_entity
-      end
+      @needs_pin_setup = false
+      remaining = current_user.pin_attempts_remaining
+      flash.now[:alert] = "PIN pa kòrèk. #{remaining} tès ki rete."
+      render :pin, status: :unprocessable_entity
     end
+  end
+
+  # Kreyòl notice shown while a lockout window is active.
+  def pin_locked_message
+    minutes = (current_user.pin_lock_remaining_seconds / 60.0).ceil
+    "Twòp tès erè. Kont ou bloke pou #{minutes} minit. Ou ka reyinisyalize PIN ou ak imèl ou."
   end
 
   def create_pin
@@ -137,6 +195,7 @@ class OtpAuthController < ApplicationController
     else
       current_user.transfer_pin = pin
       current_user.save!
+      current_user.reset_pin_attempts!
       session[:pin_verified] = true
       redirect_to post_pin_unlock_path, notice: "PIN ou kreye avèk siksè. Byenveni!"
     end

@@ -1,0 +1,83 @@
+<div class="container-fluid py-4">
+
+  <div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+      <h1 class="fw-bold mb-1" style="font-family: 'Space Grotesk', sans-serif; font-size: 22px; color: var(--haiti-charcoal);">Itilizatè</h1>
+      <p class="text-muted small mb-0">Jere PIN ak estati kont itilizatè yo.</p>
+    </div>
+  </div>
+
+  <%= form_with url: admin_users_path, method: :get, local: true, class: "mb-4" do %>
+    <div class="input-group" style="max-width: 460px;">
+      <%= text_field_tag :q, @query,
+            placeholder: "Chèche pa imèl oswa $cashtag…",
+            class: "form-control",
+            autocomplete: "off" %>
+      <%= submit_tag "Chèche", class: "btn btn-dark fw-bold" %>
+    </div>
+  <% end %>
+
+  <div class="card border-0 shadow-sm">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead style="background: #f8f9fa;">
+          <tr class="text-uppercase small text-muted">
+            <th class="ps-4">Itilizatè</th>
+            <th>PIN</th>
+            <th>Estati</th>
+            <th class="text-end pe-4">Aksyon</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if @users.empty? %>
+            <tr><td colspan="4" class="text-center text-muted py-4">Pa gen okenn itilizatè.</td></tr>
+          <% end %>
+          <% @users.each do |user| %>
+            <tr>
+              <td class="ps-4">
+                <div class="fw-bold" style="color: var(--haiti-charcoal);"><%= user.email %></div>
+                <div class="small text-muted">
+                  <% if user.cashtag.present? %>$<%= user.cashtag %><% else %><span class="fst-italic">pa gen cashtag</span><% end %>
+                  · #<%= user.id %>
+                </div>
+              </td>
+              <td>
+                <% if user.transfer_pin_set? %>
+                  <span class="badge bg-success-subtle text-success-emphasis">Etabli</span>
+                <% else %>
+                  <span class="badge bg-secondary-subtle text-secondary-emphasis">Pa gen PIN</span>
+                <% end %>
+              </td>
+              <td>
+                <% if user.pin_locked? %>
+                  <span class="badge bg-danger-subtle text-danger-emphasis">
+                    Bloke (<%= (user.pin_lock_remaining_seconds / 60.0).ceil %> min)
+                  </span>
+                <% elsif user.failed_pin_attempts.to_i.positive? %>
+                  <span class="badge bg-warning-subtle text-warning-emphasis">
+                    <%= user.failed_pin_attempts %> tès erè
+                  </span>
+                <% else %>
+                  <span class="text-muted small">—</span>
+                <% end %>
+              </td>
+              <td class="text-end pe-4">
+                <% if user.transfer_pin_set? || user.pin_locked? || user.failed_pin_attempts.to_i.positive? %>
+                  <%= button_to "Reyinisyalize PIN", clear_user_pin_path(user, q: @query),
+                        method: :post,
+                        class: "btn btn-sm btn-outline-danger fw-bold",
+                        form: { class: "d-inline" },
+                        data: { turbo_confirm: "Reyinisyalize PIN #{user.email}? L ap oblije kreye yon nouvo PIN." } %>
+                <% else %>
+                  <span class="text-muted small">—</span>
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <p class="text-muted small mt-3 mb-0">Montre jiska 50 rezilta.</p>
+</div>

@@ -41,8 +41,11 @@
 <%# ── ZELLUS ITILIZATÈ ── %>
 <div class="admin-nav-section">
   <div class="admin-nav-header">ZELLUS ITILIZATÈ</div>
-  <%= link_to admin_users_analytics_path, class: "admin-nav-item #{active.call('/admin/users')}" do %>
+  <%= link_to admin_users_analytics_path, class: "admin-nav-item #{request.path == '/admin/users/analytics' ? 'admin-nav-active' : ''}" do %>
     <i class="ri-pie-chart-line"></i> Analitik
+  <% end %>
+  <%= link_to admin_users_path, class: "admin-nav-item #{request.path == '/admin/users' ? 'admin-nav-active' : ''}" do %>
+    <i class="ri-shield-keyhole-line"></i> PIN & Sekirite
   <% end %>
 </div>
 
