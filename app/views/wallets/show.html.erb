@@ -2242,35 +2242,29 @@
 
               <%# ── MIDDLE: Description + time ── %>
               <div class="flex-grow-1" style="min-width: 0;">
-                <% amt_str = number_to_currency(entry.amount, unit: "", precision: entry.asset == "htg" ? 0 : 2) %>
+                <%# Amount lives only in the RIGHT column now (was duplicated here). %>
                 <% if is_transfer %>
                   <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;">
                     <% if entry.entry_type == "transfer_out" %>
                       Ou peye <span style="color: var(--haiti-gold); font-weight: 800;"><%= counterparty_name %></span>
-                      ~ <%= amt_str %> <%= entry.asset_label %>
                     <% else %>
-                      <span style="color: var(--haiti-gold); font-weight: 800;"><%= counterparty_name %></span>
-                      peye w <%= amt_str %> <%= entry.asset_label %>
+                      <span style="color: var(--haiti-gold); font-weight: 800;"><%= counterparty_name %></span> peye w
                     <% end %>
                   </div>
                 <% else %>
                   <div class="fw-bold text-truncate" style="color: var(--haiti-charcoal); font-size: 13px;">
                     <% feed_label = case entry.entry_type
                        when "deposit"
-                         if entry.moncash_transaction_id.to_s.start_with?("admin-credit-")
-                           "Ou resevwa yon kredi: #{amt_str} #{entry.asset_label}"
-                         else
-                           "Ou depoze #{amt_str} #{entry.asset_label}"
-                         end
-                       when "withdrawal"     then "Ou retire #{amt_str} #{entry.asset_label}"
+                         entry.moncash_transaction_id.to_s.start_with?("admin-credit-") ? "Ou resevwa yon kredi" : "Ou depoze"
+                       when "withdrawal"     then "Ou retire"
                        when "conversion_out"
                          ctx = entry.source_context == "biznis" ? "Biznis" : "Pèsonèl"
-                         "Ou konvèti #{amt_str} #{entry.asset_label} (#{ctx})"
+                         "Ou konvèti (#{ctx})"
                        when "conversion_in"
                          ctx = entry.source_context == "biznis" ? "Biznis" : "Pèsonèl"
-                         "Ou resevwa #{amt_str} #{entry.asset_label} (#{ctx})"
-                       when "fee", "instant_fee" then "Frè #{amt_str} #{entry.asset_label}"
-                       when "refund"         then "Ranbousman #{amt_str} #{entry.asset_label}"
+                         "Ou resevwa (#{ctx})"
+                       when "fee", "instant_fee" then "Frè"
+                       when "refund"         then "Ranbousman"
                        else entry.description.to_s.truncate(35)
                        end %>
                     <%= feed_label %>
@@ -2282,7 +2276,8 @@
               <%# ── RIGHT: Amount ── %>
               <div class="text-end flex-shrink-0">
                 <div class="fw-black" style="font-size: 15px; color: <%= amount_color %>;">
-                  <%= entry.credit? ? "+" : "-" %><%= number_to_currency(entry.amount, unit: "", precision: entry.asset == "htg" ? 0 : 6) %>
+                  <%# Exact amount — htg/usd: 2 decimals · crypto (wbtc/eth): 6 %>
+                  <%= entry.credit? ? "+" : "-" %><%= number_to_currency(entry.amount, unit: "", precision: %w[htg usd].include?(entry.asset) ? 2 : 6) %>
                 </div>
                 <div style="color: var(--haiti-olive); font-size: 9px; font-weight: 600;"><%= entry.asset_label %></div>
               </div>
