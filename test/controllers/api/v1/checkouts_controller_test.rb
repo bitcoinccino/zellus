@@ -178,7 +178,8 @@ class Api::V1::CheckoutsControllerTest < ActionDispatch::IntegrationTest
       fee: 0,
       net_amount: amount,
       asset: :htg,
-      receiver_cashtag: "receivergal"
+      receiver_cashtag: "receivergal",
+      note: "Test note"
     )
 
     # Simulate wallet movements: debit sender, credit receiver
