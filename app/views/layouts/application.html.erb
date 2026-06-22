@@ -435,6 +435,13 @@
 
       /* ── Page reveal: lightning loader covers screen on first load,
            overlay covers screen on navigation. No body opacity needed. ── */
+
+      /* ── Mobile: stop stray-wide content (e.g. a wallet activity row or
+           amount) from forcing horizontal page scroll, which pushed the
+           centered Pòtfèy card / activities sideways when switching tabs. ── */
+      @media (max-width: 991.98px) {
+        html, body { overflow-x: hidden; max-width: 100%; }
+      }
     </style>
     <%= yield :head %>
   </head>
@@ -456,9 +463,22 @@
           <%= image_tag "zellus_square.png", alt: "Zèllus", style: "height: 40px; width: 40px; border-radius: 10px;" %>
         <% end %>
 
-        <button class="navbar-toggler border-0 shadow-none py-2 px-3" type="button" data-bs-toggle="collapse" data-bs-target="#zellusNavbarContent">
-          <i class="ri-menu-3-line text-white" style="font-size: 1.5rem;"></i>
-        </button>
+        <%# ── Mobile-only: notification bell + hamburger (desktop has the bell
+            inside the collapsed menu, which is hidden behind the toggler on
+            mobile — so users couldn't see incoming-money alerts). ── %>
+        <div class="d-flex align-items-center gap-3 ms-auto d-lg-none">
+          <% if user_signed_in? %>
+            <%= link_to notifications_path, class: "position-relative text-decoration-none d-inline-flex", style: "color: var(--haiti-gold); font-size: 22px; line-height: 1;", aria: { label: "Notifikasyon" } do %>
+              <i class="ri-notification-3-line"></i>
+              <% if unread_notification_count > 0 %>
+                <span id="notif-bell-badge-m" style="position: absolute; top: -4px; right: -6px; min-width: 16px; height: 16px; padding: 0 4px; background: #DC2626; color: #fff; font-size: 9px; font-weight: 800; border-radius: 999px; border: 1.5px solid var(--haiti-charcoal); display: flex; align-items: center; justify-content: center; line-height: 1;"><%= unread_notification_count %></span>
+              <% end %>
+            <% end %>
+          <% end %>
+          <button class="navbar-toggler border-0 shadow-none p-0" type="button" data-bs-toggle="collapse" data-bs-target="#zellusNavbarContent">
+            <i class="ri-menu-3-line text-white" style="font-size: 1.5rem;"></i>
+          </button>
+        </div>
 
         <div class="collapse navbar-collapse" id="zellusNavbarContent">
 
@@ -491,8 +511,8 @@
                 </li>
               <% end %>
 
-              <%# ── Notification Bell ── %>
-              <li class="nav-item dropdown ms-lg-2">
+              <%# ── Notification Bell (desktop only — mobile has its own next to the hamburger) ── %>
+              <li class="nav-item dropdown ms-lg-2 d-none d-lg-block">
                 <a href="#" role="button" data-bs-toggle="dropdown"
                    class="nav-link p-0"
                    style="color: var(--haiti-gold); font-size: 20px;">
