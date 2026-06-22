@@ -1336,17 +1336,24 @@
 
       // ── 4. Notification badge bump ──
       function bumpNotificationBadge(serverCount) {
+        // serverCount is the authoritative unread total from the server
+        // (20s poll / WebSocket). 0 is valid and means "all read" — it must
+        // clear the badge, not be treated as falsy. Only fall back to a +1
+        // increment when called with no count at all (real-time bump).
+        var hasCount = (typeof serverCount === 'number');
+        var c;
         var badge = document.querySelector('#notif-bell-badge');
         if (badge) {
-          var c = serverCount || (parseInt(badge.textContent || '0', 10) + 1);
+          c = hasCount ? serverCount : (parseInt(badge.textContent || '0', 10) + 1);
           badge.textContent = c;
           badge.style.display = c > 0 ? 'flex' : 'none';
-          console.log('[Zèllus] Badge updated to', c);
+        } else if (hasCount) {
+          c = serverCount;
         }
-        // Also update dropdown header badge
+        // Update dropdown header count when present (only rendered while > 0).
         var dropBadge = document.getElementById('notif-dropdown-count');
-        if (dropBadge) {
-          dropBadge.textContent = c || serverCount;
+        if (dropBadge && typeof c === 'number') {
+          dropBadge.textContent = c;
         }
       }
 
