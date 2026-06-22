@@ -43,15 +43,15 @@ class PaymentMethod < ApplicationRecord
   validates :account_number, presence: true,
             format: { with: /\A509\d{8}\z/, message: "must be a valid Haitian mobile number (509 + 8 digits)" },
             if: :mobile_wallet?
-  validates :account_number, uniqueness: { scope: [:user_id, :provider, :category], message: "is already saved" }, if: :mobile_wallet?
+  validates :account_number, uniqueness: { scope: [ :user_id, :provider, :category ], message: "is already saved" }, if: :mobile_wallet?
 
   validates :wallet_address, presence: true,
             format: { with: /\A0x[a-fA-F0-9]{40}\z/, message: "must be a valid EVM wallet address" }, if: :crypto_wallet?
-  validates :wallet_address, uniqueness: { scope: [:user_id, :provider, :category], message: "is already saved" }, if: :crypto_wallet?
+  validates :wallet_address, uniqueness: { scope: [ :user_id, :provider, :category ], message: "is already saved" }, if: :crypto_wallet?
   validates :network, presence: true, if: :crypto_wallet?
 
   validates :bank_account_number, presence: true, if: :bank_account?
-  validates :bank_account_number, uniqueness: { scope: [:user_id, :provider, :category], message: "deja anrejistre" }, if: :bank_account?
+  validates :bank_account_number, uniqueness: { scope: [ :user_id, :provider, :category ], message: "deja anrejistre" }, if: :bank_account?
   validates :bank_name, presence: true, if: :bank_account?
 
   def display_label
@@ -135,7 +135,7 @@ class PaymentMethod < ApplicationRecord
   def default_label
     return provider_display_name if mobile_wallet? || bank_account?
 
-    parts = ["Base"]
+    parts = [ "Base" ]
     parts << asset.to_s.upcase if asset.present?
     parts.join(" ")
   end
@@ -165,5 +165,4 @@ class PaymentMethod < ApplicationRecord
   def clear_other_defaults
     user.payment_methods.where.not(id: id).where(is_default: true).update_all(is_default: false)
   end
-
 end

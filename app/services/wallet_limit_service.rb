@@ -82,46 +82,46 @@ class WalletLimitService
   # ── Allow checks (returns [allowed?, reason] tuple) ──
   # Smart block: only reject if THIS SPECIFIC AMOUNT exceeds remaining reserve.
   def allow_buy?(usd_amount)
-    return [false, "Limit jounalye depase"] if buy_used_today_usd + usd_amount.to_d > buy_daily_max_usd
+    return [ false, "Limit jounalye depase" ] if buy_used_today_usd + usd_amount.to_d > buy_daily_max_usd
     if self.class.platform_paused?(:usdc, usd_amount.to_d)
-      return [false, "Sèvis pa disponib pou montan sa a kounye a"]
+      return [ false, "Sèvis pa disponib pou montan sa a kounye a" ]
     end
-    [true, nil]
+    [ true, nil ]
   end
 
   def allow_convert_to_usd?(usd_amount)
-    return [false, "Montan twòp gran"] if usd_amount.to_d > convert_max_usd
-    return [false, "Limit jounalye depase"] if convert_usd_used_today + usd_amount.to_d > convert_daily_max_usd
+    return [ false, "Montan twòp gran" ] if usd_amount.to_d > convert_max_usd
+    return [ false, "Limit jounalye depase" ] if convert_usd_used_today + usd_amount.to_d > convert_daily_max_usd
     if self.class.platform_paused?(:usdc, usd_amount.to_d)
-      return [false, "Sèvis pa disponib pou montan sa a kounye a"]
+      return [ false, "Sèvis pa disponib pou montan sa a kounye a" ]
     end
-    [true, nil]
+    [ true, nil ]
   end
 
   def allow_convert_to_htg?(htg_amount)
-    return [false, "Limit jounalye depase"] if convert_htg_used_today + htg_amount.to_d > convert_daily_max_htg
+    return [ false, "Limit jounalye depase" ] if convert_htg_used_today + htg_amount.to_d > convert_daily_max_htg
     if self.class.platform_paused?(:htg, htg_amount.to_d)
-      return [false, "Sèvis pa disponib pou montan sa a kounye a"]
+      return [ false, "Sèvis pa disponib pou montan sa a kounye a" ]
     end
-    [true, nil]
+    [ true, nil ]
   end
 
   def allow_withdraw_htg?(htg_amount)
-    return [false, "Montan twòp gran (max #{withdraw_max_htg.to_i} HTG)"] if htg_amount.to_d > withdraw_max_htg
-    return [false, "Limit jounalye depase"] if withdraw_htg_used_today + htg_amount.to_d > withdraw_daily_max_htg
+    return [ false, "Montan twòp gran (max #{withdraw_max_htg.to_i} HTG)" ] if htg_amount.to_d > withdraw_max_htg
+    return [ false, "Limit jounalye depase" ] if withdraw_htg_used_today + htg_amount.to_d > withdraw_daily_max_htg
     if self.class.platform_paused?(:htg, htg_amount.to_d)
-      return [false, "Sèvis pa disponib pou montan sa a kounye a"]
+      return [ false, "Sèvis pa disponib pou montan sa a kounye a" ]
     end
-    [true, nil]
+    [ true, nil ]
   end
 
   def allow_withdraw_usdc?(usd_amount)
-    return [false, "Montan twòp gran (max $#{usdc_withdraw_max.to_i})"] if usd_amount.to_d > usdc_withdraw_max
-    return [false, "Limit jounalye depase"] if withdraw_usdc_used_today + usd_amount.to_d > usdc_daily_max
+    return [ false, "Montan twòp gran (max $#{usdc_withdraw_max.to_i})" ] if usd_amount.to_d > usdc_withdraw_max
+    return [ false, "Limit jounalye depase" ] if withdraw_usdc_used_today + usd_amount.to_d > usdc_daily_max
     if self.class.platform_paused?(:usdc, usd_amount.to_d)
-      return [false, "Sèvis pa disponib pou montan sa a kounye a"]
+      return [ false, "Sèvis pa disponib pou montan sa a kounye a" ]
     end
-    [true, nil]
+    [ true, nil ]
   end
 
   # ── Platform-level reserves and circuit breaker ──
@@ -174,7 +174,7 @@ class WalletLimitService
   end
 
   def daily_swap_used; convert_usd_used_today; end
-  def daily_swap_remaining; [convert_daily_max_usd - daily_swap_used, BigDecimal("0")].max; end
+  def daily_swap_remaining; [ convert_daily_max_usd - daily_swap_used, BigDecimal("0") ].max; end
   def swap_allowed?(usd_amount); allow_convert_to_usd?(usd_amount).first; end
   def balance_would_exceed?(additional_usd); (@wallet.usd_balance + additional_usd.to_d) > limits[:max_balance_usd]; end
   def max_balance; limits[:max_balance_usd]; end

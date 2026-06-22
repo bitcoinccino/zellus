@@ -1,5 +1,6 @@
 # frozen_string_literal: true
-require 'sidekiq'
+
+require "sidekiq"
 
 class StuckTransferMonitorWorker
   include Sidekiq::Job
@@ -14,7 +15,7 @@ class StuckTransferMonitorWorker
     stuck_transfers = Transfer
       .where(status: :funded)
       .where("funded_at < ?", STUCK_THRESHOLD.ago)
-      .where.not(status: [:completed, :failed, :expired, :refunded])
+      .where.not(status: [ :completed, :failed, :expired, :refunded ])
 
     stuck_transfers.find_each do |transfer|
       Rails.logger.warn "StuckTransferMonitor: transfer=#{transfer.id} (token=#{transfer.token}) stuck at 'funded' since #{transfer.funded_at} — re-triggering payout"

@@ -14,6 +14,6 @@ class CreateWebhookDeliveries < ActiveRecord::Migration[8.0]
       t.timestamps
     end
     add_index :webhook_deliveries, :delivery_id, unique: true
-    add_index :webhook_deliveries, [:oauth_client_id, :event]
+    add_index :webhook_deliveries, [ :oauth_client_id, :event ]
   end
 end

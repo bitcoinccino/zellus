@@ -16,7 +16,7 @@ class CreateBusinesses < ActiveRecord::Migration[8.0]
       t.string :phone
 
       # Payment config
-      t.string  :accepted_currencies, array: true, default: ["htg"]
+      t.string  :accepted_currencies, array: true, default: [ "htg" ]
       t.boolean :auto_settle,         default: false
       t.string  :settlement_method,   default: "wallet"
       t.decimal :fee_rate, precision: 5, scale: 4, default: 0.015

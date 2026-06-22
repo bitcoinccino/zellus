@@ -1,8 +1,8 @@
 class TransfersController < ApplicationController
   include ActionView::Helpers::NumberHelper
   include BonidRecheckable
-  before_action :authenticate_user!, except: [:claim, :claim_confirm]
-  before_action :recheck_bonid!, only: [:confirm]
+  before_action :authenticate_user!, except: [ :claim, :claim_confirm ]
+  before_action :recheck_bonid!, only: [ :confirm ]
 
   # ── GET /transfers/new ──
   def new
@@ -986,16 +986,16 @@ class TransfersController < ApplicationController
 
     unless @transfer.funded?
       flash[:alert] = case @transfer.status
-                      when "completed" then "Transfè sa a deja konplete."
-                      when "expired"   then "Transfè sa a ekspire."
-                      when "claimed"   then "Transfè sa a deja reklame. N ap trete l."
-                      else "Transfè sa a pa disponib."
-                      end
+      when "completed" then "Transfè sa a deja konplete."
+      when "expired"   then "Transfè sa a ekspire."
+      when "claimed"   then "Transfè sa a deja reklame. N ap trete l."
+      else "Transfè sa a pa disponib."
+      end
       redirect_to claim_transfer_path(@transfer.token)
       return
     end
 
-    phone = params[:receiver_phone].to_s.gsub(/[^\d]/, '')
+    phone = params[:receiver_phone].to_s.gsub(/[^\d]/, "")
     unless phone.match?(/\A509\d{8}\z/)
       flash[:alert] = "Tanpri antre yon nimewo MonCash valid (509 + 8 chif)."
       redirect_to claim_transfer_path(@transfer.token)
@@ -1038,17 +1038,17 @@ class TransfersController < ApplicationController
 
     amount_label = if transfer.crypto_amount.present?
                      "#{transfer.crypto_amount} #{transfer.asset.to_s.upcase}"
-                   else
+    else
                      "#{transfer.amount.to_i} HTG"
-                   end
+    end
 
     Rails.logger.info "[Zèllus] Broadcasting transfer_received to user #{receiver.id} (#{amount_label})"
 
     avatar_url = if current_user.avatar.attached?
                    Rails.application.routes.url_helpers.rails_blob_url(current_user.avatar, only_path: true)
-                 elsif current_user.bonid_photo_url.present?
+    elsif current_user.bonid_photo_url.present?
                    current_user.bonid_photo_url
-                 end
+    end
 
     # Instant real-time preview — NO sound here because the money hasn't
     # arrived yet. The TransferPayoutWorker credits the wallet and then
@@ -1161,10 +1161,10 @@ class TransfersController < ApplicationController
       method_id = params[:moncash_method_id].to_s.strip
       if method_id.present? && method_id != "other"
         method = current_user.payment_methods.active.mobile_wallet.find_by(id: method_id)
-        transfer.receiver_phone = method.account_number.to_s.gsub(/[^\d]/, '') if method
+        transfer.receiver_phone = method.account_number.to_s.gsub(/[^\d]/, "") if method
       end
       # Manual phone takes precedence if provided
-      manual_phone = params.dig(:transfer, :receiver_phone).to_s.gsub(/[^\d]/, '')
+      manual_phone = params.dig(:transfer, :receiver_phone).to_s.gsub(/[^\d]/, "")
       transfer.receiver_phone = manual_phone if manual_phone.present?
     elsif transfer.receiver_cashtag.blank?
       # Crypto without $zellustag: fall through to wallet address
@@ -1245,9 +1245,9 @@ class TransfersController < ApplicationController
     payload = { amount: amount.to_i, orderId: order_id }.to_json
 
     response = conn.post do |req|
-      req.headers['Authorization'] = "Bearer #{token}"
-      req.headers['Content-Type']  = 'application/json'
-      req.headers['Accept']        = 'application/json'
+      req.headers["Authorization"] = "Bearer #{token}"
+      req.headers["Content-Type"]  = "application/json"
+      req.headers["Accept"]        = "application/json"
       req.body = payload
     end
 

@@ -58,10 +58,10 @@ class OtpAuthController < ApplicationController
 
     unless result.success?
       flash.now[:alert] = case result.error
-                         when :exhausted    then "Twòp tès erè. Mande yon nouvo kòd."
-                         when :no_code      then "Pa gen kòd aktif. Mande yon nouvo kòd."
-                         else                    "Kòd la pa kòrèk. Eseye ankò."
-                         end
+      when :exhausted    then "Twòp tès erè. Mande yon nouvo kòd."
+      when :no_code      then "Pa gen kòd aktif. Mande yon nouvo kòd."
+      else                    "Kòd la pa kòrèk. Eseye ankò."
+      end
       render :verify, status: :unprocessable_entity
       return
     end

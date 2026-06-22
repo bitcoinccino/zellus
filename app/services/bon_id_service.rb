@@ -24,9 +24,9 @@ class BonIdService
       # BonID API nests verified under "verification" object
       verified = if data["verification"].is_a?(Hash)
                    data["verification"]["verified"] == true
-                 else
+      else
                    data["verified"] == true
-                 end
+      end
       { success: true, verified: verified, bonid: data["bonid"] }
     else
       handle_error(response)
@@ -252,7 +252,7 @@ class BonIdService
       req.body = {
         bonid: user.bonid,
         transaction_type: "p2p_transfer",
-        scopes: ["identity"],
+        scopes: [ "identity" ],
         amount: consent_amount,
         currency: consent_currency,
         description: description,

@@ -213,9 +213,9 @@ class Notification < ApplicationRecord
     # HTG → whole number with commas, everything else → 2 decimals
     formatted = if asset == "HTG"
                   number.to_i.to_s.reverse.gsub(/(\d{3})(?=\d)/, '\\1,').reverse
-                else
+    else
                   "%.2f" % number
-                end
+    end
 
     "#{formatted} #{asset}"
   end

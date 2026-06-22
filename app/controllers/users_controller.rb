@@ -1,6 +1,6 @@
 class UsersController < ApplicationController
-  before_action :authenticate_user!, only: [:lookup]
-  skip_before_action :require_cashtag!, only: [:setup_cashtag, :save_cashtag, :check_cashtag]
+  before_action :authenticate_user!, only: [ :lookup ]
+  skip_before_action :require_cashtag!, only: [ :setup_cashtag, :save_cashtag, :check_cashtag ]
 
   # GET /users/check_cashtag?cashtag=xxx (JSON)
   def check_cashtag

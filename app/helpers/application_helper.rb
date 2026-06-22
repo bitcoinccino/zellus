@@ -136,7 +136,7 @@ module ApplicationHelper
       lx = quiet + (mod_count - logo_dim) / 2.0
       pad = logo_dim * 0.1
       img_size = logo_dim * 0.8
-      img_url = ActionController::Base.helpers.asset_path('zellus_square.png')
+      img_url = ActionController::Base.helpers.asset_path("zellus_square.png")
       svg += %(<rect x="#{lx}" y="#{lx}" width="#{logo_dim}" height="#{logo_dim}" rx="#{logo_dim * 0.18}" fill="white"/>)
       svg += %(<image href="#{img_url}" xlink:href="#{img_url}" x="#{lx + pad}" y="#{lx + pad}" width="#{img_size}" height="#{img_size}"/>)
     end

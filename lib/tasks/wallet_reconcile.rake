@@ -3,13 +3,13 @@
 namespace :wallet do
   desc "Reconcile internal wallet balances with on-chain treasury holdings"
   task reconcile: :environment do
-    require 'faraday'
+    require "faraday"
 
     USDC_ADDRESS = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
     WBTC_ADDRESS = "0x236aa50979D5f3De3Bd1Eeb40E81137F22ab794b" # wBTC on Base
 
-    rpc_url  = ENV['BASE_RPC_URL'].presence || "https://mainnet.base.org"
-    priv_hex = ENV['TREASURY_PRIVATE_KEY'].to_s.strip.delete_prefix("0x")
+    rpc_url  = ENV["BASE_RPC_URL"].presence || "https://mainnet.base.org"
+    priv_hex = ENV["TREASURY_PRIVATE_KEY"].to_s.strip.delete_prefix("0x")
 
     if priv_hex.empty?
       puts "ERROR: TREASURY_PRIVATE_KEY not set"
@@ -17,16 +17,16 @@ namespace :wallet do
     end
 
     # ── Derive treasury address ──
-    require 'digest/keccak'
-    require 'openssl'
+    require "digest/keccak"
+    require "openssl"
 
-    priv_hex = priv_hex.rjust(64, '0')
+    priv_hex = priv_hex.rjust(64, "0")
     priv_bn  = OpenSSL::BN.new(priv_hex, 16)
-    group    = OpenSSL::PKey::EC::Group.new('secp256k1')
+    group    = OpenSSL::PKey::EC::Group.new("secp256k1")
     pub_point = group.generator.mul(priv_bn)
     pub_bytes = pub_point.to_octet_string(:uncompressed)[1..]
     addr_hash = Digest::Keccak.digest(pub_bytes, 256)
-    treasury_address = "0x" + addr_hash.unpack1('H*')[-40..]
+    treasury_address = "0x" + addr_hash.unpack1("H*")[-40..]
 
     puts "=" * 60
     puts "WALLET RECONCILIATION"
@@ -39,24 +39,24 @@ namespace :wallet do
     def rpc_call(url, method, params)
       conn = Faraday.new { |f| f.adapter :net_http }
       resp = conn.post(url) do |req|
-        req.headers['Content-Type'] = 'application/json'
+        req.headers["Content-Type"] = "application/json"
         req.body = { jsonrpc: "2.0", id: 1, method: method, params: params }.to_json
       end
       JSON.parse(resp.body)["result"]
     end
 
     # ETH balance
-    eth_raw = rpc_call(rpc_url, "eth_getBalance", [treasury_address, "latest"])
+    eth_raw = rpc_call(rpc_url, "eth_getBalance", [ treasury_address, "latest" ])
     treasury_eth = eth_raw.to_i(16).to_d / 10**18
 
     # USDC balance (6 decimals)
-    usdc_calldata = "70a08231" + treasury_address.delete_prefix("0x").rjust(64, '0')
-    usdc_raw = rpc_call(rpc_url, "eth_call", [{ to: USDC_ADDRESS, data: "0x#{usdc_calldata}" }, "latest"])
+    usdc_calldata = "70a08231" + treasury_address.delete_prefix("0x").rjust(64, "0")
+    usdc_raw = rpc_call(rpc_url, "eth_call", [ { to: USDC_ADDRESS, data: "0x#{usdc_calldata}" }, "latest" ])
     treasury_usdc = usdc_raw.to_i(16).to_d / 10**6
 
     # wBTC balance (8 decimals)
-    wbtc_calldata = "70a08231" + treasury_address.delete_prefix("0x").rjust(64, '0')
-    wbtc_raw = rpc_call(rpc_url, "eth_call", [{ to: WBTC_ADDRESS, data: "0x#{wbtc_calldata}" }, "latest"])
+    wbtc_calldata = "70a08231" + treasury_address.delete_prefix("0x").rjust(64, "0")
+    wbtc_raw = rpc_call(rpc_url, "eth_call", [ { to: WBTC_ADDRESS, data: "0x#{wbtc_calldata}" }, "latest" ])
     treasury_wbtc = wbtc_raw.to_i(16).to_d / 10**8
 
     puts "ON-CHAIN TREASURY BALANCES:"

@@ -60,7 +60,7 @@ gem "prawn", "~> 2.5"
 gem "prawn-table", "~> 0.2"
 
 # For Security & Environment variables
-gem "dotenv-rails", groups: [:development, :test]
+gem "dotenv-rails", groups: [ :development, :test ]
 gem "lockbox"
 gem "devise"
 gem "omniauth-oauth2"
@@ -100,4 +100,4 @@ group :test do
   # Pin minitest to 5.x — minitest 6.0 broke run() arity for Rails 8.0.x
   gem "minitest", "~> 5.25"
 end
-gem 'connection_pool', '2.4.1'
+gem "connection_pool", "2.4.1"

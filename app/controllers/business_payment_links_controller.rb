@@ -1,9 +1,9 @@
 class BusinessPaymentLinksController < ApplicationController
   include RateLimitable
 
-  before_action :authenticate_user!, except: [:public_show]
-  before_action :set_business, except: [:public_show]
-  before_action :rate_limit!, only: [:public_show]
+  before_action :authenticate_user!, except: [ :public_show ]
+  before_action :set_business, except: [ :public_show ]
+  before_action :rate_limit!, only: [ :public_show ]
 
   # ── GET /business/payment_links ──
   def index

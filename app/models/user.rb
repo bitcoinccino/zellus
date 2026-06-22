@@ -5,7 +5,7 @@ class User < ApplicationRecord
   # presence/length on every save — we validate email manually below).
   devise :database_authenticatable, :registerable,
          :rememberable,
-         :omniauthable, omniauth_providers: [:bonid]
+         :omniauthable, omniauth_providers: [ :bonid ]
 
   EMAIL_FORMAT = /\A[^@\s]+@[^@\s]+\.[^@\s]+\z/
 
@@ -140,7 +140,7 @@ class User < ApplicationRecord
   end
 
   def daily_transfer_remaining
-    [daily_transfer_limit - transfers_today_total, 0].max
+    [ daily_transfer_limit - transfers_today_total, 0 ].max
   end
 
   # Payout preference: auto = use first available, htg = MonCash, usd = Base wallet
@@ -210,11 +210,11 @@ class User < ApplicationRecord
     return 0 if credit_tier == "Folkon"
 
     target = case credit_tier
-             when "Nouvo"   then 100
-             when "Pijon"   then 300
-             when "Toutrèl" then 500
-             when "Malfini" then 650
-             end
+    when "Nouvo"   then 100
+    when "Pijon"   then 300
+    when "Toutrèl" then 500
+    when "Malfini" then 650
+    end
     target - (credit_score || 0)
   end
 
@@ -360,7 +360,7 @@ class User < ApplicationRecord
   end
 
   def bonid_full_name
-    [bonid_first_name, bonid_last_name].compact.join(" ").presence
+    [ bonid_first_name, bonid_last_name ].compact.join(" ").presence
   end
 
   # ── UMA (Universal Money Address) ──

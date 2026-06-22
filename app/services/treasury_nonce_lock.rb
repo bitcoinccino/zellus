@@ -34,7 +34,7 @@ class TreasuryNonceLock
     begin
       # Fetch nonce while holding the lock (uses BaseRpcClient with retry)
       client = BaseRpcClient.new(url: rpc_url)
-      result = client.call("eth_getTransactionCount", [sender_address, "pending"])
+      result = client.call("eth_getTransactionCount", [ sender_address, "pending" ])
       nonce  = result.to_i(16)
 
       yield nonce

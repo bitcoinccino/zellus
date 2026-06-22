@@ -42,8 +42,8 @@ class FeeServiceTest < ActiveSupport::TestCase
   # exactly 2% (sum == single fee); chunks below 500 hit the floor, so
   # splitting small only ever costs MORE. Never cheaper.
   test "splitting a withdrawal never reduces the total fee" do
-    [600, 5_000, 10_000, 50_000].each do |total|
-      [2, 5, 10, 25].each do |parts|
+    [ 600, 5_000, 10_000, 50_000 ].each do |total|
+      [ 2, 5, 10, 25 ].each do |parts|
         next unless (total % parts).zero?
         chunk     = total / parts
         split_sum = parts * FeeService.withdraw_fee(chunk)
@@ -89,7 +89,7 @@ class FeeServiceTest < ActiveSupport::TestCase
 
   # ── instant_fee / standard_fee delegate to the one schedule ─────────────
   test "instant_fee and standard_fee both delegate to withdraw_fee" do
-    [100, 5_000, 50_000].each do |amount|
+    [ 100, 5_000, 50_000 ].each do |amount|
       expected = FeeService.withdraw_fee(amount)
       assert_equal expected, FeeService.instant_fee(amount)
       assert_equal expected, FeeService.standard_fee(amount)
@@ -122,7 +122,7 @@ class FeeServiceTest < ActiveSupport::TestCase
   end
 
   test "marginal_fee applies the floor argument" do
-    tiers = [{ upto: nil, rate: BigDecimal("0.01") }]
+    tiers = [ { upto: nil, rate: BigDecimal("0.01") } ]
     assert_equal BigDecimal("25"), FeeService.marginal_fee(100, tiers, floor: BigDecimal("25"))
     assert_equal BigDecimal("0"),  FeeService.marginal_fee(0, tiers, floor: BigDecimal("25"))
   end

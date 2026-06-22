@@ -24,7 +24,7 @@ class InviteCode < ApplicationRecord
     "national"       => "Nasyonal"
   }.freeze
 
-  VALID_REGIONS = (ALL_COMMUNES + LEGACY_REGIONS.keys + ["Nasyonal"]).freeze
+  VALID_REGIONS = (ALL_COMMUNES + LEGACY_REGIONS.keys + [ "Nasyonal" ]).freeze
 
   # ── Validations ──
   validates :code, presence: true, uniqueness: { case_sensitive: false }
@@ -52,7 +52,7 @@ class InviteCode < ApplicationRecord
   end
 
   def remaining_uses
-    [max_uses - uses_count, 0].max
+    [ max_uses - uses_count, 0 ].max
   end
 
   # ── Redeem: increment counter ──

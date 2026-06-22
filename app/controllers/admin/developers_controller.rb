@@ -1,5 +1,5 @@
 class Admin::DevelopersController < Admin::BaseController
-  before_action :set_client, only: [:show, :update, :destroy, :regenerate_secret, :test_webhook]
+  before_action :set_client, only: [ :show, :update, :destroy, :regenerate_secret, :test_webhook ]
 
   def index
     @clients = OauthClient.includes(:webhook_deliveries).order(created_at: :desc)

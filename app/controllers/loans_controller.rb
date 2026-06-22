@@ -57,7 +57,7 @@ class LoansController < ApplicationController
     # Award on-time bonus or skip if late
     unless @loan.loan_overdue?
       current_score = current_user.credit_score || 0
-      new_score = [current_score + LoanReminderWorker::ON_TIME_BONUS, User::MAX_CREDIT_SCORE].min
+      new_score = [ current_score + LoanReminderWorker::ON_TIME_BONUS, User::MAX_CREDIT_SCORE ].min
       current_user.update!(credit_score: new_score)
     end
 
@@ -82,10 +82,10 @@ class LoansController < ApplicationController
         amount: total_htg,
         asset: "htg",
         note: "Loan Repay ##{@loan.id}",
-        receiver_account_number: ENV['MONCASH_MERCHANT_PHONE']
+        receiver_account_number: ENV["MONCASH_MERCHANT_PHONE"]
       )
       redirect_to public_payment_request_path(@payment_request.token)
-      
+
     elsif asset == "usd"
       # USD Path (Diaspora Friendly)
       buy_rate = RateService.buy_rate rescue 135.0

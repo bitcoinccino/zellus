@@ -1,9 +1,9 @@
 class BusinessesController < ApplicationController
   include RateLimitable
 
-  before_action :authenticate_user!, except: [:public_show, :pay_page, :product_index, :product_show, :button_js]
-  before_action :set_business, only: [:show, :edit, :update, :dashboard, :payments, :analytics, :apply_agent, :agent_kit, :upload_signage, :button]
-  before_action :rate_limit!, only: [:pay_page, :quick_pay]
+  before_action :authenticate_user!, except: [ :public_show, :pay_page, :product_index, :product_show, :button_js ]
+  before_action :set_business, only: [ :show, :edit, :update, :dashboard, :payments, :analytics, :apply_agent, :agent_kit, :upload_signage, :button ]
+  before_action :rate_limit!, only: [ :pay_page, :quick_pay ]
 
   # ── GET /business/new ──
   def new
@@ -218,9 +218,9 @@ class BusinessesController < ApplicationController
     # Tips: payment link overrides business default; direct visit uses business setting
     @show_tips = if params[:tips].present?
                    params[:tips] == "1"  # Link override (can enable OR disable)
-                 else
+    else
                    @business.tippable?   # Direct visit uses business profile setting
-                 end
+    end
 
     render layout: "application"
   rescue ActiveRecord::RecordNotFound

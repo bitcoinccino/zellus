@@ -29,7 +29,7 @@ class Admin::InviteCodesController < Admin::BaseController
     expires_in = params[:expires_in].to_i
 
     # Enforce rate limit on actual batch too
-    allowed = [batch_size, 100 - recent_count].min
+    allowed = [ batch_size, 100 - recent_count ].min
     created = 0
     allowed.times do
       code = InviteCode.new(

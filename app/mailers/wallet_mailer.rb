@@ -77,15 +77,15 @@ class WalletMailer < ApplicationMailer
     @amount = params[:amount]
     @asset  = params[:asset] || "htg"
     @amount_display = case @asset.to_s.downcase
-                      when "usd"
+    when "usd"
                         "#{format('%.2f', @amount.to_f)} USD"
-                      when "eth"
+    when "eth"
                         "#{format('%.6f', @amount.to_f)} ETH"
-                      when "wbtc"
+    when "wbtc"
                         "#{format('%.8f', @amount.to_f)} WBTC"
-                      else
+    else
                         "HTG #{format('%.0f', @amount.to_f)}"
-                      end
+    end
     @app_base_url = ENV["APP_BASE_URL"].to_s.strip
   end
 end

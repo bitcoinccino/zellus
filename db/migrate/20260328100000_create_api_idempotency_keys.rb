@@ -9,6 +9,6 @@ class CreateApiIdempotencyKeys < ActiveRecord::Migration[8.0]
       t.datetime :locked_at
       t.timestamps
     end
-    add_index :api_idempotency_keys, [:user_id, :idempotency_key], unique: true
+    add_index :api_idempotency_keys, [ :user_id, :idempotency_key ], unique: true
   end
 end

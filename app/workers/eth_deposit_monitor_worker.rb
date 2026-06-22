@@ -1,5 +1,6 @@
 # frozen_string_literal: true
-require 'sidekiq'
+
+require "sidekiq"
 
 class EthDepositMonitorWorker
   include Sidekiq::Job
@@ -17,11 +18,11 @@ class EthDepositMonitorWorker
     Rails.logger.info "EthDepositMonitor: paused (HTG+USD only mode)"
     return
 
-    rpc_url = ENV['BASE_RPC_URL'].presence || "https://mainnet.base.org"
+    rpc_url = ENV["BASE_RPC_URL"].presence || "https://mainnet.base.org"
 
     # Build lookup of ALL user deposit addresses → user_id
     @address_to_user = {}
-    User.where.not(deposit_address: [nil, ""]).find_each do |user|
+    User.where.not(deposit_address: [ nil, "" ]).find_each do |user|
       @address_to_user[user.deposit_address.downcase] = user.id
     end
 
@@ -44,10 +45,10 @@ class EthDepositMonitorWorker
 
     from_block = if monitor.last_processed_block > 0
                    monitor.last_processed_block + 1
-                 else
-                   [current_block - POLL_RANGE, 0].max
-                 end
-    to_block = [from_block + POLL_RANGE - 1, current_block].min
+    else
+                   [ current_block - POLL_RANGE, 0 ].max
+    end
+    to_block = [ from_block + POLL_RANGE - 1, current_block ].min
 
     if from_block > current_block
       schedule_next
@@ -59,7 +60,7 @@ class EthDepositMonitorWorker
     # Scan each block for native ETH transfers to any monitored address
     (from_block..to_block).each do |block_num|
       block_hex = "0x#{block_num.to_s(16)}"
-      block_data = rpc_call(rpc_url, "eth_getBlockByNumber", [block_hex, true])
+      block_data = rpc_call(rpc_url, "eth_getBlockByNumber", [ block_hex, true ])
       next unless block_data && block_data["transactions"]
 
       block_data["transactions"].each do |tx|
