@@ -51,11 +51,33 @@
           <hr style="margin-top: -10px; opacity: 0.15;">
         </div>
 
-        <%= link_to user_bonid_omniauth_authorize_path, method: :post,
+        <%# Must be a real POST — omniauth-rails_csrf_protection rejects GET on the
+            request phase, and link_to method: :post issues a GET under Turbo/importmap. %>
+        <%= button_to user_bonid_omniauth_authorize_path, method: :post,
+              form: { id: "bonid-signin-form" },
               class: "btn w-100 fw-bold rounded-pill py-3 border-0 d-flex align-items-center justify-content-center gap-2",
               style: "background: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 13px;" do %>
           <i class="ri-shield-check-line"></i> Konekte ak BonID
         <% end %>
+
+        <%# Show the "sending you to BonID" loader before the form actually posts. %>
+        <%= render "shared/step_loader", id: "bonid-signin-loader", steps: [
+              "N ap voye'w sou BonID...",
+              "Pou'w ka verifye tèt ou."
+            ] %>
+
+        <script>
+          (function () {
+            var form = document.getElementById('bonid-signin-form');
+            if (!form) return;
+            form.addEventListener('submit', function (e) {
+              e.preventDefault();
+              // ZellusLoader steps through the messages, then calls form.submit()
+              // (the native DOM submit bypasses this handler, so it posts for real).
+              ZellusLoader.start('bonid-signin-loader', form, { stepDelay: 2500 });
+            });
+          })();
+        </script>
       </div>
     </div>
   </div>

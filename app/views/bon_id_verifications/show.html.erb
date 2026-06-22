@@ -91,7 +91,7 @@
       </div>
 
       <%# ── BonID Connect Button (Gold Primary) ── %>
-      <%= link_to "https://elaina-nonorthographical-bromidically.ngrok-free.dev/citizens/otp_sign_in?from_partner=zellus&lang=ht", id: "bonid-connect-btn", class: "btn w-100 rounded-pill py-3 mb-3 fw-black d-flex align-items-center justify-content-center gap-2", style: "background: var(--haiti-gold); color: var(--haiti-charcoal); font-family: 'Space Grotesk', sans-serif; font-size: 15px; border: none;" do %>
+      <%= link_to "#{BonIdService.web_url}/citizens/otp_sign_in?from_partner=zellus&lang=ht", id: "bonid-connect-btn", class: "btn w-100 rounded-pill py-3 mb-3 fw-black d-flex align-items-center justify-content-center gap-2", style: "background: var(--haiti-gold); color: var(--haiti-charcoal); font-family: 'Space Grotesk', sans-serif; font-size: 15px; border: none;" do %>
         <i class="ri-shield-check-fill" style="font-size: 20px;"></i>Konekte ak BonID
       <% end %>
 
@@ -111,7 +111,7 @@
 
       <div class="text-center mb-3" style="font-size: 12px;">
         <span style="color: var(--haiti-olive);">Pa gen BonID?</span>
-        <%= link_to "https://elaina-nonorthographical-bromidically.ngrok-free.dev/citizens/sign_up?lang=ht&partner=zellus", target: "_blank", rel: "noopener", style: "color: var(--haiti-gold); font-weight: 700; text-decoration: none;" do %>
+        <%= link_to "#{BonIdService.web_url}/citizens/sign_up?lang=ht&partner=zellus", target: "_blank", rel: "noopener", style: "color: var(--haiti-gold); font-weight: 700; text-decoration: none;" do %>
           Kreye youn <i class="ri-external-link-line" style="font-size: 11px;"></i>
         <% end %>
       </div>
