@@ -28,6 +28,7 @@ module Api
         end
 
         unless current_user.verify_transfer_pin(pin)
+          return if handle_pin_lockout_response
           return render_error("PIN pa kòrèk.", status: :unauthorized)
         end
 
@@ -155,6 +156,10 @@ module Api
         if amount < USD_WITHDRAW_MIN || amount > USD_WITHDRAW_MAX
           return render_error("Montan retrè USD dwe ant #{USD_WITHDRAW_MIN} ak #{USD_WITHDRAW_MAX} USD.", status: :unprocessable_entity)
         end
+
+        # Daily user + platform circuit breaker (same check as the web withdraw form)
+        ok, msg = WalletLimitService.new(current_user).allow_withdraw_usdc?(amount)
+        return render_error(msg, status: :unprocessable_entity) unless ok
 
         reference = "WD-#{SecureRandom.alphanumeric(8)}"
 

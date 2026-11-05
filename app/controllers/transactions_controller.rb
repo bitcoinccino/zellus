@@ -32,6 +32,7 @@ class TransactionsController < ApplicationController
     end
 
     unless current_user.verify_transfer_pin(params[:transfer_pin])
+      return if handle_pin_lockout
       flash.now[:alert] = "PIN pa kòrèk. Tanpri eseye ankò."
       @initial_exchange_tab = tx_type
       render :new, status: :unprocessable_entity

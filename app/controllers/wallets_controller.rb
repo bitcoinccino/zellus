@@ -48,6 +48,7 @@ class WalletsController < ApplicationController
   # ── POST /wallet/deposit ──
   def deposit
     unless current_user.verify_transfer_pin(params[:transfer_pin])
+      return if handle_pin_lockout
       redirect_to wallet_path, alert: "PIN pa kòrèk. Tanpri eseye ankò."
       return
     end
@@ -137,6 +138,7 @@ class WalletsController < ApplicationController
     end
 
     unless current_user.verify_transfer_pin(params[:transfer_pin])
+      return if handle_pin_lockout
       redirect_to wallet_path, alert: "PIN pa kòrèk. Tanpri eseye ankò."
       return
     end
@@ -222,6 +224,7 @@ class WalletsController < ApplicationController
     end
 
     unless current_user.verify_transfer_pin(params[:transfer_pin])
+      return if handle_pin_lockout
       redirect_to wallet_path, alert: "PIN pa kòrèk. Tanpri eseye ankò."
       return
     end
@@ -273,6 +276,7 @@ class WalletsController < ApplicationController
     end
 
     unless current_user.verify_transfer_pin(params[:transfer_pin])
+      return if handle_pin_lockout
       redirect_to wallet_path, alert: "PIN pa kòrèk. Tanpri eseye ankò."
       return
     end
@@ -307,6 +311,7 @@ class WalletsController < ApplicationController
     end
 
     unless current_user.verify_transfer_pin(params[:transfer_pin])
+      return if handle_pin_lockout
       redirect_to wallet_path, alert: "PIN pa kòrèk. Tanpri eseye ankò."
       return
     end
@@ -500,6 +505,7 @@ class WalletsController < ApplicationController
     to_dest      = params[:convert_dest].to_s.presence   || "personal"
 
     unless current_user.verify_transfer_pin(params[:transfer_pin])
+      return if handle_pin_lockout
       redirect_to wallet_path, alert: "PIN pa kòrèk. Tanpri eseye ankò."
       return
     end

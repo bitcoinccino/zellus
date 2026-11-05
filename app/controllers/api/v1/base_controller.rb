@@ -82,6 +82,18 @@ module Api
         render json: { error: message }, status: status
       end
 
+      # Shared by every in-context PIN re-confirmation (transfers, withdrawals).
+      # Call right after a failed verify_transfer_pin — if that failure just
+      # locked the account, returns a distinct 423 so clients can show a
+      # "reset via email" action instead of a generic "wrong PIN" retry loop.
+      def handle_pin_lockout_response
+        return false unless current_user.pin_locked?
+
+        minutes = (current_user.pin_lock_remaining_seconds / 60.0).ceil
+        render_error("Kont ou bloke pou #{minutes} minit akòz twòp tès PIN. Reyinisyalize PIN ou nan /login/pin.", status: :locked)
+        true
+      end
+
       # ── Idempotency key support ──
 
       def check_idempotency_key

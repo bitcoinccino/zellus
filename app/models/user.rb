@@ -83,9 +83,16 @@ class User < ApplicationRecord
 
   def verify_transfer_pin(raw_pin)
     require "bcrypt"
+    return false if pin_locked?
     return false unless transfer_pin_digest.present? && raw_pin.present?
 
-    BCrypt::Password.new(transfer_pin_digest) == raw_pin.to_s
+    if BCrypt::Password.new(transfer_pin_digest) == raw_pin.to_s
+      reset_pin_attempts!
+      true
+    else
+      register_failed_pin_attempt!
+      false
+    end
   end
 
   # True while a lockout window is still in effect.

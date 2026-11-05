@@ -169,6 +169,7 @@ class TransfersController < ApplicationController
 
     # Verify PIN
     unless current_user.verify_transfer_pin(params[:transfer_pin])
+      return if handle_pin_lockout
       flash[:alert] = "PIN pa kòrèk. Tanpri eseye ankò."
       redirect_to transfer_path(@transfer)
       return
