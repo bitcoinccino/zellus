@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "sidekiq"
-require "faraday"
 
 class TransactionConfirmationWorker
   include Sidekiq::Job
@@ -61,19 +60,7 @@ class TransactionConfirmationWorker
   private
 
   def fetch_receipt(rpc_url, tx_hash)
-    conn = Faraday.new(url: rpc_url)
-    response = conn.post do |req|
-      req.headers["Content-Type"] = "application/json"
-      req.body = {
-        jsonrpc: "2.0",
-        id:      1,
-        method:  "eth_getTransactionReceipt",
-        params:  [ tx_hash ]
-      }.to_json
-    end
-
-    body = JSON.parse(response.body)
-    body["result"]  # nil if pending, hash with "status" if confirmed
+    BaseRpcClient.new(url: rpc_url).call("eth_getTransactionReceipt", [ tx_hash ])  # nil if pending, hash with "status" if confirmed
   rescue => e
     Rails.logger.error "Zèllus: eth_getTransactionReceipt failed: #{e.message}"
     nil

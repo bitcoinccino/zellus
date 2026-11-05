@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "sidekiq"
-require "faraday"
 
 class UsdDepositMonitorWorker
   include Sidekiq::Job
@@ -209,16 +208,10 @@ class UsdDepositMonitorWorker
     UsdDepositMonitorWorker.perform_in(REQUEUE_DELAY.seconds)
   end
 
-  # ── JSON-RPC ──
+  # ── JSON-RPC (delegated to BaseRpcClient with retry/backoff) ──────────
 
   def rpc_call(url, method, params)
-    conn = Faraday.new(url: url) { |f| f.adapter Faraday.default_adapter }
-    resp = conn.post do |req|
-      req.headers["Content-Type"] = "application/json"
-      req.body = { jsonrpc: "2.0", id: 1, method: method, params: params }.to_json
-    end
-    body = JSON.parse(resp.body)
-    raise "RPC error (#{method}): #{body['error']}" if body["error"]
-    body["result"]
+    @rpc_client ||= BaseRpcClient.new(url: url)
+    @rpc_client.call(method, params)
   end
 end
