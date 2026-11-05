@@ -50,6 +50,19 @@ class ApplicationController < ActionController::Base
     stored.present? && stored != "/" ? stored : wallet_path
   end
 
+  # Shared by every in-context PIN re-confirmation (withdraw, transfer, checkout,
+  # admin actions, etc). Call right after a failed verify_transfer_pin — if that
+  # failure just locked the account, this sends the user to the PIN gate (which
+  # already explains the lockout and offers the email reset) instead of letting
+  # them keep hitting the same generic "wrong PIN" message for 15 minutes.
+  def handle_pin_lockout
+    return false unless current_user.pin_locked?
+
+    minutes = (current_user.pin_lock_remaining_seconds / 60.0).ceil
+    redirect_to login_pin_path, alert: "Kont ou bloke pou #{minutes} minit akòz twòp tès PIN ki pa kòrèk. Reyinisyalize PIN ou ak imèl ou."
+    true
+  end
+
   # Redirect existing users to pick a $cashtag if they don't have one
   def require_cashtag!
     return if devise_controller?

@@ -1,4 +1,3 @@
-require "faraday"
 require "openssl"
 require "digest/keccak"
 
@@ -97,6 +96,7 @@ class Admin::DashboardController < Admin::BaseController
   # ── POST credit wallet ──
   def credit_wallet
     unless current_user.verify_transfer_pin(params[:transfer_pin])
+      return if handle_pin_lockout
       redirect_to admin_credit_path, alert: "PIN transfè pa kòrèk."
       return
     end
@@ -130,6 +130,7 @@ class Admin::DashboardController < Admin::BaseController
   # ── POST credit to external Base address ──
   def credit_external
     unless current_user.verify_transfer_pin(params[:transfer_pin])
+      return if handle_pin_lockout
       redirect_to admin_credit_path, alert: "PIN transfè pa kòrèk."
       return
     end
@@ -184,58 +185,67 @@ class Admin::DashboardController < Admin::BaseController
   end
 
   # ── GET /admin/system_health (JSON) — async balances ──
+  # Cached briefly since this fires on every admin page load (plus several
+  # background workers poll the same RPC) — without it we hammer the shared
+  # public Base RPC and trip its rate-limit/bot-challenge page.
+  SYSTEM_HEALTH_CACHE_TTL = 30.seconds
+
   def system_health
-    rpc_url  = ENV["BASE_RPC_URL"].presence || "https://mainnet.base.org"
-    priv_hex = ENV["TREASURY_PRIVATE_KEY"].to_s.strip.delete_prefix("0x")
-    address  = derive_treasury_address(priv_hex)
+    data = Rails.cache.fetch("admin:system_health", expires_in: SYSTEM_HEALTH_CACHE_TTL) do
+      rpc_url  = ENV["BASE_RPC_URL"].presence || "https://mainnet.base.org"
+      priv_hex = ENV["TREASURY_PRIVATE_KEY"].to_s.strip.delete_prefix("0x")
+      address  = derive_treasury_address(priv_hex)
 
-    eth  = fetch_eth_balance(rpc_url, address)
-    usd = fetch_usd_balance(rpc_url, address)
+      eth = fetch_eth_balance(rpc_url, address)
+      usd = fetch_usd_balance(rpc_url, address)
 
-    moncash_balance = nil
-    moncash_error   = nil
-    begin
-      prefunded = MoncashService.prefunded_balance_info
-      if prefunded[:success]
-        moncash_balance = prefunded[:balance]
-      else
-        moncash_error = prefunded[:error]
+      moncash_balance = nil
+      moncash_error   = nil
+      begin
+        prefunded = MoncashService.prefunded_balance_info
+        if prefunded[:success]
+          moncash_balance = prefunded[:balance]
+        else
+          moncash_error = prefunded[:error]
+        end
+      rescue => e
+        moncash_error = e.message
       end
-    rescue => e
-      moncash_error = e.message
+
+      # Internal wallet balances (database-tracked) — column is `usdc_balance`
+      internal_usdc = Wallet.sum(:usdc_balance).to_f
+      internal_htg  = Wallet.sum(:htg_balance).to_f
+
+      # Reserve coverage (USDC only — HTG has no on-chain backing).
+      # surplus = treasury - liabilities; ratio = treasury / liabilities.
+      # When liabilities are zero, ratio is infinite — display as nil to
+      # let the JS render "—" rather than "Infinityx".
+      reserve_surplus = (usd - internal_usdc).round(2)
+      reserve_ratio   = internal_usdc.positive? ? (usd / internal_usdc).round(2) : nil
+      reserve_status  =
+        if internal_usdc.zero?           then "healthy"
+        elsif reserve_ratio >= 1.10      then "healthy"
+        elsif reserve_ratio >= 1.00      then "tight"
+        else                                  "insolvent"
+        end
+
+      # JSON keys match what the JS handlers expect (admin.html.erb +
+      # dashboard/index.html.erb both read `usdc_balance` / `internal_usdc`).
+      {
+        eth_balance: eth.round(6),
+        usdc_balance: usd.round(2),
+        internal_usdc: internal_usdc.round(2),
+        internal_htg: internal_htg.round(0),
+        moncash_balance: moncash_balance&.to_f&.round(0),
+        moncash_error: moncash_error&.to_s&.truncate(30),
+        gas_low: eth < 0.005,
+        reserve_surplus: reserve_surplus,
+        reserve_ratio: reserve_ratio,
+        reserve_status: reserve_status
+      }
     end
 
-    # Internal wallet balances (database-tracked) — column is `usdc_balance`
-    internal_usdc = Wallet.sum(:usdc_balance).to_f
-    internal_htg  = Wallet.sum(:htg_balance).to_f
-
-    # Reserve coverage (USDC only — HTG has no on-chain backing).
-    # surplus = treasury - liabilities; ratio = treasury / liabilities.
-    # When liabilities are zero, ratio is infinite — display as nil to
-    # let the JS render "—" rather than "Infinityx".
-    reserve_surplus = (usd - internal_usdc).round(2)
-    reserve_ratio   = internal_usdc.positive? ? (usd / internal_usdc).round(2) : nil
-    reserve_status  =
-      if internal_usdc.zero?           then "healthy"
-      elsif reserve_ratio >= 1.10      then "healthy"
-      elsif reserve_ratio >= 1.00      then "tight"
-      else                                  "insolvent"
-      end
-
-    # JSON keys match what the JS handlers expect (admin.html.erb +
-    # dashboard/index.html.erb both read `usdc_balance` / `internal_usdc`).
-    render json: {
-      eth_balance: eth.round(6),
-      usdc_balance: usd.round(2),
-      internal_usdc: internal_usdc.round(2),
-      internal_htg: internal_htg.round(0),
-      moncash_balance: moncash_balance&.to_f&.round(0),
-      moncash_error: moncash_error&.to_s&.truncate(30),
-      gas_low: eth < 0.005,
-      reserve_surplus: reserve_surplus,
-      reserve_ratio: reserve_ratio,
-      reserve_status: reserve_status
-    }
+    render json: data
   rescue => e
     Rails.logger.error "Admin system_health error: #{e.message}"
     render json: { error: e.message }, status: :internal_server_error
@@ -548,6 +558,7 @@ class Admin::DashboardController < Admin::BaseController
   # ── Reveal Treasury Address (PIN-protected) ──
   def reveal_treasury
     unless current_user.verify_transfer_pin(params[:transfer_pin])
+      return if handle_pin_lockout
       redirect_to admin_root_path, alert: "PIN pa kòrèk. Tanpri eseye ankò."
       return
     end
@@ -574,7 +585,7 @@ class Admin::DashboardController < Admin::BaseController
   end
 
   def fetch_eth_balance(rpc_url, address)
-    result = rpc_call(rpc_url, "eth_getBalance", [ address, "latest" ])
+    result = BaseRpcClient.new(url: rpc_url).call("eth_getBalance", [ address, "latest" ])
     result.to_i(16).to_f / 10**18
   end
 
@@ -582,18 +593,7 @@ class Admin::DashboardController < Admin::BaseController
     usd_address = CryptoTransferWorker::USD_ADDRESS
     padded = address.delete_prefix("0x").downcase.rjust(64, "0")
     data   = "0x70a08231#{padded}"
-    result = rpc_call(rpc_url, "eth_call", [ { to: usd_address, data: data }, "latest" ])
+    result = BaseRpcClient.new(url: rpc_url).call("eth_call", [ { to: usd_address, data: data }, "latest" ])
     result.to_i(16).to_f / 10**6
-  end
-
-  def rpc_call(rpc_url, method, params)
-    conn = Faraday.new(url: rpc_url)
-    response = conn.post do |req|
-      req.headers["Content-Type"] = "application/json"
-      req.body = { jsonrpc: "2.0", id: 1, method: method, params: params }.to_json
-    end
-    body = JSON.parse(response.body)
-    raise "RPC error (#{method}): #{body['error']}" if body["error"]
-    body["result"]
   end
 end

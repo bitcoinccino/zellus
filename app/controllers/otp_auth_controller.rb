@@ -159,10 +159,9 @@ class OtpAuthController < ApplicationController
 
   def verify_existing_pin
     if current_user.verify_transfer_pin(params[:pin].to_s.strip)
-      current_user.reset_pin_attempts!
       session[:pin_verified] = true
       redirect_to post_pin_unlock_path
-    elsif current_user.register_failed_pin_attempt!
+    elsif current_user.pin_locked?
       @needs_pin_setup = false
       @pin_locked      = true
       flash.now[:alert] = pin_locked_message

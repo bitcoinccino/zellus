@@ -31,6 +31,7 @@ class CheckoutsController < ApplicationController
     end
 
     unless current_user.verify_transfer_pin(params[:transfer_pin])
+      return if handle_pin_lockout
       redirect_to checkout_pay_path(@checkout.token), alert: "PIN pa kòrèk."
       return
     end

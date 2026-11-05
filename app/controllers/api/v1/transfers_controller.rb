@@ -34,6 +34,7 @@ module Api
         end
 
         unless current_user.verify_transfer_pin(pin)
+          return if handle_pin_lockout_response
           return render_error("PIN pa kòrèk.", status: :unauthorized)
         end
 

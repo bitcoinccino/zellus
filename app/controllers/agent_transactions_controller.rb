@@ -72,6 +72,7 @@ class AgentTransactionsController < ApplicationController
   # ── Float Top-Up: Agent wallet → float ──
   def handle_float_top_up
     unless current_user.verify_transfer_pin(params[:transfer_pin])
+      return if handle_pin_lockout
       redirect_to wallet_path, alert: "PIN pa kòrèk. Tanpri eseye ankò."
       return
     end
@@ -105,6 +106,7 @@ class AgentTransactionsController < ApplicationController
   # ── Float Withdraw: Agent float → wallet ──
   def handle_float_withdraw
     unless current_user.verify_transfer_pin(params[:transfer_pin])
+      return if handle_pin_lockout
       redirect_to wallet_path, alert: "PIN pa kòrèk. Tanpri eseye ankò."
       return
     end

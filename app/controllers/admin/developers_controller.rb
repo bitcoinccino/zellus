@@ -15,6 +15,7 @@ class Admin::DevelopersController < Admin::BaseController
 
   def create
     unless current_user.verify_transfer_pin(params[:transfer_pin])
+      return if handle_pin_lockout
       redirect_to admin_developers_path, alert: "PIN transfè pa kòrèk."
       return
     end
@@ -37,6 +38,7 @@ class Admin::DevelopersController < Admin::BaseController
 
   def destroy
     unless current_user.verify_transfer_pin(params[:transfer_pin])
+      return if handle_pin_lockout
       redirect_to admin_developers_path, alert: "PIN transfè pa kòrèk."
       return
     end
@@ -48,6 +50,7 @@ class Admin::DevelopersController < Admin::BaseController
 
   def regenerate_secret
     unless current_user.verify_transfer_pin(params[:transfer_pin])
+      return if handle_pin_lockout
       redirect_to admin_developer_path(@client), alert: "PIN transfè pa kòrèk."
       return
     end

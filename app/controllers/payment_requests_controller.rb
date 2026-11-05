@@ -117,6 +117,7 @@ class PaymentRequestsController < ApplicationController
     end
 
     unless current_user.verify_transfer_pin(params[:transfer_pin])
+      return if handle_pin_lockout
       redirect_to public_payment_request_path(@payment_request.token), alert: "PIN pa kòrèk."
       return
     end

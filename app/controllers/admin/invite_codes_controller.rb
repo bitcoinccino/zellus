@@ -9,6 +9,7 @@ class Admin::InviteCodesController < Admin::BaseController
   def create
     # PIN verification
     unless current_user.verify_transfer_pin(params[:transfer_pin])
+      return if handle_pin_lockout
       redirect_to admin_invite_codes_path, alert: "PIN transfè pa kòrèk."
       return
     end
