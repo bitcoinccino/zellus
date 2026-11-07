@@ -125,6 +125,11 @@ class WalletsController < ApplicationController
       return
     end
 
+    if WalletLimitService.new(current_user).bonid_required_for_withdrawal?(amount)
+      redirect_to bonid_verification_path, alert: WalletLimitService.new(current_user).bonid_withdrawal_message
+      return
+    end
+
     # Daily user + platform circuit breaker
     ok, msg = WalletLimitService.new(current_user).allow_withdraw_htg?(amount)
     unless ok
@@ -202,6 +207,11 @@ class WalletsController < ApplicationController
 
     if amount < USD_WITHDRAW_MIN || amount > USD_WITHDRAW_MAX
       redirect_to wallet_path, alert: "Montan retrè USD dwe ant #{USD_WITHDRAW_MIN} ak #{USD_WITHDRAW_MAX} USD."
+      return
+    end
+
+    if WalletLimitService.new(current_user).bonid_required_for_withdrawal?(amount, asset: "usd")
+      redirect_to bonid_verification_path, alert: WalletLimitService.new(current_user).bonid_withdrawal_message
       return
     end
 
@@ -302,6 +312,11 @@ class WalletsController < ApplicationController
 
     if amount < BankWithdrawal::MIN_AMOUNT || amount > BankWithdrawal::MAX_AMOUNT
       redirect_to wallet_path, alert: "Montan retrè bank dwe ant #{BankWithdrawal::MIN_AMOUNT} ak #{number_with_delimiter(BankWithdrawal::MAX_AMOUNT)} HTG."
+      return
+    end
+
+    if WalletLimitService.new(current_user).bonid_required_for_withdrawal?(amount)
+      redirect_to bonid_verification_path, alert: WalletLimitService.new(current_user).bonid_withdrawal_message
       return
     end
 

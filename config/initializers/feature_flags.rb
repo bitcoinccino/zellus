@@ -18,12 +18,16 @@ module FeatureFlags
   ADMIN_ADVANCED_TOOLS       = true   # admin can generate codes, manage agents
   BULK_CREDIT                = false  # admin bulk credit wallet (turn on later)
 
+  # ── SECURITY ──
+  BONID_WITHDRAWAL_GATE      = true   # unverified users can't withdraw past the 24h threshold
+
   # ── REMITTANCE / UMA ──
   UMA_RECEIVING              = false  # inbound UMA payments via Lightspark Grid (enable when more providers support UMA)
 
   # ── Helper methods for views/controllers ──
   class << self
     def merchant_features?;       MERCHANT_FEATURES_ENABLED; end
+    def bonid_withdrawal_gate?;   BONID_WITHDRAWAL_GATE; end
     def biznis_storefront?;       BIZNIS_STOREFRONT; end
     def qr_payments?;             QR_PAYMENTS; end
     def merchant_dashboard?;      MERCHANT_DASHBOARD; end

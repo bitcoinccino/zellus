@@ -22,6 +22,7 @@ class WalletLimitService
       usdc_daily_platform_max:  env_d("USDC_DAILY_PLATFORM_MAX", 2_000),
 
       verified_multiplier:      env_d("VERIFIED_LIMIT_MULTIPLIER", 2),
+      bonid_withdrawal_threshold_htg: env_d("BONID_WITHDRAWAL_THRESHOLD_HTG", 5_000),
 
       platform_usdc_reserve_min: env_d("PLATFORM_USDC_RESERVE_MIN", 2_000),
       platform_htg_reserve_min:  env_d("PLATFORM_HTG_RESERVE_MIN", 260_000),
@@ -34,6 +35,9 @@ class WalletLimitService
   end
 
   # Legacy TIERS — kept for any callers still using it
+  # Withdrawal entries hold the payout; the fee is a separate entry.
+  WITHDRAWAL_ENTRY_TYPES = %w[withdrawal instant_fee fee].freeze
+
   TIERS = {
     unverified: { daily_deposit_usd: BigDecimal("500"), daily_swap_usd: BigDecimal("250"), max_balance_usd: BigDecimal("1000") },
     verified:   { daily_deposit_usd: BigDecimal("2500"), daily_swap_usd: BigDecimal("1000"), max_balance_usd: BigDecimal("10000") }
@@ -77,6 +81,24 @@ class WalletLimitService
 
   def withdraw_usdc_used_today
     @wallet.wallet_ledger_entries.where(entry_type: "withdrawal", asset: "usd", created_at: today_range).sum(:amount).to_d
+  end
+
+  # ── BonID gate on withdrawals ──
+  # Unverified users can only withdraw below the threshold per rolling 24 hours,
+  # across all withdrawal methods, so splitting an amount doesn't avoid it.
+  # Errs towards asking for verification: refunded withdrawals still count, since
+  # refunds aren't linked to what they reverse, and so do fees on other actions,
+  # since "fee" entries are shared with transfers.
+  def bonid_required_for_withdrawal?(amount, asset: "htg")
+    return false unless FeatureFlags.bonid_withdrawal_gate?
+    return false if @user.bonid_verified?
+
+    withdrawn_last_24h_htg + htg_equivalent(amount, asset) >= @cfg[:bonid_withdrawal_threshold_htg]
+  end
+
+  def bonid_withdrawal_message
+    threshold = ActiveSupport::NumberHelper.number_to_delimited(@cfg[:bonid_withdrawal_threshold_htg].to_i)
+    "Verifye ak BonID pou retire #{threshold} HTG oswa plis nan 24 èdtan."
   end
 
   # ── Allow checks (returns [allowed?, reason] tuple) ──
@@ -181,6 +203,20 @@ class WalletLimitService
   def tier_name; @user.bonid_verified? ? "BonID Verifye" : "Pa Verifye"; end
 
   private
+
+  def withdrawn_last_24h_htg
+    return BigDecimal("0") unless @wallet
+
+    @wallet.wallet_ledger_entries
+      .where(entry_type: WITHDRAWAL_ENTRY_TYPES, created_at: 24.hours.ago..)
+      .group(:asset).sum(:amount)
+      .sum { |asset, amount| htg_equivalent(amount, asset) }
+      .to_d
+  end
+
+  def htg_equivalent(amount, asset)
+    asset.to_s == "usd" ? amount.to_d * RateService.usd_htg_rate.to_d : amount.to_d
+  end
 
   def today_range
     haiti_today = Time.current.in_time_zone("America/Port-au-Prince").beginning_of_day

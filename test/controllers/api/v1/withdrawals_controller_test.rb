@@ -7,6 +7,7 @@ class Api::V1::WithdrawalsControllerTest < ActionDispatch::IntegrationTest
     @sender = users(:sender)
     @token = oauth_tokens(:sender_full_access).access_token
     setup_transfer_pin!(@sender, "1234")
+    @sender.update!(bonid: "BON-SENDER-TEST", bonid_verified_at: Time.current)
 
     # USD withdrawals go through the platform reserve circuit breaker, which
     # reads the admin's wallet, so give it a healthy reserve by default.
