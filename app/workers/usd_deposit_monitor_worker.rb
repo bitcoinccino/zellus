@@ -10,6 +10,12 @@ class UsdDepositMonitorWorker
   MONITOR_NAME   = "usd_base_mainnet"
   POLL_RANGE     = 200   # max blocks per poll (smaller to avoid RPC limits)
   REQUEUE_DELAY  = 300   # seconds between polls (5 min for mainnet public RPC)
+
+  # Where a monitor with no saved progress starts. Starting at the chain head
+  # skipped every earlier deposit for good, so look back instead: an explicit
+  # start block if set, otherwise about 7 days of Base blocks (2s each).
+  # Rescanning is safe: deposits are keyed by transaction hash.
+  BACKFILL_BLOCKS = ENV.fetch("USD_DEPOSIT_BACKFILL_BLOCKS", 7 * 24 * 60 * 60 / 2).to_i
   BATCH_SIZE     = 50    # max addresses per eth_getLogs query
 
   # ERC-20 Transfer(address indexed from, address indexed to, uint256 value)
@@ -48,7 +54,7 @@ class UsdDepositMonitorWorker
     from_block = if monitor.last_processed_block > 0
                    monitor.last_processed_block + 1
                  else
-                   [current_block - POLL_RANGE, 0].max
+                   first_scan_block(current_block)
                  end
     to_block = [from_block + POLL_RANGE - 1, current_block].min
 
@@ -201,6 +207,13 @@ class UsdDepositMonitorWorker
   rescue => e
     Rails.logger.error "UsdDepositMonitor: deposit failed for user=#{user.id}, tx=#{tx_hash}: #{e.message}"
     false
+  end
+
+  def first_scan_block(current_block)
+    start = ENV["USD_DEPOSIT_MONITOR_START_BLOCK"].presence&.to_i || current_block - BACKFILL_BLOCKS
+    start = start.clamp(0, current_block)
+    Rails.logger.info "UsdDepositMonitor: no saved progress, scanning from block #{start} (#{current_block - start} blocks back)"
+    start
   end
 
   def schedule_next
