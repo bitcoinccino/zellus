@@ -10,8 +10,11 @@
     font-weight: 400 !important;
   }
 
-  /* Withdraw + Deposit panels: un-bold placeholders on light-background fields too
-     (fw-bold on the input bleeds into the placeholder otherwise) */
+  /* Withdraw + Deposit panels: un-bold placeholders. Use both `:placeholder-shown`
+     (input while empty) and `::placeholder` (the placeholder text itself) so the
+     fw-bold utility on the input can't bleed through either way. */
+  #panel-withdraw .form-control:placeholder-shown,
+  #panel-deposit .form-control:placeholder-shown,
   #panel-withdraw .form-control::placeholder,
   #panel-deposit .form-control::placeholder {
     font-weight: 400 !important;
@@ -237,11 +240,6 @@
 
     <div id="section-hero-card" style="position: relative; z-index: 1;">
 
-    <%# ── Page Header ── %>
-    <div id="section-header" class="mb-3">
-      <h1 class="h5 fw-black mb-0" style="color: var(--haiti-charcoal);">Pòtfèy Mwen</h1>
-    </div>
-
     <%# ══════════════════════════════════════ %>
     <%# ── BALANCE HERO                   ──  %>
     <%# ══════════════════════════════════════ %>
@@ -262,6 +260,10 @@
           <i class="ri-more-fill" style="font-size: 22px; font-weight: 900;"></i>
         </button>
         <div id="hero-menu-dropdown" class="rounded-3 overflow-hidden" style="display: none; position: absolute; top: 38px; right: 0; min-width: 160px; background: var(--haiti-charcoal); border: 1px solid rgba(255,255,255,0.12); box-shadow: 0 8px 24px rgba(0,0,0,0.4); z-index: 10;">
+          <a href="javascript:void(0)" onclick="closeHeroMenu(); togglePanel('deposit');" class="d-flex align-items-center gap-2 px-3 py-2 text-decoration-none" style="color: #fff; font-size: 13px; font-weight: 600;" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'">
+            <i class="ri-download-line" style="color: var(--haiti-gold); font-size: 16px;"></i> Depoze
+          </a>
+          <div style="height: 1px; background: rgba(255,255,255,0.08);"></div>
           <a href="javascript:void(0)" onclick="closeHeroMenu(); togglePanel('convert');" class="d-flex align-items-center gap-2 px-3 py-2 text-decoration-none" style="color: #fff; font-size: 13px; font-weight: 600;" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'">
             <i class="ri-exchange-2-line" style="color: var(--haiti-gold); font-size: 16px;"></i> Konvèti
           </a>
@@ -283,28 +285,8 @@
         ≈ $<span id="hero-usd-whole"><%= number_with_delimiter(total_usd.floor.to_i) %></span>.<span id="hero-usd-dec" class="tick-decimals"><%= "%02d" % ((total_usd * 100).floor % 100) %></span> USD
       </div>
 
-      <%# ── Mini balance breakdown ── %>
-      <div class="d-flex justify-content-center gap-3 mt-3 pt-3" style="border-top: 1px solid rgba(255,255,255,0.08);">
-        <div class="text-center">
-          <div style="color: rgba(255,255,255,0.35); font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">HTG</div>
-          <div style="color: #fff; font-size: 13px; font-weight: 800;"><span id="mini-htg-bal"><%= number_with_delimiter(htg_bal.floor.to_i) %></span></div>
-        </div>
-        <div style="width: 1px; background: rgba(255,255,255,0.08);"></div>
-        <div class="text-center">
-          <div style="color: rgba(255,255,255,0.35); font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">USD</div>
-          <div style="color: #fff; font-size: 13px; font-weight: 800;">$<span id="mini-usd-bal"><%= format('%.2f', usd_bal) %></span></div>
-        </div>
-        <%# ETH and wBTC mini balances hidden (HTG + USD only mode) %>
-        <span id="mini-eth-bal" style="display:none;"><%= format('%.4f', eth_bal) %></span>
-        <span id="mini-wbtc-bal" style="display:none;"><%= format('%.6f', wbtc_bal) %></span>
-      </div>
-
-      <%# ── Action Buttons ── %>
+      <%# ── Action Buttons (Depoze lives in the ⋯ menu) ── %>
       <div class="d-flex justify-content-center gap-4 mt-3">
-        <a href="javascript:void(0)" onclick="togglePanel('deposit');" class="wallet-action-btn text-decoration-none text-center">
-          <div class="wallet-action-icon"><i class="ri-download-line icon-gold"></i></div>
-          <div class="wallet-action-label">Depoze</div>
-        </a>
         <%= link_to new_transfer_path, class: "wallet-action-btn text-decoration-none text-center" do %>
           <div class="wallet-action-icon"><i class="ri-send-plane-fill icon-gold"></i></div>
           <div class="wallet-action-label">Peye</div>
@@ -572,32 +554,41 @@
                 <% end %>
               </div>
 
-              <%# ── MonCash Number ── %>
-              <div class="mb-1" style="font-size: 11px; font-weight: 700; color: var(--haiti-olive); letter-spacing: 0.3px;">
-                Map Depoze Ak
-              </div>
-              <div class="input-group mb-3" style="border: 1.5px solid rgba(46,46,56,0.12); border-radius: 12px; overflow: hidden;">
-                <span class="input-group-text border-0 p-0 ps-2" style="background-color: var(--haiti-mint);">
-                  <%= image_tag "moncash.svg", size: "28x28", style: "border-radius: 6px;" %>
-                </span>
-                <% if @moncash_methods.any? %>
-                  <select name="moncash_phone" id="deposit-moncash-phone" class="form-select border-0 fw-bold shadow-none p-3"
-                          style="background-color: var(--haiti-mint); color: var(--haiti-charcoal);" required>
+              <%# ── MonCash Number (saved methods only) ── %>
+              <% if @moncash_methods.any? %>
+                <div class="mb-1" style="font-size: 11px; font-weight: 700; color: var(--haiti-olive); letter-spacing: 0.3px;">
+                  Map Depoze Ak
+                </div>
+                <div class="input-group mb-3" style="border: 1.5px solid rgba(46,46,56,0.12); border-radius: 12px; overflow: hidden;">
+                  <span class="input-group-text border-0 p-0 ps-2" style="background-color: var(--haiti-mint);">
+                    <%= image_tag "moncash.svg", size: "28x28", style: "border-radius: 6px;" %>
+                  </span>
+                  <select name="moncash_phone" id="deposit-moncash-phone" class="form-select border-0 shadow-none p-3"
+                          style="background-color: var(--haiti-mint); color: var(--haiti-charcoal); font-weight: 600;" required>
                     <% @moncash_methods.each do |m| %>
                       <option value="<%= m.account_number %>" data-masked="<%= m.masked_account_number %>"><%= m.masked_account_number %></option>
                     <% end %>
-                    <option value="">Lòt nimewo...</option>
                   </select>
-                <% else %>
-                  <input type="tel" name="moncash_phone" id="deposit-moncash-phone" class="form-control border-0 fw-bold shadow-none p-3"
-                         placeholder="(509) XXXX XXXX" pattern="509\d{8}" required style="background-color: var(--haiti-mint); color: var(--haiti-charcoal);">
-                <% end %>
-              </div>
+                </div>
 
-              <button type="button" onclick="showDepositReview()" class="btn w-100 fw-black rounded-pill border-0 d-flex align-items-center justify-content-center gap-2"
-                      style="background-color: var(--haiti-gold); color: var(--haiti-charcoal); font-family: 'Space Grotesk', sans-serif; font-size: 15px; padding: 14px 24px; letter-spacing: 0.3px;">
-                <i class="ri-smartphone-line" style="font-size: 18px;"></i>Kontinye ak MonCash
-              </button>
+                <button type="button" onclick="showDepositReview()" class="btn w-100 fw-black rounded-pill border-0 d-flex align-items-center justify-content-center gap-2"
+                        style="background-color: var(--haiti-gold); color: var(--haiti-charcoal); font-family: 'Space Grotesk', sans-serif; font-size: 15px; padding: 14px 24px; letter-spacing: 0.3px;">
+                  <i class="ri-smartphone-line" style="font-size: 18px;"></i>Kontinye ak MonCash
+                </button>
+              <% else %>
+                <%# Empty state — no saved MonCash methods, link out to Metòd Peman %>
+                <%= link_to payment_methods_path, class: "d-flex align-items-center gap-3 p-3 rounded-3 text-decoration-none",
+                    style: "background: rgba(197,160,89,0.08); border: 1.5px dashed var(--haiti-gold);" do %>
+                  <div class="d-flex align-items-center justify-content-center rounded-circle flex-shrink-0"
+                       style="width: 40px; height: 40px; background: rgba(197,160,89,0.15);">
+                    <i class="ri-add-circle-line" style="font-size: 22px; color: var(--haiti-gold);"></i>
+                  </div>
+                  <div>
+                    <div class="fw-bold" style="font-size: 13px; color: var(--haiti-charcoal);">Ajoute yon kont MonCash</div>
+                    <div style="font-size: 11px; color: var(--haiti-olive);">Ale nan Metòd Peman pou anrejistre yon nimewo</div>
+                  </div>
+                <% end %>
+              <% end %>
             </div>
 
             <%# ══ STEP 2: Review + PIN ══ %>
@@ -1172,12 +1163,12 @@
               <div class="input-group mb-2">
                 <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);"><i class="ri-money-dollar-circle-line"></i></span>
                 <input type="number" name="amount" id="wd-usd-amount" class="form-control border-0 fw-bold shadow-none p-3 bb-dark-field"
-                       placeholder="Montan (USD)" min="1" max="500" step="0.01" required
+                       placeholder="Montan (USD)" min="<%= FeeService::USD_WITHDRAW_MIN %>" max="500" step="0.01" required
                        style="background-color: var(--haiti-charcoal); color: white;">
                 <span class="input-group-text border-0 fw-bold" style="background-color: var(--haiti-charcoal); color: var(--haiti-olive); font-size: 11px;"><%= currency_label("usd") %></span>
               </div>
               <div class="d-flex justify-content-between mb-2">
-                <span class="small" style="color: var(--haiti-olive); font-size: 10px;">Min: 1 USD</span>
+                <span class="small" style="color: var(--haiti-olive); font-size: 10px;">Min: <%= FeeService::USD_WITHDRAW_MIN %> USD · Frè: <%= FeeService::USD_WITHDRAW_FEE %> USD</span>
                 <span class="small" style="color: var(--haiti-olive); font-size: 10px;">Max: 500 USD</span>
               </div>
               <div class="d-flex align-items-center gap-2 mb-3 px-2 py-2 rounded-3" style="background: rgba(197,160,89,0.08); font-size: 10px; color: var(--haiti-olive);">
@@ -1204,6 +1195,14 @@
                 <div class="d-flex justify-content-between small mb-1">
                   <span style="color: var(--haiti-olive);">Montan</span>
                   <span id="wd-review-amount-usd" class="fw-bold" style="color: var(--haiti-charcoal);"></span>
+                </div>
+                <div class="d-flex justify-content-between small mb-1">
+                  <span style="color: var(--haiti-olive);">Frè rezo</span>
+                  <span id="wd-review-fee-usd" class="fw-bold" style="color: var(--haiti-charcoal);"></span>
+                </div>
+                <div class="d-flex justify-content-between small mb-1">
+                  <span style="color: var(--haiti-olive);">Moun nan resevwa</span>
+                  <span id="wd-review-payout-usd" class="fw-bold" style="color: var(--haiti-charcoal);"></span>
                 </div>
                 <div class="d-flex justify-content-between small mb-1">
                   <span style="color: var(--haiti-olive);">Adrès</span>
@@ -2242,35 +2241,29 @@
 
               <%# ── MIDDLE: Description + time ── %>
               <div class="flex-grow-1" style="min-width: 0;">
-                <% amt_str = number_to_currency(entry.amount, unit: "", precision: entry.asset == "htg" ? 0 : 2) %>
+                <%# Amount lives only in the RIGHT column now (was duplicated here). %>
                 <% if is_transfer %>
                   <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;">
                     <% if entry.entry_type == "transfer_out" %>
                       Ou peye <span style="color: var(--haiti-gold); font-weight: 800;"><%= counterparty_name %></span>
-                      ~ <%= amt_str %> <%= entry.asset_label %>
                     <% else %>
-                      <span style="color: var(--haiti-gold); font-weight: 800;"><%= counterparty_name %></span>
-                      peye w <%= amt_str %> <%= entry.asset_label %>
+                      <span style="color: var(--haiti-gold); font-weight: 800;"><%= counterparty_name %></span> peye w
                     <% end %>
                   </div>
                 <% else %>
                   <div class="fw-bold text-truncate" style="color: var(--haiti-charcoal); font-size: 13px;">
                     <% feed_label = case entry.entry_type
                        when "deposit"
-                         if entry.moncash_transaction_id.to_s.start_with?("admin-credit-")
-                           "Ou resevwa yon kredi: #{amt_str} #{entry.asset_label}"
-                         else
-                           "Ou depoze #{amt_str} #{entry.asset_label}"
-                         end
-                       when "withdrawal"     then "Ou retire #{amt_str} #{entry.asset_label}"
+                         entry.moncash_transaction_id.to_s.start_with?("admin-credit-") ? "Ou resevwa yon kredi" : "Ou depoze"
+                       when "withdrawal"     then "Ou retire"
                        when "conversion_out"
                          ctx = entry.source_context == "biznis" ? "Biznis" : "Pèsonèl"
-                         "Ou konvèti #{amt_str} #{entry.asset_label} (#{ctx})"
+                         "Ou konvèti (#{ctx})"
                        when "conversion_in"
                          ctx = entry.source_context == "biznis" ? "Biznis" : "Pèsonèl"
-                         "Ou resevwa #{amt_str} #{entry.asset_label} (#{ctx})"
-                       when "fee", "instant_fee" then "Frè #{amt_str} #{entry.asset_label}"
-                       when "refund"         then "Ranbousman #{amt_str} #{entry.asset_label}"
+                         "Ou resevwa (#{ctx})"
+                       when "fee", "instant_fee" then "Frè"
+                       when "refund"         then "Ranbousman"
                        else entry.description.to_s.truncate(35)
                        end %>
                     <%= feed_label %>
@@ -2282,7 +2275,8 @@
               <%# ── RIGHT: Amount ── %>
               <div class="text-end flex-shrink-0">
                 <div class="fw-black" style="font-size: 15px; color: <%= amount_color %>;">
-                  <%= entry.credit? ? "+" : "-" %><%= number_to_currency(entry.amount, unit: "", precision: entry.asset == "htg" ? 0 : 6) %>
+                  <%# Exact amount — htg/usd: 2 decimals · crypto (wbtc/eth): 6 %>
+                  <%= entry.credit? ? "+" : "-" %><%= number_to_currency(entry.amount, unit: "", precision: %w[htg usd].include?(entry.asset) ? 2 : 6) %>
                 </div>
                 <div style="color: var(--haiti-olive); font-size: 9px; font-weight: 600;"><%= entry.asset_label %></div>
               </div>
@@ -3493,10 +3487,13 @@ function showUsdcWithdrawReview() {
 
   // Validate address
   if (!addr.match(/^0x[0-9a-fA-F]{40}$/)) { addrEl.focus(); addrEl.reportValidity(); return; }
-  if (!amount || amount < 1 || amount > 500) { amountEl.focus(); amountEl.reportValidity(); return; }
+  var fee = <%= FeeService::USD_WITHDRAW_FEE.to_f %>;
+  if (!amount || amount < <%= FeeService::USD_WITHDRAW_MIN.to_f %> || amount > 500) { amountEl.focus(); amountEl.reportValidity(); return; }
 
-  // Fill review
+  // Fill review: the fee comes out of the amount entered.
   document.getElementById('wd-review-amount-usd').textContent = amount.toFixed(2) + ' USD';
+  document.getElementById('wd-review-fee-usd').textContent = fee.toFixed(2) + ' USD';
+  document.getElementById('wd-review-payout-usd').textContent = (amount - fee).toFixed(2) + ' USD';
   document.getElementById('wd-review-addr-usd').textContent = addr.slice(0, 6) + '···' + addr.slice(-4);
   document.getElementById('wd-review-total-usd').textContent = amount.toFixed(2) + ' USD';
 

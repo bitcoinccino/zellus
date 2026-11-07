@@ -17,6 +17,17 @@ class TransfersController < ApplicationController
   def set_pin
     pin         = params[:transfer_pin].to_s.strip
     confirm_pin = params[:transfer_pin_confirmation].to_s.strip
+    changing    = current_user.transfer_pin_set?
+
+    # First-time setup has nothing to check. A forgotten PIN goes through the
+    # email reset instead, which pauses withdrawals.
+    if changing && !current_user.verify_transfer_pin(params[:current_transfer_pin].to_s.strip)
+      return if handle_pin_lockout
+
+      flash[:alert] = "PIN aktyèl la pa kòrèk."
+      redirect_back fallback_location: new_transfer_path
+      return
+    end
 
     unless pin.match?(/\A\d{4}\z/)
       flash[:alert] = "PIN dwe 4 chif."
@@ -32,6 +43,7 @@ class TransfersController < ApplicationController
 
     current_user.transfer_pin = pin
     current_user.save!
+    NotificationService.pin_changed(current_user) if changing
     flash[:notice] = "PIN transfè ou enstale avèk siksè!"
     redirect_back fallback_location: new_transfer_path
   end
@@ -166,6 +178,8 @@ class TransfersController < ApplicationController
       redirect_to transfer_path(@transfer), alert: "Transfè sa a deja konfime."
       return
     end
+
+    return if reject_held_funds(transfer_path(@transfer))
 
     # Verify PIN
     unless current_user.verify_transfer_pin(params[:transfer_pin])

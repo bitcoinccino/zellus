@@ -7,6 +7,7 @@ class Api::V1::CheckoutsControllerTest < ActionDispatch::IntegrationTest
     @sender = users(:sender)
     @receiver = users(:receiver)
     @token = oauth_tokens(:sender_full_access).access_token
+    @merchant_token = oauth_tokens(:receiver_full_access).access_token
 
     # Sender will be the payer, receiver gets the checkout funds
     @sender_wallet = wallets(:sender_wallet)
@@ -62,7 +63,7 @@ class Api::V1::CheckoutsControllerTest < ActionDispatch::IntegrationTest
     sender_before = @sender_wallet.reload.htg_balance
     receiver_before = @receiver_wallet.reload.htg_balance
 
-    post api_v1_checkout_refund_url(token: checkout.token), headers: api_auth_headers(@token)
+    post api_v1_checkout_refund_url(token: checkout.token), headers: api_auth_headers(@merchant_token)
 
     assert_response :ok
     data = parsed_response
@@ -86,7 +87,7 @@ class Api::V1::CheckoutsControllerTest < ActionDispatch::IntegrationTest
     checkout = create_completed_checkout!
 
     assert_difference -> { WebhookDelivery.count }, 1 do
-      post api_v1_checkout_refund_url(token: checkout.token), headers: api_auth_headers(@token)
+      post api_v1_checkout_refund_url(token: checkout.token), headers: api_auth_headers(@merchant_token)
     end
 
     assert_response :ok
@@ -97,7 +98,7 @@ class Api::V1::CheckoutsControllerTest < ActionDispatch::IntegrationTest
   # ── Refund (error cases) ──
 
   test "returns 404 for refund of non-existent checkout" do
-    post api_v1_checkout_refund_url(token: "nonexistent"), headers: api_auth_headers(@token)
+    post api_v1_checkout_refund_url(token: "nonexistent"), headers: api_auth_headers(@merchant_token)
     assert_response :not_found
   end
 
@@ -110,7 +111,7 @@ class Api::V1::CheckoutsControllerTest < ActionDispatch::IntegrationTest
       expires_at: 1.hour.from_now
     )
 
-    post api_v1_checkout_refund_url(token: checkout.token), headers: api_auth_headers(@token)
+    post api_v1_checkout_refund_url(token: checkout.token), headers: api_auth_headers(@merchant_token)
 
     assert_response :unprocessable_entity
     assert_includes parsed_response["error"], "konplete"
@@ -120,11 +121,11 @@ class Api::V1::CheckoutsControllerTest < ActionDispatch::IntegrationTest
     checkout = create_completed_checkout!
 
     # Refund once
-    post api_v1_checkout_refund_url(token: checkout.token), headers: api_auth_headers(@token)
+    post api_v1_checkout_refund_url(token: checkout.token), headers: api_auth_headers(@merchant_token)
     assert_response :ok
 
     # Try to refund again
-    post api_v1_checkout_refund_url(token: checkout.token), headers: api_auth_headers(@token)
+    post api_v1_checkout_refund_url(token: checkout.token), headers: api_auth_headers(@merchant_token)
     assert_response :unprocessable_entity
     assert_includes parsed_response["error"], "konplete"
   end
@@ -135,10 +136,21 @@ class Api::V1::CheckoutsControllerTest < ActionDispatch::IntegrationTest
     # Drain receiver wallet
     @receiver_wallet.update!(htg_balance: 0)
 
-    post api_v1_checkout_refund_url(token: checkout.token), headers: api_auth_headers(@token)
+    post api_v1_checkout_refund_url(token: checkout.token), headers: api_auth_headers(@merchant_token)
 
     assert_response :unprocessable_entity
     assert_includes parsed_response["error"], "balans"
+  end
+
+  test "the buyer cannot refund their own purchase" do
+    checkout = create_completed_checkout!
+    merchant_before = @receiver_wallet.reload.htg_balance
+
+    post api_v1_checkout_refund_url(token: checkout.token), headers: api_auth_headers(@token)
+
+    assert_response :forbidden
+    assert_equal merchant_before, @receiver_wallet.reload.htg_balance
+    assert checkout.reload.completed?
   end
 
   test "returns 403 without checkout:create scope" do
@@ -156,7 +168,7 @@ class Api::V1::CheckoutsControllerTest < ActionDispatch::IntegrationTest
   test "refund response includes expected fields" do
     checkout = create_completed_checkout!
 
-    post api_v1_checkout_refund_url(token: checkout.token), headers: api_auth_headers(@token)
+    post api_v1_checkout_refund_url(token: checkout.token), headers: api_auth_headers(@merchant_token)
 
     assert_response :ok
     data = parsed_response

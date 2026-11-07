@@ -415,6 +415,24 @@ class NotificationService
       )
     end
 
+    # ── Security alerts: in-app, plus an email the owner can act on ──
+    def pin_changed(user)
+      security_alert(user, "PIN kont ou a chanje", "Si se pa ou ki fè sa, kontakte sipò touswit.")
+    end
+
+    def pin_reset(user)
+      security_alert(user, "PIN kont ou a reyinisyalize",
+                     "Pou sekirite, retrè ak transfè yo bloke pandan 24 èdtan. Si se pa ou ki fè sa, kontakte sipò touswit.")
+    end
+
+    # The alert goes to the previous address: the new one may be the attacker's.
+    def email_changed(user, old_email:)
+      security_alert(user, "Imèl kont ou a chanje",
+                     "Nouvo imèl la se #{user.email}. Pou sekirite, retrè ak transfè yo bloke pandan 24 èdtan. " \
+                     "Si se pa ou ki fè sa, kontakte sipò touswit.",
+                     email: old_email)
+    end
+
     def avatar_url_for(actor)
       return if actor.blank?
 
@@ -426,6 +444,13 @@ class NotificationService
     end
 
     private
+
+    def security_alert(user, title, body, email: user.email)
+      create_notification(user: user, notification_type: "security_alert", title: title, body: body)
+      SecurityMailer.with(email: email, title: title, body: body).alert.deliver_later
+    rescue => e
+      Rails.logger.error "NotificationService: security alert failed [#{title}]: #{e.message}"
+    end
 
     def create_notification(skip_sound: false, **attrs)
       notif = Notification.create!(attrs)

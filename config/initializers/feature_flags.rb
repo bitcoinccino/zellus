@@ -19,6 +19,7 @@ module FeatureFlags
   BULK_CREDIT                = false  # admin bulk credit wallet (turn on later)
 
   # ── SECURITY ──
+  BONID_WITHDRAWAL_GATE      = true   # unverified users can't withdraw past the 24h threshold
   BONID_CRIME_CHECK          = false  # block BonID sign-in/verification on any criminal record.
                                       # OFF: Zellus only needs identity verification. Turning this
                                       # on also requires adding the crime:status scope in devise.rb.
@@ -29,6 +30,7 @@ module FeatureFlags
   # ── Helper methods for views/controllers ──
   class << self
     def merchant_features?;       MERCHANT_FEATURES_ENABLED; end
+    def bonid_withdrawal_gate?;   BONID_WITHDRAWAL_GATE; end
     def bonid_crime_check?;       BONID_CRIME_CHECK; end
     def biznis_storefront?;       BIZNIS_STOREFRONT; end
     def qr_payments?;             QR_PAYMENTS; end

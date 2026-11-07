@@ -1,4 +1,6 @@
 class WalletsController < ApplicationController
+  include ActionView::Helpers::NumberHelper
+
   before_action :authenticate_user!
   before_action :load_wallet
 
@@ -6,7 +8,7 @@ class WalletsController < ApplicationController
   DEPOSIT_MAX  = 327_678
   WITHDRAW_MIN = 100
   WITHDRAW_MAX = 50_000
-  USD_WITHDRAW_MIN = BigDecimal("1")
+  USD_WITHDRAW_MIN = FeeService::USD_WITHDRAW_MIN
   USD_WITHDRAW_MAX = BigDecimal("500")
 
   # ── GET /wallet ──
@@ -125,6 +127,8 @@ class WalletsController < ApplicationController
       return
     end
 
+    return if reject_blocked_withdrawal(amount)
+
     # Daily user + platform circuit breaker
     ok, msg = WalletLimitService.new(current_user).allow_withdraw_htg?(amount)
     unless ok
@@ -205,6 +209,8 @@ class WalletsController < ApplicationController
       return
     end
 
+    return if reject_blocked_withdrawal(amount, asset: "usd")
+
     # Daily user + platform circuit breaker
     ok, msg = WalletLimitService.new(current_user).allow_withdraw_usdc?(amount)
     unless ok
@@ -236,8 +242,9 @@ class WalletsController < ApplicationController
       else
         WalletService.new(@wallet).withdraw!(amount: amount, asset: "usd")
       end
-      WalletUsdWithdrawWorker.perform_async(current_user.id, amount.to_f, to_address)
-      redirect_to wallet_path, notice: "Retrè #{amount} USD an kou. Tranzaksyon ap trete sou Base."
+      fee = FeeService::USD_WITHDRAW_FEE
+      WalletUsdWithdrawWorker.perform_async(current_user.id, (amount - fee).to_s, to_address, "usd", fee.to_s)
+      redirect_to wallet_path, notice: "Retrè #{amount - fee} USD an kou (frè #{fee} USD). Tranzaksyon ap trete sou Base."
     rescue WalletService::InsufficientFundsError
       redirect_to wallet_path, alert: "Balans USD pa sifi pou retrè sa a."
     rescue WalletService::FrozenAccountError
@@ -304,6 +311,8 @@ class WalletsController < ApplicationController
       redirect_to wallet_path, alert: "Montan retrè bank dwe ant #{BankWithdrawal::MIN_AMOUNT} ak #{number_with_delimiter(BankWithdrawal::MAX_AMOUNT)} HTG."
       return
     end
+
+    return if reject_blocked_withdrawal(amount)
 
     if account_num.blank?
       redirect_to wallet_path, alert: "Tanpri antre nimewo kont bank ou."
@@ -569,6 +578,17 @@ class WalletsController < ApplicationController
   end
 
   private
+
+  # Security hold first, then the BonID gate. Returns true if it redirected.
+  def reject_blocked_withdrawal(amount, asset: "htg")
+    return true if reject_held_funds(wallet_path)
+
+    limits = WalletLimitService.new(current_user)
+    return false unless limits.bonid_required_for_withdrawal?(amount, asset: asset)
+
+    redirect_to bonid_verification_path, alert: limits.bonid_withdrawal_message
+    true
+  end
 
   def load_wallet
     @wallet = current_user.ensure_wallet!

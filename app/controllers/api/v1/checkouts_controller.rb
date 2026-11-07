@@ -85,6 +85,13 @@ module Api
           return render_error("Checkout pa jwenn.", status: :not_found)
         end
 
+        # A refund debits the merchant, so only the merchant can issue one.
+        unless checkout.receiver_user&.id == current_user.id
+          return render_error("Sèlman machann nan ka ranbouse checkout sa a.", status: :forbidden)
+        end
+
+        return if reject_held_funds_response
+
         unless checkout.completed?
           return render_error("Sèlman checkout ki konplete ka ranbouse. Estati aktyèl: #{checkout.status}.", status: :unprocessable_entity)
         end

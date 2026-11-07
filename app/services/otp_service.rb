@@ -31,7 +31,7 @@ class OtpService
       end
 
       code = EmailOtp.generate_for!(normalized, purpose: purpose, ip: ip)
-      OtpMailer.with(email: normalized, code: code).code_email.deliver_later
+      OtpMailer.with(email: normalized, code: code, purpose: purpose).code_email.deliver_later
 
       Result.new(success?: true, email_otp: EmailOtp.latest_active_for(normalized))
     end

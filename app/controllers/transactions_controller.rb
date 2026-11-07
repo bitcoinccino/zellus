@@ -23,6 +23,9 @@ class TransactionsController < ApplicationController
     load_sell_payment_methods
     tx_type          = params[:transaction_type] == "sell" ? "sell" : "buy"
 
+    # A sell pays out to an external account; a buy only brings money in.
+    return if tx_type == "sell" && reject_held_funds(new_transaction_path)
+
     # PIN verification
     unless current_user.transfer_pin_set?
       flash.now[:alert] = "Ou dwe kreye yon PIN transfè anvan ou ka kontinye."
@@ -82,6 +85,12 @@ class TransactionsController < ApplicationController
       fee_htg            = FeeService.crypto_fee(gross_htg)
       net_htg            = gross_htg - fee_htg
       @fee_percentage    = FeeService.crypto_fee_percent(gross_htg)
+
+      limits = WalletLimitService.new(current_user)
+      if limits.bonid_required_for_withdrawal?(gross_htg)
+        redirect_to bonid_verification_path, alert: limits.bonid_withdrawal_message
+        return
+      end
 
       @transaction = current_user.transactions.new(
         transaction_type:    :sell,
@@ -212,9 +221,14 @@ class TransactionsController < ApplicationController
       return
     end
 
-    tx_hash = params[:sell_deposit_tx_hash].to_s.strip
-    unless tx_hash.match?(/\A0x[a-fA-F0-9]{64}\z/)
+    tx_hash = params[:sell_deposit_tx_hash].to_s.strip.downcase
+    unless tx_hash.match?(/\A0x[a-f0-9]{64}\z/)
       redirect_to transaction_path(@transaction), alert: "Enter a valid Base transaction hash (0x + 64 hex chars)."
+      return
+    end
+
+    if Transaction.where("LOWER(blockchain_tx_hash) = ?", tx_hash).where.not(id: @transaction.id).exists?
+      redirect_to transaction_path(@transaction), alert: "This transaction hash has already been used."
       return
     end
 

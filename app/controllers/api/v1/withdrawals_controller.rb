@@ -5,7 +5,7 @@ module Api
 
       WITHDRAW_MIN_HTG = 100
       WITHDRAW_MAX_HTG = 50_000
-      USD_WITHDRAW_MIN = BigDecimal("1")
+      USD_WITHDRAW_MIN = FeeService::USD_WITHDRAW_MIN
       USD_WITHDRAW_MAX = BigDecimal("500")
 
       # POST /api/v1/withdrawals
@@ -33,6 +33,13 @@ module Api
         end
 
         wallet = current_user.ensure_wallet!
+
+        return if reject_held_funds_response
+
+        limits = WalletLimitService.new(current_user)
+        if limits.bonid_required_for_withdrawal?(amount, asset: asset)
+          return render_error(limits.bonid_withdrawal_message, status: :forbidden)
+        end
 
         case method
         when "moncash"
@@ -165,15 +172,16 @@ module Api
 
         begin
           WalletService.new(wallet).withdraw!(amount: amount, asset: "usd")
-          WalletUsdWithdrawWorker.perform_async(current_user.id, amount.to_f, wallet_address)
+          fee = FeeService::USD_WITHDRAW_FEE
+          WalletUsdWithdrawWorker.perform_async(current_user.id, (amount - fee).to_s, wallet_address, "usd", fee.to_s)
 
           render json: {
             success: true,
             withdrawal: {
               reference: reference,
               amount: amount.to_s,
-              fee: "0",
-              payout: amount.to_s,
+              fee: fee.to_s,
+              payout: (amount - fee).to_s,
               asset: "usd",
               method: "crypto",
               status: "processing"

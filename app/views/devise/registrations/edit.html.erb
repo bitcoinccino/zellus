@@ -129,6 +129,14 @@
         <%= f.email_field :email, autofocus: false, autocomplete: "email",
             class: "form-control shadow-none rounded-3 p-3",
             style: "border: 1.5px solid rgba(46,46,56,0.12); background-color: var(--haiti-mint); color: var(--haiti-charcoal); font-size: 13px;" %>
+        <div id="email-change-pin" class="mt-2" data-current-email="<%= resource.email %>" hidden>
+          <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 0.5px;">Antre PIN ou pou chanje imèl la</label>
+          <input type="password" name="current_transfer_pin" maxlength="4" pattern="\d{4}" inputmode="numeric"
+               placeholder="• • • •" autocomplete="off"
+               class="form-control border-0 fw-bold shadow-none p-3 text-center"
+               style="background: var(--haiti-mint); color: var(--haiti-charcoal); border-radius: 12px; letter-spacing: 10px; font-size: 20px;">
+          <div class="small mt-1" style="color: var(--haiti-olive); font-size: 11px;">Nou pral voye yon kòd nan nouvo imèl la. Retrè ak transfè yo ap bloke pandan 24 èdtan apre chanjman an.</div>
+        </div>
         <% if devise_mapping.confirmable? && resource.pending_reconfirmation? %>
           <div class="p-2 mt-2 rounded-3" style="background-color: #fef3c7; border: 1px solid #f59e0b;">
             <div class="small fw-bold" style="color: #92400e; font-size: 10px;">
@@ -202,6 +210,15 @@
     </div>
 
     <%= form_with url: set_pin_transfers_path, method: :post, local: true do %>
+      <% if current_user.transfer_pin_set? %>
+        <div class="mb-2">
+          <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">PIN Aktyèl</label>
+          <input type="password" name="current_transfer_pin" maxlength="4" pattern="\d{4}" inputmode="numeric"
+               placeholder="• • • •" required autocomplete="off"
+               class="form-control border-0 fw-bold shadow-none p-3 text-center"
+               style="background: var(--haiti-mint); color: var(--haiti-charcoal); border-radius: 12px; letter-spacing: 10px; font-size: 20px;">
+        </div>
+      <% end %>
       <div class="mb-2">
         <label class="form-label small fw-bold text-uppercase" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">Nouvo PIN</label>
         <input type="password" name="transfer_pin" maxlength="4" pattern="\d{4}" inputmode="numeric"
@@ -220,6 +237,13 @@
             style: "background: var(--haiti-gold); color: var(--haiti-charcoal); font-size: 13px; letter-spacing: 0.5px;" %>
     <% end %>
 
+    <div class="text-center mt-2">
+      <%= button_to "Bliye PIN? Reyinisyalize ak imèl", login_pin_reset_path,
+            form: { class: "d-inline" },
+            class: "btn btn-link p-0 fw-bold text-decoration-none",
+            style: "color: var(--haiti-gold); font-size: 12px;" %>
+    </div>
+
     <div class="mt-2">
       <a href="#" onclick="closePinUpdateModal(); return false;"
          class="btn w-100 py-3 fw-bold rounded-4 d-flex align-items-center justify-content-center gap-2"
@@ -231,6 +255,21 @@
 </div>
 
 <script>
+// ── Ask for the PIN only when the email actually changes ──
+(function() {
+  var box = document.getElementById('email-change-pin');
+  var field = document.getElementById('user_email');
+  if (!box || !field) return;
+  var input = box.querySelector('input');
+  function sync() {
+    var changed = field.value.trim().toLowerCase() !== box.dataset.currentEmail.toLowerCase();
+    box.hidden = !changed;
+    input.required = changed;
+  }
+  field.addEventListener('input', sync);
+  sync();
+})();
+
 // ── Pwofil modal ──
 function openProfileModal() {
   var m = document.getElementById('profile-modal');
