@@ -1415,18 +1415,29 @@
         };
         var c = colors[type] || { bg: '#FFF8E7', border: '#C5A059', icon: 'ri-notification-3-line', color: '#2E2E38' };
 
-        var iconHtml;
+        // Titles and avatar URLs can contain user-controlled text (business and
+        // display names), so build DOM nodes rather than concatenating HTML.
+        var icon;
         if (avatarUrl) {
-          iconHtml = '<img src="' + avatarUrl + '" style="width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid ' + c.border + ';" alt="">';
+          icon = document.createElement('img');
+          icon.src = avatarUrl;
+          icon.alt = '';
+          icon.style.cssText = 'width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid ' + c.border + ';';
         } else {
-          iconHtml = '<i class="' + c.icon + '" style="font-size:20px;color:' + c.color + ';flex-shrink:0;"></i>';
+          icon = document.createElement('i');
+          icon.className = c.icon;
+          icon.style.cssText = 'font-size:20px;color:' + c.color + ';flex-shrink:0;';
         }
+
+        var label = document.createElement('div');
+        label.style.cssText = 'font-size:13px;font-weight:600;color:#2E2E38;line-height:1.4;';
+        label.textContent = title;
 
         var toast = document.createElement('div');
         toast.id = 'zellus-notif-toast';
         toast.style.cssText = 'position:fixed;top:20px;right:20px;z-index:9999;background:' + c.bg + ';border:1px solid ' + c.border + ';border-radius:14px;padding:14px 18px;max-width:340px;box-shadow:0 8px 24px rgba(0,0,0,0.15);display:flex;align-items:center;gap:10px;animation:slideInRight 0.3s ease;cursor:pointer;';
-        toast.innerHTML = iconHtml +
-          '<div style="font-size:13px;font-weight:600;color:#2E2E38;line-height:1.4;">' + title + '</div>';
+        toast.appendChild(icon);
+        toast.appendChild(label);
         toast.onclick = function() { toast.remove(); window.location.href = '/notifications'; };
         document.body.appendChild(toast);
 
@@ -1624,13 +1635,17 @@
           // Actual notification message
           if (data.identifier === channelId && data.message) {
             console.log('[Zèllus] 🔔 Notification received:', JSON.stringify(data.message));
+            var alreadyAnnounced = false;
             if (data.message.play_sound) {
-              playDepositChime();
-              // Sync poll baseline so it doesn't double-play
-              fetch('/notifications/poll', { credentials: 'same-origin' })
-                .then(function(r) { return r.json(); })
-                .then(function(d) { if (d.latest_sound_id) lastSeenSoundId = d.latest_sound_id; })
-                .catch(function() {});
+              // notification_id keeps this and the poll fallback from both
+              // playing the same payment. Test broadcasts have no id.
+              var soundId = data.message.notification_id;
+              if (!soundId || soundId > lastSeenSoundId) {
+                playDepositChime();
+                if (soundId) lastSeenSoundId = soundId;
+              } else {
+                alreadyAnnounced = true;
+              }
             }
             if (data.message.type === 'balance_update') {
               updateBalances(data.message);
@@ -1638,7 +1653,7 @@
               handleBonidRevoked(data.message);
             } else {
               bumpNotificationBadge(data.message.unread_count);
-              if (data.message.title) showNotifToast(data.message.title, data.message.type, data.message.avatar_url);
+              if (data.message.title && !alreadyAnnounced) showNotifToast(data.message.title, data.message.type, data.message.avatar_url);
             }
           }
         };
@@ -1688,8 +1703,9 @@
       // ── 6. Polling fallback: catch missed deposit sounds ──
       // If WebSocket was disconnected when the broadcast fired, the sound
       // is lost. This lightweight poll checks every 20s for new unread
-      // sound-eligible notifications and plays the chime if one appeared.
+      // sound-eligible notifications and plays the chime and toast if one appeared.
       var lastSeenSoundId = 0;
+      var soundBaselineSet = false;
       var pollTimer = null;
 
       function pollForMissedSounds() {
@@ -1697,13 +1713,16 @@
           .then(function(r) { return r.json(); })
           .then(function(d) {
             if (d.latest_sound_id && d.latest_sound_id > lastSeenSoundId) {
-              if (lastSeenSoundId > 0) {
-                // New notification appeared since last poll — play sound
+              if (soundBaselineSet) {
+                // New notification appeared since last poll — chime and toast together
                 console.log('[Zèllus] Poll detected missed sound, id=' + d.latest_sound_id);
                 playDepositChime();
+                if (d.latest_sound_title) showNotifToast(d.latest_sound_title, 'transfer_received', d.latest_sound_avatar_url);
               }
               lastSeenSoundId = d.latest_sound_id;
             }
+            // The first successful poll only records what already existed.
+            soundBaselineSet = true;
             // Update badge from poll too
             if (typeof d.unread_count === 'number') {
               bumpNotificationBadge(d.unread_count);

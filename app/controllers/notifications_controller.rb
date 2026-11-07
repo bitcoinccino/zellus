@@ -85,9 +85,9 @@ class NotificationsController < ApplicationController
     latest_sound = current_user.notifications
                      .where(notification_type: SOUND_TYPES)
                      .where(read_at: nil)
+                     .includes(:actor)
                      .order(created_at: :desc)
-                     .limit(1)
-                     .pick(:token, :created_at)
+                     .first
 
     unread_count = current_user.notifications.unread.count
 
@@ -106,8 +106,10 @@ class NotificationsController < ApplicationController
 
     render json: {
       unread_count: unread_count,
-      latest_sound_id: latest_sound&.first,
-      latest_sound_at: latest_sound&.last&.iso8601,
+      latest_sound_id: latest_sound&.id,
+      latest_sound_at: latest_sound&.created_at&.iso8601,
+      latest_sound_title: latest_sound&.title,
+      latest_sound_avatar_url: NotificationService.avatar_url_for(latest_sound&.actor),
       balances: balances
     }
   end

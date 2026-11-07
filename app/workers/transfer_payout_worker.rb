@@ -663,8 +663,7 @@ class TransferPayoutWorker
   end
 
   def notify_receiver_completed(transfer)
-    # Play sound HERE — this runs when funds actually land in the wallet.
-    # The controller's earlier broadcast was a silent preview (play_sound: false).
+    # The receiver's toast and chime fire from here, once funds land in the wallet.
     NotificationService.transfer_received(transfer)
 
     receiver_user = find_receiver_user(transfer)
