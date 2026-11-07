@@ -120,6 +120,18 @@
           box-shadow: none !important;
           border-radius: 12px !important;
         }
+        /* Avatar-only on mobile: no pill background, cashtag or caret. The menu
+           anchors to the avatar, so it needs its own width and must scroll on
+           short screens. */
+        .profile-toggle { background: transparent !important; }
+        .profile-toggle::after { display: none; }
+        .navbar .dropdown .profile-menu {
+          width: min(340px, calc(100vw - 24px)) !important;
+          max-height: calc(100vh - 90px);
+          overflow-y: auto !important;
+          box-shadow: 0 8px 24px rgba(46, 46, 56, 0.2) !important;
+          z-index: 1050;
+        }
       }
 
       @media (max-width: 576px) {
@@ -463,25 +475,19 @@
           <%= image_tag "zellus_square.png", alt: "Zèllus", style: "height: 40px; width: 40px; border-radius: 10px;" %>
         <% end %>
 
-        <%# ── Mobile-only: notification bell + hamburger (desktop has the bell
-            inside the collapsed menu, which is hidden behind the toggler on
-            mobile — so users couldn't see incoming-money alerts). ── %>
+        <%# ── Mobile hamburger: logged-out only. Signed-in users get the avatar menu
+            after the collapse below. ── %>
         <%# NB: no ms-auto here — a global `.navbar .ms-auto` mobile rule forces
             width:100%/margin-top (for the collapsed menu), which would drop this
             group onto its own row under the logo. The navbar's space-between
             already right-aligns it. ── %>
-        <div class="d-flex align-items-center gap-3 d-lg-none">
-          <% if user_signed_in? %>
-            <%= link_to notifications_path, class: "position-relative text-decoration-none d-inline-flex", style: "color: var(--haiti-gold); font-size: 22px; line-height: 1;", aria: { label: "Notifikasyon" } do %>
-              <i class="ri-notification-3-line"></i>
-              <%# Always render the badge (hidden at 0) so live updates can show it. %>
-              <span id="notif-bell-badge-m" style="position: absolute; top: -4px; right: -6px; min-width: 16px; height: 16px; padding: 0 4px; background: #DC2626; color: #fff; font-size: 9px; font-weight: 800; border-radius: 999px; border: 1.5px solid var(--haiti-charcoal); align-items: center; justify-content: center; line-height: 1; display: <%= unread_notification_count > 0 ? 'flex' : 'none' %>;"><%= unread_notification_count %></span>
-            <% end %>
-          <% end %>
-          <button class="navbar-toggler border-0 shadow-none p-0" type="button" data-bs-toggle="collapse" data-bs-target="#zellusNavbarContent">
-            <i class="ri-menu-3-line text-white" style="font-size: 1.5rem;"></i>
-          </button>
-        </div>
+        <% unless user_signed_in? %>
+          <div class="d-flex align-items-center gap-3 d-lg-none">
+            <button class="navbar-toggler border-0 shadow-none p-0" type="button" data-bs-toggle="collapse" data-bs-target="#zellusNavbarContent">
+              <i class="ri-menu-3-line text-white" style="font-size: 1.5rem;"></i>
+            </button>
+          </div>
+        <% end %>
 
         <div class="collapse navbar-collapse" id="zellusNavbarContent">
 
@@ -489,17 +495,8 @@
             <%# ── LOGGED-IN NAV ─────────────────────────────── %>
             <ul class="navbar-nav ms-auto mb-2 mb-lg-0 gap-1 align-items-lg-center">
 
-              <%# ── Mobile nav items moved to bottom nav bar ── %>
-              <% if current_user.uma_enabled? && LightsparkConfig.enabled? %>
-                <li class="nav-item d-lg-none">
-                  <%= link_to resevwa_path, class: "nav-link text-white fw-bold py-2 px-3", style: "font-size: 14px;" do %>
-                    <i class="ri-money-dollar-circle-line me-2" style="color: var(--haiti-gold);"></i> Resevwa
-                  <% end %>
-                </li>
-              <% end %>
-              <%# Apwopo / FAQ intentionally NOT in the mobile hamburger — kept
-                  to the desktop sidebar to keep the mobile menu focused on
-                  wallet actions. %>
+              <%# Apwopo / FAQ intentionally NOT in the mobile profile menu — kept
+                  to the desktop sidebar to keep it focused on wallet actions. %>
 
               <%# ── Resevwa Button (desktop) ── %>
               <% if current_user.uma_enabled? && LightsparkConfig.enabled? %>
@@ -510,7 +507,7 @@
                 </li>
               <% end %>
 
-              <%# ── Notification Bell (desktop only — mobile has its own next to the hamburger) ── %>
+              <%# ── Notification Bell (desktop only — mobile has its own next to the avatar) ── %>
               <li class="nav-item dropdown ms-lg-2 d-none d-lg-block">
                 <a href="#" role="button" data-bs-toggle="dropdown"
                    class="nav-link p-0"
@@ -575,164 +572,6 @@
                       </div>
                     </li>
                   <% end %>
-                </ul>
-              </li>
-
-
-
-              <%# ── User Profile Pill (always visible) ── %>
-              <li class="nav-item dropdown ms-lg-3">
-                <a class="nav-link dropdown-toggle d-flex align-items-center gap-2 px-3 py-2"
-                   href="#" role="button" data-bs-toggle="dropdown"
-                   style="color: white; border-radius: 24px; background: rgba(255,255,255,0.06); transition: background 0.15s; max-width: 200px;">
-                  <% if current_user.avatar.attached? %>
-                    <div style="position: relative; width: 30px; height: 30px;">
-                      <%= image_tag current_user.avatar, style: "width: 30px; height: 30px; border-radius: 50%; object-fit: cover; border: 2px solid var(--haiti-gold);", alt: "" %>
-                      <% if current_user.bonid_verified? %>
-                        <div class="js-bonid-badge" style="position: absolute; bottom: -2px; right: -2px; width: 14px; height: 14px; background: #16a34a; border-radius: 50%; border: 2px solid var(--haiti-charcoal); display: flex; align-items: center; justify-content: center;">
-                          <i class="ri-check-line" style="color: #fff; font-size: 8px;"></i>
-                        </div>
-                      <% end %>
-                    </div>
-                  <% else %>
-                    <div style="position: relative; width: 30px; height: 30px;">
-                      <div style="width: 30px; height: 30px; border-radius: 50%; background: rgba(197,160,89,0.15); border: 2px solid var(--haiti-gold); display: flex; align-items: center; justify-content: center;">
-                        <i class="ri-user-fill" style="font-size: 15px; color: var(--haiti-gold);"></i>
-                      </div>
-                      <% if current_user.bonid_verified? %>
-                        <div class="js-bonid-badge" style="position: absolute; bottom: -2px; right: -2px; width: 14px; height: 14px; background: #16a34a; border-radius: 50%; border: 2px solid var(--haiti-charcoal); display: flex; align-items: center; justify-content: center;">
-                          <i class="ri-check-line" style="color: #fff; font-size: 8px;"></i>
-                        </div>
-                      <% end %>
-                    </div>
-                  <% end %>
-                  <span class="small fw-bold" style="color: var(--haiti-gold);">$<%= current_user.cashtag %></span>
-                </a>
-
-                <ul class="dropdown-menu dropdown-menu-end shadow-lg p-0 mt-2" style="min-width: 320px; width: 340px; border: 1px solid rgba(46,46,56,0.08); border-radius: 16px; overflow: hidden;">
-
-                  <%# ── SECTION 1: Identity Header (desktop only — on mobile the
-                      collapsed-menu pill above already shows avatar + cashtag, so
-                      showing this header too looked like the profile twice). ── %>
-                  <li class="d-none d-lg-block">
-                    <div style="padding: 16px 20px 14px; background: linear-gradient(135deg, var(--haiti-charcoal) 0%, #3a3a48 100%);">
-                      <div class="d-flex align-items-center gap-3">
-                        <%# Avatar with verification badge %>
-                        <div style="position: relative; flex-shrink: 0;">
-                          <% if current_user.avatar.attached? %>
-                            <%= image_tag current_user.avatar, style: "width: 44px; height: 44px; border-radius: 50%; object-fit: cover; border: 2px solid var(--haiti-gold);", alt: "" %>
-                          <% else %>
-                            <div style="width: 44px; height: 44px; border-radius: 50%; background: rgba(197,160,89,0.15); border: 2px solid var(--haiti-gold); display: flex; align-items: center; justify-content: center;">
-                              <i class="ri-user-fill" style="font-size: 22px; color: var(--haiti-gold);"></i>
-                            </div>
-                          <% end %>
-                          <% if current_user.bonid_verified? %>
-                            <div class="js-bonid-badge" style="position: absolute; bottom: -1px; right: -1px; width: 18px; height: 18px; background: #16a34a; border-radius: 50%; border: 2.5px solid var(--haiti-charcoal); display: flex; align-items: center; justify-content: center;" title="Idantite verifye ak BonID">
-                              <i class="ri-check-line" style="color: #fff; font-size: 10px;"></i>
-                            </div>
-                          <% end %>
-                        </div>
-                        <%# Name + email %>
-                        <div style="min-width: 0; flex: 1;">
-                          <div class="d-flex align-items-center gap-1">
-                            <span class="fw-bold text-truncate js-bonid-fullname" style="color: #fff; font-size: 14px;">
-                              <%= current_user.bonid_verified? && current_user.bonid_full_name.present? ? current_user.bonid_full_name : current_user.display_name %>
-                            </span>
-                            <% if current_user.bonid_verified? %>
-                              <i class="ri-verified-badge-fill js-bonid-badge" style="color: #16a34a; font-size: 15px; flex-shrink: 0;" title="Verifye"></i>
-                            <% end %>
-                          </div>
-                          <div class="text-truncate" style="color: var(--haiti-gold); font-size: 12px; font-weight: 700;">$<%= current_user.cashtag %></div>
-                        </div>
-                      </div>
-                    </div>
-                  </li>
-
-                  <%# ── SECTION 2: BonID CTA (not verified) ── %>
-                  <% unless current_user.bonid_verified? %>
-                    <li class="js-bonid-cta" style="padding: 8px 10px 4px;">
-                      <%= link_to bonid_verification_path, class: "d-block text-decoration-none", style: "background: linear-gradient(135deg, #00209F 0%, #0035d4 100%); border-radius: 12px; padding: 12px 14px; transition: transform 0.15s, box-shadow 0.15s;" do %>
-                        <div class="d-flex align-items-center gap-3">
-                          <div style="width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.15); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                            <i class="ri-shield-check-line" style="color: #fff; font-size: 18px;"></i>
-                          </div>
-                          <div style="flex: 1;">
-                            <div class="fw-bold" style="color: #fff; font-size: 13px;">Verifye ak BonID</div>
-                            <div style="color: rgba(255,255,255,0.65); font-size: 10px;">Debloke pi gwo limit ak fonksyon</div>
-                          </div>
-                          <i class="ri-arrow-right-s-line" style="color: rgba(255,255,255,0.5); font-size: 20px;"></i>
-                        </div>
-                      <% end %>
-                    </li>
-                  <% end %>
-
-                  <%# ── SECTION 3: Menu Items ── %>
-                  <li style="padding: 6px 10px 2px;">
-                    <div style="padding: 0 6px 4px; margin-top: 2px;">
-                      <span style="font-size: 9px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: rgba(46,46,56,0.3);">KONT</span>
-                    </div>
-                  </li>
-                  <% if current_user.bonid_verified? %>
-                    <li class="js-bonid-menu-item" style="padding: 0 10px;">
-                      <%= link_to bonid_verification_path, class: "d-flex align-items-center gap-3 text-decoration-none", style: "padding: 10px 10px; border-radius: 10px; transition: background 0.15s; min-height: 44px;", onmouseover: "this.style.background='var(--haiti-mint)'", onmouseout: "this.style.background='transparent'" do %>
-                        <div style="width: 32px; height: 32px; border-radius: 10px; background: #eef1ff; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                          <i class="ri-shield-check-line" style="color: #00209F; font-size: 16px;"></i>
-                        </div>
-                        <div style="flex: 1; min-width: 0;">
-                          <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;">BonID</div>
-                          <div class="text-truncate" style="color: #00209F; font-size: 10px; font-weight: 600;"><%= current_user.bonid.gsub(/(.{4}).*(.{3})/, '\1••••••\2') %></div>
-                        </div>
-                        <span class="badge rounded-pill" style="background: #dcfce7; color: #166534; font-size: 9px; font-weight: 700; padding: 3px 8px;">Verifye</span>
-                      <% end %>
-                    </li>
-                  <% end %>
-                  <li style="padding: 0 10px;">
-                    <%= link_to payment_methods_path, class: "d-flex align-items-center gap-3 text-decoration-none", style: "padding: 10px 10px; border-radius: 10px; transition: background 0.15s; min-height: 44px;", onmouseover: "this.style.background='var(--haiti-mint)'", onmouseout: "this.style.background='transparent'" do %>
-                      <div style="width: 32px; height: 32px; border-radius: 10px; background: rgba(197,160,89,0.1); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                        <i class="ri-bank-card-line" style="color: var(--haiti-gold); font-size: 16px;"></i>
-                      </div>
-                      <span class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;">Metòd Peman</span>
-                    <% end %>
-                  </li>
-                  <li style="padding: 0 10px;">
-                    <%= link_to edit_user_registration_path, class: "d-flex align-items-center gap-3 text-decoration-none", style: "padding: 10px 10px; border-radius: 10px; transition: background 0.15s; min-height: 44px;", onmouseover: "this.style.background='var(--haiti-mint)'", onmouseout: "this.style.background='transparent'" do %>
-                      <div style="width: 32px; height: 32px; border-radius: 10px; background: rgba(93,99,69,0.1); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                        <i class="ri-settings-3-line" style="color: var(--haiti-olive); font-size: 16px;"></i>
-                      </div>
-                      <span class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;">Paramèt Kont</span>
-                    <% end %>
-                  </li>
-                  <% if current_user.bonid_verified? && current_user.business.present? && !current_user.business.is_agent? %>
-                    <li style="padding: 0 10px;">
-                      <%= link_to ajan_info_path, class: "d-flex align-items-center gap-3 text-decoration-none", style: "padding: 10px 10px; border-radius: 10px; transition: background 0.15s; min-height: 44px;", onmouseover: "this.style.background='var(--haiti-mint)'", onmouseout: "this.style.background='transparent'" do %>
-                        <div style="width: 32px; height: 32px; border-radius: 10px; background: rgba(197,160,89,0.1); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                          <i class="ri-user-location-line" style="color: var(--haiti-gold); font-size: 16px;"></i>
-                        </div>
-                        <span class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;">Vin Ajan Zèllus</span>
-                      <% end %>
-                    </li>
-                  <% end %>
-                  <% if current_user.email == ENV['ADMIN_EMAIL'].to_s.strip %>
-                    <li style="padding: 0 10px;">
-                      <%= link_to admin_root_path, class: "d-flex align-items-center gap-3 text-decoration-none", style: "padding: 10px 10px; border-radius: 10px; transition: background 0.15s; min-height: 44px;", onmouseover: "this.style.background='var(--haiti-mint)'", onmouseout: "this.style.background='transparent'" do %>
-                        <div style="width: 32px; height: 32px; border-radius: 10px; background: rgba(197,160,89,0.1); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                          <i class="ri-dashboard-3-line" style="color: var(--haiti-gold); font-size: 16px;"></i>
-                        </div>
-                        <span class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;">Tablo Admin</span>
-                      <% end %>
-                    </li>
-                  <% end %>
-
-                  <%# ── SECTION 4: Logout (separated) ── %>
-                  <li style="padding: 4px 10px 0;"><hr style="border-color: rgba(46,46,56,0.08); margin: 0;"></li>
-                  <li style="padding: 4px 10px 10px;">
-                    <%= button_to destroy_user_session_path, method: :delete, class: "d-flex align-items-center gap-3 w-100 text-start border-0 bg-transparent", style: "padding: 10px 10px; border-radius: 10px; transition: background 0.15s; min-height: 44px; cursor: pointer;", data: { turbo: false } do %>
-                      <div style="width: 32px; height: 32px; border-radius: 10px; background: #fef2f2; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                        <i class="ri-logout-box-r-line" style="color: #dc2626; font-size: 16px;"></i>
-                      </div>
-                      <span class="fw-bold" style="color: #991b1b; font-size: 13px;">Dekonekte</span>
-                    <% end %>
-                  </li>
                 </ul>
               </li>
             </ul>
@@ -817,6 +656,186 @@
           <% end %>
 
         </div>
+
+        <% if user_signed_in? %>
+          <%# Outside the collapse so it stays visible on mobile; the same menu
+              serves desktop. No ms-auto, for the reason noted above. %>
+          <div class="d-flex align-items-center gap-3 ms-lg-3">
+            <%# Notification bell (mobile; desktop's is in the collapse). The badge
+                is always rendered, hidden at 0, so live updates can show it. %>
+            <div class="d-lg-none d-inline-flex">
+            <%= link_to notifications_path, class: "position-relative text-decoration-none d-inline-flex", style: "color: var(--haiti-gold); font-size: 22px; line-height: 1;", aria: { label: "Notifikasyon" } do %>
+              <i class="ri-notification-3-line"></i>
+              <span id="notif-bell-badge-m" style="position: absolute; top: -4px; right: -6px; min-width: 16px; height: 16px; padding: 0 4px; background: #DC2626; color: #fff; font-size: 9px; font-weight: 800; border-radius: 999px; border: 1.5px solid var(--haiti-charcoal); align-items: center; justify-content: center; line-height: 1; display: <%= unread_notification_count > 0 ? 'flex' : 'none' %>;"><%= unread_notification_count %></span>
+            <% end %>
+            </div>
+
+              <%# ── User Profile: cashtag pill on desktop, avatar only on mobile. ── %>
+              <div class="dropdown">
+                <a class="nav-link dropdown-toggle profile-toggle d-flex align-items-center gap-2 p-1 px-lg-3 py-lg-2"
+                   href="#" role="button" data-bs-toggle="dropdown" aria-label="Pwofil"
+                   style="color: white; border-radius: 24px; background: rgba(255,255,255,0.06); transition: background 0.15s; max-width: 200px;">
+                  <% if current_user.avatar.attached? %>
+                    <div style="position: relative; width: 30px; height: 30px;">
+                      <%= image_tag current_user.avatar, style: "width: 30px; height: 30px; border-radius: 50%; object-fit: cover; border: 2px solid var(--haiti-gold);", alt: "" %>
+                      <% if current_user.bonid_verified? %>
+                        <div class="js-bonid-badge" style="position: absolute; bottom: -2px; right: -2px; width: 14px; height: 14px; background: #16a34a; border-radius: 50%; border: 2px solid var(--haiti-charcoal); display: flex; align-items: center; justify-content: center;">
+                          <i class="ri-check-line" style="color: #fff; font-size: 8px;"></i>
+                        </div>
+                      <% end %>
+                    </div>
+                  <% else %>
+                    <div style="position: relative; width: 30px; height: 30px;">
+                      <div style="width: 30px; height: 30px; border-radius: 50%; background: rgba(197,160,89,0.15); border: 2px solid var(--haiti-gold); display: flex; align-items: center; justify-content: center;">
+                        <i class="ri-user-fill" style="font-size: 15px; color: var(--haiti-gold);"></i>
+                      </div>
+                      <% if current_user.bonid_verified? %>
+                        <div class="js-bonid-badge" style="position: absolute; bottom: -2px; right: -2px; width: 14px; height: 14px; background: #16a34a; border-radius: 50%; border: 2px solid var(--haiti-charcoal); display: flex; align-items: center; justify-content: center;">
+                          <i class="ri-check-line" style="color: #fff; font-size: 8px;"></i>
+                        </div>
+                      <% end %>
+                    </div>
+                  <% end %>
+                  <span class="small fw-bold d-none d-lg-inline" style="color: var(--haiti-gold);">$<%= current_user.cashtag %></span>
+                </a>
+
+                <ul class="dropdown-menu dropdown-menu-end profile-menu shadow-lg p-0 mt-2" style="min-width: 320px; width: 340px; border: 1px solid rgba(46,46,56,0.08); border-radius: 16px; overflow: hidden;">
+
+                  <%# ── SECTION 1: Identity Header (desktop only — mobile shows just
+                      the menu, without the name or cashtag). ── %>
+                  <li class="d-none d-lg-block">
+                    <div style="padding: 16px 20px 14px; background: linear-gradient(135deg, var(--haiti-charcoal) 0%, #3a3a48 100%);">
+                      <div class="d-flex align-items-center gap-3">
+                        <%# Avatar with verification badge %>
+                        <div style="position: relative; flex-shrink: 0;">
+                          <% if current_user.avatar.attached? %>
+                            <%= image_tag current_user.avatar, style: "width: 44px; height: 44px; border-radius: 50%; object-fit: cover; border: 2px solid var(--haiti-gold);", alt: "" %>
+                          <% else %>
+                            <div style="width: 44px; height: 44px; border-radius: 50%; background: rgba(197,160,89,0.15); border: 2px solid var(--haiti-gold); display: flex; align-items: center; justify-content: center;">
+                              <i class="ri-user-fill" style="font-size: 22px; color: var(--haiti-gold);"></i>
+                            </div>
+                          <% end %>
+                          <% if current_user.bonid_verified? %>
+                            <div class="js-bonid-badge" style="position: absolute; bottom: -1px; right: -1px; width: 18px; height: 18px; background: #16a34a; border-radius: 50%; border: 2.5px solid var(--haiti-charcoal); display: flex; align-items: center; justify-content: center;" title="Idantite verifye ak BonID">
+                              <i class="ri-check-line" style="color: #fff; font-size: 10px;"></i>
+                            </div>
+                          <% end %>
+                        </div>
+                        <%# Name + email %>
+                        <div style="min-width: 0; flex: 1;">
+                          <div class="d-flex align-items-center gap-1">
+                            <span class="fw-bold text-truncate js-bonid-fullname" style="color: #fff; font-size: 14px;">
+                              <%= current_user.bonid_verified? && current_user.bonid_full_name.present? ? current_user.bonid_full_name : current_user.display_name %>
+                            </span>
+                            <% if current_user.bonid_verified? %>
+                              <i class="ri-verified-badge-fill js-bonid-badge" style="color: #16a34a; font-size: 15px; flex-shrink: 0;" title="Verifye"></i>
+                            <% end %>
+                          </div>
+                          <div class="text-truncate" style="color: var(--haiti-gold); font-size: 12px; font-weight: 700;">$<%= current_user.cashtag %></div>
+                        </div>
+                      </div>
+                    </div>
+                  </li>
+
+                  <%# ── SECTION 2: BonID CTA (not verified) ── %>
+                  <% unless current_user.bonid_verified? %>
+                    <li class="js-bonid-cta" style="padding: 8px 10px 4px;">
+                      <%= link_to bonid_verification_path, class: "d-block text-decoration-none", style: "background: linear-gradient(135deg, #00209F 0%, #0035d4 100%); border-radius: 12px; padding: 12px 14px; transition: transform 0.15s, box-shadow 0.15s;" do %>
+                        <div class="d-flex align-items-center gap-3">
+                          <div style="width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.15); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <i class="ri-shield-check-line" style="color: #fff; font-size: 18px;"></i>
+                          </div>
+                          <div style="flex: 1;">
+                            <div class="fw-bold" style="color: #fff; font-size: 13px;">Verifye ak BonID</div>
+                            <div style="color: rgba(255,255,255,0.65); font-size: 10px;">Debloke pi gwo limit ak fonksyon</div>
+                          </div>
+                          <i class="ri-arrow-right-s-line" style="color: rgba(255,255,255,0.5); font-size: 20px;"></i>
+                        </div>
+                      <% end %>
+                    </li>
+                  <% end %>
+
+                  <%# ── SECTION 3: Menu Items ── %>
+                  <li style="padding: 6px 10px 2px;">
+                    <div style="padding: 0 6px 4px; margin-top: 2px;">
+                      <span style="font-size: 9px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: rgba(46,46,56,0.3);">KONT</span>
+                    </div>
+                  </li>
+                  <% if current_user.bonid_verified? %>
+                    <li class="js-bonid-menu-item" style="padding: 0 10px;">
+                      <%= link_to bonid_verification_path, class: "d-flex align-items-center gap-3 text-decoration-none", style: "padding: 10px 10px; border-radius: 10px; transition: background 0.15s; min-height: 44px;", onmouseover: "this.style.background='var(--haiti-mint)'", onmouseout: "this.style.background='transparent'" do %>
+                        <div style="width: 32px; height: 32px; border-radius: 10px; background: #eef1ff; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                          <i class="ri-shield-check-line" style="color: #00209F; font-size: 16px;"></i>
+                        </div>
+                        <div style="flex: 1; min-width: 0;">
+                          <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;">BonID</div>
+                          <div class="text-truncate" style="color: #00209F; font-size: 10px; font-weight: 600;"><%= current_user.bonid.gsub(/(.{4}).*(.{3})/, '\1••••••\2') %></div>
+                        </div>
+                        <span class="badge rounded-pill" style="background: #dcfce7; color: #166534; font-size: 9px; font-weight: 700; padding: 3px 8px;">Verifye</span>
+                      <% end %>
+                    </li>
+                  <% end %>
+                  <% if current_user.uma_enabled? && LightsparkConfig.enabled? %>
+                    <li class="d-lg-none" style="padding: 0 10px;">
+                      <%= link_to resevwa_path, class: "d-flex align-items-center gap-3 text-decoration-none", style: "padding: 10px 10px; border-radius: 10px; min-height: 44px;" do %>
+                        <div style="width: 32px; height: 32px; border-radius: 10px; background: rgba(197,160,89,0.1); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                          <i class="ri-money-dollar-circle-line" style="color: var(--haiti-gold); font-size: 16px;"></i>
+                        </div>
+                        <span class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;">Resevwa</span>
+                      <% end %>
+                    </li>
+                  <% end %>
+                  <li style="padding: 0 10px;">
+                    <%= link_to payment_methods_path, class: "d-flex align-items-center gap-3 text-decoration-none", style: "padding: 10px 10px; border-radius: 10px; transition: background 0.15s; min-height: 44px;", onmouseover: "this.style.background='var(--haiti-mint)'", onmouseout: "this.style.background='transparent'" do %>
+                      <div style="width: 32px; height: 32px; border-radius: 10px; background: rgba(197,160,89,0.1); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                        <i class="ri-bank-card-line" style="color: var(--haiti-gold); font-size: 16px;"></i>
+                      </div>
+                      <span class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;">Metòd Peman</span>
+                    <% end %>
+                  </li>
+                  <li style="padding: 0 10px;">
+                    <%= link_to edit_user_registration_path, class: "d-flex align-items-center gap-3 text-decoration-none", style: "padding: 10px 10px; border-radius: 10px; transition: background 0.15s; min-height: 44px;", onmouseover: "this.style.background='var(--haiti-mint)'", onmouseout: "this.style.background='transparent'" do %>
+                      <div style="width: 32px; height: 32px; border-radius: 10px; background: rgba(93,99,69,0.1); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                        <i class="ri-settings-3-line" style="color: var(--haiti-olive); font-size: 16px;"></i>
+                      </div>
+                      <span class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;">Paramèt Kont</span>
+                    <% end %>
+                  </li>
+                  <% if current_user.bonid_verified? && current_user.business.present? && !current_user.business.is_agent? %>
+                    <li style="padding: 0 10px;">
+                      <%= link_to ajan_info_path, class: "d-flex align-items-center gap-3 text-decoration-none", style: "padding: 10px 10px; border-radius: 10px; transition: background 0.15s; min-height: 44px;", onmouseover: "this.style.background='var(--haiti-mint)'", onmouseout: "this.style.background='transparent'" do %>
+                        <div style="width: 32px; height: 32px; border-radius: 10px; background: rgba(197,160,89,0.1); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                          <i class="ri-user-location-line" style="color: var(--haiti-gold); font-size: 16px;"></i>
+                        </div>
+                        <span class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;">Vin Ajan Zèllus</span>
+                      <% end %>
+                    </li>
+                  <% end %>
+                  <% if current_user.email == ENV['ADMIN_EMAIL'].to_s.strip %>
+                    <li style="padding: 0 10px;">
+                      <%= link_to admin_root_path, class: "d-flex align-items-center gap-3 text-decoration-none", style: "padding: 10px 10px; border-radius: 10px; transition: background 0.15s; min-height: 44px;", onmouseover: "this.style.background='var(--haiti-mint)'", onmouseout: "this.style.background='transparent'" do %>
+                        <div style="width: 32px; height: 32px; border-radius: 10px; background: rgba(197,160,89,0.1); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                          <i class="ri-dashboard-3-line" style="color: var(--haiti-gold); font-size: 16px;"></i>
+                        </div>
+                        <span class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;">Tablo Admin</span>
+                      <% end %>
+                    </li>
+                  <% end %>
+
+                  <%# ── SECTION 4: Logout (separated) ── %>
+                  <li style="padding: 4px 10px 0;"><hr style="border-color: rgba(46,46,56,0.08); margin: 0;"></li>
+                  <li style="padding: 4px 10px 10px;">
+                    <%= button_to destroy_user_session_path, method: :delete, class: "d-flex align-items-center gap-3 w-100 text-start border-0 bg-transparent", style: "padding: 10px 10px; border-radius: 10px; transition: background 0.15s; min-height: 44px; cursor: pointer;", data: { turbo: false } do %>
+                      <div style="width: 32px; height: 32px; border-radius: 10px; background: #fef2f2; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                        <i class="ri-logout-box-r-line" style="color: #dc2626; font-size: 16px;"></i>
+                      </div>
+                      <span class="fw-bold" style="color: #991b1b; font-size: 13px;">Dekonekte</span>
+                    <% end %>
+                  </li>
+                </ul>
+              </div>
+          </div>
+        <% end %>
       </div>
     </nav>
     <% end %>
