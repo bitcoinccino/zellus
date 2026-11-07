@@ -6,8 +6,15 @@ require "rails/all"
 # you've limited to :test, :development, or :production.
 Bundler.require(*Rails.groups)
 
+if Rails.env.test?
+  require_relative "test_safety"
+  TestSafety.skip_dotenv!
+end
+
 module BonBank
   class Application < Rails::Application
+    TestSafety.scrub_environment! if Rails.env.test?
+
     # Initialize configuration defaults for originally generated Rails version.
     config.load_defaults 8.0
 

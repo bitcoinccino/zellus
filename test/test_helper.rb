@@ -2,6 +2,23 @@ ENV["RAILS_ENV"] ||= "test"
 require_relative "../config/environment"
 require "rails/test_help"
 
+# Second layer behind config/test_safety.rb: no test can open a connection to
+# anything but this machine, whatever credentials or URLs it ends up with.
+module TestNetworkGuard
+  LOCAL_HOSTS = %w[localhost 127.0.0.1 ::1 0.0.0.0].freeze
+
+  class BlockedError < StandardError; end
+
+  def connect
+    unless LOCAL_HOSTS.include?(address.to_s)
+      raise BlockedError, "Tests may not reach #{address}: outbound network is blocked (see config/test_safety.rb)"
+    end
+
+    super
+  end
+end
+Net::HTTP.prepend(TestNetworkGuard)
+
 module ApiTestHelper
   def api_auth_headers(token)
     { "Authorization" => "Bearer #{token}" }
