@@ -462,8 +462,15 @@
     <%# ── Turbo progress bar ── %>
     <div id="turbo-progress"></div>
 
-    <%# ── ⚡ Lightning Loader (first page load only) ── %>
-    <%= render "shared/lightning_loader" %>
+    <%# ── ⚡ Lightning Loader (once per session) ──
+         Turbo Drive isn't loaded, so every link click is a full page load.
+         Track the splash in the Rails session so it shows on the first page
+         of a session only. Devise resets the session on sign-out, so it
+         plays again on the next launch / sign-in. %>
+    <% unless session[:zellus_splash_shown] %>
+      <% session[:zellus_splash_shown] = true %>
+      <%= render "shared/lightning_loader" %>
+    <% end %>
 
     <%# ── Loading overlay (navigation + forms) ── %>
     <div id="loading-overlay"><div class="spinner"></div><div style="color: var(--haiti-gold); font-size: 13px; font-weight: 700;">Chaje..</div></div>
