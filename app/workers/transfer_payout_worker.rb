@@ -361,7 +361,7 @@ class TransferPayoutWorker
       return process_crypto_payout_self_hosted(transfer)
     end
 
-    amount = transfer.crypto_amount || transfer.net_amount
+    amount = transfer.crypto_payout_amount || transfer.net_amount
     unless amount.present? && amount > 0
       transfer.update!(status: :failed, failure_reason: "Pa gen montan kripto")
       notify_sender_failed(transfer)
@@ -456,7 +456,7 @@ class TransferPayoutWorker
         raw_tx = build_and_sign_tx(nonce: nonce, gas_price: gas_price, gas_limit: gas_limit,
                                     to: WBTC_ADDRESS, data: calldata, key: key)
       else
-        amount_units = (transfer.crypto_amount * 10**6).to_i
+        amount_units = (transfer.crypto_payout_amount * 10**6).to_i
         calldata     = build_transfer_calldata(transfer.receiver_wallet_address, amount_units)
         gas_limit    = estimate_gas(rpc_url, sender, USD_ADDRESS, calldata)
         raw_tx = build_and_sign_tx(nonce: nonce, gas_price: gas_price, gas_limit: gas_limit,

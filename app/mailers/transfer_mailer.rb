@@ -109,6 +109,8 @@ class TransferMailer < ApplicationMailer
   def fee_display_text
     if @transfer.wallet_payout? || @is_usd_wallet
       "Gratis (0%)"
+    elsif @is_usd_address
+      "#{format('%.2f', @transfer.usd_network_fee_charged)} USD (frè rezo)"
     elsif @transfer.crypto_transfer? && @transfer.exchange_rate.to_f > 0
       fee_in_asset = @transfer.fee.to_f / @transfer.exchange_rate.to_f
       "#{format('%.2f', fee_in_asset)} #{@transfer.asset_label} (1%)"
@@ -119,7 +121,7 @@ class TransferMailer < ApplicationMailer
 
   def net_display_text
     if @is_usd_wallet || @is_usd_address
-      usd = @transfer.crypto_amount || @transfer.net_amount
+      usd = @transfer.crypto_payout_amount || @transfer.net_amount
       "#{format('%.2f', usd.to_f)} USD"
     elsif @is_crypto && @transfer.crypto_amount.present?
       "#{@transfer.crypto_amount} #{@transfer.asset_label}"

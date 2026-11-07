@@ -18,7 +18,10 @@ class WalletUsdWithdrawWorker
   # Gas cap: 500 gwei
   MAX_GAS_PRICE = 500_000_000_000
 
-  def perform(user_id, amount, to_address, _asset = "usd")
+  # amount is what the recipient gets; fee was debited alongside it and is
+  # refunded with it if the send fails. Jobs queued before the fee have no fee.
+  def perform(user_id, amount, to_address, _asset = "usd", fee = 0)
+    @fee = fee.to_d
     user   = User.find(user_id)
     wallet = user.wallet
     return unless wallet
@@ -38,7 +41,7 @@ class WalletUsdWithdrawWorker
   private
 
   def perform_circle(user, wallet, amount, to_address)
-    result = CircleService.send_usdc(
+    result = CircleService.send_usd(
       from_wallet_id:  user.circle_wallet_id,
       to_address:      to_address,
       amount:          amount,
@@ -55,20 +58,20 @@ class WalletUsdWithdrawWorker
       Rails.logger.error "WalletUsdWithdraw: Circle failed [user=#{user.id}]: #{result[:error]}"
       # Refund since Circle call failed before any broadcast
       WalletService.new(wallet).refund!(
-        amount: amount,
+        amount: amount + @fee,
         asset: "usd",
-        reason: "Retrè USD echwe — ranbouse #{amount} USD"
+        reason: "Retrè USD echwe — ranbouse #{amount + @fee} USD"
       )
-      Rails.logger.info "WalletUsdWithdraw: refunded #{amount} USD [user=#{user.id}]"
+      Rails.logger.info "WalletUsdWithdraw: refunded #{amount + @fee} USD [user=#{user.id}]"
       notify_withdrawal_failed(user, amount, result[:error])
     end
   rescue => e
     Rails.logger.error "WalletUsdWithdraw Circle error [user=#{user.id}]: #{e.message}"
     begin
       WalletService.new(wallet).refund!(
-        amount: amount,
+        amount: amount + @fee,
         asset: "usd",
-        reason: "Retrè USD echwe — ranbouse #{amount} USD"
+        reason: "Retrè USD echwe — ranbouse #{amount + @fee} USD"
       )
       notify_withdrawal_failed(user, amount, e.message)
     rescue => refund_error
@@ -123,11 +126,11 @@ class WalletUsdWithdrawWorker
       begin
         if wallet
           WalletService.new(wallet).refund!(
-            amount: amount,
+            amount: amount + @fee,
             asset: "usd",
-            reason: "Retrè USD echwe — ranbouse #{amount} USD"
+            reason: "Retrè USD echwe — ranbouse #{amount + @fee} USD"
           )
-          Rails.logger.info "WalletUsdWithdraw: refunded #{amount} USD [user=#{user.id}]"
+          Rails.logger.info "WalletUsdWithdraw: refunded #{amount + @fee} USD [user=#{user.id}]"
           notify_withdrawal_failed(user, amount, e.message)
         end
       rescue => refund_error

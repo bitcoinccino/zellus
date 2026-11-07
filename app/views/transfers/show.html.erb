@@ -94,6 +94,14 @@
           </div>
         </div>
 
+        <% if @transfer.usd_address_transfer? && @transfer.crypto_amount.present? %>
+          <% network_fee = @transfer.pending? ? FeeService::USD_WITHDRAW_FEE : @transfer.usd_network_fee_charged %>
+          <div class="text-center mb-2" style="color: rgba(255,255,255,0.6); font-size: 12px;">
+            Frè rezo: <%= number_with_precision(network_fee, precision: 2) %> USD ·
+            Moun nan resevwa: <strong style="color: var(--haiti-gold);"><%= number_with_precision(@transfer.crypto_amount - network_fee, precision: 2) %> USD</strong>
+          </div>
+        <% end %>
+
         <%# ── Sender → Receiver (inline compact) ── %>
         <div class="text-center mb-3">
           <span class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill" style="background: rgba(255,255,255,0.06);">

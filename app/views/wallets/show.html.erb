@@ -1151,12 +1151,12 @@
               <div class="input-group mb-2">
                 <span class="input-group-text border-0" style="background-color: var(--haiti-charcoal); color: var(--haiti-gold);"><i class="ri-money-dollar-circle-line"></i></span>
                 <input type="number" name="amount" id="wd-usd-amount" class="form-control border-0 fw-bold shadow-none p-3 bb-dark-field"
-                       placeholder="Montan (USD)" min="1" max="500" step="0.01" required
+                       placeholder="Montan (USD)" min="<%= FeeService::USD_WITHDRAW_MIN %>" max="500" step="0.01" required
                        style="background-color: var(--haiti-charcoal); color: white;">
                 <span class="input-group-text border-0 fw-bold" style="background-color: var(--haiti-charcoal); color: var(--haiti-olive); font-size: 11px;"><%= currency_label("usd") %></span>
               </div>
               <div class="d-flex justify-content-between mb-2">
-                <span class="small" style="color: var(--haiti-olive); font-size: 10px;">Min: 1 USD</span>
+                <span class="small" style="color: var(--haiti-olive); font-size: 10px;">Min: <%= FeeService::USD_WITHDRAW_MIN %> USD · Frè: <%= FeeService::USD_WITHDRAW_FEE %> USD</span>
                 <span class="small" style="color: var(--haiti-olive); font-size: 10px;">Max: 500 USD</span>
               </div>
               <div class="d-flex align-items-center gap-2 mb-3 px-2 py-2 rounded-3" style="background: rgba(197,160,89,0.08); font-size: 10px; color: var(--haiti-olive);">
@@ -1183,6 +1183,14 @@
                 <div class="d-flex justify-content-between small mb-1">
                   <span style="color: var(--haiti-olive);">Montan</span>
                   <span id="wd-review-amount-usd" class="fw-bold" style="color: var(--haiti-charcoal);"></span>
+                </div>
+                <div class="d-flex justify-content-between small mb-1">
+                  <span style="color: var(--haiti-olive);">Frè rezo</span>
+                  <span id="wd-review-fee-usd" class="fw-bold" style="color: var(--haiti-charcoal);"></span>
+                </div>
+                <div class="d-flex justify-content-between small mb-1">
+                  <span style="color: var(--haiti-olive);">Moun nan resevwa</span>
+                  <span id="wd-review-payout-usd" class="fw-bold" style="color: var(--haiti-charcoal);"></span>
                 </div>
                 <div class="d-flex justify-content-between small mb-1">
                   <span style="color: var(--haiti-olive);">Adrès</span>
@@ -3467,10 +3475,13 @@ function showUsdcWithdrawReview() {
 
   // Validate address
   if (!addr.match(/^0x[0-9a-fA-F]{40}$/)) { addrEl.focus(); addrEl.reportValidity(); return; }
-  if (!amount || amount < 1 || amount > 500) { amountEl.focus(); amountEl.reportValidity(); return; }
+  var fee = <%= FeeService::USD_WITHDRAW_FEE.to_f %>;
+  if (!amount || amount < <%= FeeService::USD_WITHDRAW_MIN.to_f %> || amount > 500) { amountEl.focus(); amountEl.reportValidity(); return; }
 
-  // Fill review
+  // Fill review: the fee comes out of the amount entered.
   document.getElementById('wd-review-amount-usd').textContent = amount.toFixed(2) + ' USD';
+  document.getElementById('wd-review-fee-usd').textContent = fee.toFixed(2) + ' USD';
+  document.getElementById('wd-review-payout-usd').textContent = (amount - fee).toFixed(2) + ' USD';
   document.getElementById('wd-review-addr-usd').textContent = addr.slice(0, 6) + '···' + addr.slice(-4);
   document.getElementById('wd-review-total-usd').textContent = amount.toFixed(2) + ' USD';
 

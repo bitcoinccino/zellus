@@ -8,7 +8,7 @@ class WalletsController < ApplicationController
   DEPOSIT_MAX  = 327_678
   WITHDRAW_MIN = 100
   WITHDRAW_MAX = 50_000
-  USD_WITHDRAW_MIN = BigDecimal("1")
+  USD_WITHDRAW_MIN = FeeService::USD_WITHDRAW_MIN
   USD_WITHDRAW_MAX = BigDecimal("500")
 
   # ── GET /wallet ──
@@ -242,8 +242,9 @@ class WalletsController < ApplicationController
       else
         WalletService.new(@wallet).withdraw!(amount: amount, asset: "usd")
       end
-      WalletUsdWithdrawWorker.perform_async(current_user.id, amount.to_f, to_address)
-      redirect_to wallet_path, notice: "Retrè #{amount} USD an kou. Tranzaksyon ap trete sou Base."
+      fee = FeeService::USD_WITHDRAW_FEE
+      WalletUsdWithdrawWorker.perform_async(current_user.id, (amount - fee).to_s, to_address, "usd", fee.to_s)
+      redirect_to wallet_path, notice: "Retrè #{amount - fee} USD an kou (frè #{fee} USD). Tranzaksyon ap trete sou Base."
     rescue WalletService::InsufficientFundsError
       redirect_to wallet_path, alert: "Balans USD pa sifi pou retrè sa a."
     rescue WalletService::FrozenAccountError

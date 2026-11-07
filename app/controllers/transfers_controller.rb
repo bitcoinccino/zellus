@@ -608,6 +608,13 @@ class TransfersController < ApplicationController
       wallet = current_user.ensure_wallet!
       usd_amount = @transfer.crypto_amount || @transfer.net_amount
 
+      # Same flat network fee as a USD withdrawal, taken out of the amount.
+      if usd_amount < FeeService::USD_WITHDRAW_MIN
+        redirect_to transfer_path(@transfer),
+                    alert: "Montan minimòm pou voye USD nan yon adrès se #{FeeService::USD_WITHDRAW_MIN} USD (frè #{FeeService::USD_WITHDRAW_FEE} USD)."
+        return
+      end
+
       unless wallet.sufficient_balance?("usd", usd_amount)
         redirect_to transfer_path(@transfer),
                     alert: "Balans USD pa sifi. Ou bezwen #{usd_amount} USD men ou gen #{wallet.usd_balance} USD."
@@ -617,7 +624,7 @@ class TransfersController < ApplicationController
       begin
         WalletService.new(wallet).transfer_out!(
           amount: usd_amount,
-          fee: BigDecimal("0"),
+          fee: FeeService::USD_WITHDRAW_FEE,
           transfer: @transfer,
           asset: "usd"
         )

@@ -71,12 +71,7 @@ class WalletService
     validate_amount!(amount)
     ensure_open!
 
-    # HTG MonCash withdrawals always have a fee (instant or standard)
-    fee = if asset == "htg"
-            instant ? self.class.calculate_instant_fee(amount) : self.class.calculate_standard_fee(amount)
-    else
-            BigDecimal("0")
-    end
+    fee = withdrawal_fee(amount, asset, instant)
     payout = amount.to_d - fee  # What user actually receives
 
     ActiveRecord::Base.transaction do
@@ -99,7 +94,7 @@ class WalletService
         amount: payout,
         balance_after: running_balance,
         description: if asset == "usd"
-                       "Retire #{amount.to_d} USD → adrès ekstèn (Base)"
+                       "Retire #{payout} USD → adrès ekstèn (Base)"
                      elsif instant
                        "Retire instant #{payout.to_i} HTG via MonCash"
                      else
@@ -110,7 +105,9 @@ class WalletService
       # 2. Fee entry (instant or standard)
       if fee > 0
         running_balance -= fee
-        fee_desc = if instant
+        fee_desc = if asset == "usd"
+                     "Frè retrè USD (rezo Base)"
+        elsif instant
                      "Frè retire instant (1.5%, min 25 maks 2,500 HTG)"
         else
                      "Frè retire estanda (1%, min 15 HTG)"
@@ -136,11 +133,7 @@ class WalletService
   def withdraw_from_business!(business:, amount:, asset: "htg", instant: false)
     validate_amount!(amount)
 
-    fee = if asset == "htg"
-            instant ? self.class.calculate_instant_fee(amount) : self.class.calculate_standard_fee(amount)
-    else
-            BigDecimal("0")
-    end
+    fee = withdrawal_fee(amount, asset, instant)
     payout = amount.to_d - fee
 
     ActiveRecord::Base.transaction do
@@ -165,7 +158,7 @@ class WalletService
         asset: asset,
         amount: payout,
         balance_after: @wallet.balance_for(asset),
-        description: "Retire #{asset == 'htg' ? "#{payout.to_i} HTG" : "#{amount.to_d} USD"} depi biznis #{business.name}"
+        description: "Retire #{asset == 'htg' ? "#{payout.to_i} HTG" : "#{payout} USD"} depi biznis #{business.name}"
       )
 
       if fee > 0
@@ -175,7 +168,7 @@ class WalletService
           asset: asset,
           amount: fee,
           balance_after: @wallet.balance_for(asset),
-          description: "Frè retrè biznis (#{asset == 'htg' ? (instant ? '1.5%' : '1%') : '0'})"
+          description: "Frè retrè biznis (#{asset == 'htg' ? (instant ? '1.5%' : '1%') : "#{fee} USD"})"
         )
       end
     end
@@ -477,6 +470,15 @@ class WalletService
   def ensure_open!
     raise FrozenAccountError, "Pòtfèy ou jele — pa ka fè tranzaksyon" if @wallet.held?
     raise FrozenAccountError, "Pòtfèy fèmen" if @wallet.closed?
+  end
+
+  # HTG (MonCash) and USD (Base) withdrawals carry a fee taken from the amount.
+  def withdrawal_fee(amount, asset, instant)
+    case asset.to_s
+    when "htg" then instant ? self.class.calculate_instant_fee(amount) : self.class.calculate_standard_fee(amount)
+    when "usd" then FeeService::USD_WITHDRAW_FEE
+    else BigDecimal("0")
+    end
   end
 
   def validate_amount!(amount)

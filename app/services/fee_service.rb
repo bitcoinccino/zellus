@@ -28,6 +28,13 @@ class FeeService
   REMITTANCE_FEE_RATE = BigDecimal("0.015")  # 1.5%
   REMITTANCE_FEE_MIN  = BigDecimal("15")     # 15 HTG minimum
 
+  # ── USD withdrawal to an external Base address (flat) ──
+  # Taken out of the amount entered, like HTG withdrawals: the recipient gets
+  # the amount minus the fee. Covers Base gas paid from the treasury.
+  USD_WITHDRAW_FEE = BigDecimal(ENV.fetch("USD_WITHDRAW_FEE", "1.49"))
+  # The recipient always gets at least 1 USD.
+  USD_WITHDRAW_MIN = USD_WITHDRAW_FEE + 1
+
   # ── Crypto / conversion fee (flat 2%) ──
   CRYPTO_FEE_RATE = BigDecimal("0.02") # 2%
 
