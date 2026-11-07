@@ -86,6 +86,12 @@ class TransactionsController < ApplicationController
       net_htg            = gross_htg - fee_htg
       @fee_percentage    = FeeService.crypto_fee_percent(gross_htg)
 
+      limits = WalletLimitService.new(current_user)
+      if limits.bonid_required_for_withdrawal?(gross_htg)
+        redirect_to bonid_verification_path, alert: limits.bonid_withdrawal_message
+        return
+      end
+
       @transaction = current_user.transactions.new(
         transaction_type:    :sell,
         crypto_currency:     sell_currency_sym,
@@ -215,9 +221,14 @@ class TransactionsController < ApplicationController
       return
     end
 
-    tx_hash = params[:sell_deposit_tx_hash].to_s.strip
-    unless tx_hash.match?(/\A0x[a-fA-F0-9]{64}\z/)
+    tx_hash = params[:sell_deposit_tx_hash].to_s.strip.downcase
+    unless tx_hash.match?(/\A0x[a-f0-9]{64}\z/)
       redirect_to transaction_path(@transaction), alert: "Enter a valid Base transaction hash (0x + 64 hex chars)."
+      return
+    end
+
+    if Transaction.where("LOWER(blockchain_tx_hash) = ?", tx_hash).where.not(id: @transaction.id).exists?
+      redirect_to transaction_path(@transaction), alert: "This transaction hash has already been used."
       return
     end
 

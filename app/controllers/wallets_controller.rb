@@ -1,4 +1,6 @@
 class WalletsController < ApplicationController
+  include ActionView::Helpers::NumberHelper
+
   before_action :authenticate_user!
   before_action :load_wallet
 

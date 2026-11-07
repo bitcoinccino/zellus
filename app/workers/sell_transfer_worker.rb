@@ -39,6 +39,8 @@ class SellTransferWorker
 
     if receipt.nil?
       attempt >= MAX_ATTEMPTS ? fail_tx(transaction, "USD timeout") : retry_job(transaction_id, attempt)
+    elsif (problem = receipt["status"] == "0x1" && deposit_problem(transaction, receipt))
+      fail_tx(transaction, problem)
     elsif receipt["status"] == "0x1"
       # SETTLE DEBT
       loan_id = transaction.failure_reason.split("_").last
@@ -68,7 +70,8 @@ class SellTransferWorker
     if receipt.nil?
       attempt >= MAX_ATTEMPTS ? fail_tx(transaction, "USD timeout") : retry_job(transaction_id, attempt)
     elsif receipt["status"] == "0x1"
-      process_moncash_payout(transaction)
+      problem = deposit_problem(transaction, receipt)
+      problem ? fail_tx(transaction, problem) : process_moncash_payout(transaction)
     else
       fail_tx(transaction, "USD transaction reverted.")
     end
@@ -113,6 +116,49 @@ class SellTransferWorker
     transaction.update!(status: :failed, failure_reason: reason)
     notify_transaction_email(:failed, transaction)
     NotificationService.transaction_failed(transaction)
+  end
+
+  # A successful transaction proves nothing on its own: it has to be a new USD
+  # payment of at least the order's amount to the treasury. Returns why not, or nil.
+  def deposit_problem(transaction, receipt)
+    tx_hash = transaction.blockchain_tx_hash.to_s.downcase
+
+    if Transaction.where("LOWER(blockchain_tx_hash) = ?", tx_hash).where.not(id: transaction.id).exists?
+      return "Deposit transaction was already used."
+    end
+    return "Only USD deposits can be verified." unless transaction.usd?
+
+    unless pays_treasury?(transaction, receipt)
+      return "Deposit does not pay the required USD amount to the treasury."
+    end
+
+    mined_at = block_time(receipt["blockNumber"])
+    return "Could not verify when the deposit was made." unless mined_at
+    return "Deposit was made before this order." if mined_at < transaction.created_at.to_i
+
+    nil
+  end
+
+  def pays_treasury?(transaction, receipt)
+    treasury = "0x#{transaction.destination_address.to_s.delete_prefix('0x').downcase.rjust(64, '0')}"
+    required = (transaction.crypto_amount.to_d * (10**UsdDepositMonitorWorker::USD_DECIMALS)).to_i
+
+    Array(receipt["logs"]).any? do |log|
+      topics = Array(log["topics"]).map { |topic| topic.to_s.downcase }
+
+      log["address"].to_s.casecmp?(UsdDepositMonitorWorker::USD_ADDRESS) &&
+        topics[0] == UsdDepositMonitorWorker::TRANSFER_TOPIC &&
+        topics[2] == treasury &&
+        log["data"].to_s.to_i(16) >= required
+    end
+  end
+
+  def block_time(block_number)
+    block = BaseRpcClient.new(url: ENV["BASE_RPC_URL"].presence).call("eth_getBlockByNumber", [ block_number, false ])
+    block && block["timestamp"].to_i(16)
+  rescue => e
+    Rails.logger.error "SellTransfer: block lookup failed: #{e.message}"
+    nil
   end
 
   def fetch_receipt(rpc_url, tx_hash)

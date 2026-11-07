@@ -84,8 +84,8 @@ class WalletLimitService
   end
 
   # ── BonID gate on withdrawals ──
-  # Unverified users can only withdraw below the threshold per rolling 24 hours,
-  # across all withdrawal methods, so splitting an amount doesn't avoid it.
+  # Unverified users can only cash out below the threshold per rolling 24 hours,
+  # across withdrawals and sells, so splitting an amount doesn't avoid it.
   # Errs towards asking for verification: refunded withdrawals still count, since
   # refunds aren't linked to what they reverse, and so do fees on other actions,
   # since "fee" entries are shared with transfers.
@@ -210,12 +210,20 @@ class WalletLimitService
   private
 
   def withdrawn_last_24h_htg
-    return BigDecimal("0") unless @wallet
+    return sold_last_24h_htg unless @wallet
 
     @wallet.wallet_ledger_entries
       .where(entry_type: WITHDRAWAL_ENTRY_TYPES, created_at: 24.hours.ago..)
       .group(:asset).sum(:amount)
       .sum { |asset, amount| htg_equivalent(amount, asset) }
+      .to_d + sold_last_24h_htg
+  end
+
+  # Sells pay out to MonCash without a wallet ledger entry.
+  def sold_last_24h_htg
+    @user.transactions
+      .where(transaction_type: "sell", status: %i[crypto_sent completed], created_at: 24.hours.ago..)
+      .sum(Arel.sql("fiat_amount + COALESCE(fee_amount, 0)"))
       .to_d
   end
 

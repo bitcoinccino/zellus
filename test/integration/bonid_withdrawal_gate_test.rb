@@ -10,6 +10,7 @@ class BonidWithdrawalGateTest < ActionDispatch::IntegrationTest
     @wallet = wallets(:sender_wallet)
     @wallet.update!(htg_balance: 100_000, usdc_balance: 1_000)
     WalletLedgerEntry.where(wallet: @wallet).delete_all # fixtures include recent withdrawals
+    @user.transactions.delete_all
     setup_transfer_pin!(@user, "4827")
   end
 
@@ -59,6 +60,31 @@ class BonidWithdrawalGateTest < ActionDispatch::IntegrationTest
       ledger("withdrawal", 40, asset: "usd")
       assert limits.bonid_required_for_withdrawal?(1_000)
     end
+  end
+
+  test "sells count towards the total" do
+    sell(fiat: 3_900, fee: 100)
+
+    assert_not limits.bonid_required_for_withdrawal?(999)
+    assert limits.bonid_required_for_withdrawal?(1_000)
+  end
+
+  test "sells that never paid out do not count" do
+    sell(fiat: 3_900, fee: 100, status: :pending)
+    sell(fiat: 3_900, fee: 100, status: :failed)
+
+    assert_not limits.bonid_required_for_withdrawal?(4_999)
+  end
+
+  test "a sell over the threshold is sent to BonID" do
+    sign_in_with_pin!
+
+    RateService.stub(:usd_htg_rate, 100.0) do
+      assert_no_difference -> { Transaction.count } do
+        post transactions_path, params: { transaction_type: "sell", transfer_pin: "4827", crypto_amount_sell: 100, moncash_phone: "50912345678" }
+      end
+    end
+    assert_redirected_to bonid_verification_path
   end
 
   # ── Every live withdrawal path ──
@@ -134,6 +160,13 @@ class BonidWithdrawalGateTest < ActionDispatch::IntegrationTest
     @wallet.wallet_ledger_entries.create!(
       user: @user, entry_type: type, asset: asset, amount: amount,
       balance_after: 0, created_at: created_at
+    )
+  end
+
+  def sell(fiat:, fee:, status: :completed)
+    @user.transactions.create!(
+      transaction_type: :sell, crypto_currency: :usd, crypto_amount: 30, fiat_amount: fiat, fee_amount: fee,
+      exchange_rate: 135, moncash_phone: "50912345678", destination_address: "0x#{'a' * 40}", status: status
     )
   end
 

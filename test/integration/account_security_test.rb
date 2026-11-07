@@ -235,6 +235,24 @@ class AccountSecurityTest < ActionDispatch::IntegrationTest
     assert_includes flash[:alert], "bloke"
   end
 
+  test "a hold pauses admin writes but not admin pages" do
+    original = ENV["ADMIN_EMAIL"]
+    ENV["ADMIN_EMAIL"] = @user.email
+    @user.hold_outgoing_funds!
+
+    %w[/admin/credit_wallet /admin/credit_external /admin/reveal_treasury].each do |path|
+      post path, params: { transfer_pin: "4827", email: "receivergal", amount: 5 }
+      assert_redirected_to admin_root_path
+      assert_includes flash[:alert], "bloke"
+    end
+    assert_nil flash[:treasury_address]
+
+    get admin_root_path
+    assert_response :success
+  ensure
+    ENV["ADMIN_EMAIL"] = original
+  end
+
   test "a hold on the merchant blocks refunding a checkout" do
     @user.hold_outgoing_funds!
     transfer = Transfer.create!(user: users(:receiver), status: :completed, amount: 100, fee: 0, net_amount: 100,
@@ -277,6 +295,20 @@ class AccountSecurityTest < ActionDispatch::IntegrationTest
 
     post convert_wallet_path, params: { from_asset: "htg", to_asset: "usd", amount: 500, transfer_pin: "4827" }
     assert_not_includes flash[:alert].to_s, "bloke"
+  end
+
+  test "out-of-range amounts show the limit instead of crashing" do
+    verify_bonid!
+
+    {
+      withdraw_wallet_path => { amount: 1, moncash_phone: "50912345678", transfer_pin: "4827" },
+      withdraw_bank_wallet_path => { amount: 1, bank_account_number: "123", transfer_pin: "4827" },
+      deposit_wallet_path => { amount: 1, transfer_pin: "4827" }
+    }.each do |path, params|
+      post path, params: params
+      assert_redirected_to wallet_path
+      assert_includes flash[:alert], "dwe ant"
+    end
   end
 
   test "the hold ends after 24 hours" do
