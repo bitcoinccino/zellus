@@ -40,10 +40,11 @@ Rails.application.configure do
   config.action_mailer.perform_caching = false
 
   # Set localhost to be used by links generated in mailer templates.
-  config.action_mailer.default_url_options = { host: "zellus.ht.ngrok.dev", protocol: "https" }
+  config.action_mailer.default_url_options = { host: "zellus.ngrok.app", protocol: "https" }
 
   # Print deprecation notices to the Rails logger.
   config.active_support.deprecation = :log
+
 
   # Raise an error on page load if there are pending migrations.
   config.active_record.migration_error = :page_load
@@ -80,7 +81,8 @@ Rails.application.configure do
 
   # config.hosts << ".ngrok-free.app"
   # config.hosts << ".ngrok-free.dev"
-  config.hosts << "zellus.ht.ngrok.dev"
+  config.hosts << /.*\.ngrok\.app/
+
 
   # Disable CSRF in dev — ngrok interstitial breaks session/token flow
   config.action_controller.allow_forgery_protection = false

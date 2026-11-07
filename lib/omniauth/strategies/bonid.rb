@@ -22,12 +22,21 @@ module OmniAuth
       # Ngrok terminates SSL, so the request arrives as HTTP — force HTTPS for ngrok hosts
       def callback_url
         url = full_host + callback_path
+
+        # 🚀 Fix: Automatically swap out the old .dev extension for the new .app extension
+        if url.include?("ngrok.dev")
+          url = url.sub("ngrok.dev", "ngrok.app")
+        end
+
+        # Ngrok terminates SSL, so the request arrives as HTTP — force HTTPS for ngrok hosts
         if url.include?("ngrok") && url.start_with?("http://")
           url = url.sub("http://", "https://")
         end
+
         Rails.logger.warn "BonID callback_url: #{url}" if defined?(Rails)
         url
       end
+
 
       def request_phase
         Rails.logger.warn "═══ BonID OAuth REQUEST PHASE ═══" if defined?(Rails)
@@ -44,8 +53,8 @@ module OmniAuth
         Rails.logger.warn "═══ BonID OAuth CALLBACK PHASE ═══" if defined?(Rails)
         Rails.logger.warn "  params: #{request.params.except('code').inspect}" if defined?(Rails)
         Rails.logger.warn "  code present: #{request.params['code'].present?}" if defined?(Rails)
-        Rails.logger.warn "  error: #{request.params['error']}" if request.params['error'] && defined?(Rails)
-        Rails.logger.warn "  error_description: #{request.params['error_description']}" if request.params['error_description'] && defined?(Rails)
+        Rails.logger.warn "  error: #{request.params['error']}" if request.params["error"] && defined?(Rails)
+        Rails.logger.warn "  error_description: #{request.params['error_description']}" if request.params["error_description"] && defined?(Rails)
         Rails.logger.warn "═══════════════════════════════════" if defined?(Rails)
         super
       end
@@ -59,7 +68,7 @@ module OmniAuth
           bonid:      raw_info["bonid"],
           first_name: raw_info["first_name"] || name_parts[0],
           last_name:  raw_info["last_name"]  || name_parts[1],
-          name:       raw_info["name"] || [raw_info["first_name"], raw_info["last_name"]].compact.join(" "),
+          name:       raw_info["name"] || [ raw_info["first_name"], raw_info["last_name"] ].compact.join(" "),
           email:      raw_info["email"],
           phone:      raw_info["phone"],
           image:      raw_info["photo_url"],
