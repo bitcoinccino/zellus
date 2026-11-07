@@ -415,6 +415,16 @@ class NotificationService
       )
     end
 
+    def avatar_url_for(actor)
+      return if actor.blank?
+
+      if actor.avatar.attached?
+        Rails.application.routes.url_helpers.rails_blob_url(actor.avatar, only_path: true)
+      elsif actor.bonid_photo_url.present?
+        actor.bonid_photo_url
+      end
+    end
+
     private
 
     def create_notification(skip_sound: false, **attrs)
@@ -428,16 +438,16 @@ class NotificationService
     SOUND_TYPES = %w[transfer_received].freeze
 
     def broadcast_notification(notification, attrs, skip_sound: false)
-      # Include sender avatar in the broadcast for toast display
-      avatar_url = nil
-      if notification.actor.present?
-        if notification.actor.avatar.attached?
-          avatar_url = Rails.application.routes.url_helpers.rails_blob_url(notification.actor.avatar, only_path: true)
-        elsif notification.actor.bonid_photo_url.present?
-          avatar_url = notification.actor.bonid_photo_url
-        end
+      # Wait for the commit: callers credit the wallet inside a transaction, and
+      # the cable DB is separate in production, so broadcasting earlier could
+      # chime before the money lands, or for a credit that rolls back.
+      # Runs immediately when no transaction is open; never runs after a rollback.
+      ActiveRecord.after_all_transactions_commit do
+        deliver_broadcast(notification, attrs, skip_sound: skip_sound)
       end
+    end
 
+    def deliver_broadcast(notification, attrs, skip_sound:)
       should_play = !skip_sound && SOUND_TYPES.include?(attrs[:notification_type])
 
       ::NotificationChannel.broadcast_to(
@@ -446,8 +456,9 @@ class NotificationService
           title: attrs[:title],
           type: attrs[:notification_type],
           play_sound: should_play,
+          notification_id: notification.id,
           unread_count: notification.user.notifications.unread.count,
-          avatar_url: avatar_url
+          avatar_url: avatar_url_for(notification.actor)
         }
       )
     rescue => e

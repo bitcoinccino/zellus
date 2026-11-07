@@ -360,9 +360,6 @@ class TransfersController < ApplicationController
         # Trigger payout (always — worker resolves receiver by cashtag, email, or phone)
         TransferPayoutWorker.perform_async(@transfer.id)
 
-        # Real-time sound notification to receiver
-        broadcast_transfer_funded(@transfer)
-
         # Emails
         begin
           TransferMailer.with(transfer_id: @transfer.id).sender_funded.deliver_later
@@ -475,7 +472,6 @@ class TransfersController < ApplicationController
         )
 
         TransferPayoutWorker.perform_async(@transfer.id)
-        broadcast_transfer_funded(@transfer)
 
         begin
           TransferMailer.with(transfer_id: @transfer.id).sender_funded.deliver_later
@@ -578,9 +574,6 @@ class TransfersController < ApplicationController
 
         TransferPayoutWorker.perform_async(@transfer.id)
 
-        # Real-time sound notification to receiver
-        broadcast_transfer_funded(@transfer)
-
         begin
           TransferMailer.with(transfer_id: @transfer.id).sender_funded.deliver_later
         rescue => e
@@ -676,9 +669,6 @@ class TransfersController < ApplicationController
         # On-chain payout via treasury
         TransferPayoutWorker.perform_async(@transfer.id)
 
-        # Real-time sound notification to receiver
-        broadcast_transfer_funded(@transfer)
-
         begin
           TransferMailer.with(transfer_id: @transfer.id).sender_funded.deliver_later
         rescue => e
@@ -773,9 +763,6 @@ class TransfersController < ApplicationController
         )
 
         TransferPayoutWorker.perform_async(@transfer.id)
-
-        # Real-time sound notification to receiver
-        broadcast_transfer_funded(@transfer)
 
         begin
           TransferMailer.with(transfer_id: @transfer.id).sender_funded.deliver_later
@@ -1030,42 +1017,6 @@ class TransfersController < ApplicationController
 
   def transfer_params
     params.require(:transfer).permit(:receiver_name, :receiver_phone, :receiver_email, :receiver_wallet_address, :receiver_cashtag, :receiver_bank_account, :receiver_bank_name, :receiver_account_holder, :amount, :note)
-  end
-
-  # Broadcast real-time notification to receiver (plays ka-ching sound)
-  def broadcast_transfer_funded(transfer)
-    receiver = find_receiver_user_for(transfer)
-    return unless receiver
-
-    amount_label = if transfer.crypto_amount.present?
-                     "#{transfer.crypto_amount} #{transfer.asset.to_s.upcase}"
-                   else
-                     "#{transfer.amount.to_i} HTG"
-                   end
-
-    Rails.logger.info "[Zèllus] Broadcasting transfer_received to user #{receiver.id} (#{amount_label})"
-
-    avatar_url = if current_user.avatar.attached?
-                   Rails.application.routes.url_helpers.rails_blob_url(current_user.avatar, only_path: true)
-                 elsif current_user.bonid_photo_url.present?
-                   current_user.bonid_photo_url
-                 end
-
-    # Instant real-time preview — NO sound here because the money hasn't
-    # arrived yet. The TransferPayoutWorker credits the wallet and then
-    # calls NotificationService.transfer_received WITH sound — that's
-    # the authoritative notification when funds actually land.
-    NotificationChannel.broadcast_to(
-      receiver,
-      {
-        title: "$#{current_user.cashtag || current_user.display_name} peye w #{amount_label}",
-        type: "transfer_received",
-        play_sound: false,
-        avatar_url: avatar_url
-      }
-    )
-  rescue => e
-    Rails.logger.error "[Zèllus] Broadcast error: #{e.message}"
   end
 
   def find_receiver_user_for(transfer)
