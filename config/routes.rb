@@ -102,6 +102,7 @@ Rails.application.routes.draw do
   post "onboarding/profile", to: "onboarding#update_profile"
 
   resource :bonid_verification, only: [ :show, :create ], controller: "bon_id_verifications"
+  resource :email_change, only: [ :show, :create ]
   get  "users/check_cashtag", to: "users#check_cashtag", as: :check_cashtag
   get  "users/lookup",        to: "users#lookup",         as: :user_lookup
   get  "setup_cashtag",       to: "users#setup_cashtag",  as: :setup_cashtag

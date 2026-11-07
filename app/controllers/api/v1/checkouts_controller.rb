@@ -101,6 +101,11 @@ module Api
           return render_error("Pa ka idantifye resevè oswa peyè.", status: :unprocessable_entity)
         end
 
+        # The merchant is the one debited, whoever is calling.
+        if receiver.outgoing_funds_held?
+          return render_error(WalletLimitService.new(receiver).funds_hold_message, status: :forbidden)
+        end
+
         receiver_wallet = receiver.wallet
         payer_wallet = payer.wallet
 

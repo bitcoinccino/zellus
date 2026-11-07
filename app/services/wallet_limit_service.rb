@@ -96,6 +96,11 @@ class WalletLimitService
     withdrawn_last_24h_htg + htg_equivalent(amount, asset) >= @cfg[:bonid_withdrawal_threshold_htg]
   end
 
+  def funds_hold_message
+    hours = ((@user.outgoing_funds_held_until - Time.current) / 1.hour).ceil
+    "Retrè ak transfè yo bloke pou #{hours} èdtan ankò paske PIN oswa imèl kont ou a chanje. Si se pa ou ki fè sa, kontakte sipò."
+  end
+
   def bonid_withdrawal_message
     threshold = ActiveSupport::NumberHelper.number_to_delimited(@cfg[:bonid_withdrawal_threshold_htg].to_i)
     "Verifye ak BonID pou retire #{threshold} HTG oswa plis nan 24 èdtan."

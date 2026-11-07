@@ -34,6 +34,8 @@ module Api
 
         wallet = current_user.ensure_wallet!
 
+        return if reject_held_funds_response
+
         limits = WalletLimitService.new(current_user)
         if limits.bonid_required_for_withdrawal?(amount, asset: asset)
           return render_error(limits.bonid_withdrawal_message, status: :forbidden)

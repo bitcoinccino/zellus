@@ -63,6 +63,15 @@ class ApplicationController < ActionController::Base
     true
   end
 
+  # Returns true if it redirected. Guards every action that sends money to someone
+  # else; moves within the user's own wallet (deposit, convert) aren't held.
+  def reject_held_funds(path)
+    return false unless current_user.outgoing_funds_held?
+
+    redirect_to path, alert: WalletLimitService.new(current_user).funds_hold_message
+    true
+  end
+
   # Redirect existing users to pick a $cashtag if they don't have one
   def require_cashtag!
     return if devise_controller?

@@ -1,0 +1,41 @@
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-12 col-md-7 col-lg-5">
+      <div class="text-center mb-4">
+        <h1 class="fw-black mb-1" style="color: var(--haiti-charcoal); font-size: 22px; font-family: 'Space Grotesk', sans-serif;">Konfime Nouvo Imèl Ou</h1>
+        <p class="small mb-0" style="color: var(--haiti-olive);">Antre kòd 6 chif nou voye nan:</p>
+        <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 14px;"><%= @email %></div>
+      </div>
+
+      <div class="p-4 rounded-4" style="background: #fff; border: 1px solid rgba(46,46,56,0.08); box-shadow: 0 4px 14px rgba(46,46,56,0.06);">
+        <%= form_with url: email_change_path, method: :post, local: true do |f| %>
+          <div class="input-group mb-3" style="border: 1.5px solid rgba(46,46,56,0.12); border-radius: 12px; overflow: hidden;">
+            <%= f.text_field :code,
+                  required: true,
+                  autofocus: true,
+                  autocomplete: "one-time-code",
+                  inputmode: "numeric",
+                  pattern: "\\d{6}",
+                  maxlength: 6,
+                  placeholder: "••••••",
+                  "aria-label": "Kòd 6 chif",
+                  class: "form-control border-0 fw-bold shadow-none p-3 text-center",
+                  style: "font-size: 22px; color: var(--haiti-charcoal); letter-spacing: 10px; font-family: 'Courier New', monospace;" %>
+          </div>
+
+          <p class="small" style="color: var(--haiti-olive); font-size: 12px;">Retrè ak transfè yo ap bloke pandan 24 èdtan apre chanjman an.</p>
+
+          <%= f.submit "Konfime Imèl",
+                class: "btn w-100 fw-bold rounded-pill py-3 border-0",
+                style: "background: var(--haiti-gold); color: var(--haiti-charcoal); font-size: 13px; letter-spacing: 0.5px;" %>
+        <% end %>
+
+        <div class="text-center mt-3">
+          <%= link_to "← Tounen", edit_user_registration_path,
+                class: "fw-bold text-decoration-none",
+                style: "color: var(--haiti-olive); font-size: 12px;" %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

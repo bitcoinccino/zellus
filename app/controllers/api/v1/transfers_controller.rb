@@ -38,6 +38,8 @@ module Api
           return render_error("PIN pa kòrèk.", status: :unauthorized)
         end
 
+        return if reject_held_funds_response
+
         # Build transfer
         transfer = current_user.transfers.new(
           amount: amount,

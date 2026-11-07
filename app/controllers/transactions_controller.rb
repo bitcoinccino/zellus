@@ -23,6 +23,9 @@ class TransactionsController < ApplicationController
     load_sell_payment_methods
     tx_type          = params[:transaction_type] == "sell" ? "sell" : "buy"
 
+    # A sell pays out to an external account; a buy only brings money in.
+    return if tx_type == "sell" && reject_held_funds(new_transaction_path)
+
     # PIN verification
     unless current_user.transfer_pin_set?
       flash.now[:alert] = "Ou dwe kreye yon PIN transfè anvan ou ka kontinye."

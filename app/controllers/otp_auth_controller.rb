@@ -150,9 +150,11 @@ class OtpAuthController < ApplicationController
     current_user.transfer_pin = nil
     current_user.save!
     current_user.reset_pin_attempts!
+    current_user.hold_outgoing_funds!
+    NotificationService.pin_reset(current_user)
     session.delete(:pin_reset)
     session.delete(:pin_verified)
-    redirect_to login_pin_path, notice: "Kòd verifye. Tanpri kreye yon nouvo PIN."
+    redirect_to login_pin_path, notice: "Kòd verifye. Tanpri kreye yon nouvo PIN. Pou sekirite, retrè ak transfè yo bloke pandan 24 èdtan."
   end
 
   private

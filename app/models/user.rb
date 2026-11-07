@@ -66,6 +66,10 @@ class User < ApplicationRecord
   MAX_PIN_ATTEMPTS     = 5
   PIN_LOCKOUT_DURATION = 15.minutes
 
+  # Money can't leave the account for a while after a PIN reset or email change,
+  # so the real owner has time to notice if someone else did it.
+  OUTGOING_FUNDS_HOLD_DURATION = 24.hours
+
   def transfer_pin=(raw_pin)
     require "bcrypt"
     if raw_pin.present?
@@ -79,6 +83,14 @@ class User < ApplicationRecord
 
   def transfer_pin_set?
     transfer_pin_digest.present?
+  end
+
+  def outgoing_funds_held?
+    outgoing_funds_held_until.present? && outgoing_funds_held_until.future?
+  end
+
+  def hold_outgoing_funds!
+    update_columns(outgoing_funds_held_until: OUTGOING_FUNDS_HOLD_DURATION.from_now)
   end
 
   def verify_transfer_pin(raw_pin)

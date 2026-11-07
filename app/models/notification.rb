@@ -38,6 +38,7 @@ class Notification < ApplicationRecord
 
   # ── Icon per type ──
   ICON_MAP = {
+    "security_alert"             => "ri-shield-keyhole-fill",
     "transfer_received"          => "ri-hand-coin-fill",
     "transfer_completed"         => "ri-send-plane-fill",
     "transfer_failed"            => "ri-close-circle-fill",
@@ -57,6 +58,7 @@ class Notification < ApplicationRecord
   }.freeze
 
   COLOR_MAP = {
+    "security_alert"             => { bg: "#fef2f2", fg: "#991b1b" },
     "transfer_received"          => { bg: "#f0fdf4", fg: "#166534" },
     "transfer_completed"         => { bg: "rgba(46,46,56,0.08)", fg: "var(--haiti-charcoal)" },
     "transfer_failed"            => { bg: "#fef2f2", fg: "#991b1b" },

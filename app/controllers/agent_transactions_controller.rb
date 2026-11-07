@@ -27,6 +27,8 @@ class AgentTransactionsController < ApplicationController
 
   # ── Cash-In: Customer gives cash → Agent credits wallet ──
   def handle_cash_in
+    return if reject_held_funds(wallet_path)
+
     customer = find_customer(params[:customer_identifier])
 
     unless customer

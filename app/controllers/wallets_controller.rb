@@ -125,10 +125,7 @@ class WalletsController < ApplicationController
       return
     end
 
-    if WalletLimitService.new(current_user).bonid_required_for_withdrawal?(amount)
-      redirect_to bonid_verification_path, alert: WalletLimitService.new(current_user).bonid_withdrawal_message
-      return
-    end
+    return if reject_blocked_withdrawal(amount)
 
     # Daily user + platform circuit breaker
     ok, msg = WalletLimitService.new(current_user).allow_withdraw_htg?(amount)
@@ -210,10 +207,7 @@ class WalletsController < ApplicationController
       return
     end
 
-    if WalletLimitService.new(current_user).bonid_required_for_withdrawal?(amount, asset: "usd")
-      redirect_to bonid_verification_path, alert: WalletLimitService.new(current_user).bonid_withdrawal_message
-      return
-    end
+    return if reject_blocked_withdrawal(amount, asset: "usd")
 
     # Daily user + platform circuit breaker
     ok, msg = WalletLimitService.new(current_user).allow_withdraw_usdc?(amount)
@@ -315,10 +309,7 @@ class WalletsController < ApplicationController
       return
     end
 
-    if WalletLimitService.new(current_user).bonid_required_for_withdrawal?(amount)
-      redirect_to bonid_verification_path, alert: WalletLimitService.new(current_user).bonid_withdrawal_message
-      return
-    end
+    return if reject_blocked_withdrawal(amount)
 
     if account_num.blank?
       redirect_to wallet_path, alert: "Tanpri antre nimewo kont bank ou."
@@ -584,6 +575,17 @@ class WalletsController < ApplicationController
   end
 
   private
+
+  # Security hold first, then the BonID gate. Returns true if it redirected.
+  def reject_blocked_withdrawal(amount, asset: "htg")
+    return true if reject_held_funds(wallet_path)
+
+    limits = WalletLimitService.new(current_user)
+    return false unless limits.bonid_required_for_withdrawal?(amount, asset: asset)
+
+    redirect_to bonid_verification_path, alert: limits.bonid_withdrawal_message
+    true
+  end
 
   def load_wallet
     @wallet = current_user.ensure_wallet!

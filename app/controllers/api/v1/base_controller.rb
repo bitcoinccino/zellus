@@ -94,6 +94,14 @@ module Api
         true
       end
 
+      # Returns true if it rendered. See ApplicationController#reject_held_funds.
+      def reject_held_funds_response
+        return false unless current_user.outgoing_funds_held?
+
+        render_error(WalletLimitService.new(current_user).funds_hold_message, status: :forbidden)
+        true
+      end
+
       # ── Idempotency key support ──
 
       def check_idempotency_key
