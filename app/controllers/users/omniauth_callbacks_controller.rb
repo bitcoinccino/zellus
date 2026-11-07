@@ -91,6 +91,8 @@ class Users::OmniauthCallbacksController < Devise::OmniauthCallbacksController
   private
 
   def check_crime_status!(bonid_id, oauth_token)
+    return unless FeatureFlags.bonid_crime_check?
+
     result = BonIdService.check_crime_status(bonid_id, oauth_token)
 
     if result[:success] && result[:has_criminal_record]

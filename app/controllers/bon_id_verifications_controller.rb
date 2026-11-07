@@ -41,9 +41,11 @@ class BonIdVerificationsController < ApplicationController
 
     if result[:success]
       # ── Crime status check (API key only, no OAuth token in manual flow) ──
-      crime_result = BonIdService.check_crime_status(bonid)
+      crime_result = FeatureFlags.bonid_crime_check? ? BonIdService.check_crime_status(bonid) : { skipped: true }
 
-      if crime_result[:success] && crime_result[:has_criminal_record]
+      if crime_result[:skipped]
+        # Crime check disabled (FeatureFlags::BONID_CRIME_CHECK) — identity verification only.
+      elsif crime_result[:success] && crime_result[:has_criminal_record]
         Rails.logger.warn "BonID crime check POSITIVE (manual verify): #{bonid} — severity: #{crime_result[:severity_label]}"
         # Undo verification
         current_user.update!(bonid: nil, bonid_verified_at: nil, bonid_first_name: nil, bonid_last_name: nil, bonid_photo_url: nil)
