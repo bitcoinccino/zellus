@@ -237,11 +237,6 @@
 
     <div id="section-hero-card" style="position: relative; z-index: 1;">
 
-    <%# ── Page Header ── %>
-    <div id="section-header" class="mb-3">
-      <h1 class="h5 fw-black mb-0" style="color: var(--haiti-charcoal);">Pòtfèy Mwen</h1>
-    </div>
-
     <%# ══════════════════════════════════════ %>
     <%# ── BALANCE HERO                   ──  %>
     <%# ══════════════════════════════════════ %>
@@ -262,6 +257,10 @@
           <i class="ri-more-fill" style="font-size: 22px; font-weight: 900;"></i>
         </button>
         <div id="hero-menu-dropdown" class="rounded-3 overflow-hidden" style="display: none; position: absolute; top: 38px; right: 0; min-width: 160px; background: var(--haiti-charcoal); border: 1px solid rgba(255,255,255,0.12); box-shadow: 0 8px 24px rgba(0,0,0,0.4); z-index: 10;">
+          <a href="javascript:void(0)" onclick="closeHeroMenu(); togglePanel('deposit');" class="d-flex align-items-center gap-2 px-3 py-2 text-decoration-none" style="color: #fff; font-size: 13px; font-weight: 600;" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'">
+            <i class="ri-download-line" style="color: var(--haiti-gold); font-size: 16px;"></i> Depoze
+          </a>
+          <div style="height: 1px; background: rgba(255,255,255,0.08);"></div>
           <a href="javascript:void(0)" onclick="closeHeroMenu(); togglePanel('convert');" class="d-flex align-items-center gap-2 px-3 py-2 text-decoration-none" style="color: #fff; font-size: 13px; font-weight: 600;" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'">
             <i class="ri-exchange-2-line" style="color: var(--haiti-gold); font-size: 16px;"></i> Konvèti
           </a>
@@ -283,28 +282,8 @@
         ≈ $<span id="hero-usd-whole"><%= number_with_delimiter(total_usd.floor.to_i) %></span>.<span id="hero-usd-dec" class="tick-decimals"><%= "%02d" % ((total_usd * 100).floor % 100) %></span> USD
       </div>
 
-      <%# ── Mini balance breakdown ── %>
-      <div class="d-flex justify-content-center gap-3 mt-3 pt-3" style="border-top: 1px solid rgba(255,255,255,0.08);">
-        <div class="text-center">
-          <div style="color: rgba(255,255,255,0.35); font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">HTG</div>
-          <div style="color: #fff; font-size: 13px; font-weight: 800;"><span id="mini-htg-bal"><%= number_with_delimiter(htg_bal.floor.to_i) %></span></div>
-        </div>
-        <div style="width: 1px; background: rgba(255,255,255,0.08);"></div>
-        <div class="text-center">
-          <div style="color: rgba(255,255,255,0.35); font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">USD</div>
-          <div style="color: #fff; font-size: 13px; font-weight: 800;">$<span id="mini-usd-bal"><%= format('%.2f', usd_bal) %></span></div>
-        </div>
-        <%# ETH and wBTC mini balances hidden (HTG + USD only mode) %>
-        <span id="mini-eth-bal" style="display:none;"><%= format('%.4f', eth_bal) %></span>
-        <span id="mini-wbtc-bal" style="display:none;"><%= format('%.6f', wbtc_bal) %></span>
-      </div>
-
-      <%# ── Action Buttons ── %>
+      <%# ── Action Buttons (Depoze lives in the ⋯ menu) ── %>
       <div class="d-flex justify-content-center gap-4 mt-3">
-        <a href="javascript:void(0)" onclick="togglePanel('deposit');" class="wallet-action-btn text-decoration-none text-center">
-          <div class="wallet-action-icon"><i class="ri-download-line icon-gold"></i></div>
-          <div class="wallet-action-label">Depoze</div>
-        </a>
         <%= link_to new_transfer_path, class: "wallet-action-btn text-decoration-none text-center" do %>
           <div class="wallet-action-icon"><i class="ri-send-plane-fill icon-gold"></i></div>
           <div class="wallet-action-label">Peye</div>
