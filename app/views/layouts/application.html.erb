@@ -57,6 +57,13 @@
         display: flex; align-items: center; justify-content: center;
       }
       .bonid-verified-badge i { color: #fff; font-size: 13px; line-height: 1; }
+
+      /* BonID action button: brand blue, white text. */
+      .btn-bonid, .btn-bonid:visited { background: var(--haiti-blue); color: #fff; }
+      .btn-bonid:hover { background: #001a80; color: #fff; }
+      .btn-bonid:active { background: #00156b !important; color: #fff !important; }
+      .btn-bonid:focus-visible { color: #fff; box-shadow: 0 0 0 3px rgba(0, 32, 159, 0.35); }
+      .btn-bonid i { font-size: 16px; }
       /* Verified check on the navbar avatar: brand blue with a thin white ring,
          since dark blue alone disappears against the charcoal navbar. */
       .avatar-verified-badge {
