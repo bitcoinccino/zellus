@@ -8,6 +8,16 @@ class Api::V1::WithdrawalsControllerTest < ActionDispatch::IntegrationTest
     @token = oauth_tokens(:sender_full_access).access_token
     setup_transfer_pin!(@sender, "1234")
     @sender.update!(bonid: "BON-SENDER-TEST", bonid_verified_at: Time.current)
+
+    # USD withdrawals check the platform reserve held in the admin's wallet.
+    # Tests don't load .env, so point ADMIN_EMAIL at a funded fixture wallet.
+    @original_admin_email = ENV["ADMIN_EMAIL"]
+    ENV["ADMIN_EMAIL"] = users(:receiver).email
+    wallets(:receiver_wallet).update!(usdc_balance: 100_000)
+  end
+
+  teardown do
+    ENV["ADMIN_EMAIL"] = @original_admin_email
   end
 
   # ── MonCash withdrawal ──
