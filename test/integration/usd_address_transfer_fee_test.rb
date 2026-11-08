@@ -60,13 +60,22 @@ class UsdAddressTransferFeeTest < ActionDispatch::IntegrationTest
     confirm(transfer)
     @user.update!(circle_wallet_id: "circle-test")
 
+    # A Circle failure must not fall back to the treasury: the "failure" can be
+    # a lost response to a send Circle made, so a second send could pay twice.
+    # The transfer stays funded and StuckTransferMonitorWorker retries via Circle.
+    treasury_used = false
     CryptoProvider.stub(:circle?, true) do
       CircleService.stub(:send_usd, { success: false, error: "boom" }) do
-        assert_raises(StandardError) { TransferPayoutWorker.new.perform(transfer.id) }
+        worker = TransferPayoutWorker.new
+        worker.stub(:process_crypto_payout_self_hosted, ->(*) { treasury_used = true }) do
+          worker.perform(transfer.id)
+        end
       end
     end
 
-    assert transfer.reload.funded?
+    assert_not treasury_used, "a Circle failure must not send from the treasury"
+    assert_includes transfer.reload.failure_reason.to_s, "boom"
+    assert transfer.funded?
     assert_nil transfer.blockchain_tx_hash
     assert_equal BigDecimal("95"), @wallet.reload.usd_balance
   end

@@ -22,12 +22,21 @@ module OmniAuth
       # Ngrok terminates SSL, so the request arrives as HTTP — force HTTPS for ngrok hosts
       def callback_url
         url = full_host + callback_path
+
+        # 🚀 Fix: Automatically swap out the old .dev extension for the new .app extension
+        if url.include?("ngrok.dev")
+          url = url.sub("ngrok.dev", "ngrok.app")
+        end
+
+        # Ngrok terminates SSL, so the request arrives as HTTP — force HTTPS for ngrok hosts
         if url.include?("ngrok") && url.start_with?("http://")
           url = url.sub("http://", "https://")
         end
+
         Rails.logger.warn "BonID callback_url: #{url}" if defined?(Rails)
         url
       end
+
 
       def request_phase
         Rails.logger.warn "═══ BonID OAuth REQUEST PHASE ═══" if defined?(Rails)

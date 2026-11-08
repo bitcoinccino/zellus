@@ -19,6 +19,13 @@ module TestNetworkGuard
 end
 Net::HTTP.prepend(TestNetworkGuard)
 
+# Third layer: perform_async must never reach Redis. Tests share the local
+# Redis with dev, so a queued job would be run by the dev Sidekiq against the
+# dev database (job args are record ids) with whatever keys dev has loaded.
+# Fake mode keeps jobs in Worker.jobs instead; call drain/perform explicitly.
+require "sidekiq/testing"
+Sidekiq::Testing.fake!
+
 module ApiTestHelper
   def api_auth_headers(token)
     { "Authorization" => "Bearer #{token}" }

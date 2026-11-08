@@ -34,6 +34,70 @@
         --haiti-gold: #C5A059;
         --haiti-mint: #E8EDE0;
         --haiti-cream: #F7F4E3;
+        --haiti-blue: #00209F;
+      }
+
+      /* BonID "verified" icon in the profile menu: white shield on a solid
+         blue circle, with a soft ring so it reads as a status, not a button. */
+      .bonid-verified-icon {
+        width: 34px; height: 34px; border-radius: 50%;
+        background: var(--haiti-blue);
+        box-shadow: 0 0 0 3px rgba(0, 32, 159, 0.12);
+        display: flex; align-items: center; justify-content: center;
+        flex-shrink: 0;
+      }
+      .bonid-verified-icon i { color: #fff; font-size: 17px; line-height: 1; }
+      .bonid-verified-icon--lg { width: 80px; height: 80px; box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.08); }
+      .bonid-verified-icon--lg i { font-size: 2.4rem; }
+      /* Small check badge pinned to a photo or avatar. */
+      .bonid-verified-badge {
+        position: absolute; right: -2px; bottom: -2px;
+        width: 26px; height: 26px; border-radius: 50%;
+        background: var(--haiti-blue); border: 3px solid var(--haiti-charcoal);
+        display: flex; align-items: center; justify-content: center;
+      }
+      .bonid-verified-badge i { color: #fff; font-size: 13px; line-height: 1; }
+
+      /* BonID action button: brand blue, white text. */
+      .btn-bonid, .btn-bonid:visited { background: var(--haiti-blue); color: #fff; }
+      .btn-bonid:hover { background: #001a80; color: #fff; }
+      .btn-bonid:active { background: #00156b !important; color: #fff !important; }
+      .btn-bonid:focus-visible { color: #fff; box-shadow: 0 0 0 3px rgba(0, 32, 159, 0.35); }
+      .btn-bonid i { font-size: 16px; }
+      /* Verified check on the navbar avatar: brand blue with a thin white ring,
+         since dark blue alone disappears against the charcoal navbar. */
+      .avatar-verified-badge {
+        position: absolute; right: -3px; bottom: -3px;
+        width: 15px; height: 15px; border-radius: 50%;
+        background: var(--haiti-blue); border: 1.5px solid #fff;
+        display: flex; align-items: center; justify-content: center;
+      }
+      .avatar-verified-badge i { color: #fff; font-size: 9px; line-height: 1; font-weight: 700; }
+
+      /* Profile menu header: full name, with the $cashtag on the line below.
+         Long names truncate with an ellipsis. */
+      .profile-menu-header {
+        display: flex; flex-direction: column; gap: 2px; min-width: 0;
+        padding: 14px 20px 12px;
+        background: linear-gradient(135deg, var(--haiti-charcoal) 0%, #3a3a48 100%);
+      }
+      .profile-menu-name {
+        color: #fff; font-size: 15px; font-weight: 700;
+        min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      }
+      /* Profile button: just the avatar on every screen size, no pill, no caret.
+         Tapping it opens the menu. Keyboard focus still gets a visible ring. */
+      .profile-toggle {
+        padding: 0 !important; border-radius: 50%;
+        background: transparent; line-height: 0;
+      }
+      .profile-toggle::after { display: none !important; }
+      .profile-toggle:focus-visible { outline: 2px solid var(--haiti-gold); outline-offset: 3px; }
+      .profile-toggle:hover img, .profile-toggle:hover .profile-avatar-fallback { box-shadow: 0 0 0 3px rgba(197, 160, 89, 0.35); }
+
+      .profile-menu-cashtag {
+        color: var(--haiti-gold); font-size: 13px; font-weight: 700;
+        min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
       }
 
       html, body {
@@ -120,11 +184,8 @@
           box-shadow: none !important;
           border-radius: 12px !important;
         }
-        /* Avatar-only on mobile: no pill background, cashtag or caret. The menu
-           anchors to the avatar, so it needs its own width and must scroll on
-           short screens. */
-        .profile-toggle { background: transparent !important; }
-        .profile-toggle::after { display: none; }
+        /* The menu anchors to the avatar, so it needs its own width and must
+           scroll on short screens. */
         .navbar .dropdown .profile-menu {
           width: min(340px, calc(100vw - 24px)) !important;
           max-height: calc(100vh - 90px);
@@ -456,14 +517,46 @@
       }
     </style>
     <%= yield :head %>
+    <script>
+      // Wallet money figures, in integer cents. Mirrors
+      // WalletsHelper#wallet_figures: each card rounds to cents (half-up) and
+      // the totals are the sum of the cards, so they always agree.
+      window.ZellusMoney = {
+        // Half-up to cents. toFixed(6) first so 136.855 (stored as
+        // 136.85499999…) rounds to 13686 like Ruby's BigDecimal does.
+        cents: function (v) { return Math.round(Number(((Number(v) || 0) * 100).toFixed(6))); },
+        figures: function (b, r) {
+          var c = ZellusMoney.cents;
+          var rate = Number(r.usd_htg) || 0;
+          var htg = c(b.htg), usd = c(b.usd);
+          var wbtcUsd = (Number(b.wbtc) || 0) * (Number(r.btc_usd) || 0);
+          var ethUsd  = (Number(b.eth)  || 0) * (Number(r.eth_usd) || 0);
+          var htgInUsd = rate ? c(htg / 100 / rate) : 0;
+          var usdInHtg = c(usd / 100 * rate);
+          return {
+            htg: htg, usd: usd, htg_in_usd: htgInUsd, usd_in_htg: usdInHtg,
+            wbtc_usd: c(wbtcUsd), eth_usd: c(ethUsd),
+            total_htg: htg + usdInHtg + c(wbtcUsd * rate) + c(ethUsd * rate),
+            total_usd: usd + htgInUsd + c(wbtcUsd) + c(ethUsd)
+          };
+        }
+      };
+    </script>
   </head>
 
   <body data-user-display-name="<%= current_user&.display_name %>" data-bonid-verified="<%= current_user&.bonid_verified? ? 'true' : 'false' %>">
     <%# ── Turbo progress bar ── %>
     <div id="turbo-progress"></div>
 
-    <%# ── ⚡ Lightning Loader (first page load only) ── %>
-    <%= render "shared/lightning_loader" %>
+    <%# ── ⚡ Lightning Loader (once per session) ──
+         Turbo Drive isn't loaded, so every link click is a full page load.
+         Track the splash in the Rails session so it shows on the first page
+         of a session only. Devise resets the session on sign-out, so it
+         plays again on the next launch / sign-in. %>
+    <% unless session[:zellus_splash_shown] %>
+      <% session[:zellus_splash_shown] = true %>
+      <%= render "shared/lightning_loader" %>
+    <% end %>
 
     <%# ── Loading overlay (navigation + forms) ── %>
     <div id="loading-overlay"><div class="spinner"></div><div style="color: var(--haiti-gold); font-size: 13px; font-weight: 700;">Chaje..</div></div>
@@ -670,70 +763,45 @@
             <% end %>
             </div>
 
-              <%# ── User Profile: cashtag pill on desktop, avatar only on mobile. ── %>
+              <%# ── User Profile: avatar button on every screen size; the name and
+                  $cashtag show in the menu header, so they aren't repeated here. ── %>
               <div class="dropdown">
-                <a class="nav-link dropdown-toggle profile-toggle d-flex align-items-center gap-2 p-1 px-lg-3 py-lg-2"
-                   href="#" role="button" data-bs-toggle="dropdown" aria-label="Pwofil"
-                   style="color: white; border-radius: 24px; background: rgba(255,255,255,0.06); transition: background 0.15s; max-width: 200px;">
+                <a class="nav-link profile-toggle d-flex align-items-center"
+                   href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false"
+                   aria-label="Pwofil: <%= current_user.display_name %> ($<%= current_user.cashtag %>)">
                   <% if current_user.avatar.attached? %>
                     <div style="position: relative; width: 30px; height: 30px;">
                       <%= image_tag current_user.avatar, style: "width: 30px; height: 30px; border-radius: 50%; object-fit: cover; border: 2px solid var(--haiti-gold);", alt: "" %>
                       <% if current_user.bonid_verified? %>
-                        <div class="js-bonid-badge" style="position: absolute; bottom: -2px; right: -2px; width: 14px; height: 14px; background: #16a34a; border-radius: 50%; border: 2px solid var(--haiti-charcoal); display: flex; align-items: center; justify-content: center;">
-                          <i class="ri-check-line" style="color: #fff; font-size: 8px;"></i>
+                        <div class="js-bonid-badge avatar-verified-badge" title="Idantite verifye ak BonID" aria-hidden="true">
+                          <i class="ri-check-line"></i>
                         </div>
                       <% end %>
                     </div>
                   <% else %>
                     <div style="position: relative; width: 30px; height: 30px;">
-                      <div style="width: 30px; height: 30px; border-radius: 50%; background: rgba(197,160,89,0.15); border: 2px solid var(--haiti-gold); display: flex; align-items: center; justify-content: center;">
+                      <div class="profile-avatar-fallback" style="width: 30px; height: 30px; border-radius: 50%; background: rgba(197,160,89,0.15); border: 2px solid var(--haiti-gold); display: flex; align-items: center; justify-content: center;">
                         <i class="ri-user-fill" style="font-size: 15px; color: var(--haiti-gold);"></i>
                       </div>
                       <% if current_user.bonid_verified? %>
-                        <div class="js-bonid-badge" style="position: absolute; bottom: -2px; right: -2px; width: 14px; height: 14px; background: #16a34a; border-radius: 50%; border: 2px solid var(--haiti-charcoal); display: flex; align-items: center; justify-content: center;">
-                          <i class="ri-check-line" style="color: #fff; font-size: 8px;"></i>
+                        <div class="js-bonid-badge avatar-verified-badge" title="Idantite verifye ak BonID" aria-hidden="true">
+                          <i class="ri-check-line"></i>
                         </div>
                       <% end %>
                     </div>
                   <% end %>
-                  <span class="small fw-bold d-none d-lg-inline" style="color: var(--haiti-gold);">$<%= current_user.cashtag %></span>
                 </a>
 
                 <ul class="dropdown-menu dropdown-menu-end profile-menu shadow-lg p-0 mt-2" style="min-width: 320px; width: 340px; border: 1px solid rgba(46,46,56,0.08); border-radius: 16px; overflow: hidden;">
 
-                  <%# ── SECTION 1: Identity Header (desktop only — mobile shows just
-                      the menu, without the name or cashtag). ── %>
-                  <li class="d-none d-lg-block">
-                    <div style="padding: 16px 20px 14px; background: linear-gradient(135deg, var(--haiti-charcoal) 0%, #3a3a48 100%);">
-                      <div class="d-flex align-items-center gap-3">
-                        <%# Avatar with verification badge %>
-                        <div style="position: relative; flex-shrink: 0;">
-                          <% if current_user.avatar.attached? %>
-                            <%= image_tag current_user.avatar, style: "width: 44px; height: 44px; border-radius: 50%; object-fit: cover; border: 2px solid var(--haiti-gold);", alt: "" %>
-                          <% else %>
-                            <div style="width: 44px; height: 44px; border-radius: 50%; background: rgba(197,160,89,0.15); border: 2px solid var(--haiti-gold); display: flex; align-items: center; justify-content: center;">
-                              <i class="ri-user-fill" style="font-size: 22px; color: var(--haiti-gold);"></i>
-                            </div>
-                          <% end %>
-                          <% if current_user.bonid_verified? %>
-                            <div class="js-bonid-badge" style="position: absolute; bottom: -1px; right: -1px; width: 18px; height: 18px; background: #16a34a; border-radius: 50%; border: 2.5px solid var(--haiti-charcoal); display: flex; align-items: center; justify-content: center;" title="Idantite verifye ak BonID">
-                              <i class="ri-check-line" style="color: #fff; font-size: 10px;"></i>
-                            </div>
-                          <% end %>
-                        </div>
-                        <%# Name + email %>
-                        <div style="min-width: 0; flex: 1;">
-                          <div class="d-flex align-items-center gap-1">
-                            <span class="fw-bold text-truncate js-bonid-fullname" style="color: #fff; font-size: 14px;">
-                              <%= current_user.bonid_verified? && current_user.bonid_full_name.present? ? current_user.bonid_full_name : current_user.display_name %>
-                            </span>
-                            <% if current_user.bonid_verified? %>
-                              <i class="ri-verified-badge-fill js-bonid-badge" style="color: #16a34a; font-size: 15px; flex-shrink: 0;" title="Verifye"></i>
-                            <% end %>
-                          </div>
-                          <div class="text-truncate" style="color: var(--haiti-gold); font-size: 12px; font-weight: 700;">$<%= current_user.cashtag %></div>
-                        </div>
-                      </div>
+                  <%# ── SECTION 1: Name + $cashtag header, on every screen size
+                      (on mobile the avatar button is the only way in, so this is
+                      where the user sees who they're signed in as). The avatar
+                      isn't repeated here; verification shows once, on the BonID row. ── %>
+                  <li>
+                    <div class="profile-menu-header">
+                      <span class="profile-menu-name js-bonid-fullname"><%= current_user.bonid_verified? && current_user.bonid_full_name.present? ? current_user.bonid_full_name : current_user.display_name %></span>
+                      <span class="profile-menu-cashtag">$<%= current_user.cashtag %></span>
                     </div>
                   </li>
 
@@ -763,13 +831,13 @@
                   </li>
                   <% if current_user.bonid_verified? %>
                     <li class="js-bonid-menu-item" style="padding: 0 10px;">
-                      <%= link_to bonid_verification_path, class: "d-flex align-items-center gap-3 text-decoration-none", style: "padding: 10px 10px; border-radius: 10px; transition: background 0.15s; min-height: 44px;", onmouseover: "this.style.background='var(--haiti-mint)'", onmouseout: "this.style.background='transparent'" do %>
-                        <div style="width: 32px; height: 32px; border-radius: 10px; background: #eef1ff; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                          <i class="ri-shield-check-line" style="color: #00209F; font-size: 16px;"></i>
+                      <%= link_to bonid_verification_path, class: "d-flex align-items-center gap-3 text-decoration-none", style: "padding: 10px 10px; border-radius: 10px; transition: background 0.15s; min-height: 44px;", onmouseover: "this.style.background='var(--haiti-mint)'", onmouseout: "this.style.background='transparent'", title: "Idantite ou verifye ak BonID", "aria-label": "BonID: idantite ou verifye. Wè detay yo." do %>
+                        <div class="bonid-verified-icon" aria-hidden="true">
+                          <i class="ri-shield-check-fill"></i>
                         </div>
                         <div style="flex: 1; min-width: 0;">
                           <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;">BonID</div>
-                          <div class="text-truncate" style="color: #00209F; font-size: 10px; font-weight: 600;"><%= current_user.bonid.gsub(/(.{4}).*(.{3})/, '\1••••••\2') %></div>
+                          <div class="text-truncate" style="color: #00209F; font-size: 10px; font-weight: 600;"><%= masked_bonid(current_user.bonid) %></div>
                         </div>
                         <span class="badge rounded-pill" style="background: #dcfce7; color: #166534; font-size: 9px; font-weight: 700; padding: 3px 8px;">Verifye</span>
                       <% end %>
@@ -1490,9 +1558,10 @@
         var bEth  = parseFloat(b.eth)  || 0;
         var bWbtc = parseFloat(b.wbtc) || 0;
 
-        // Compute totals
-        var totalHtg = bHtg + (bUsd * usdHtg) + (bWbtc * btcUsd * usdHtg) + (bEth * ethUsd * usdHtg);
-        var totalUsd = bUsd + (bWbtc * btcUsd) + (bEth * ethUsd) + (bHtg / usdHtg);
+        // Same calculation as the server render (WalletsHelper#wallet_figures)
+        var f = ZellusMoney.figures(
+          { htg: bHtg, usd: bUsd, wbtc: bWbtc, eth: bEth },
+          { usd_htg: usdHtg, btc_usd: btcUsd, eth_usd: ethUsd });
 
         // Helper: update element text + flash green
         function setEl(id, text) {
@@ -1508,12 +1577,15 @@
         function fmt(n) {
           return Math.floor(n).toLocaleString('en-US');
         }
+        function money(cents) {
+          return (cents / 100).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        }
 
         // Hero totals
-        setEl('hero-htg-whole', fmt(totalHtg));
-        setEl('hero-htg-dec', ('0' + (Math.floor(totalHtg * 100) % 100)).slice(-2));
-        setEl('hero-usd-whole', fmt(totalUsd));
-        setEl('hero-usd-dec', ('0' + (Math.floor(totalUsd * 100) % 100)).slice(-2));
+        setEl('hero-htg-whole', Math.floor(f.total_htg / 100).toLocaleString('en-US'));
+        setEl('hero-htg-dec', ('0' + (f.total_htg % 100)).slice(-2));
+        setEl('hero-usd-whole', Math.floor(f.total_usd / 100).toLocaleString('en-US'));
+        setEl('hero-usd-dec', ('0' + (f.total_usd % 100)).slice(-2));
 
         // Mini breakdown
         setEl('mini-htg-bal', fmt(bHtg));
@@ -1522,16 +1594,16 @@
         setEl('mini-wbtc-bal', bWbtc.toFixed(6));
 
         // Asset card balances
-        setEl('asset-htg-bal', bHtg.toFixed(2));
-        setEl('asset-usd-bal', bUsd.toFixed(2));
+        setEl('asset-htg-bal', (f.htg / 100).toFixed(2));
+        setEl('asset-usd-bal', (f.usd / 100).toFixed(2));
         setEl('asset-wbtc-bal', bWbtc > 0 ? bWbtc.toFixed(8).replace(/0+$/, '').replace(/\.$/, '.0') : '0');
         setEl('asset-eth-bal', bEth > 0 ? bEth.toFixed(6).replace(/0+$/, '').replace(/\.$/, '.0') : '0');
 
         // Asset card equivalents
-        setEl('asset-htg-usd', (bHtg / usdHtg).toFixed(2));
-        setEl('asset-usd-htg', (bUsd * usdHtg).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}));
-        setEl('asset-wbtc-usd', (bWbtc * btcUsd).toFixed(2));
-        setEl('asset-eth-usd', (bEth * ethUsd).toFixed(2));
+        setEl('asset-htg-usd', money(f.htg_in_usd));
+        setEl('asset-usd-htg', money(f.usd_in_htg));
+        setEl('asset-wbtc-usd', money(f.wbtc_usd));
+        setEl('asset-eth-usd', money(f.eth_usd));
 
         // Notify any listeners (e.g. limits chips) that balance changed
         window.dispatchEvent(new CustomEvent('zellus:balance-updated'));

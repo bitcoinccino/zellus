@@ -343,7 +343,8 @@ class TransferPayoutWorker
 
   # ── Crypto: Send USD/ETH/WBTC ──────────────────────────────────────────
   #
-  # Routes through Circle when available, falls back to self-hosted treasury.
+  # Routes through Circle when available (CRYPTO_PROVIDER=circle), otherwise
+  # the self-hosted treasury. A Circle failure never falls back to the treasury.
   # Circle internal transfers (wallet→wallet) are instant and gas-free.
 
   def process_crypto_payout(transfer)
@@ -406,10 +407,12 @@ class TransferPayoutWorker
       Rails.logger.info "TransferPayout: Circle USD send ok [transfer=#{transfer.id}] tx=#{result[:transaction_id]}"
       TransferConfirmationWorker.perform_in(15.seconds, transfer.id)
     else
-      Rails.logger.error "TransferPayout: Circle send failed [transfer=#{transfer.id}]: #{result[:error]}"
-      # Fall back to self-hosted on Circle failure
-      Rails.logger.info "TransferPayout: falling back to self-hosted [transfer=#{transfer.id}]"
-      process_crypto_payout_self_hosted(transfer)
+      # Do not send from the treasury instead: a "failure" can be a lost response
+      # to a send Circle made, and a second send would pay the recipient twice.
+      # The transfer stays funded, and StuckTransferMonitorWorker retries it
+      # with the same idempotency key, so Circle cannot send it twice either.
+      Rails.logger.error "TransferPayout: Circle send failed, will retry via Circle [transfer=#{transfer.id}]: #{result[:error]}"
+      transfer.update!(failure_reason: "Circle: #{result[:error].to_s.truncate(200)} (ap eseye ankò)")
     end
   end
 

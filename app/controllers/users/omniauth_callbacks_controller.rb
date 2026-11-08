@@ -4,6 +4,16 @@ class Users::OmniauthCallbacksController < Devise::OmniauthCallbacksController
 
   def bonid
     auth = request.env["omniauth.auth"]
+
+    # A reloaded or replayed callback URL reuses a one-time BonID code, so
+    # OmniAuth has no auth hash to give us. Send the user back to start over
+    # instead of crashing on auth.info.
+    unless auth
+      Rails.logger.warn "BonID callback without omniauth.auth (stale or replayed callback)"
+      redirect_to new_user_session_path, alert: "Sesyon BonID la ekspire. Tanpri eseye ankò."
+      return
+    end
+
     bonid_id = auth.info["bonid"] || auth.uid
 
     # ── Resolve canonical BonID from API ──
@@ -91,6 +101,8 @@ class Users::OmniauthCallbacksController < Devise::OmniauthCallbacksController
   private
 
   def check_crime_status!(bonid_id, oauth_token)
+    return unless FeatureFlags.bonid_crime_check?
+
     result = BonIdService.check_crime_status(bonid_id, oauth_token)
 
     if result[:success] && result[:has_criminal_record]

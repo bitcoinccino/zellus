@@ -287,8 +287,12 @@ Devise.setup do |config|
   config.omniauth :bonid,
     ENV["BONID_OAUTH_CLIENT_ID"],
     ENV["BONID_OAUTH_CLIENT_SECRET"],
-    scope: "openid profile email phone address identity:verify",
-    prompt: "consent"
+    # No `prompt:` here: the strategy only forwards authorize_params, so a
+    # prompt option never reaches BonID. Single sign-on is intended: if the
+    # user is signed in to BonID and already approved Zellus, BonID skips its
+    # screens. To force them, add `option :authorize_options, %i[scope state prompt]`
+    # to lib/omniauth/strategies/bonid.rb and pass prompt: "consent" or "login".
+    scope: "openid profile email phone address identity:verify"
 
   # ==> Warden configuration
   # If you want to use other strategies, that are not supported by Devise, or

@@ -1,65 +1,135 @@
+<%
+  # Reasons to verify, built from the live limits so the page can't drift from
+  # what the code actually enforces (WalletLimitService / BonIdService).
+  limit_cfg          = WalletLimitService.config
+  multiplier         = limit_cfg[:verified_multiplier].to_d
+  multiplier_label   = multiplier.frac.zero? ? multiplier.to_i : multiplier.round(1)
+  withdraw_threshold = number_with_delimiter(limit_cfg[:bonid_withdrawal_threshold_htg].to_i, delimiter: " ")
+  consent_threshold  = number_with_delimiter(BonIdService::CONSENT_THRESHOLD.to_i, delimiter: " ")
+
+  verify_reasons = [
+    {
+      group: "Pi gwo limit",
+      items: [
+        { icon: "ri-arrow-up-double-line",
+          title: "Limit #{multiplier_label}× pi wo",
+          text: "Achte, konvèti ak retire #{multiplier_label} fwa plis chak jou." },
+        { icon: "ri-bank-line",
+          title: "Retire #{withdraw_threshold} HTG oswa plis",
+          text: "San BonID, retrè yo rete anba #{withdraw_threshold} HTG chak 24 èdtan." }
+      ]
+    },
+    {
+      group: "Pwoteksyon kont fwod",
+      items: [
+        { icon: "ri-shield-keyhole-line",
+          title: "Ou apwouve gwo transfè yo",
+          text: "Chak transfè #{consent_threshold} HTG oswa plis mande pou w apwouve l sou BonID, menm si yon moun konnen PIN ou." },
+        { icon: "ri-user-follow-line",
+          title: "Kont ou mare ak vrè idantite w",
+          text: "Sa fè li pi difisil pou yon moun pran non w oswa itilize kont ou nan plas ou." }
+      ]
+    }
+  ]
+  verified = current_user.bonid_verified?
+
+  # "7 novanm 2026" — Kreyòl month names; strftime("%b") gives English ("Nov").
+  kreyol_months = %w[janvye fevriye mas avril me jen jiyè out septanm oktòb novanm desanm]
+  verified_on = if verified && current_user.bonid_verified_at
+    at = current_user.bonid_verified_at.in_time_zone
+    "#{at.day} #{kreyol_months[at.month - 1]} #{at.year}"
+  end
+%>
+
+<style>
+  .verify-reason {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 12px 14px; margin-bottom: 8px; border-radius: 12px;
+    background: var(--haiti-mint); border: 1px solid transparent;
+    transition: border-color 0.2s;
+  }
+  .verify-reason:hover { border-color: rgba(0, 32, 159, 0.25); }
+  .verify-reason .bonid-verified-icon { width: 32px; height: 32px; box-shadow: none; }
+  .verify-reason .bonid-verified-icon i { font-size: 16px; }
+  .verify-reason-title { color: var(--haiti-charcoal); font-size: 13px; font-weight: 700; line-height: 1.3; }
+  .verify-reason-text  { color: rgba(46, 46, 56, 0.65); font-size: 12px; line-height: 1.45; margin-top: 2px; }
+  .verify-reason-status { margin-left: auto; flex-shrink: 0; font-size: 18px; line-height: 1; padding-top: 6px; }
+  /* Collapsible reason groups: open for unverified users (the pitch),
+     closed for verified users (they already have these). */
+  .verify-group { margin-top: 10px; }
+  .verify-group > summary {
+    list-style: none; cursor: pointer;
+    display: flex; align-items: center; gap: 8px;
+    min-height: 44px; padding: 0 4px;
+    border-radius: 10px;
+  }
+  .verify-group > summary::-webkit-details-marker { display: none; }
+  .verify-group > summary:focus-visible { outline: 2px solid var(--haiti-blue); outline-offset: 2px; }
+  .verify-group-label {
+    font-size: 11px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase;
+    color: var(--haiti-olive);
+  }
+  .verify-group-count {
+    font-size: 11px; font-weight: 700; color: rgba(46, 46, 56, 0.45);
+  }
+  .verify-group-chevron {
+    margin-left: auto; font-size: 20px; color: var(--haiti-olive);
+    transition: transform 0.2s;
+  }
+  .verify-group[open] .verify-group-chevron { transform: rotate(180deg); }
+
+  .verified-since {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 5px 12px; border-radius: 999px;
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.75); font-size: 12px; font-weight: 600;
+  }
+  .verified-since i { color: #4ade80; font-size: 14px; }
+</style>
+
 <div class="container py-4" style="max-width: 480px;">
   <div class="card-base p-4 w-100" style="border: 1px solid rgba(46,46,56,0.05);">
 
     <%# ── Page Header ── %>
-    <div class="d-flex align-items-center justify-content-between mb-3">
-      <h1 class="h5 fw-black mb-0" style="color: var(--haiti-charcoal); font-family: 'Space Grotesk', sans-serif;">Verifye ak BonID</h1>
-      <%= link_to root_path, class: "small text-decoration-none fw-bold", style: "color: var(--haiti-olive);" do %>
-        <i class="ri-arrow-left-line me-1"></i>Lakay
-      <% end %>
-    </div>
+    <h1 class="h5 fw-black mb-3 text-center" style="color: var(--haiti-charcoal); font-family: 'Space Grotesk', sans-serif;">Verifye ak BonID</h1>
 
-    <% if current_user.bonid_verified? %>
+    <% if verified %>
       <%# ══════════════════════════════════════ %>
       <%# ── VERIFIED STATE                 ──  %>
       <%# ══════════════════════════════════════ %>
       <div class="p-5 rounded-4 mb-4 text-center" style="background: var(--haiti-charcoal);">
-        <% if current_user.bonid_photo_url.present? %>
-          <img src="<%= current_user.bonid_photo_url %>" alt="Foto" class="rounded-circle mb-3" style="width: 80px; height: 80px; object-fit: cover; border: 3px solid var(--haiti-gold);">
-        <% else %>
-          <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3" style="width: 80px; height: 80px; background: rgba(197,160,89,0.15);">
-            <i class="ri-shield-check-fill" style="font-size: 2.5rem; color: var(--haiti-gold);"></i>
-          </div>
-        <% end %>
+        <div class="d-inline-block position-relative mb-3">
+          <% if current_user.bonid_photo_url.present? %>
+            <img src="<%= current_user.bonid_photo_url %>" alt="Foto" class="rounded-circle" style="width: 80px; height: 80px; object-fit: cover; border: 3px solid var(--haiti-gold);">
+            <span class="bonid-verified-badge" title="Idantite verifye ak BonID" aria-hidden="true"><i class="ri-check-line"></i></span>
+          <% else %>
+            <div class="bonid-verified-icon bonid-verified-icon--lg" aria-hidden="true"><i class="ri-shield-check-fill"></i></div>
+          <% end %>
+        </div>
         <div class="fw-bold text-uppercase mb-1" style="color: rgba(255,255,255,0.45); font-size: 11px; letter-spacing: 1.5px;">Verifye</div>
         <div class="fw-black" style="color: #fff; font-size: 22px; line-height: 1.2; font-family: 'Space Grotesk', sans-serif;">
           <%= current_user.bonid_full_name || current_user.display_name %>
         </div>
         <div style="border-top: 1px solid rgba(255,255,255,0.10); margin: 10px auto; width: 60%;"></div>
         <div style="color: var(--haiti-gold); font-size: 13px; font-weight: 700;">
-          <i class="ri-fingerprint-line me-1"></i><%= current_user.bonid %>
+          <i class="ri-fingerprint-line me-1"></i><span title="Nimewo BonID ou (kache pou sekirite)"><%= masked_bonid(current_user.bonid) %></span>
         </div>
-        <div class="mt-2" style="color: rgba(255,255,255,0.35); font-size: 11px;">
-          Verifye <%= current_user.bonid_verified_at.strftime("%d %b %Y") %>
+        <div class="verified-since mt-3">
+          <i class="ri-checkbox-circle-fill" aria-hidden="true"></i>
+          Verifye depi <%= verified_on %>
         </div>
       </div>
 
-      <%# ── Verification Benefits ── %>
-      <div class="mb-3">
-        <div class="small fw-bold text-uppercase mb-2" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">
-          <i class="ri-gift-line me-1" style="color: var(--haiti-gold);"></i>Avantaj Verifikasyon
-        </div>
-        <div class="d-flex align-items-center gap-3 p-3 rounded-3 mb-2" style="background: var(--haiti-mint); border: 1px solid transparent; transition: border-color 0.2s;" onmouseover="this.style.borderColor='var(--haiti-gold)'" onmouseout="this.style.borderColor='transparent'">
-          <i class="ri-checkbox-circle-fill" style="color: #166534; font-size: 18px;"></i>
-          <span style="color: var(--haiti-charcoal); font-size: 13px; font-weight: 600;">Limit kredi 2x pi gwo</span>
-        </div>
-        <div class="d-flex align-items-center gap-3 p-3 rounded-3 mb-2" style="background: var(--haiti-mint); border: 1px solid transparent; transition: border-color 0.2s;" onmouseover="this.style.borderColor='var(--haiti-gold)'" onmouseout="this.style.borderColor='transparent'">
-          <i class="ri-checkbox-circle-fill" style="color: #166534; font-size: 18px;"></i>
-          <span style="color: var(--haiti-charcoal); font-size: 13px; font-weight: 600;">Limit transfè jounalye pi wo</span>
-        </div>
-        <div class="d-flex align-items-center gap-3 p-3 rounded-3 mb-2" style="background: var(--haiti-mint); border: 1px solid transparent; transition: border-color 0.2s;" onmouseover="this.style.borderColor='var(--haiti-gold)'" onmouseout="this.style.borderColor='transparent'">
-          <i class="ri-checkbox-circle-fill" style="color: #166534; font-size: 18px;"></i>
-          <span style="color: var(--haiti-charcoal); font-size: 13px; font-weight: 600;">Konfyans pi wo nan PrioSòl</span>
-        </div>
-      </div>
+      <div class="small fw-bold mb-1" style="color: var(--haiti-charcoal); font-size: 14px;">Sa verifikasyon an ba ou</div>
+      <div style="color: rgba(46,46,56,0.6); font-size: 12px;">Tout avantaj sa yo aktive sou kont ou.</div>
 
     <% else %>
       <%# ══════════════════════════════════════ %>
       <%# ── UNVERIFIED STATE               ──  %>
       <%# ══════════════════════════════════════ %>
       <div class="p-4 rounded-4 mb-4 text-center" style="background: var(--haiti-charcoal);">
-        <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3" style="width: 72px; height: 72px; background: rgba(197,160,89,0.15);">
-          <i class="ri-shield-check-line" style="font-size: 2.2rem; color: var(--haiti-gold);"></i>
+        <div class="d-inline-flex mb-3">
+          <div class="bonid-verified-icon bonid-verified-icon--lg" style="width: 72px; height: 72px;" aria-hidden="true"><i class="ri-shield-check-fill"></i></div>
         </div>
         <div class="fw-black mb-2" style="color: #fff; font-size: 16px; font-family: 'Space Grotesk', sans-serif;">Kisa BonID ye?</div>
         <div style="color: rgba(255,255,255,0.6); font-size: 12px; max-width: 320px; margin: 0 auto; line-height: 1.6;">
@@ -72,26 +142,49 @@
         </div>
       </div>
 
-      <%# ── Benefits Preview (unlock cards) ── %>
-      <div class="mb-4">
-        <div class="small fw-bold text-uppercase mb-2" style="color: var(--haiti-olive); font-size: 10px; letter-spacing: 1px;">
-          <i class="ri-gift-line me-1" style="color: var(--haiti-gold);"></i>Sa'w ap Debloke
-        </div>
-        <%# Sòl / Bousad / Ajan benefits dropped while those features are paused. %>
-        <% [
-          "Limit kredi 2× pi gwo",
-          "Limit transfè jounalye pi wo",
-          "Pa bezwen al nan biwo ni voye imèl"
-        ].each do |benefit| %>
-          <div class="d-flex align-items-center gap-3 p-3 rounded-3 mb-2" style="background: var(--haiti-mint); border: 1px solid transparent; transition: border-color 0.2s;" onmouseover="this.style.borderColor='var(--haiti-gold)'" onmouseout="this.style.borderColor='transparent'">
-            <i class="ri-lock-2-line" style="color: var(--haiti-gold); font-size: 18px;"></i>
-            <span style="color: var(--haiti-charcoal); font-size: 13px; font-weight: 600;"><%= benefit %></span>
+      <div class="small fw-bold mb-1" style="color: var(--haiti-charcoal); font-size: 14px;">Poukisa pou w verifye?</div>
+      <div style="color: rgba(46,46,56,0.6); font-size: 12px;">Men sa w ap debloke lè w verifye ak BonID.</div>
+    <% end %>
+
+    <%# ── Reasons to verify (shared by both states) ── %>
+    <div class="mb-4">
+      <% verify_reasons.each do |section| %>
+        <details class="verify-group" <%= "open" unless verified %>>
+        <summary>
+          <span class="verify-group-label"><%= section[:group] %></span>
+          <span class="verify-group-count">(<%= section[:items].size %>)</span>
+          <i class="ri-arrow-down-s-line verify-group-chevron" aria-hidden="true"></i>
+        </summary>
+        <% section[:items].each do |item| %>
+          <div class="verify-reason">
+            <div class="bonid-verified-icon" aria-hidden="true"><i class="<%= item[:icon] %>"></i></div>
+            <div style="min-width: 0;">
+              <div class="verify-reason-title"><%= item[:title] %></div>
+              <div class="verify-reason-text"><%= item[:text] %></div>
+            </div>
+            <% if verified %>
+              <i class="ri-checkbox-circle-fill verify-reason-status" style="color: #166534;" title="Aktive" aria-label="Aktive"></i>
+            <% else %>
+              <i class="ri-lock-2-line verify-reason-status" style="color: rgba(46,46,56,0.35);" title="Bloke" aria-label="Bloke jiskaske w verifye"></i>
+            <% end %>
           </div>
         <% end %>
-      </div>
+        </details>
+      <% end %>
+    </div>
 
-      <%# ── BonID Connect Button (Gold Primary) ── %>
-      <%= link_to "#{BonIdService.web_url}/citizens/otp_sign_in?from_partner=zellus&lang=ht", id: "bonid-connect-btn", class: "btn w-100 rounded-pill py-3 mb-3 fw-black d-flex align-items-center justify-content-center gap-2", style: "background: var(--haiti-gold); color: var(--haiti-charcoal); font-family: 'Space Grotesk', sans-serif; font-size: 15px; border: none;" do %>
+    <% unless verified %>
+      <%# ── BonID Connect Button (Gold Primary) ──
+          Goes through the same OAuth flow as sign-in (POST, CSRF-checked by
+          omniauth-rails_csrf_protection); the callback links BonID to the
+          signed-in user. If the user is already signed in to BonID and has
+          approved Zellus, BonID sends them straight back; otherwise it shows
+          its login. %>
+      <%= button_to user_bonid_omniauth_authorize_path, method: :post,
+            form: { id: "bonid-connect-form" },
+            id: "bonid-connect-btn",
+            class: "btn w-100 rounded-pill py-3 mb-3 fw-black d-flex align-items-center justify-content-center gap-2",
+            style: "background: var(--haiti-gold); color: var(--haiti-charcoal); font-family: 'Space Grotesk', sans-serif; font-size: 15px; border: none;" do %>
         <i class="ri-shield-check-fill" style="font-size: 20px;"></i>Konekte ak BonID
       <% end %>
 
@@ -101,12 +194,15 @@
       ] %>
 
       <script>
-        document.getElementById('bonid-connect-btn').addEventListener('click', function(e) {
-          e.preventDefault();
-          var url = this.href;
-          ZellusLoader.start('bonid-loader', null, { stepDelay: 2500 });
-          setTimeout(function() { window.location.href = url; }, 5500);
-        });
+        (function () {
+          var form = document.getElementById('bonid-connect-form');
+          if (!form) return;
+          form.addEventListener('submit', function (e) {
+            e.preventDefault();
+            // Show the "sending you to BonID" steps, then post (same tab).
+            ZellusLoader.start('bonid-loader', form, { stepDelay: 2500 });
+          });
+        })();
       </script>
 
       <div class="text-center mb-3" style="font-size: 12px;">
