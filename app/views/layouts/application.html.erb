@@ -34,7 +34,29 @@
         --haiti-gold: #C5A059;
         --haiti-mint: #E8EDE0;
         --haiti-cream: #F7F4E3;
+        --haiti-blue: #00209F;
       }
+
+      /* BonID "verified" icon in the profile menu: white shield on a solid
+         blue circle, with a soft ring so it reads as a status, not a button. */
+      .bonid-verified-icon {
+        width: 34px; height: 34px; border-radius: 50%;
+        background: var(--haiti-blue);
+        box-shadow: 0 0 0 3px rgba(0, 32, 159, 0.12);
+        display: flex; align-items: center; justify-content: center;
+        flex-shrink: 0;
+      }
+      .bonid-verified-icon i { color: #fff; font-size: 17px; line-height: 1; }
+      .bonid-verified-icon--lg { width: 80px; height: 80px; box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.08); }
+      .bonid-verified-icon--lg i { font-size: 2.4rem; }
+      /* Small check badge pinned to a photo or avatar. */
+      .bonid-verified-badge {
+        position: absolute; right: -2px; bottom: -2px;
+        width: 26px; height: 26px; border-radius: 50%;
+        background: var(--haiti-blue); border: 3px solid var(--haiti-charcoal);
+        display: flex; align-items: center; justify-content: center;
+      }
+      .bonid-verified-badge i { color: #fff; font-size: 13px; line-height: 1; }
 
       html, body {
         overflow-x: hidden;
@@ -770,13 +792,13 @@
                   </li>
                   <% if current_user.bonid_verified? %>
                     <li class="js-bonid-menu-item" style="padding: 0 10px;">
-                      <%= link_to bonid_verification_path, class: "d-flex align-items-center gap-3 text-decoration-none", style: "padding: 10px 10px; border-radius: 10px; transition: background 0.15s; min-height: 44px;", onmouseover: "this.style.background='var(--haiti-mint)'", onmouseout: "this.style.background='transparent'" do %>
-                        <div style="width: 32px; height: 32px; border-radius: 10px; background: #eef1ff; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                          <i class="ri-shield-check-line" style="color: #00209F; font-size: 16px;"></i>
+                      <%= link_to bonid_verification_path, class: "d-flex align-items-center gap-3 text-decoration-none", style: "padding: 10px 10px; border-radius: 10px; transition: background 0.15s; min-height: 44px;", onmouseover: "this.style.background='var(--haiti-mint)'", onmouseout: "this.style.background='transparent'", title: "Idantite ou verifye ak BonID", "aria-label": "BonID: idantite ou verifye. Wè detay yo." do %>
+                        <div class="bonid-verified-icon" aria-hidden="true">
+                          <i class="ri-shield-check-fill"></i>
                         </div>
                         <div style="flex: 1; min-width: 0;">
                           <div class="fw-bold" style="color: var(--haiti-charcoal); font-size: 13px;">BonID</div>
-                          <div class="text-truncate" style="color: #00209F; font-size: 10px; font-weight: 600;"><%= current_user.bonid.gsub(/(.{4}).*(.{3})/, '\1••••••\2') %></div>
+                          <div class="text-truncate" style="color: #00209F; font-size: 10px; font-weight: 600;"><%= masked_bonid(current_user.bonid) %></div>
                         </div>
                         <span class="badge rounded-pill" style="background: #dcfce7; color: #166534; font-size: 9px; font-weight: 700; padding: 3px 8px;">Verifye</span>
                       <% end %>

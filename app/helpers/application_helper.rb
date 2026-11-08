@@ -1,4 +1,17 @@
 module ApplicationHelper
+  # A BonID number encodes birth year, sex and department
+  # (e.g. "DL-1988-M-OU-P8697-C56"), so on screen show only the 2-letter
+  # prefix and the last 3 characters, keeping the dashes so it still reads
+  # as a BonID: "DL-••••-•-••-•••••-C56".
+  def masked_bonid(bonid)
+    return "" if bonid.blank?
+
+    chars = bonid.to_s.chars
+    alnum_positions = chars.each_index.select { |i| chars[i].match?(/[[:alnum:]]/) }
+    visible = alnum_positions.first(2) + alnum_positions.last(3)
+
+    chars.each_with_index.map { |c, i| c.match?(/[[:alnum:]]/) && !visible.include?(i) ? "•" : c }.join
+  end
   # Convert raw technical failure reasons into user-friendly Kreyòl messages
   def friendly_failure_reason(reason)
     return "Erè enkoni." if reason.blank?
