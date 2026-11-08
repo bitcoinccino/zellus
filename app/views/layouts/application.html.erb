@@ -57,6 +57,15 @@
         display: flex; align-items: center; justify-content: center;
       }
       .bonid-verified-badge i { color: #fff; font-size: 13px; line-height: 1; }
+      /* Verified check on the navbar avatar: brand blue with a thin white ring,
+         since dark blue alone disappears against the charcoal navbar. */
+      .avatar-verified-badge {
+        position: absolute; right: -3px; bottom: -3px;
+        width: 15px; height: 15px; border-radius: 50%;
+        background: var(--haiti-blue); border: 1.5px solid #fff;
+        display: flex; align-items: center; justify-content: center;
+      }
+      .avatar-verified-badge i { color: #fff; font-size: 9px; line-height: 1; font-weight: 700; }
 
       /* Profile menu header: full name, with the $cashtag on the line below.
          Long names truncate with an ellipsis. */
@@ -732,8 +741,8 @@
                     <div style="position: relative; width: 30px; height: 30px;">
                       <%= image_tag current_user.avatar, style: "width: 30px; height: 30px; border-radius: 50%; object-fit: cover; border: 2px solid var(--haiti-gold);", alt: "" %>
                       <% if current_user.bonid_verified? %>
-                        <div class="js-bonid-badge" style="position: absolute; bottom: -2px; right: -2px; width: 14px; height: 14px; background: #16a34a; border-radius: 50%; border: 2px solid var(--haiti-charcoal); display: flex; align-items: center; justify-content: center;">
-                          <i class="ri-check-line" style="color: #fff; font-size: 8px;"></i>
+                        <div class="js-bonid-badge avatar-verified-badge" title="Idantite verifye ak BonID" aria-hidden="true">
+                          <i class="ri-check-line"></i>
                         </div>
                       <% end %>
                     </div>
@@ -743,8 +752,8 @@
                         <i class="ri-user-fill" style="font-size: 15px; color: var(--haiti-gold);"></i>
                       </div>
                       <% if current_user.bonid_verified? %>
-                        <div class="js-bonid-badge" style="position: absolute; bottom: -2px; right: -2px; width: 14px; height: 14px; background: #16a34a; border-radius: 50%; border: 2px solid var(--haiti-charcoal); display: flex; align-items: center; justify-content: center;">
-                          <i class="ri-check-line" style="color: #fff; font-size: 8px;"></i>
+                        <div class="js-bonid-badge avatar-verified-badge" title="Idantite verifye ak BonID" aria-hidden="true">
+                          <i class="ri-check-line"></i>
                         </div>
                       <% end %>
                     </div>

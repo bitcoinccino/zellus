@@ -78,6 +78,10 @@ class BonidVerificationPageTest < ActionDispatch::IntegrationTest
     profile = css_select(".profile-toggle").first.parent
     assert_equal 1, profile.css("img, .ri-user-fill").size
     assert_equal 0, profile.css(".profile-menu .js-bonid-badge").size
+    # The avatar's verified check is blue (not the old green).
+    badge = css_select(".profile-toggle .avatar-verified-badge").first
+    assert badge, "verified check missing on the avatar"
+    refute_match(/16a34a/i, badge["style"].to_s)
     header = profile.css(".profile-menu .profile-menu-header").first
     assert header, "profile menu header missing"
     assert_equal "Test User", header.css(".profile-menu-name").text.strip
