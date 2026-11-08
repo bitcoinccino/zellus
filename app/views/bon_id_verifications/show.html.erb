@@ -174,8 +174,17 @@
     </div>
 
     <% unless verified %>
-      <%# ── BonID Connect Button (Gold Primary) ── %>
-      <%= link_to "#{BonIdService.web_url}/citizens/otp_sign_in?from_partner=zellus&lang=ht", id: "bonid-connect-btn", class: "btn w-100 rounded-pill py-3 mb-3 fw-black d-flex align-items-center justify-content-center gap-2", style: "background: var(--haiti-gold); color: var(--haiti-charcoal); font-family: 'Space Grotesk', sans-serif; font-size: 15px; border: none;" do %>
+      <%# ── BonID Connect Button (Gold Primary) ──
+          Goes through the same OAuth flow as sign-in (POST, CSRF-checked by
+          omniauth-rails_csrf_protection); the callback links BonID to the
+          signed-in user. If the user is already signed in to BonID and has
+          approved Zellus, BonID sends them straight back; otherwise it shows
+          its login. %>
+      <%= button_to user_bonid_omniauth_authorize_path, method: :post,
+            form: { id: "bonid-connect-form" },
+            id: "bonid-connect-btn",
+            class: "btn w-100 rounded-pill py-3 mb-3 fw-black d-flex align-items-center justify-content-center gap-2",
+            style: "background: var(--haiti-gold); color: var(--haiti-charcoal); font-family: 'Space Grotesk', sans-serif; font-size: 15px; border: none;" do %>
         <i class="ri-shield-check-fill" style="font-size: 20px;"></i>Konekte ak BonID
       <% end %>
 
@@ -185,12 +194,15 @@
       ] %>
 
       <script>
-        document.getElementById('bonid-connect-btn').addEventListener('click', function(e) {
-          e.preventDefault();
-          var url = this.href;
-          ZellusLoader.start('bonid-loader', null, { stepDelay: 2500 });
-          setTimeout(function() { window.location.href = url; }, 5500);
-        });
+        (function () {
+          var form = document.getElementById('bonid-connect-form');
+          if (!form) return;
+          form.addEventListener('submit', function (e) {
+            e.preventDefault();
+            // Show the "sending you to BonID" steps, then post (same tab).
+            ZellusLoader.start('bonid-loader', form, { stepDelay: 2500 });
+          });
+        })();
       </script>
 
       <div class="text-center mb-3" style="font-size: 12px;">
