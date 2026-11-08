@@ -79,8 +79,7 @@ class TransfersController < ApplicationController
       rate = exchange_rate_for(asset_type)
       if rate && rate > 0 && @transfer.amount.to_f > 0
         @transfer.exchange_rate = rate
-        precision = %w[wbtc eth tslax nvdax aaplx coinx googlx].include?(asset_type) ? 8 : 6
-        @transfer.crypto_amount = (@transfer.amount.to_f / rate).round(precision)
+        @transfer.crypto_amount = Transfer.asset_amount_from_htg(@transfer.amount, rate, asset_type)
       end
     end
 

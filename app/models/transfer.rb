@@ -65,6 +65,19 @@ class Transfer < ApplicationRecord
   SEND_MIN_HTG = 50
   SEND_MAX_HTG = 50_000
 
+  # Converts an HTG amount into the asset actually moved.
+  # USD settles in whole cents: the confirm screen shows 2 decimals, so
+  # 136 HTG at 135.50 moves $1.00, not $1.00369. Sub-cent amounts would
+  # otherwise pile up as invisible dust in both wallets.
+  def self.asset_amount_from_htg(htg_amount, rate, asset)
+    if asset == "usd"
+      (BigDecimal(htg_amount.to_s) / BigDecimal(rate.to_s)).round(2, BigDecimal::ROUND_HALF_UP)
+    else
+      precision = %w[wbtc eth tslax nvdax aaplx coinx googlx].include?(asset) ? 8 : 6
+      (htg_amount.to_f / rate).round(precision)
+    end
+  end
+
   # ── Helpers ──
 
   def htg_transfer?
