@@ -258,8 +258,9 @@
         </span>
       <% end %>
 
-      <%# More menu %>
-      <div class="position-absolute" style="top: 12px; right: 12px;">
+      <%# More menu — phones/tablets only. On desktop (lg+) the sidebar already
+          has Depoze / Konvèti / Retire, so the ⋯ would just duplicate it. %>
+      <div class="position-absolute d-lg-none" style="top: 12px; right: 12px;">
         <button type="button" id="hero-menu-btn" class="btn border-0 p-0 d-flex align-items-center justify-content-center"
                 style="width: 32px; height: 32px; color: rgba(255,255,255,0.7);"
                 onclick="toggleHeroMenu()">
