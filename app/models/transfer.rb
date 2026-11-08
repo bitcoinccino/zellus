@@ -140,6 +140,21 @@ class Transfer < ApplicationRecord
     usd? && receiver_wallet_address.present? && receiver_cashtag.blank?
   end
 
+  # Network fee debited with an external USD send. Read from the ledger so the
+  # payout always matches what was charged; transfers from before the fee have none.
+  def usd_network_fee_charged
+    return BigDecimal("0") unless usd_address_transfer?
+
+    WalletLedgerEntry.where(reference: self, entry_type: "fee", asset: "usd").sum(:amount).to_d
+  end
+
+  # What actually goes on-chain: crypto_amount is what the sender was debited.
+  def crypto_payout_amount
+    return crypto_amount unless crypto_amount && usd_address_transfer?
+
+    crypto_amount - usd_network_fee_charged
+  end
+
   def stock_wallet_transfer?
     stock_transfer? && receiver_cashtag.present?
   end

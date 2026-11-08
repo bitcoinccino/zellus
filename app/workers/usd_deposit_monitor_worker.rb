@@ -1,5 +1,6 @@
 # frozen_string_literal: true
-require 'sidekiq'
+
+require "sidekiq"
 
 class UsdDepositMonitorWorker
   include Sidekiq::Job
@@ -22,13 +23,13 @@ class UsdDepositMonitorWorker
   TRANSFER_TOPIC = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
 
   def perform
-    rpc_url = ENV['BASE_RPC_URL'].presence || "https://mainnet.base.org"
+    rpc_url = ENV["BASE_RPC_URL"].presence || "https://mainnet.base.org"
 
     # Build lookup of user deposit addresses → user_id.
     # When Circle is active, skip users who have a Circle wallet —
     # their deposits arrive via Circle webhooks, not on-chain polling.
     @address_to_user = {}
-    scope = User.where.not(deposit_address: [nil, ""])
+    scope = User.where.not(deposit_address: [ nil, "" ])
     scope = scope.where(circle_wallet_id: nil) if CryptoProvider.circle?
     scope.find_each do |user|
       @address_to_user[user.deposit_address.downcase] = user.id
@@ -53,10 +54,10 @@ class UsdDepositMonitorWorker
 
     from_block = if monitor.last_processed_block > 0
                    monitor.last_processed_block + 1
-                 else
+    else
                    first_scan_block(current_block)
-                 end
-    to_block = [from_block + POLL_RANGE - 1, current_block].min
+    end
+    to_block = [ from_block + POLL_RANGE - 1, current_block ].min
 
     if from_block > current_block
       schedule_next
@@ -66,14 +67,14 @@ class UsdDepositMonitorWorker
     # Query in batches (eth_getLogs topics array has practical limits)
     deposits_count = 0
     all_addresses.each_slice(BATCH_SIZE) do |batch|
-      padded_batch = batch.map { |addr| "0x" + addr.delete_prefix("0x").rjust(64, '0') }
+      padded_batch = batch.map { |addr| "0x" + addr.delete_prefix("0x").rjust(64, "0") }
 
-      logs = rpc_call(rpc_url, "eth_getLogs", [{
+      logs = rpc_call(rpc_url, "eth_getLogs", [ {
         fromBlock: "0x#{from_block.to_s(16)}",
         toBlock:   "0x#{to_block.to_s(16)}",
         address:   USD_ADDRESS,
-        topics:    [TRANSFER_TOPIC, nil, padded_batch]
-      }])
+        topics:    [ TRANSFER_TOPIC, nil, padded_batch ]
+      } ])
 
       (logs || []).each do |log|
         if process_deposit_log(log)

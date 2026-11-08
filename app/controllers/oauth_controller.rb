@@ -1,7 +1,7 @@
 class OauthController < ApplicationController
-  before_action :authenticate_user!, only: [:authorize, :decision]
-  skip_before_action :verify_authenticity_token, only: [:token]
-  skip_before_action :require_cashtag!, only: [:authorize, :decision, :token]
+  before_action :authenticate_user!, only: [ :authorize, :decision ]
+  skip_before_action :verify_authenticity_token, only: [ :token ]
+  skip_before_action :require_cashtag!, only: [ :authorize, :decision, :token ]
 
   # GET /oauth/authorize?client_id=...&redirect_uri=...&response_type=code&scope=profile+email
   def authorize
@@ -60,9 +60,9 @@ class OauthController < ApplicationController
     requested_scopes = params[:requested_scopes].to_s.split(/[\s,]+/) & OauthClient::VALID_SCOPES
     granted = if params[:granted_scopes].present?
                 Array(params[:granted_scopes]) & requested_scopes
-              else
+    else
                 requested_scopes # Fallback: grant all requested
-              end
+    end
 
     # Always include openid if it was requested
     granted << "openid" if requested_scopes.include?("openid") && !granted.include?("openid")

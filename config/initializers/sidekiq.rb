@@ -8,7 +8,7 @@
 if defined?(Sidekiq)
   Sidekiq.configure_server do |config|
     config.on(:startup) do
-      require 'sidekiq/api'
+      require "sidekiq/api"
 
       # Helper: only schedule if no existing job for this worker class
       schedule_unique = ->(klass, delay) do
@@ -32,7 +32,7 @@ if defined?(Sidekiq)
       schedule_unique.call(ReserveAlertWorker, 60)
 
       # Crypto deposit monitors — require treasury key
-      if ENV['TREASURY_PRIVATE_KEY'].present?
+      if ENV["TREASURY_PRIVATE_KEY"].present?
         schedule_unique.call(UsdDepositMonitorWorker, 10)
         schedule_unique.call(EthDepositMonitorWorker, 20)
         schedule_unique.call(WbtcDepositMonitorWorker, 30)

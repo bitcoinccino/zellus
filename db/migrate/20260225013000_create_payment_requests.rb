@@ -14,6 +14,6 @@ class CreatePaymentRequests < ActiveRecord::Migration[8.0]
     end
 
     add_index :payment_requests, :token, unique: true
-    add_index :payment_requests, [:user_id, :status]
+    add_index :payment_requests, [ :user_id, :status ]
   end
 end

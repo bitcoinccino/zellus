@@ -59,7 +59,7 @@ class PaymentRequest < ApplicationRecord
     if hours > 0
       "#{hours}h #{minutes}m rete"
     else
-      "#{[minutes, 0].max}m rete"
+      "#{[ minutes, 0 ].max}m rete"
     end
   end
 

@@ -24,8 +24,8 @@ class CreateSolEscrowAndLedger < ActiveRecord::Migration[8.0]
       t.timestamps
     end
 
-    add_index :sol_ledger_entries, [:sol_escrow_account_id, :created_at]
-    add_index :sol_ledger_entries, [:entry_type]
-    add_index :sol_ledger_entries, [:reference_type, :reference_id]
+    add_index :sol_ledger_entries, [ :sol_escrow_account_id, :created_at ]
+    add_index :sol_ledger_entries, [ :entry_type ]
+    add_index :sol_ledger_entries, [ :reference_type, :reference_id ]
   end
 end

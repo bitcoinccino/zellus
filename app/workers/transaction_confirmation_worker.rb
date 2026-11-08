@@ -1,5 +1,6 @@
 # frozen_string_literal: true
-require 'sidekiq'
+
+require "sidekiq"
 
 class TransactionConfirmationWorker
   include Sidekiq::Job
@@ -14,7 +15,7 @@ class TransactionConfirmationWorker
     return unless transaction.crypto_sent?
     return unless transaction.blockchain_tx_hash.present?
 
-    rpc_url = ENV['BASE_RPC_URL'].presence || "https://mainnet.base.org"
+    rpc_url = ENV["BASE_RPC_URL"].presence || "https://mainnet.base.org"
     receipt  = fetch_receipt(rpc_url, transaction.blockchain_tx_hash)
 
     if receipt.nil?
@@ -59,7 +60,7 @@ class TransactionConfirmationWorker
   private
 
   def fetch_receipt(rpc_url, tx_hash)
-    BaseRpcClient.new(url: rpc_url).call("eth_getTransactionReceipt", [tx_hash])  # nil if pending, hash with "status" if confirmed
+    BaseRpcClient.new(url: rpc_url).call("eth_getTransactionReceipt", [ tx_hash ])  # nil if pending, hash with "status" if confirmed
   rescue => e
     Rails.logger.error "Zèllus: eth_getTransactionReceipt failed: #{e.message}"
     nil

@@ -92,7 +92,7 @@ class Transaction < ApplicationRecord
     /connection refused|timeout|ECONNREFUSED/i => "Nou pa kapab konekte ak rezo a. Tanpri eseye ankò pita.",
     /partner is blocked/i           => "Sèvis peman an pa disponib. Tanpri kontakte sipò.",
     /MonCash connection failed/i    => "Sèvis MonCash pa disponib kounye a. Tanpri eseye ankò pita.",
-    /MonCash customer check failed|MonCash payout failed|No short code for user account/i => "Nou resevwa depo USDC ou, men peman HTG a pa t kapab fèt toujou. Ekip sipò ap regle sa pou ou.",
+    /MonCash customer check failed|MonCash payout failed|No short code for user account/i => "Nou resevwa depo USDC ou, men peman HTG a pa t kapab fèt toujou. Ekip sipò ap regle sa pou ou."
   }
 
   def friendly_failure_reason

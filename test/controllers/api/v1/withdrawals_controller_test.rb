@@ -9,8 +9,8 @@ class Api::V1::WithdrawalsControllerTest < ActionDispatch::IntegrationTest
     setup_transfer_pin!(@sender, "1234")
     @sender.update!(bonid: "BON-SENDER-TEST", bonid_verified_at: Time.current)
 
-    # USD withdrawals check the platform reserve held in the admin's wallet.
-    # Tests don't load .env, so point ADMIN_EMAIL at a funded fixture wallet.
+    # USD withdrawals go through the platform reserve circuit breaker, which
+    # reads the admin's wallet, so give it a healthy reserve by default.
     @original_admin_email = ENV["ADMIN_EMAIL"]
     ENV["ADMIN_EMAIL"] = users(:receiver).email
     wallets(:receiver_wallet).update!(usdc_balance: 100_000)
@@ -378,6 +378,23 @@ class Api::V1::WithdrawalsControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :unprocessable_entity
     assert_includes parsed_response["error"], "Balans"
+  end
+
+  test "crypto withdrawal is refused when it would drop the platform reserve below the floor" do
+    wallets(:receiver_wallet).update!(usdc_balance: 100)
+    balance_before = wallets(:sender_wallet).usdc_balance
+
+    post api_v1_withdrawals_url,
+         params: {
+           amount: 50, asset: "usd", method: "crypto",
+           wallet_address: "0x" + "a1b2c3d4e5" * 4,
+           pin: "1234"
+         },
+         headers: api_auth_headers(@token)
+
+    assert_response :unprocessable_entity
+    assert_includes parsed_response["error"], "Sèvis pa disponib"
+    assert_equal balance_before, wallets(:sender_wallet).reload.usdc_balance
   end
 
   # ── Invalid method ──

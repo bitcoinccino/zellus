@@ -109,9 +109,9 @@ class WalletService
                      "Frè retrè USD (rezo Base)"
         elsif instant
                      "Frè retire instant (1.5%, min 25 maks 2,500 HTG)"
-                   else
+        else
                      "Frè retire estanda (1%, min 15 HTG)"
-                   end
+        end
         @wallet.wallet_ledger_entries.create!(
           user: @wallet.user,
           entry_type: instant ? "instant_fee" : "fee",

@@ -15,7 +15,7 @@ class CreateTreasurySweeps < ActiveRecord::Migration[8.0]
     end
 
     add_index :treasury_sweeps, :status
-    add_index :treasury_sweeps, [:user_id, :asset, :status]
+    add_index :treasury_sweeps, [ :user_id, :asset, :status ]
     add_index :treasury_sweeps, :sweep_tx_hash, unique: true, where: "sweep_tx_hash IS NOT NULL"
   end
 end

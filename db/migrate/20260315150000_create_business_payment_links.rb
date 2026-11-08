@@ -15,6 +15,6 @@ class CreateBusinessPaymentLinks < ActiveRecord::Migration[8.0]
     end
 
     add_index :business_payment_links, :token, unique: true
-    add_index :business_payment_links, [:business_id, :status]
+    add_index :business_payment_links, [ :business_id, :status ]
   end
 end

@@ -56,7 +56,7 @@ class LightsparkWebhooksController < ActionController::API
 
     unless ActiveSupport::SecurityUtils.secure_compare(expected, signature.to_s)
       Rails.logger.warn "LightsparkWebhook: invalid signature"
-      return head :unauthorized
+      head :unauthorized
     end
   end
 

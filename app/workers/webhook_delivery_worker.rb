@@ -55,7 +55,7 @@ class WebhookDeliveryWorker
   def schedule_retry(delivery)
     return unless delivery.next_retry_at.present?
 
-    delay = [(delivery.next_retry_at - Time.current).to_i, 0].max
+    delay = [ (delivery.next_retry_at - Time.current).to_i, 0 ].max
     WebhookDeliveryWorker.perform_in(delay.seconds, delivery.id)
   end
 end

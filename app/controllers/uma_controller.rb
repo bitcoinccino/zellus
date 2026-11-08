@@ -99,8 +99,8 @@ class UmaController < ActionController::API
   def lnurlp_metadata(user)
     display_name = user.bonid_full_name || user.display_name
     [
-      ["text/plain",       "Peye #{display_name} sou Zèllus"],
-      ["text/identifier",  user.uma_address]
+      [ "text/plain",       "Peye #{display_name} sou Zèllus" ],
+      [ "text/identifier",  user.uma_address ]
     ].to_json
   end
 

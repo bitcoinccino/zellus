@@ -1,8 +1,8 @@
 class TransfersController < ApplicationController
   include ActionView::Helpers::NumberHelper
   include BonidRecheckable
-  before_action :authenticate_user!, except: [:claim, :claim_confirm]
-  before_action :recheck_bonid!, only: [:confirm]
+  before_action :authenticate_user!, except: [ :claim, :claim_confirm ]
+  before_action :recheck_bonid!, only: [ :confirm ]
 
   # ── GET /transfers/new ──
   def new
@@ -607,6 +607,13 @@ class TransfersController < ApplicationController
       wallet = current_user.ensure_wallet!
       usd_amount = @transfer.crypto_amount || @transfer.net_amount
 
+      # Same flat network fee as a USD withdrawal, taken out of the amount.
+      if usd_amount < FeeService::USD_WITHDRAW_MIN
+        redirect_to transfer_path(@transfer),
+                    alert: "Montan minimòm pou voye USD nan yon adrès se #{FeeService::USD_WITHDRAW_MIN} USD (frè #{FeeService::USD_WITHDRAW_FEE} USD)."
+        return
+      end
+
       unless wallet.sufficient_balance?("usd", usd_amount)
         redirect_to transfer_path(@transfer),
                     alert: "Balans USD pa sifi. Ou bezwen #{usd_amount} USD men ou gen #{wallet.usd_balance} USD."
@@ -616,7 +623,7 @@ class TransfersController < ApplicationController
       begin
         WalletService.new(wallet).transfer_out!(
           amount: usd_amount,
-          fee: BigDecimal("0"),
+          fee: FeeService::USD_WITHDRAW_FEE,
           transfer: @transfer,
           asset: "usd"
         )
@@ -987,16 +994,16 @@ class TransfersController < ApplicationController
 
     unless @transfer.funded?
       flash[:alert] = case @transfer.status
-                      when "completed" then "Transfè sa a deja konplete."
-                      when "expired"   then "Transfè sa a ekspire."
-                      when "claimed"   then "Transfè sa a deja reklame. N ap trete l."
-                      else "Transfè sa a pa disponib."
-                      end
+      when "completed" then "Transfè sa a deja konplete."
+      when "expired"   then "Transfè sa a ekspire."
+      when "claimed"   then "Transfè sa a deja reklame. N ap trete l."
+      else "Transfè sa a pa disponib."
+      end
       redirect_to claim_transfer_path(@transfer.token)
       return
     end
 
-    phone = params[:receiver_phone].to_s.gsub(/[^\d]/, '')
+    phone = params[:receiver_phone].to_s.gsub(/[^\d]/, "")
     unless phone.match?(/\A509\d{8}\z/)
       flash[:alert] = "Tanpri antre yon nimewo MonCash valid (509 + 8 chif)."
       redirect_to claim_transfer_path(@transfer.token)
@@ -1126,10 +1133,10 @@ class TransfersController < ApplicationController
       method_id = params[:moncash_method_id].to_s.strip
       if method_id.present? && method_id != "other"
         method = current_user.payment_methods.active.mobile_wallet.find_by(id: method_id)
-        transfer.receiver_phone = method.account_number.to_s.gsub(/[^\d]/, '') if method
+        transfer.receiver_phone = method.account_number.to_s.gsub(/[^\d]/, "") if method
       end
       # Manual phone takes precedence if provided
-      manual_phone = params.dig(:transfer, :receiver_phone).to_s.gsub(/[^\d]/, '')
+      manual_phone = params.dig(:transfer, :receiver_phone).to_s.gsub(/[^\d]/, "")
       transfer.receiver_phone = manual_phone if manual_phone.present?
     elsif transfer.receiver_cashtag.blank?
       # Crypto without $zellustag: fall through to wallet address
@@ -1210,9 +1217,9 @@ class TransfersController < ApplicationController
     payload = { amount: amount.to_i, orderId: order_id }.to_json
 
     response = conn.post do |req|
-      req.headers['Authorization'] = "Bearer #{token}"
-      req.headers['Content-Type']  = 'application/json'
-      req.headers['Accept']        = 'application/json'
+      req.headers["Authorization"] = "Bearer #{token}"
+      req.headers["Content-Type"]  = "application/json"
+      req.headers["Accept"]        = "application/json"
       req.body = payload
     end
 

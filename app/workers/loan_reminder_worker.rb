@@ -5,7 +5,7 @@
 class LoanReminderWorker
   include Sidekiq::Job
 
-  REMINDER_DAYS    = [7, 3, 0].freeze   # days before due_date to send reminders
+  REMINDER_DAYS    = [ 7, 3, 0 ].freeze   # days before due_date to send reminders
   LATE_PENALTY_PER_DAY = 15              # PrioNet points deducted per day late
   LATE_PENALTY_CAP     = 300             # max total penalty from lateness
   ON_TIME_BONUS        = 50              # bonus points for paying on time
@@ -41,7 +41,7 @@ class LoanReminderWorker
 
       # Only penalize once per day (check if already penalized today)
       # We use a simple approach: deduct daily, capped at LATE_PENALTY_CAP total
-      total_possible_penalty = [days_overdue * LATE_PENALTY_PER_DAY, LATE_PENALTY_CAP].min
+      total_possible_penalty = [ days_overdue * LATE_PENALTY_PER_DAY, LATE_PENALTY_CAP ].min
       current_score = user.credit_score || 0
 
       # Calculate what penalty has already been applied (track via failure_reason tag)
@@ -49,7 +49,7 @@ class LoanReminderWorker
       new_penalty = total_possible_penalty - already_penalized
 
       if new_penalty > 0 && current_score > 0
-        deduction = [new_penalty, current_score].min # don't go below 0
+        deduction = [ new_penalty, current_score ].min # don't go below 0
         user.update!(credit_score: current_score - deduction)
         loan.update!(failure_reason: "Pionye Loan Request | LATE_PENALTY:#{total_possible_penalty}")
         Rails.logger.info "LoanReminder: Penalized user=#{user.id} loan=#{loan.id} -#{deduction} pwen (#{days_overdue} jou an reta)"

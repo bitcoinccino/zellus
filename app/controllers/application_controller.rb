@@ -36,8 +36,8 @@ class ApplicationController < ActionController::Base
   protected
 
   def configure_permitted_parameters
-    devise_parameter_sanitizer.permit(:sign_up, keys: [:cashtag, :phone_number, :raw_invite_code])
-    devise_parameter_sanitizer.permit(:account_update, keys: [:payout_preference, :cashtag, :phone_number, :auto_repay_enabled])
+    devise_parameter_sanitizer.permit(:sign_up, keys: [ :cashtag, :phone_number, :raw_invite_code ])
+    devise_parameter_sanitizer.permit(:account_update, keys: [ :payout_preference, :cashtag, :phone_number, :auto_repay_enabled ])
   end
 
   def after_sign_in_path_for(resource)

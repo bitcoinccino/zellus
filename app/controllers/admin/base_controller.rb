@@ -14,9 +14,8 @@ class Admin::BaseController < ApplicationController
     reject_held_funds(admin_root_path)
   end
 
-
   def ensure_admin!
-    admin_email = ENV['ADMIN_EMAIL'].to_s.strip
+    admin_email = ENV["ADMIN_EMAIL"].to_s.strip
     unless current_user.email == admin_email
       redirect_to root_path, alert: "Authorized personnel only."
     end

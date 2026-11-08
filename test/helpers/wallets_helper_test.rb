@@ -32,7 +32,7 @@ class WalletsHelperTest < ActionView::TestCase
   end
 
   test "cents_parts splits and delimits" do
-    assert_equal ["1,234", "05"], cents_parts(123405)
-    assert_equal ["0", "00"], cents_parts(0)
+    assert_equal [ "1,234", "05" ], cents_parts(123405)
+    assert_equal [ "0", "00" ], cents_parts(0)
   end
 end

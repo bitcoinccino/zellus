@@ -51,7 +51,7 @@ module Api
         end
 
         # Pagination
-        page = [params[:page].to_i, 1].max
+        page = [ params[:page].to_i, 1 ].max
         per_page = params[:per_page].to_i
         per_page = 25 if per_page <= 0
         per_page = MAX_PER_PAGE if per_page > MAX_PER_PAGE

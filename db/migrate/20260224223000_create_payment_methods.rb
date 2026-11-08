@@ -10,7 +10,7 @@ class CreatePaymentMethods < ActiveRecord::Migration[8.0]
       t.timestamps
     end
 
-    add_index :payment_methods, [:user_id, :provider, :account_number], unique: true
-    add_index :payment_methods, [:user_id, :active]
+    add_index :payment_methods, [ :user_id, :provider, :account_number ], unique: true
+    add_index :payment_methods, [ :user_id, :active ]
   end
 end

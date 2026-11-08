@@ -8,8 +8,8 @@ class MoncashService
 
   # 1. Get OAuth2 Token from Digicel
   def self.get_token
-    client_id = ENV['MONCASH_CLIENT_ID'].to_s.strip
-    secret    = ENV['MONCASH_SECRET'].to_s.strip
+    client_id = ENV["MONCASH_CLIENT_ID"].to_s.strip
+    secret    = ENV["MONCASH_SECRET"].to_s.strip
     Rails.logger.info "MonCash Auth: client_id=#{client_id.first(8)}... url=#{BASE_URL}/Api/oauth/token"
 
     conn = Faraday.new(url: "#{BASE_URL}/Api/oauth/token") do |f|
@@ -42,7 +42,7 @@ class MoncashService
 
     # UPDATED: Appending timestamp to orderId to ensure uniqueness across retries
     unique_order_id = "#{transaction.id}-#{Time.now.to_i}"
-    
+
     payload = {
       amount: transaction.fiat_amount.to_i,
       orderId: unique_order_id
@@ -51,9 +51,9 @@ class MoncashService
     Rails.logger.info "MonCash CreatePayment: payload=#{payload}"
 
     response = conn.post do |req|
-      req.headers['Authorization'] = "Bearer #{token}"
-      req.headers['Content-Type'] = 'application/json'
-      req.headers['Accept'] = 'application/json'
+      req.headers["Authorization"] = "Bearer #{token}"
+      req.headers["Content-Type"] = "application/json"
+      req.headers["Accept"] = "application/json"
       req.body = payload
     end
 
@@ -87,8 +87,8 @@ class MoncashService
     conn = Faraday.new(url: "#{BASE_URL}/Api/v1/RetrieveTransactionPayment")
 
     response = conn.post do |req|
-      req.headers['Authorization'] = "Bearer #{token}"
-      req.headers['Content-Type'] = 'application/json'
+      req.headers["Authorization"] = "Bearer #{token}"
+      req.headers["Content-Type"] = "application/json"
       req.body = { transactionId: transaction_id }.to_json
     end
 
@@ -108,8 +108,8 @@ class MoncashService
     conn = Faraday.new(url: "#{BASE_URL}/Api/v1/RetrieveOrderPayment")
 
     response = conn.post do |req|
-      req.headers['Authorization'] = "Bearer #{token}"
-      req.headers['Content-Type'] = 'application/json'
+      req.headers["Authorization"] = "Bearer #{token}"
+      req.headers["Content-Type"] = "application/json"
       req.body = { orderId: order_id.to_s }.to_json
     end
 
@@ -133,8 +133,8 @@ class MoncashService
 
     conn = Faraday.new(url: "#{BASE_URL}/Api/v1/PrefundedBalance")
     response = conn.get do |req|
-      req.headers['Authorization'] = "Bearer #{token}"
-      req.headers['Accept'] = 'application/json'
+      req.headers["Authorization"] = "Bearer #{token}"
+      req.headers["Accept"] = "application/json"
     end
 
     data = JSON.parse(response.body) rescue {}
@@ -175,7 +175,7 @@ class MoncashService
 
   # 5. Send HTG to a MonCash user
   def self.transfert(receiver, amount, reference, desc = "Zèllus USD Sale")
-    clean_receiver = receiver.to_s.gsub(/[^\d]/, '')
+    clean_receiver = receiver.to_s.gsub(/[^\d]/, "")
     if PLATFORM_ACCOUNTS.include?(clean_receiver)
       Rails.logger.error "MonCash Transfert BLOCKED: tried to pay platform account #{clean_receiver} [ref=#{reference}]"
       return { success: false, error: "Pa ka voye lajan bay kont platfòm nan" }
@@ -188,14 +188,14 @@ class MoncashService
 
     payload = {
       amount:    amount.to_i,
-      receiver:  receiver.to_s.gsub(/[^\d]/, ''),
+      receiver:  receiver.to_s.gsub(/[^\d]/, ""),
       desc:      desc,
       reference: reference.to_s
     }.to_json
 
     response = conn.post do |req|
-      req.headers['Authorization'] = "Bearer #{token}"
-      req.headers['Content-Type']  = 'application/json'
+      req.headers["Authorization"] = "Bearer #{token}"
+      req.headers["Content-Type"]  = "application/json"
       req.body = payload
     end
 
@@ -221,9 +221,9 @@ class MoncashService
     conn = Faraday.new(url: "#{BASE_URL}/Api/v1/PrefundedTransactionStatus")
 
     response = conn.post do |req|
-      req.headers['Authorization'] = "Bearer #{token}"
-      req.headers['Content-Type']  = 'application/json'
-      req.headers['Accept']        = 'application/json'
+      req.headers["Authorization"] = "Bearer #{token}"
+      req.headers["Content-Type"]  = "application/json"
+      req.headers["Accept"]        = "application/json"
       req.body = { reference: reference.to_s }.to_json
     end
 
@@ -255,10 +255,10 @@ class MoncashService
     conn = Faraday.new(url: "#{BASE_URL}/Api/v1/CustomerStatus")
 
     response = conn.post do |req|
-      req.headers['Authorization'] = "Bearer #{token}"
-      req.headers['Content-Type']  = 'application/json'
-      req.headers['Accept']        = 'application/json'
-      req.body = { account: account.to_s.gsub(/[^\d]/, '') }.to_json
+      req.headers["Authorization"] = "Bearer #{token}"
+      req.headers["Content-Type"]  = "application/json"
+      req.headers["Accept"]        = "application/json"
+      req.body = { account: account.to_s.gsub(/[^\d]/, "") }.to_json
     end
 
     data = JSON.parse(response.body) rescue {}
@@ -293,5 +293,4 @@ class MoncashService
   # POST /v1/transfer
   # amount: amount, receiver: receiver_phone
 end
-
 end

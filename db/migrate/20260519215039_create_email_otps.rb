@@ -13,6 +13,6 @@ class CreateEmailOtps < ActiveRecord::Migration[8.0]
     end
 
     add_index :email_otps, :email
-    add_index :email_otps, [:email, :consumed_at, :expires_at], name: "idx_email_otps_lookup"
+    add_index :email_otps, [ :email, :consumed_at, :expires_at ], name: "idx_email_otps_lookup"
   end
 end

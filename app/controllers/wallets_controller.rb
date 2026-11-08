@@ -410,8 +410,8 @@ class WalletsController < ApplicationController
 
     # Available headroom = how much the platform can deliver right now
     # before hitting the floor (in HTG and USDC).
-    usdc_headroom = [WalletLimitService.platform_usdc_reserve - cfg[:platform_usdc_reserve_min], 0].max.to_f
-    htg_headroom  = [WalletLimitService.platform_htg_reserve - cfg[:platform_htg_reserve_min], 0].max.to_f
+    usdc_headroom = [ WalletLimitService.platform_usdc_reserve - cfg[:platform_usdc_reserve_min], 0 ].max.to_f
+    htg_headroom  = [ WalletLimitService.platform_htg_reserve - cfg[:platform_htg_reserve_min], 0 ].max.to_f
 
     render json: {
       verified: current_user.bonid_verified?,
@@ -420,7 +420,7 @@ class WalletsController < ApplicationController
         max_htg: svc.buy_max_htg.to_f,
         daily_max_usd: svc.buy_daily_max_usd.to_f,
         daily_used_usd: svc.buy_used_today_usd.to_f,
-        daily_remaining_usd: [svc.buy_daily_max_usd - svc.buy_used_today_usd, 0].max.to_f,
+        daily_remaining_usd: [ svc.buy_daily_max_usd - svc.buy_used_today_usd, 0 ].max.to_f,
         platform_paused: health[:usdc][:paused],
         platform_headroom_usd: usdc_headroom
       },
@@ -429,7 +429,7 @@ class WalletsController < ApplicationController
         max_htg: svc.withdraw_max_htg.to_f,
         daily_max_htg: svc.withdraw_daily_max_htg.to_f,
         daily_used_htg: svc.withdraw_htg_used_today.to_f,
-        daily_remaining_htg: [svc.withdraw_daily_max_htg - svc.withdraw_htg_used_today, 0].max.to_f,
+        daily_remaining_htg: [ svc.withdraw_daily_max_htg - svc.withdraw_htg_used_today, 0 ].max.to_f,
         platform_paused: health[:htg][:paused],
         platform_headroom_htg: htg_headroom
       },
@@ -437,7 +437,7 @@ class WalletsController < ApplicationController
         max_usd: svc.usdc_withdraw_max.to_f,
         daily_max_usd: svc.usdc_daily_max.to_f,
         daily_used_usd: svc.withdraw_usdc_used_today.to_f,
-        daily_remaining_usd: [svc.usdc_daily_max - svc.withdraw_usdc_used_today, 0].max.to_f,
+        daily_remaining_usd: [ svc.usdc_daily_max - svc.withdraw_usdc_used_today, 0 ].max.to_f,
         platform_paused: health[:usdc][:paused],
         platform_headroom_usd: usdc_headroom
       },
@@ -446,10 +446,10 @@ class WalletsController < ApplicationController
         max_usd: svc.convert_max_usd.to_f,
         daily_max_usd: svc.convert_daily_max_usd.to_f,
         daily_used_usd: svc.convert_usd_used_today.to_f,
-        daily_remaining_usd: [svc.convert_daily_max_usd - svc.convert_usd_used_today, 0].max.to_f,
+        daily_remaining_usd: [ svc.convert_daily_max_usd - svc.convert_usd_used_today, 0 ].max.to_f,
         daily_max_htg: svc.convert_daily_max_htg.to_f,
         daily_used_htg: svc.convert_htg_used_today.to_f,
-        daily_remaining_htg: [svc.convert_daily_max_htg - svc.convert_htg_used_today, 0].max.to_f,
+        daily_remaining_htg: [ svc.convert_daily_max_htg - svc.convert_htg_used_today, 0 ].max.to_f,
         usdc_paused: health[:usdc][:paused],
         htg_paused: health[:htg][:paused],
         platform_headroom_usd: usdc_headroom,
@@ -606,9 +606,9 @@ class WalletsController < ApplicationController
     payload = { amount: amount.to_i, orderId: order_id }.to_json
 
     response = conn.post do |req|
-      req.headers['Authorization'] = "Bearer #{token}"
-      req.headers['Content-Type']  = 'application/json'
-      req.headers['Accept']        = 'application/json'
+      req.headers["Authorization"] = "Bearer #{token}"
+      req.headers["Content-Type"]  = "application/json"
+      req.headers["Accept"]        = "application/json"
       req.body = payload
     end
 
@@ -632,8 +632,8 @@ class WalletsController < ApplicationController
 
     conn = Faraday.new(url: "#{MoncashService::BASE_URL}/Api/v1/RetrieveOrderPayment")
     response = conn.post do |req|
-      req.headers['Authorization'] = "Bearer #{token}"
-      req.headers['Content-Type']  = 'application/json'
+      req.headers["Authorization"] = "Bearer #{token}"
+      req.headers["Content-Type"]  = "application/json"
       req.body = { orderId: order_id.to_s }.to_json
     end
 

@@ -1,5 +1,6 @@
 # frozen_string_literal: true
-require 'sidekiq'
+
+require "sidekiq"
 
 class TransferConfirmationWorker
   include Sidekiq::Job
@@ -14,7 +15,7 @@ class TransferConfirmationWorker
     return unless transfer.sent?
     return unless transfer.blockchain_tx_hash.present?
 
-    rpc_url = ENV['BASE_RPC_URL'].presence || "https://mainnet.base.org"
+    rpc_url = ENV["BASE_RPC_URL"].presence || "https://mainnet.base.org"
     receipt = fetch_receipt(rpc_url, transfer.blockchain_tx_hash)
 
     if receipt.nil?
@@ -57,7 +58,7 @@ class TransferConfirmationWorker
   private
 
   def fetch_receipt(rpc_url, tx_hash)
-    BaseRpcClient.new(url: rpc_url).call("eth_getTransactionReceipt", [tx_hash])
+    BaseRpcClient.new(url: rpc_url).call("eth_getTransactionReceipt", [ tx_hash ])
   rescue => e
     Rails.logger.error "TransferConfirmation: eth_getTransactionReceipt failed: #{e.message}"
     nil

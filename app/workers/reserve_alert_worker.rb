@@ -1,5 +1,6 @@
 # frozen_string_literal: true
-require 'sidekiq'
+
+require "sidekiq"
 
 # Periodically checks platform liquidity reserves (admin USDC + HTG balances).
 # Sends an email alert to ADMIN_EMAIL when either drops below the warning
@@ -16,7 +17,7 @@ class ReserveAlertWorker
   def perform
     health = WalletLimitService.platform_health
 
-    [:usdc, :htg].each do |asset|
+    [ :usdc, :htg ].each do |asset|
       next unless health[asset][:alert]
 
       cache_key = "reserve_alert_sent:#{asset}"

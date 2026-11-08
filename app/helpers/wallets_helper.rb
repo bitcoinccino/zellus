@@ -39,6 +39,6 @@ module WalletsHelper
 
   # 13686 → ["136", "86"]; whole part gets thousands separators.
   def cents_parts(cents)
-    [number_with_delimiter(cents / 100), format("%02d", cents % 100)]
+    [ number_with_delimiter(cents / 100), format("%02d", cents % 100) ]
   end
 end

@@ -16,7 +16,7 @@ class CreateProducts < ActiveRecord::Migration[8.0]
       t.timestamps
     end
 
-    add_index :products, [:business_id, :active]
-    add_index :products, [:business_id, :sold_count]
+    add_index :products, [ :business_id, :active ]
+    add_index :products, [ :business_id, :sold_count ]
   end
 end

@@ -1,0 +1,25 @@
+{
+  "ignored_warnings": [
+    {
+      "warning_type": "Redirect",
+      "fingerprint": "16da69f5d7d427b4ecb58979fcaca645b8fe21da7980a0389899079c12dac755",
+      "note": "Intentional: redirects the buyer back to the merchant's own success_url after checkout (like a payment gateway return). The URL is the partner-supplied CheckoutSession.success_url, not arbitrary user input; allow_other_host is deliberate."
+    },
+    {
+      "warning_type": "Redirect",
+      "fingerprint": "1de028809c100c26bc926a93e0dc5c38a2380a1c77e597a9d6d659219f662498",
+      "note": "Intentional: redirects the buyer back to the merchant's cancel_url on a canceled checkout. Partner-supplied CheckoutSession.cancel_url, not arbitrary user input; allow_other_host is deliberate."
+    },
+    {
+      "warning_type": "File Access",
+      "fingerprint": "40ce79cd50ec60add6556fe02096c80e8e5dd54cff5d2d52ddc16028fb85ccea",
+      "note": "False positive: this is a network host/port for the admin webhook tester (Net::HTTP), not a filesystem path. Admin-only (Admin::BaseController) and the webhook_url is a partner-configured value the admin is deliberately pinging."
+    },
+    {
+      "warning_type": "Redirect",
+      "fingerprint": "f309dddf54b4586adc94350828ba1542a42f3d453b65c621182b3ae1ef875af4",
+      "note": "Intentional: redirects to the MonCash payment gateway URL returned by create_moncash_payment (a server-side API call), not user input. allow_other_host is required to reach the external gateway."
+    }
+  ],
+  "brakeman_version": "8.0.5"
+}

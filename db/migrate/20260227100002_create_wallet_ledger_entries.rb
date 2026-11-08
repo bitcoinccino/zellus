@@ -13,9 +13,9 @@ class CreateWalletLedgerEntries < ActiveRecord::Migration[8.0]
       t.timestamps
     end
 
-    add_index :wallet_ledger_entries, [:wallet_id, :created_at]
+    add_index :wallet_ledger_entries, [ :wallet_id, :created_at ]
     add_index :wallet_ledger_entries, :entry_type
-    add_index :wallet_ledger_entries, [:reference_type, :reference_id]
+    add_index :wallet_ledger_entries, [ :reference_type, :reference_id ]
     add_index :wallet_ledger_entries, :moncash_transaction_id, unique: true,
               where: "moncash_transaction_id IS NOT NULL",
               name: "idx_wallet_ledger_moncash_tx_uniq"

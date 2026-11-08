@@ -115,7 +115,7 @@ class SolOrchestrator
       htg_amount  = (@circle.amount * rate).round(2)
     end
 
-    [htg_amount, usd_amount]
+    [ htg_amount, usd_amount ]
   end
 
   # ── Payment Verification ────────────────────────────────────────
@@ -243,7 +243,7 @@ class SolOrchestrator
 
   def send_payment_reminders(round)
     hours_left = ((round.created_at + GRACE_PERIOD_HOURS.hours - Time.current) / 1.hour).round
-    hours_left = [hours_left, 1].max
+    hours_left = [ hours_left, 1 ].max
 
     unpaid_members(round).each do |user_id|
       user = User.find(user_id)

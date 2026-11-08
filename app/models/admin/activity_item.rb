@@ -12,11 +12,11 @@ module Admin
     # ── Factory: Transaction ──
     def self.from_transaction(tx, usd_htg_rate: 135.50)
       type_conf = case tx.transaction_type
-                  when "buy"          then { label: "Achte",  icon: "ri-arrow-down-circle-line", bg: "#dcfce7", color: "#166534" }
-                  when "sell"         then { label: "Vann",   icon: "ri-arrow-up-circle-line",   bg: "#dbeafe", color: "#1d4ed8" }
-                  when "loan_request" then { label: "Prè",    icon: "ri-hand-coin-line",         bg: "#fef3c7", color: "#92400e" }
-                  else                     { label: tx.transaction_type.to_s.humanize, icon: "ri-exchange-line", bg: "rgba(93,99,69,0.1)", color: "var(--haiti-olive)" }
-                  end
+      when "buy"          then { label: "Achte",  icon: "ri-arrow-down-circle-line", bg: "#dcfce7", color: "#166534" }
+      when "sell"         then { label: "Vann",   icon: "ri-arrow-up-circle-line",   bg: "#dbeafe", color: "#1d4ed8" }
+      when "loan_request" then { label: "Prè",    icon: "ri-hand-coin-line",         bg: "#fef3c7", color: "#92400e" }
+      else                     { label: tx.transaction_type.to_s.humanize, icon: "ri-exchange-line", bg: "rgba(93,99,69,0.1)", color: "var(--haiti-olive)" }
+      end
 
       status_conf = status_for_transaction(tx.status)
       htg = tx.fiat_amount.to_f

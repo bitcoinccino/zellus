@@ -3,7 +3,7 @@ class WebhookDelivery < ApplicationRecord
 
   MAX_ATTEMPTS = 5
 
-  BACKOFF_SCHEDULE = [30.seconds, 2.minutes, 15.minutes, 1.hour, 4.hours].freeze
+  BACKOFF_SCHEDULE = [ 30.seconds, 2.minutes, 15.minutes, 1.hour, 4.hours ].freeze
 
   scope :pending, -> { where(status: "pending") }
   scope :retriable, -> { pending.where("next_retry_at IS NULL OR next_retry_at <= ?", Time.current) }

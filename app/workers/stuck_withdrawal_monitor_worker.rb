@@ -1,5 +1,6 @@
 # frozen_string_literal: true
-require 'sidekiq'
+
+require "sidekiq"
 
 # Detects withdrawal entries that were debited from a wallet but never
 # completed (no moncash_transaction_id) — typically because Sidekiq
@@ -45,7 +46,7 @@ class StuckWithdrawalMonitorWorker
 
         # Also refund any associated fee
         fee_entry = wallet.wallet_ledger_entries
-          .where(entry_type: ["instant_fee", "fee"])
+          .where(entry_type: [ "instant_fee", "fee" ])
           .where("created_at >= ? AND created_at <= ?", entry.created_at - 5.seconds, entry.created_at + 5.seconds)
           .first
         if fee_entry

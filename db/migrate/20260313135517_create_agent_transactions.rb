@@ -22,7 +22,7 @@ class CreateAgentTransactions < ActiveRecord::Migration[8.0]
     add_index :agent_transactions, :idempotency_key, unique: true, where: "idempotency_key IS NOT NULL"
     add_index :agent_transactions, :status
     add_index :agent_transactions, :transaction_type
-    add_index :agent_transactions, [:business_id, :created_at]
-    add_index :agent_transactions, [:customer_id, :created_at]
+    add_index :agent_transactions, [ :business_id, :created_at ]
+    add_index :agent_transactions, [ :customer_id, :created_at ]
   end
 end

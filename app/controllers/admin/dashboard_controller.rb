@@ -1,18 +1,18 @@
-require 'openssl'
-require 'digest/keccak'
+require "openssl"
+require "digest/keccak"
 
 class Admin::DashboardController < Admin::BaseController
   include ActionView::Helpers::NumberHelper
 
   def index
     # 1. Financial Overviews
-    active_statuses      = [:paid, :crypto_sent, :completed]
+    active_statuses      = [ :paid, :crypto_sent, :completed ]
     active_txs           = Transaction.where(status: active_statuses)
 
     @total_fees          = active_txs.sum(:fee_amount)
     @total_volume        = active_txs.sum(:fiat_amount)
     @tx_processed        = Transaction.where(status: :completed).count
-    @recent_transactions = Transaction.includes(user: [:business, { avatar_attachment: :blob }]).order(created_at: :desc).limit(15)
+    @recent_transactions = Transaction.includes(user: [ :business, { avatar_attachment: :blob } ]).order(created_at: :desc).limit(15)
 
     # Per-type profit breakdown (Achte / Vann / Prè)
     @buy_fees   = active_txs.where(transaction_type: :buy).sum(:fee_amount)
@@ -178,9 +178,9 @@ class Admin::DashboardController < Admin::BaseController
     formatted = number_with_delimiter(sprintf("%.2f", amount))
     recipient_label = if recipient
                         "#{recipient.email} ($#{recipient.cashtag})"
-                      else
+    else
                         "#{address[0..5]}...#{address[-4..]}"
-                      end
+    end
     redirect_to admin_credit_path, notice: "#{formatted} USD ap voye sou Base → #{recipient_label}. TX #{tx.token} ap trete."
   end
 
@@ -192,8 +192,8 @@ class Admin::DashboardController < Admin::BaseController
 
   def system_health
     data = Rails.cache.fetch("admin:system_health", expires_in: SYSTEM_HEALTH_CACHE_TTL) do
-      rpc_url  = ENV['BASE_RPC_URL'].presence || "https://mainnet.base.org"
-      priv_hex = ENV['TREASURY_PRIVATE_KEY'].to_s.strip.delete_prefix("0x")
+      rpc_url  = ENV["BASE_RPC_URL"].presence || "https://mainnet.base.org"
+      priv_hex = ENV["TREASURY_PRIVATE_KEY"].to_s.strip.delete_prefix("0x")
       address  = derive_treasury_address(priv_hex)
 
       eth = fetch_eth_balance(rpc_url, address)
@@ -395,7 +395,7 @@ class Admin::DashboardController < Admin::BaseController
 
     # Transactions (unless filtering to transfers/bank_withdrawals only)
     unless type_filter.in?(%w[transfer bank_withdrawal])
-      txs = Transaction.includes(user: [:business, { avatar_attachment: :blob }])
+      txs = Transaction.includes(user: [ :business, { avatar_attachment: :blob } ])
       if type_filter == "buy"
         txs = txs.where(transaction_type: :buy)
       elsif type_filter == "sell"
@@ -419,7 +419,7 @@ class Admin::DashboardController < Admin::BaseController
 
     # Transfers
     unless type_filter.in?(%w[buy sell loan bank_withdrawal])
-      transfers = Transfer.includes(user: [:business, { avatar_attachment: :blob }])
+      transfers = Transfer.includes(user: [ :business, { avatar_attachment: :blob } ])
       if search_q
         transfers = transfers.joins(:user).where(
           "users.cashtag ILIKE :q OR transfers.token ILIKE :q OR users.email ILIKE :q",
@@ -468,17 +468,17 @@ class Admin::DashboardController < Admin::BaseController
 
     case type
     when "transaction"
-      record = Transaction.includes(user: [:business, { avatar_attachment: :blob }]).find(id)
+      record = Transaction.includes(user: [ :business, { avatar_attachment: :blob } ]).find(id)
       @item = Admin::ActivityItem.from_transaction(record, usd_htg_rate: @usd_htg_rate)
     when "transfer"
-      record = Transfer.includes(user: [:business, { avatar_attachment: :blob }]).find(id)
+      record = Transfer.includes(user: [ :business, { avatar_attachment: :blob } ]).find(id)
       @item = Admin::ActivityItem.from_transfer(record, usd_htg_rate: @usd_htg_rate)
     when "bank_withdrawal"
       record = BankWithdrawal.includes(:user).find(id)
       @item = Admin::ActivityItem.from_bank_withdrawal(record, usd_htg_rate: @usd_htg_rate)
     else
       redirect_to admin_activity_path, alert: "Tip aktivite pa valid."
-      return
+      nil
     end
   end
 
@@ -487,7 +487,7 @@ class Admin::DashboardController < Admin::BaseController
     range = params[:range] || "week"
     usd_htg_rate = begin; RateService.usd_htg_rate; rescue; 135.50; end
 
-    active_statuses = [:paid, :crypto_sent, :completed]
+    active_statuses = [ :paid, :crypto_sent, :completed ]
     txs = Transaction.where(status: active_statuses)
 
     # Determine date range and SQL grouping
@@ -535,7 +535,7 @@ class Admin::DashboardController < Admin::BaseController
     all_times = (tx_data.keys + ledger_htg.keys + ledger_usd.keys).uniq.sort
     data = all_times.map do |time|
       htg = (tx_data[time] || 0).to_f + (ledger_htg[time] || 0).to_f + ((ledger_usd[time] || 0).to_f * usd_htg_rate)
-      [time, htg]
+      [ time, htg ]
     end.to_h
 
     series = data.map do |time, htg|
@@ -563,7 +563,7 @@ class Admin::DashboardController < Admin::BaseController
       return
     end
 
-    priv_hex = ENV['TREASURY_PRIVATE_KEY'].to_s.strip.delete_prefix("0x")
+    priv_hex = ENV["TREASURY_PRIVATE_KEY"].to_s.strip.delete_prefix("0x")
     address  = derive_treasury_address(priv_hex)
 
     flash[:treasury_address] = address
@@ -585,7 +585,7 @@ class Admin::DashboardController < Admin::BaseController
   end
 
   def fetch_eth_balance(rpc_url, address)
-    result = BaseRpcClient.new(url: rpc_url).call("eth_getBalance", [address, "latest"])
+    result = BaseRpcClient.new(url: rpc_url).call("eth_getBalance", [ address, "latest" ])
     result.to_i(16).to_f / 10**18
   end
 
@@ -593,7 +593,7 @@ class Admin::DashboardController < Admin::BaseController
     usd_address = CryptoTransferWorker::USD_ADDRESS
     padded = address.delete_prefix("0x").downcase.rjust(64, "0")
     data   = "0x70a08231#{padded}"
-    result = BaseRpcClient.new(url: rpc_url).call("eth_call", [{ to: usd_address, data: data }, "latest"])
+    result = BaseRpcClient.new(url: rpc_url).call("eth_call", [ { to: usd_address, data: data }, "latest" ])
     result.to_i(16).to_f / 10**6
   end
 end

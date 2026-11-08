@@ -1,6 +1,6 @@
 class PaymentMethodsController < ApplicationController
   before_action :authenticate_user!
-  before_action :set_payment_method, only: [:update, :destroy, :set_default]
+  before_action :set_payment_method, only: [ :update, :destroy, :set_default ]
 
   def index
     load_payment_methods

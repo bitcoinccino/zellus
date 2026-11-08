@@ -3,7 +3,7 @@ class Admin::BousadController < Admin::BaseController
 
   # GET /admin/bousad/applicants
   def applicants
-    @loan_requests = Transaction.includes(user: [:business, { avatar_attachment: :blob }])
+    @loan_requests = Transaction.includes(user: [ :business, { avatar_attachment: :blob } ])
                                 .where(transaction_type: :loan_request, status: :pending)
                                 .order(created_at: :desc)
     @usd_htg_rate = begin; RateService.usd_htg_rate; rescue; 135.50; end
@@ -61,16 +61,16 @@ class Admin::BousadController < Admin::BaseController
 
     loans = Transaction.where(transaction_type: :loan_request)
     @total_loans = loans.count
-    @approved_loans = loans.where(status: [:crypto_sent, :completed]).count
+    @approved_loans = loans.where(status: [ :crypto_sent, :completed ]).count
     @pending_loans = loans.where(status: :pending).count
     @rejected_loans = loans.where(status: :failed).count
-    @total_disbursed = loans.where(status: [:crypto_sent, :completed]).sum(:fiat_amount)
+    @total_disbursed = loans.where(status: [ :crypto_sent, :completed ]).sum(:fiat_amount)
     @total_disbursed_usd = @usd_htg_rate > 0 ? (@total_disbursed / @usd_htg_rate).round(2) : 0
   end
 
   # GET /admin/bousad/activity
   def activity
-    loans = Transaction.includes(user: [:business, { avatar_attachment: :blob }])
+    loans = Transaction.includes(user: [ :business, { avatar_attachment: :blob } ])
                        .where(transaction_type: :loan_request)
                        .order(created_at: :desc)
 

@@ -35,10 +35,10 @@ class CircleService
     body = {
       idempotencyKey:         idempotency_key,
       entitySecretCiphertext: encrypted_entity_secret,
-      blockchains:            [CircleConfig::BLOCKCHAIN],
+      blockchains:            [ CircleConfig::BLOCKCHAIN ],
       count:                  1,
       walletSetId:            CircleConfig::WALLET_SET_ID,
-      metadata:               [{ name: "zellus_user_id", value: user_id.to_s }]
+      metadata:               [ { name: "zellus_user_id", value: user_id.to_s } ]
     }
 
     data = api_call(:post, "/v1/w3s/developer/wallets", body: body)
@@ -65,7 +65,7 @@ class CircleService
       tokenAddress:           usd_contract_address,
       destinationAddress:     to_address,
       blockchain:             CircleConfig::BLOCKCHAIN,
-      amounts:                [amount.to_s],
+      amounts:                [ amount.to_s ],
       feeLevel:               "MEDIUM"
     }
 
@@ -91,7 +91,7 @@ class CircleService
       tokenAddress:           usd_contract_address,
       destinationAddress:     wallet_address_for(to_wallet_id),
       blockchain:             CircleConfig::BLOCKCHAIN,
-      amounts:                [amount.to_s],
+      amounts:                [ amount.to_s ],
       feeLevel:               "MEDIUM"
     }
 
@@ -135,7 +135,7 @@ class CircleService
   # to avoid repeated /v1/w3s/config/entity/publicKey round-trips.
   def self.encrypted_entity_secret
     rsa_key    = cached_rsa_public_key
-    raw_secret = [CircleConfig::ENTITY_SECRET].pack("H*") # hex → binary
+    raw_secret = [ CircleConfig::ENTITY_SECRET ].pack("H*") # hex → binary
 
     # Circle requires RSA-OAEP with SHA-256 for both hash and MGF1
     ciphertext = rsa_key.encrypt(raw_secret, {

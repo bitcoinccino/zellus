@@ -1,5 +1,5 @@
 class CheckoutsController < ApplicationController
-  before_action :authenticate_user!, except: [:show]
+  before_action :authenticate_user!, except: [ :show ]
   before_action :set_checkout
 
   def show
@@ -13,7 +13,7 @@ class CheckoutsController < ApplicationController
       @pin_set = current_user.transfer_pin_set?
       wallet = current_user.ensure_wallet!
       @payer_balance = wallet.balance_for(@checkout.currency)
-      @balance_shortfall = [(@checkout.amount - @payer_balance), 0].max
+      @balance_shortfall = [ (@checkout.amount - @payer_balance), 0 ].max
       @can_pay = @pin_set && @payer_balance >= @checkout.amount
     end
   end

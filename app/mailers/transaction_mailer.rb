@@ -13,9 +13,9 @@ class TransactionMailer < ApplicationMailer
     @crypto_display = crypto_display_label
     subject = if @transaction.admin_credit_external?
                 "Zèllus: #{@crypto_display} voye sou Base ✓"
-              else
+    else
                 "Zèllus: #{@transaction.buy? ? 'Ou achte' : 'Ou vann'} #{@crypto_display} ✓"
-              end
+    end
     mail(to: @user.email, subject: subject)
   end
 
@@ -24,9 +24,9 @@ class TransactionMailer < ApplicationMailer
     @crypto_display = crypto_display_label
     subject = if @transaction.admin_credit_external?
                 "Zèllus: Kredi Ekstèn #{@crypto_display} echwe"
-              else
+    else
                 "Zèllus: #{@transaction.buy? ? 'Acha' : 'Vann'} #{@crypto_display} echwe"
-              end
+    end
     mail(to: @user.email, subject: subject)
   end
 
@@ -39,7 +39,7 @@ class TransactionMailer < ApplicationMailer
     @app_base_url = ENV["APP_BASE_URL"].to_s.strip
     @transaction_url = @app_base_url.present? ? "#{@app_base_url}/transactions/#{@transaction.token}" : nil
     @basescan_url = @transaction.blockchain_tx_hash.present? ? basescan_tx_url(@transaction.blockchain_tx_hash) : nil
-    
+
     # Dynamic labels for the view
     @payment_method_label = payment_method_label
     @source_label = source_label
@@ -124,7 +124,7 @@ class TransactionMailer < ApplicationMailer
   end
 
   def crypto_display_label
-    currency = @transaction.crypto_currency&.upcase == 'USD' ? 'USD' : @transaction.crypto_currency&.upcase
+    currency = @transaction.crypto_currency&.upcase == "USD" ? "USD" : @transaction.crypto_currency&.upcase
     "#{@transaction.crypto_amount} #{currency}"
   end
 

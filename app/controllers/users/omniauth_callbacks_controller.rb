@@ -1,6 +1,6 @@
 class Users::OmniauthCallbacksController < Devise::OmniauthCallbacksController
   # Allow OAuth callback even when user is already signed in (for BonID linking)
-  skip_before_action :require_no_authentication, only: [:bonid], raise: false
+  skip_before_action :require_no_authentication, only: [ :bonid ], raise: false
 
   def bonid
     auth = request.env["omniauth.auth"]

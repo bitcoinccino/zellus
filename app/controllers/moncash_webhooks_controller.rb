@@ -5,7 +5,7 @@ class MoncashWebhooksController < ApplicationController
   def create
     # 1. MonCash sends the 'transactionId' in the body
     moncash_id = params[:transactionId]
-    
+
     # 2. Find the transaction in your database
     transaction = Transaction.find_by(moncash_transaction_id: moncash_id)
 
@@ -16,12 +16,12 @@ class MoncashWebhooksController < ApplicationController
 
       if verification_data
         process_successful_payment(transaction, verification_data)
-        render json: { status: 'success' }, status: :ok
+        render json: { status: "success" }, status: :ok
       else
-        render json: { error: 'Payment verification failed' }, status: :unauthorized
+        render json: { error: "Payment verification failed" }, status: :unauthorized
       end
     else
-      render json: { error: 'Transaction not found or already processed' }, status: :not_found
+      render json: { error: "Transaction not found or already processed" }, status: :not_found
     end
   end
 
@@ -33,7 +33,7 @@ class MoncashWebhooksController < ApplicationController
 
     # 5. Handle Repayment Logic (Check the note from MonCash)
     note = verification_data[:note] || ""
-    
+
     if note.include?("Repayment for Loan")
       handle_loan_repayment(transaction, note)
     else
@@ -52,8 +52,8 @@ class MoncashWebhooksController < ApplicationController
 
     if loan
       # 1. Close the loan
-      loan.update!(status: :completed) 
-      
+      loan.update!(status: :completed)
+
       # 2. BIG BOOST: +50 points for paying back debt!
       transaction.user.increment!(:credit_score, 50)
     end

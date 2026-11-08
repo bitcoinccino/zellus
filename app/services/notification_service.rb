@@ -9,11 +9,11 @@ class NotificationService
 
       sender_label = if transfer.business.present?
                        transfer.business.name
-                     elsif transfer.user&.cashtag.present?
+      elsif transfer.user&.cashtag.present?
                        "$#{transfer.user.cashtag}"
-                     else
+      else
                        transfer.user&.display_name || "Yon moun"
-                     end
+      end
       amount_label = format_transfer_amount(transfer)
 
       create_notification(
@@ -31,11 +31,11 @@ class NotificationService
     def thanks_received(transfer:, thanker:, recipient:)
       thanker_label = if transfer.business.present?
                         transfer.business.name
-                      elsif thanker.cashtag.present?
+      elsif thanker.cashtag.present?
                         "$#{thanker.cashtag}"
-                      else
+      else
                         thanker.display_name || "Yon moun"
-                      end
+      end
 
       amount_str = format_transfer_amount(transfer)
 
@@ -124,11 +124,11 @@ class NotificationService
 
       asset_label = asset.to_s.downcase
       amount_display = case asset_label
-                       when "eth"  then "#{format('%.6f', amount.to_f)} ETH"
-                       when "wbtc" then "#{format('%.8f', amount.to_f)} WBTC"
-                       when "usd" then "#{format('%.2f', amount.to_f)} USD"
-                       else "#{amount.to_i} HTG"
-                       end
+      when "eth"  then "#{format('%.6f', amount.to_f)} ETH"
+      when "wbtc" then "#{format('%.8f', amount.to_f)} WBTC"
+      when "usd" then "#{format('%.2f', amount.to_f)} USD"
+      else "#{amount.to_i} HTG"
+      end
 
       create_notification(
         user: user,
@@ -144,11 +144,11 @@ class NotificationService
 
       asset_label = asset.to_s.downcase
       amount_display = case asset_label
-                       when "eth"  then "#{format('%.6f', amount.to_f)} ETH"
-                       when "wbtc" then "#{format('%.8f', amount.to_f)} WBTC"
-                       when "usd" then "#{format('%.2f', amount.to_f)} USD"
-                       else "#{amount.to_i} HTG"
-                       end
+      when "eth"  then "#{format('%.6f', amount.to_f)} ETH"
+      when "wbtc" then "#{format('%.8f', amount.to_f)} WBTC"
+      when "usd" then "#{format('%.2f', amount.to_f)} USD"
+      else "#{amount.to_i} HTG"
+      end
 
       create_notification(
         user: user,
@@ -164,11 +164,11 @@ class NotificationService
 
       asset_label = asset.to_s.downcase
       amount_display = case asset_label
-                       when "eth"  then "#{format('%.6f', amount.to_f)} ETH"
-                       when "wbtc" then "#{format('%.8f', amount.to_f)} WBTC"
-                       when "usd" then "#{format('%.2f', amount.to_f)} USD"
-                       else "#{amount.to_i} HTG"
-                       end
+      when "eth"  then "#{format('%.6f', amount.to_f)} ETH"
+      when "wbtc" then "#{format('%.8f', amount.to_f)} WBTC"
+      when "usd" then "#{format('%.2f', amount.to_f)} USD"
+      else "#{amount.to_i} HTG"
+      end
 
       create_notification(
         user: user,
@@ -236,9 +236,9 @@ class NotificationService
       crypto_display = "#{transaction.crypto_amount} #{transaction.crypto_currency&.upcase == 'USD' ? 'USD' : transaction.crypto_currency&.upcase}"
       title = if transaction.buy?
                 "Ou achte #{crypto_display} ak #{transaction.fiat_amount.to_i} HTG"
-              else
+      else
                 "Ou vann #{crypto_display} → #{transaction.fiat_amount.to_i} HTG"
-              end
+      end
 
       create_notification(
         user: transaction.user,
@@ -268,8 +268,8 @@ class NotificationService
     def conversion_completed(user, from_amount, from_asset, to_amount, to_asset)
       return unless user
 
-      from_label = from_asset == 'usd' ? 'USD' : from_asset.upcase
-      to_label = to_asset == 'usd' ? 'USD' : to_asset.upcase
+      from_label = from_asset == "usd" ? "USD" : from_asset.upcase
+      to_label = to_asset == "usd" ? "USD" : to_asset.upcase
       create_notification(
         user: user,
         notification_type: "conversion_completed",

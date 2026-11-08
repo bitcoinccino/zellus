@@ -21,8 +21,8 @@ module FeatureFlags
   # ── SECURITY ──
   BONID_WITHDRAWAL_GATE      = true   # unverified users can't withdraw past the 24h threshold
   BONID_CRIME_CHECK          = false  # block BonID sign-in/verification on any criminal record.
-                                      # OFF: Zellus only needs identity verification. Turning this
-                                      # on also requires adding the crime:status scope in devise.rb.
+  # OFF: Zellus only needs identity verification. Turning this
+  # on also requires adding the crime:status scope in devise.rb.
 
   # ── REMITTANCE / UMA ──
   UMA_RECEIVING              = false  # inbound UMA payments via Lightspark Grid (enable when more providers support UMA)

@@ -29,7 +29,7 @@ namespace :usd do
       next
     end
 
-    new_amount = transfers.to_h { |t| [t.id, Transfer.asset_amount_from_htg(t.amount, t.exchange_rate, "usd")] }
+    new_amount = transfers.to_h { |t| [ t.id, Transfer.asset_amount_from_htg(t.amount, t.exchange_rate, "usd") ] }
 
     ActiveRecord::Base.transaction do
       transfers.each do |t|
