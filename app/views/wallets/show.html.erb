@@ -221,8 +221,14 @@
 <% usd_bal = @wallet.usd_balance.to_f %>
 <% eth_bal  = @wallet.eth_balance.to_f %>
 <% wbtc_bal = @wallet.wbtc_balance.to_f %>
-<% total_htg = htg_bal + (usd_bal * usd_htg) + (wbtc_bal * btc_usd * usd_htg) + (eth_bal * eth_usd * usd_htg) %>
-<% total_usd = (usd_bal * 1.0) + (wbtc_bal * btc_usd) + (eth_bal * eth_usd) + (htg_bal / usd_htg) %>
+<%# Cards and totals come from one calculation (WalletsHelper#wallet_figures)
+    so the total always equals what the cards add up to. %>
+<% figs = wallet_figures(htg: htg_bal, usd: usd_bal, wbtc: wbtc_bal, eth: eth_bal,
+                         usd_htg: usd_htg, btc_usd: btc_usd, eth_usd: eth_usd) %>
+<% total_htg = figs[:total_htg] / 100.0 %>
+<% total_usd = figs[:total_usd] / 100.0 %>
+<% hero_htg_whole, hero_htg_dec = cents_parts(figs[:total_htg]) %>
+<% hero_usd_whole, hero_usd_dec = cents_parts(figs[:total_usd]) %>
 
 <% content_for :full_width, true %>
 <div class="d-flex justify-content-center" style="min-height: 80vh; padding-top: 24px;">
@@ -278,11 +284,11 @@
         <span class="fw-bold text-uppercase" style="color: rgba(255,255,255,0.45); font-size: 11px; letter-spacing: 1.5px;">Valè Total Pòtfèy</span>
       </div>
       <div class="fw-black mb-1" style="color: var(--haiti-gold); font-size: 48px; letter-spacing: -2px; line-height: 1;">
-        <span id="hero-htg-whole"><%= number_with_delimiter(total_htg.floor.to_i) %></span><span style="color: rgba(197,160,89,0.4);">.</span><span id="hero-htg-dec" class="tick-decimals" style="color: rgba(197,160,89,0.4);"><%= "%02d" % ((total_htg * 100).floor % 100) %></span>
+        <span id="hero-htg-whole"><%= hero_htg_whole %></span><span style="color: rgba(197,160,89,0.4);">.</span><span id="hero-htg-dec" class="tick-decimals" style="color: rgba(197,160,89,0.4);"><%= hero_htg_dec %></span>
         <span style="font-size: 18px; color: rgba(255,255,255,0.5); letter-spacing: 0;">HTG</span>
       </div>
       <div class="fw-bold mt-1" style="color: var(--haiti-olive); font-size: 14px;">
-        ≈ $<span id="hero-usd-whole"><%= number_with_delimiter(total_usd.floor.to_i) %></span>.<span id="hero-usd-dec" class="tick-decimals"><%= "%02d" % ((total_usd * 100).floor % 100) %></span> USD
+        ≈ $<span id="hero-usd-whole"><%= hero_usd_whole %></span>.<span id="hero-usd-dec" class="tick-decimals"><%= hero_usd_dec %></span> USD
       </div>
 
       <%# ── Action Buttons (Depoze lives in the ⋯ menu) ── %>
@@ -1700,12 +1706,6 @@
     <%# ── LAJAN TAB (Assets + Rates)    ──  %>
     <%# ══════════════════════════════════════ %>
     <div id="section-lajan" class="mb-3">
-      <%# Convert from the *displayed* (2-decimal) balance so a dust amount
-          that shows as "0.00" doesn't show a non-zero equivalent next to it. %>
-      <% htg_usd = htg_bal.round(2) / usd_htg %>
-      <% usd_htg_val = usd_bal.round(2) * usd_htg %>
-      <% wbtc_usd_val = wbtc_bal * btc_usd %>
-      <% eth_usd_val  = eth_bal * eth_usd %>
 
       <%# ── Section Header (removed) ── %>
 
@@ -1719,10 +1719,10 @@
             </div>
             <div class="text-end">
               <div class="fw-black text-charcoal" style="font-size: 14px;">
-                <span id="asset-htg-bal"><%= number_with_precision(htg_bal, precision: 2) %></span>
+                <span id="asset-htg-bal"><%= number_with_precision(figs[:htg] / 100.0, precision: 2) %></span>
               </div>
               <div class="text-olive text-xs" style="font-weight: 600;">
-                ≈ $<span id="asset-htg-usd"><%= number_with_precision(htg_usd, precision: 2) %></span> USD
+                ≈ $<span id="asset-htg-usd"><%= number_with_precision(figs[:htg_in_usd] / 100.0, precision: 2) %></span> USD
               </div>
             </div>
           </div>
@@ -1737,10 +1737,10 @@
             </div>
             <div class="text-end">
               <div class="fw-black text-charcoal" style="font-size: 14px;">
-                <span id="asset-usd-bal"><%= number_with_precision(usd_bal, precision: 2) %></span>
+                <span id="asset-usd-bal"><%= number_with_precision(figs[:usd] / 100.0, precision: 2) %></span>
               </div>
               <div class="text-olive text-xs" style="font-weight: 600;">
-                ≈ <span id="asset-usd-htg"><%= number_with_precision(usd_htg_val, precision: 2, delimiter: ",") %></span> HTG
+                ≈ <span id="asset-usd-htg"><%= number_with_precision(figs[:usd_in_htg] / 100.0, precision: 2, delimiter: ",") %></span> HTG
               </div>
             </div>
           </div>
@@ -2741,24 +2741,17 @@ function microTick() {
   tickRate('coinx');
   tickRate('googlx');
 
-  // Asset card equivalents — convert from the displayed (2-decimal) balance
-  // so dust that renders as "0.00" doesn't show a non-zero equivalent.
-  var htgUsd  = (Math.round(BALS.htg * 100) / 100) / RATES.usd_htg;
-  var usdHtg  = (Math.round(BALS.usd * 100) / 100) * RATES.usd_htg;
-  var wbtcUsd = BALS.wbtc * RATES.btc_usd;
-  var ethUsd  = BALS.eth  * RATES.eth_usd;
-
-  tickDecimalEl('asset-htg-usd',  htgUsd);
-  tickDecimalEl('asset-usd-htg', usdHtg);
-  tickDecimalEl('asset-wbtc-usd', wbtcUsd);
-  tickDecimalEl('asset-eth-usd',  ethUsd);
+  // Same calculation as the server render (ZellusMoney.figures mirrors
+  // WalletsHelper#wallet_figures), so the numbers never shift after load.
+  var f = ZellusMoney.figures(BALS, RATES);
+  tickDecimalEl('asset-htg-usd',  f.htg_in_usd / 100);
+  tickDecimalEl('asset-usd-htg', f.usd_in_htg / 100);
+  tickDecimalEl('asset-wbtc-usd', f.wbtc_usd / 100);
+  tickDecimalEl('asset-eth-usd',  f.eth_usd / 100);
 
   // Hero decimals
-  var totalHtg = BALS.htg + usdHtg + (BALS.wbtc * RATES.btc_usd * RATES.usd_htg) + (BALS.eth * RATES.eth_usd * RATES.usd_htg);
-  var totalUsd = BALS.usd + (BALS.wbtc * RATES.btc_usd) + (BALS.eth * RATES.eth_usd) + (BALS.htg / RATES.usd_htg);
-
-  tickHeroDecimals('hero-htg-dec', totalHtg);
-  tickHeroDecimals('hero-usd-dec', totalUsd);
+  setCentsDecimals('hero-htg-dec', f.total_htg);
+  setCentsDecimals('hero-usd-dec', f.total_usd);
 
   // Biznis hero decimals
   var bizTotalHtg = BIZ_BALS.htg + (BIZ_BALS.usd * RATES.usd_htg);
@@ -2870,6 +2863,13 @@ function tickHeroDecimals(elId, baseVal) {
   // misleading on a wallet ("Why does my $1.00 look like $1.02?").
   var dec = (!baseVal || baseVal < 0.01) ? 0 : Math.floor((baseVal * 100) % 100);
   el.textContent = ('0' + dec).slice(-2);
+  el.className = 'tick-decimals';
+}
+
+function setCentsDecimals(elId, cents) {
+  var el = document.getElementById(elId);
+  if (!el) return;
+  el.textContent = ('0' + (cents % 100)).slice(-2);
   el.className = 'tick-decimals';
 }
 

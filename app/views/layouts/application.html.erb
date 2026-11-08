@@ -517,6 +517,31 @@
       }
     </style>
     <%= yield :head %>
+    <script>
+      // Wallet money figures, in integer cents. Mirrors
+      // WalletsHelper#wallet_figures: each card rounds to cents (half-up) and
+      // the totals are the sum of the cards, so they always agree.
+      window.ZellusMoney = {
+        // Half-up to cents. toFixed(6) first so 136.855 (stored as
+        // 136.85499999…) rounds to 13686 like Ruby's BigDecimal does.
+        cents: function (v) { return Math.round(Number(((Number(v) || 0) * 100).toFixed(6))); },
+        figures: function (b, r) {
+          var c = ZellusMoney.cents;
+          var rate = Number(r.usd_htg) || 0;
+          var htg = c(b.htg), usd = c(b.usd);
+          var wbtcUsd = (Number(b.wbtc) || 0) * (Number(r.btc_usd) || 0);
+          var ethUsd  = (Number(b.eth)  || 0) * (Number(r.eth_usd) || 0);
+          var htgInUsd = rate ? c(htg / 100 / rate) : 0;
+          var usdInHtg = c(usd / 100 * rate);
+          return {
+            htg: htg, usd: usd, htg_in_usd: htgInUsd, usd_in_htg: usdInHtg,
+            wbtc_usd: c(wbtcUsd), eth_usd: c(ethUsd),
+            total_htg: htg + usdInHtg + c(wbtcUsd * rate) + c(ethUsd * rate),
+            total_usd: usd + htgInUsd + c(wbtcUsd) + c(ethUsd)
+          };
+        }
+      };
+    </script>
   </head>
 
   <body data-user-display-name="<%= current_user&.display_name %>" data-bonid-verified="<%= current_user&.bonid_verified? ? 'true' : 'false' %>">
@@ -1533,9 +1558,10 @@
         var bEth  = parseFloat(b.eth)  || 0;
         var bWbtc = parseFloat(b.wbtc) || 0;
 
-        // Compute totals
-        var totalHtg = bHtg + (bUsd * usdHtg) + (bWbtc * btcUsd * usdHtg) + (bEth * ethUsd * usdHtg);
-        var totalUsd = bUsd + (bWbtc * btcUsd) + (bEth * ethUsd) + (bHtg / usdHtg);
+        // Same calculation as the server render (WalletsHelper#wallet_figures)
+        var f = ZellusMoney.figures(
+          { htg: bHtg, usd: bUsd, wbtc: bWbtc, eth: bEth },
+          { usd_htg: usdHtg, btc_usd: btcUsd, eth_usd: ethUsd });
 
         // Helper: update element text + flash green
         function setEl(id, text) {
@@ -1551,12 +1577,15 @@
         function fmt(n) {
           return Math.floor(n).toLocaleString('en-US');
         }
+        function money(cents) {
+          return (cents / 100).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        }
 
         // Hero totals
-        setEl('hero-htg-whole', fmt(totalHtg));
-        setEl('hero-htg-dec', ('0' + (Math.floor(totalHtg * 100) % 100)).slice(-2));
-        setEl('hero-usd-whole', fmt(totalUsd));
-        setEl('hero-usd-dec', ('0' + (Math.floor(totalUsd * 100) % 100)).slice(-2));
+        setEl('hero-htg-whole', Math.floor(f.total_htg / 100).toLocaleString('en-US'));
+        setEl('hero-htg-dec', ('0' + (f.total_htg % 100)).slice(-2));
+        setEl('hero-usd-whole', Math.floor(f.total_usd / 100).toLocaleString('en-US'));
+        setEl('hero-usd-dec', ('0' + (f.total_usd % 100)).slice(-2));
 
         // Mini breakdown
         setEl('mini-htg-bal', fmt(bHtg));
@@ -1565,16 +1594,16 @@
         setEl('mini-wbtc-bal', bWbtc.toFixed(6));
 
         // Asset card balances
-        setEl('asset-htg-bal', bHtg.toFixed(2));
-        setEl('asset-usd-bal', bUsd.toFixed(2));
+        setEl('asset-htg-bal', (f.htg / 100).toFixed(2));
+        setEl('asset-usd-bal', (f.usd / 100).toFixed(2));
         setEl('asset-wbtc-bal', bWbtc > 0 ? bWbtc.toFixed(8).replace(/0+$/, '').replace(/\.$/, '.0') : '0');
         setEl('asset-eth-bal', bEth > 0 ? bEth.toFixed(6).replace(/0+$/, '').replace(/\.$/, '.0') : '0');
 
         // Asset card equivalents
-        setEl('asset-htg-usd', (bHtg / usdHtg).toFixed(2));
-        setEl('asset-usd-htg', (bUsd * usdHtg).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}));
-        setEl('asset-wbtc-usd', (bWbtc * btcUsd).toFixed(2));
-        setEl('asset-eth-usd', (bEth * ethUsd).toFixed(2));
+        setEl('asset-htg-usd', money(f.htg_in_usd));
+        setEl('asset-usd-htg', money(f.usd_in_htg));
+        setEl('asset-wbtc-usd', money(f.wbtc_usd));
+        setEl('asset-eth-usd', money(f.eth_usd));
 
         // Notify any listeners (e.g. limits chips) that balance changed
         window.dispatchEvent(new CustomEvent('zellus:balance-updated'));
