@@ -70,5 +70,21 @@ class BonidVerificationPageTest < ActionDispatch::IntegrationTest
     refute_includes response.body, "DL-1988-M-OU-P8697-C56"
     refute_includes response.body, "1988"
     assert_includes response.body, "DL-••••-•-••-•••••-C56"
+
+    # Profile menu: the avatar appears once (on the button); the header shows
+    # the full name with $cashtag beside it on every screen size, including
+    # phones, where the avatar button is the only way in; verification shows
+    # once, on the BonID row.
+    profile = css_select(".profile-toggle").first.parent
+    assert_equal 1, profile.css("img, .ri-user-fill").size
+    assert_equal 0, profile.css(".profile-menu .js-bonid-badge").size
+    header = profile.css(".profile-menu .profile-menu-header").first
+    assert header, "profile menu header missing"
+    assert_equal "Test User", header.css(".profile-menu-name").text.strip
+    assert_equal "$#{@user.cashtag}", header.css(".profile-menu-cashtag").text.strip
+    refute_match(/d-none/, header.parent["class"].to_s, "header must not be hidden on mobile")
+    # ...and the button is avatar-only, so name and $cashtag appear exactly once.
+    assert_equal 1, profile.text.scan("$#{@user.cashtag}").size
+    assert_equal 1, profile.text.scan("Test User").size
   end
 end

@@ -58,6 +58,32 @@
       }
       .bonid-verified-badge i { color: #fff; font-size: 13px; line-height: 1; }
 
+      /* Profile menu header: full name, with the $cashtag on the line below.
+         Long names truncate with an ellipsis. */
+      .profile-menu-header {
+        display: flex; flex-direction: column; gap: 2px; min-width: 0;
+        padding: 14px 20px 12px;
+        background: linear-gradient(135deg, var(--haiti-charcoal) 0%, #3a3a48 100%);
+      }
+      .profile-menu-name {
+        color: #fff; font-size: 15px; font-weight: 700;
+        min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      }
+      /* Profile button: just the avatar on every screen size, no pill, no caret.
+         Tapping it opens the menu. Keyboard focus still gets a visible ring. */
+      .profile-toggle {
+        padding: 0 !important; border-radius: 50%;
+        background: transparent; line-height: 0;
+      }
+      .profile-toggle::after { display: none !important; }
+      .profile-toggle:focus-visible { outline: 2px solid var(--haiti-gold); outline-offset: 3px; }
+      .profile-toggle:hover img, .profile-toggle:hover .profile-avatar-fallback { box-shadow: 0 0 0 3px rgba(197, 160, 89, 0.35); }
+
+      .profile-menu-cashtag {
+        color: var(--haiti-gold); font-size: 13px; font-weight: 700;
+        min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      }
+
       html, body {
         overflow-x: hidden;
         width: 100%;
@@ -142,11 +168,8 @@
           box-shadow: none !important;
           border-radius: 12px !important;
         }
-        /* Avatar-only on mobile: no pill background, cashtag or caret. The menu
-           anchors to the avatar, so it needs its own width and must scroll on
-           short screens. */
-        .profile-toggle { background: transparent !important; }
-        .profile-toggle::after { display: none; }
+        /* The menu anchors to the avatar, so it needs its own width and must
+           scroll on short screens. */
         .navbar .dropdown .profile-menu {
           width: min(340px, calc(100vw - 24px)) !important;
           max-height: calc(100vh - 90px);
@@ -699,11 +722,12 @@
             <% end %>
             </div>
 
-              <%# ── User Profile: cashtag pill on desktop, avatar only on mobile. ── %>
+              <%# ── User Profile: avatar button on every screen size; the name and
+                  $cashtag show in the menu header, so they aren't repeated here. ── %>
               <div class="dropdown">
-                <a class="nav-link dropdown-toggle profile-toggle d-flex align-items-center gap-2 p-1 px-lg-3 py-lg-2"
-                   href="#" role="button" data-bs-toggle="dropdown" aria-label="Pwofil"
-                   style="color: white; border-radius: 24px; background: rgba(255,255,255,0.06); transition: background 0.15s; max-width: 200px;">
+                <a class="nav-link profile-toggle d-flex align-items-center"
+                   href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false"
+                   aria-label="Pwofil: <%= current_user.display_name %> ($<%= current_user.cashtag %>)">
                   <% if current_user.avatar.attached? %>
                     <div style="position: relative; width: 30px; height: 30px;">
                       <%= image_tag current_user.avatar, style: "width: 30px; height: 30px; border-radius: 50%; object-fit: cover; border: 2px solid var(--haiti-gold);", alt: "" %>
@@ -715,7 +739,7 @@
                     </div>
                   <% else %>
                     <div style="position: relative; width: 30px; height: 30px;">
-                      <div style="width: 30px; height: 30px; border-radius: 50%; background: rgba(197,160,89,0.15); border: 2px solid var(--haiti-gold); display: flex; align-items: center; justify-content: center;">
+                      <div class="profile-avatar-fallback" style="width: 30px; height: 30px; border-radius: 50%; background: rgba(197,160,89,0.15); border: 2px solid var(--haiti-gold); display: flex; align-items: center; justify-content: center;">
                         <i class="ri-user-fill" style="font-size: 15px; color: var(--haiti-gold);"></i>
                       </div>
                       <% if current_user.bonid_verified? %>
@@ -725,44 +749,18 @@
                       <% end %>
                     </div>
                   <% end %>
-                  <span class="small fw-bold d-none d-lg-inline" style="color: var(--haiti-gold);">$<%= current_user.cashtag %></span>
                 </a>
 
                 <ul class="dropdown-menu dropdown-menu-end profile-menu shadow-lg p-0 mt-2" style="min-width: 320px; width: 340px; border: 1px solid rgba(46,46,56,0.08); border-radius: 16px; overflow: hidden;">
 
-                  <%# ── SECTION 1: Identity Header (desktop only — mobile shows just
-                      the menu, without the name or cashtag). ── %>
-                  <li class="d-none d-lg-block">
-                    <div style="padding: 16px 20px 14px; background: linear-gradient(135deg, var(--haiti-charcoal) 0%, #3a3a48 100%);">
-                      <div class="d-flex align-items-center gap-3">
-                        <%# Avatar with verification badge %>
-                        <div style="position: relative; flex-shrink: 0;">
-                          <% if current_user.avatar.attached? %>
-                            <%= image_tag current_user.avatar, style: "width: 44px; height: 44px; border-radius: 50%; object-fit: cover; border: 2px solid var(--haiti-gold);", alt: "" %>
-                          <% else %>
-                            <div style="width: 44px; height: 44px; border-radius: 50%; background: rgba(197,160,89,0.15); border: 2px solid var(--haiti-gold); display: flex; align-items: center; justify-content: center;">
-                              <i class="ri-user-fill" style="font-size: 22px; color: var(--haiti-gold);"></i>
-                            </div>
-                          <% end %>
-                          <% if current_user.bonid_verified? %>
-                            <div class="js-bonid-badge" style="position: absolute; bottom: -1px; right: -1px; width: 18px; height: 18px; background: #16a34a; border-radius: 50%; border: 2.5px solid var(--haiti-charcoal); display: flex; align-items: center; justify-content: center;" title="Idantite verifye ak BonID">
-                              <i class="ri-check-line" style="color: #fff; font-size: 10px;"></i>
-                            </div>
-                          <% end %>
-                        </div>
-                        <%# Name + email %>
-                        <div style="min-width: 0; flex: 1;">
-                          <div class="d-flex align-items-center gap-1">
-                            <span class="fw-bold text-truncate js-bonid-fullname" style="color: #fff; font-size: 14px;">
-                              <%= current_user.bonid_verified? && current_user.bonid_full_name.present? ? current_user.bonid_full_name : current_user.display_name %>
-                            </span>
-                            <% if current_user.bonid_verified? %>
-                              <i class="ri-verified-badge-fill js-bonid-badge" style="color: #16a34a; font-size: 15px; flex-shrink: 0;" title="Verifye"></i>
-                            <% end %>
-                          </div>
-                          <div class="text-truncate" style="color: var(--haiti-gold); font-size: 12px; font-weight: 700;">$<%= current_user.cashtag %></div>
-                        </div>
-                      </div>
+                  <%# ── SECTION 1: Name + $cashtag header, on every screen size
+                      (on mobile the avatar button is the only way in, so this is
+                      where the user sees who they're signed in as). The avatar
+                      isn't repeated here; verification shows once, on the BonID row. ── %>
+                  <li>
+                    <div class="profile-menu-header">
+                      <span class="profile-menu-name js-bonid-fullname"><%= current_user.bonid_verified? && current_user.bonid_full_name.present? ? current_user.bonid_full_name : current_user.display_name %></span>
+                      <span class="profile-menu-cashtag">$<%= current_user.cashtag %></span>
                     </div>
                   </li>
 
