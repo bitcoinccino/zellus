@@ -291,20 +291,24 @@ class User < ApplicationRecord
   end
 
   # ── BonID Identity Verification ──
-  def self.from_omniauth(auth)
-    info = auth.info
-    bonid_id = info["bonid"] || auth.uid
 
-    # Validate against BonID API to get the canonical BonID.
-    # OAuth uid may differ from the actual BonID (e.g. internal ID vs citizen ID).
-    begin
-      api_result = BonIdService.lookup(bonid_id)
-      if api_result[:success] && api_result[:bonid].present?
-        bonid_id = api_result[:bonid]
-      end
-    rescue => e
-      Rails.logger.warn "BonID API lookup during OAuth failed for #{bonid_id}: #{e.message} — using OAuth value"
-    end
+  # Validate against BonID API to get the canonical BonID.
+  # OAuth uid may differ from the actual BonID (e.g. internal ID vs citizen ID).
+  # Falls back to the OAuth value if the API is unreachable.
+  def self.resolve_canonical_bonid(raw_bonid)
+    api_result = BonIdService.lookup(raw_bonid)
+    api_result[:success] && api_result[:bonid].present? ? api_result[:bonid] : raw_bonid
+  rescue => e
+    Rails.logger.warn "BonID API lookup during OAuth failed for #{raw_bonid}: #{e.message} — using OAuth value"
+    raw_bonid
+  end
+
+  # `canonical_bonid` is the BonID the caller already resolved through the
+  # BonID API (the OAuth callback does this). Passing it skips a second,
+  # billed lookup — BonID charges the partner per identity call.
+  def self.from_omniauth(auth, canonical_bonid: nil)
+    info = auth.info
+    bonid_id = canonical_bonid.presence || resolve_canonical_bonid(info["bonid"] || auth.uid)
 
     # ── Address fields from BonID ──
     address_attrs = {

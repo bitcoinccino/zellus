@@ -14,15 +14,8 @@ class Users::OmniauthCallbacksController < Devise::OmniauthCallbacksController
       return
     end
 
-    bonid_id = auth.info["bonid"] || auth.uid
-
-    # ── Resolve canonical BonID from API ──
-    begin
-      api_result = BonIdService.lookup(bonid_id)
-      bonid_id = api_result[:bonid] if api_result[:success] && api_result[:bonid].present?
-    rescue => e
-      Rails.logger.warn "BonID API lookup during OAuth failed: #{e.message}"
-    end
+    # ── Resolve canonical BonID from API (once — each lookup is billed) ──
+    bonid_id = User.resolve_canonical_bonid(auth.info["bonid"] || auth.uid)
 
     # ── Crime status check ──
     oauth_token = auth.credentials&.token
@@ -70,7 +63,7 @@ class Users::OmniauthCallbacksController < Devise::OmniauthCallbacksController
     end
 
     # ── CASE 2: User is NOT signed in → sign in or create account ──
-    @user = User.from_omniauth(auth)
+    @user = User.from_omniauth(auth, canonical_bonid: bonid_id)
 
     if @user.persisted?
       sign_in_and_redirect @user, event: :authentication
