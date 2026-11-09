@@ -909,14 +909,20 @@
     <% end %>
 
     <%# ── Global auto-dismiss flash toast ── %>
+    <%# Toasts sit just under the 70px navbar, or near the top when it's hidden.
+        Centered with left/right + auto margins and width: fit-content — NOT
+        left:50% + translateX(-50%), which caps a fixed box at half the
+        viewport and squeezes the text into a narrow column on phones. %>
+    <% flash_toast_top = content_for?(:hide_navbar) ? "16px" : "80px" %>
     <% if flash[:notice].present? %>
       <div id="flash-toast" style="
-        position: fixed; top: 80px; left: 50%; transform: translateX(-50%);
+        position: fixed; top: <%= flash_toast_top %>; left: 16px; right: 16px;
+        margin-left: auto; margin-right: auto; width: fit-content; max-width: 500px;
         z-index: 9999; background: var(--haiti-charcoal); color: var(--haiti-gold);
-        padding: 10px 20px; border-radius: 50px; font-size: 12px; font-weight: 600;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.2); opacity: 1;
+        padding: 10px 20px; border-radius: 22px; font-size: 13px; font-weight: 600;
+        line-height: 1.45; box-shadow: 0 4px 20px rgba(0,0,0,0.2); opacity: 1;
         transition: opacity 0.6s ease, transform 0.6s ease;
-        pointer-events: none; max-width: 92vw; text-align: center;">
+        pointer-events: none; text-align: center;">
         <i class="ri-checkbox-circle-fill me-1"></i><%= flash[:notice] %>
       </div>
       <script>
@@ -924,7 +930,7 @@
           var toast = document.getElementById('flash-toast');
           if (toast) {
             toast.style.opacity = '0';
-            toast.style.transform = 'translateX(-50%) translateY(-10px)';
+            toast.style.transform = 'translateY(-10px)';
             setTimeout(function() { toast.remove(); }, 600);
           }
         }, 5000);
@@ -934,8 +940,8 @@
     <%# ── Global alert toast (tap to dismiss) ── %>
     <% if flash[:alert].present? %>
       <div id="flash-alert-toast" onclick="this.style.opacity='0'; this.style.transform='translateY(-10px)'; setTimeout(function(){ document.getElementById('flash-alert-toast')?.remove(); }, 600);" style="
-        position: fixed; top: 80px; left: 16px; right: 16px;
-        margin-left: auto; margin-right: auto; max-width: 500px;
+        position: fixed; top: <%= flash_toast_top %>; left: 16px; right: 16px;
+        margin-left: auto; margin-right: auto; width: fit-content; max-width: 500px;
         z-index: 9999; background: #7f1d1d; color: #fecaca;
         padding: 14px 20px; border-radius: 14px; font-size: 13px; font-weight: 600;
         box-shadow: 0 4px 20px rgba(0,0,0,0.3); opacity: 1;
