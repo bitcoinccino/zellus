@@ -386,9 +386,10 @@
       <% default_asset = (user_wallet&.htg_balance.to_f <= 0 && user_wallet&.usdc_balance.to_f > 0) ? "usd" : "htg" %>
       <% default_is_usd = default_asset == "usd" %>
       <div class="mb-3">
-        <div class="d-flex align-items-center justify-content-between gap-3">
-          <h1 class="h5 fw-black mb-0" style="color: var(--haiti-charcoal);">Peye oswa Voye Lajan</h1>
-          <div class="position-relative flex-shrink-0" id="hdr-kebab">
+        <%# Title centered; the ⋯ menu sits at the right edge without pushing it off-center %>
+        <div class="position-relative d-flex align-items-center justify-content-center" style="min-height: 32px;">
+          <h1 class="h5 fw-black mb-0 text-center" style="color: var(--haiti-charcoal); padding: 0 40px;">Peye</h1>
+          <div class="position-absolute end-0 top-50 translate-middle-y" id="hdr-kebab">
             <button type="button" class="hdr-kebab-btn" onclick="toggleHdrKebab(event)" aria-label="Plis opsyon">
               <i class="ri-more-fill" style="font-size: 20px;"></i>
             </button>
@@ -399,7 +400,7 @@
             </div>
           </div>
         </div>
-        <p class="mb-0 mt-1" style="font-size: 12px; color: var(--haiti-olive); line-height: 1.4;">Peye oswa voye lajan bay nenp&ograve;t moun sou Z&egrave;llus rapid e ak sekirite.</p>
+        <p class="mb-0 mt-1 text-center" style="font-size: 12px; color: var(--haiti-olive); line-height: 1.4;">Peye nenp&ograve;t moun sou Z&egrave;llus, rapid e an sekirite.</p>
       </div>
 
       <%= form_with(model: @transfer, url: transfers_path, method: :post, local: true, class: "row g-2", id: "transfer-form") do |f| %>
@@ -479,10 +480,11 @@
           <input type="hidden" name="receiver_mode" id="receiver-mode" value="wallet">
 
           <%# ── Mobile contextual tip (hidden on desktop) ── %>
-          <div id="currency-tip" class="d-lg-none mt-2 p-2 rounded-3 d-flex align-items-center gap-2"
+          <%# Hidden until a currency with a tip is picked (HTG and USD have none) %>
+          <div id="currency-tip" class="d-none mt-2 p-2 rounded-3 align-items-center gap-2"
                style="background: rgba(197,160,89,0.08); border-left: 3px solid var(--haiti-gold); font-size: 11px; color: var(--haiti-olive); line-height: 1.3;">
-            <i class="ri-shopping-cart-2-line flex-shrink-0" id="currency-tip-icon" style="color: var(--haiti-gold); font-size: 14px;"></i>
-            <span id="currency-tip-text"><strong>Depans chak jou.</strong> Peye machanndiz, fakti, ak sèvis lokal.</span>
+            <i class="flex-shrink-0" id="currency-tip-icon" style="color: var(--haiti-gold); font-size: 14px;"></i>
+            <span id="currency-tip-text"></span>
           </div>
         </div>
 
@@ -512,7 +514,8 @@
           <div class="small mt-1" id="amount-htg-equivalent" style="color: var(--haiti-gold); font-size: 11px; display: none;"></div>
           <div id="zero-bal-warning" class="align-items-center gap-2 mt-2 p-2 rounded-3 d-none" style="background: rgba(197,160,89,0.1); border-left: 3px solid var(--haiti-gold); font-size: 11px; color: var(--haiti-olive);">
             <i class="ri-wallet-3-line" style="font-size: 14px; color: var(--haiti-gold);"></i>
-            <span>Balans ou vid pou aktif sa a. <a id="zero-bal-deposit-link" href="<%= wallet_path(action_panel: 'deposit') %>" style="color: var(--haiti-gold); font-weight: 700; text-decoration: underline;">Depoze lajan</a></span>
+            <span>Balans: <strong style="color: var(--haiti-charcoal);">0.00 <span id="zero-bal-asset">HTG</span></strong></span>
+            <a id="zero-bal-deposit-link" class="ms-auto" href="<%= wallet_path(action_panel: 'deposit') %>" style="color: var(--haiti-gold); font-weight: 700; text-decoration: none;">Depoze lajan</a>
           </div>
           <div id="bonid-consent-warning" class="align-items-center gap-2 mt-2 p-2 rounded-3 d-none" style="background: rgba(197,160,89,0.12); border-left: 3px solid var(--haiti-gold); font-size: 11px; color: var(--haiti-olive);">
             <i class="ri-shield-check-line" style="font-size: 14px; color: var(--haiti-gold);"></i>
@@ -528,7 +531,7 @@
               <i class="ri-search-line" id="htg-search-icon"></i>
             </span>
             <input type="text" name="receiver_lookup" id="receiver-lookup-input"
-                   placeholder="Chèche $cashtag oswa non biznis..."
+                   placeholder="Chèche Zèllus tag oswa non biznis..."
                    class="form-control border-0 fw-bold shadow-none p-3"
                    style="background-color: var(--haiti-mint); color: var(--haiti-charcoal);"
                    autocomplete="off">
@@ -553,7 +556,7 @@
               <i class="ri-search-line" id="usdc-search-icon"></i>
             </span>
             <input type="text" id="usdc-tag-input"
-                   placeholder="Chèche $cashtag..."
+                   placeholder="Chèche Zèllus tag..."
                    class="form-control border-0 fw-bold shadow-none p-3"
                    style="background-color: var(--haiti-mint); color: var(--haiti-charcoal);"
                    autocomplete="off">
@@ -712,7 +715,7 @@
           <button type="submit" id="transfer-submit-btn"
               class="btn w-100 py-3 fw-black rounded-4 shadow-sm border-0 d-flex align-items-center justify-content-center gap-2"
               style="background-color: var(--haiti-gold); color: var(--haiti-charcoal); font-family: 'Space Grotesk', sans-serif; font-size: 15px; letter-spacing: 0.5px;">
-            <i class="ri-flashlight-fill" id="submit-icon"></i> <span id="submit-text">Kontinye pou Revize</span>
+            <i class="ri-flashlight-fill" id="submit-icon"></i> <span id="submit-text">Kontinye</span>
           </button>
         </div>
 
@@ -802,11 +805,8 @@ var DEST_CONFIG = {
   "biznis-usdc":   { asset: "usdc",   mode: "business", section: "section-zellus-usdc", amountUnit: "usdc" }
 };
 
-// ── Currency guide tips ──
+// ── Currency guide tips ── (none for HTG or USD; the box hides for them)
 var CURRENCY_TIPS = {
-  "htg":  { icon: "ri-shopping-cart-2-line", color: "var(--haiti-gold)", text: "<strong>Depans chak jou.</strong> Peye machanndiz, fakti, ak sèvis lokal.", border: "var(--haiti-gold)", bg: "rgba(197,160,89,0.08)" },
-  "usd":  { icon: "ri-bank-line",           color: "#166534",          text: "<strong>Transfè bank.</strong> Voye dola dirèkteman nan kont Unibank.", border: "#166534", bg: "rgba(22,101,52,0.06)" },
-  "usdc": { icon: "ri-shield-check-line",    color: "#0052FF",          text: "<strong>Ekonomize a kout tèm.</strong> Estab tankou dola — pa monte, pa desann.", border: "#0052FF", bg: "rgba(0,82,255,0.05)" },
   "eth":  { icon: "ri-line-chart-line",      color: "#627eea",          text: "<strong>Envèstisman mwayen tèm.</strong> Teknoloji ki ka grandi — men pri a ka chanje.", border: "#627eea", bg: "rgba(98,126,234,0.05)" },
   "wbtc":   { icon: "ri-safe-2-line",          color: "#f7931a",          text: "<strong>Ekonomize a long tèm.</strong> Pi gwo kriptomòne nan mond lan — pi ra pase lò.", border: "#f7931a", bg: "rgba(247,147,26,0.05)" },
   "tslax":  { icon: "ri-stock-line",           color: "#CC0000",          text: "<strong>Tesla (TSLAX).</strong> Envèsti nan aksyon Tesla dirèkteman sou Base.", border: "#CC0000", bg: "rgba(204,0,0,0.05)" },
@@ -818,12 +818,18 @@ var CURRENCY_TIPS = {
 
 function updateCurrencyTip(asset) {
   var tip = CURRENCY_TIPS[asset];
-  if (!tip) return;
-
-  // Mobile tip
   var tipEl = document.getElementById("currency-tip");
   var tipIcon = document.getElementById("currency-tip-icon");
   var tipText = document.getElementById("currency-tip-text");
+
+  // Mobile only (d-lg-none); hidden entirely when this currency has no tip
+  if (tipEl) {
+    tipEl.classList.toggle("d-none", !tip);
+    tipEl.classList.toggle("d-flex", !!tip);
+    tipEl.classList.toggle("d-lg-none", !!tip);
+  }
+  if (!tip) return;
+
   if (tipEl) {
     tipEl.style.borderLeftColor = tip.border;
     tipEl.style.background = tip.bg;
@@ -909,6 +915,9 @@ function switchDestination(dest) {
   var bal = balanceForAsset(cfg.asset, dest);
   var isZero = bal <= 0;
   var warning = document.getElementById("zero-bal-warning");
+
+  var zeroAsset = document.getElementById("zero-bal-asset");
+  if (zeroAsset) zeroAsset.textContent = (cfg.asset === "usdc" || cfg.asset === "usd") ? "USD" : cfg.asset.toUpperCase();
 
   if (warning) {
     if (isZero) { warning.classList.remove('d-none'); warning.classList.add('d-flex'); }
@@ -1227,7 +1236,7 @@ function handleReceiverLookup() {
                   '<div class="fw-bold" style="color: #166534; font-size: 12px;">' + data.display_name +
                     '<span style="display: inline-block; background: var(--haiti-olive); color: #fff; font-size: 9px; font-weight: 800; padding: 1px 6px; border-radius: 99px; letter-spacing: 0.5px; margin-left: 5px; vertical-align: middle;">Pèsonèl</span>' +
                   '</div>' +
-                  '<div style="color: var(--haiti-olive); font-size: 10px;">$' + data.cashtag + '</div>' +
+                  tagSubline(data.display_name, data.cashtag) + '' +
                 '</div></div>' +
                 '<button type="button" class="btn btn-sm fw-bold rounded-pill" style="background: #166534; color: #fff; font-size: 10px;" ' +
                 'onclick="selectHtgReceiver(\'' + data.cashtag + '\', \'' + escapedName + '\', null)"><i class="ri-user-line me-1"></i>Chwazi</button>' +
@@ -1240,7 +1249,7 @@ function handleReceiverLookup() {
             '<div><div class="fw-bold" style="color: #166534; font-size: 12px;">' + data.display_name +
               '<span style="display: inline-block; background: var(--haiti-olive); color: #fff; font-size: 9px; font-weight: 800; padding: 1px 6px; border-radius: 99px; letter-spacing: 0.5px; margin-left: 5px; vertical-align: middle;">Pèsonèl</span>' +
             '</div>' +
-            '<div style="color: var(--haiti-olive); font-size: 10px;">$' + data.cashtag + '</div></div></div>' +
+            tagSubline(data.display_name, data.cashtag) + '</div></div>' +
             '<button type="button" class="btn btn-sm fw-bold rounded-pill" style="background: #166534; color: #fff; font-size: 10px;" ' +
             'onclick="selectHtgReceiver(\'' + data.cashtag + '\', \'' + escapedName + '\', null)"><i class="ri-check-line me-1"></i>Chwazi</button></div>';
         }
@@ -1256,6 +1265,18 @@ function handleReceiverLookup() {
   }, 300);
 }
 
+// A user's display_name is already "$cashtag", so showing name + tag printed
+// the tag twice. Show the tag once unless the name differs (e.g. a business).
+function isJustTag(name, cashtag) {
+  return String(name || '').replace(/^\$/, '').toLowerCase() === String(cashtag || '').toLowerCase();
+}
+function nameWithTag(name, cashtag) {
+  return isJustTag(name, cashtag) ? '$' + cashtag : name + ' · $' + cashtag;
+}
+function tagSubline(name, cashtag) {
+  return isJustTag(name, cashtag) ? '' : '<div style="color: var(--haiti-olive); font-size: 10px;">$' + cashtag + '</div>';
+}
+
 function selectHtgReceiver(cashtag, name, bizSlug) {
   var input = document.getElementById("receiver-lookup-input");
   var resultDiv = document.getElementById("receiver-lookup-result");
@@ -1269,7 +1290,7 @@ function selectHtgReceiver(cashtag, name, bizSlug) {
     ? '<span style="display: inline-block; background: var(--haiti-gold); color: var(--haiti-charcoal); font-size: 9px; font-weight: 800; padding: 1px 5px; border-radius: 99px; margin-left: 4px; vertical-align: middle;">Biznis</span>'
     : '<span style="display: inline-block; background: var(--haiti-olive); color: #fff; font-size: 9px; font-weight: 800; padding: 1px 5px; border-radius: 99px; margin-left: 4px; vertical-align: middle;">Pèsonèl</span>';
 
-  resultDiv.innerHTML = '<div class="small fw-bold" style="color: #166534; font-size: 11px;"><i class="ri-check-line me-1"></i>' + name + ' · $' + cashtag + ' ' + typeLabel + '</div>';
+  resultDiv.innerHTML = '<div class="small fw-bold" style="color: #166534; font-size: 11px;"><i class="ri-check-line me-1"></i>' + nameWithTag(name, cashtag) + ' ' + typeLabel + '</div>';
 }
 
 
@@ -1353,7 +1374,7 @@ function handleUsdcTagLookup() {
                   '<div class="fw-bold" style="color: #166534; font-size: 12px;">' + data.display_name +
                     '<span style="display: inline-block; background: var(--haiti-olive); color: #fff; font-size: 9px; font-weight: 800; padding: 1px 6px; border-radius: 99px; letter-spacing: 0.5px; margin-left: 5px; vertical-align: middle;">Pèsonèl</span>' +
                   '</div>' +
-                  '<div style="color: var(--haiti-olive); font-size: 10px;">$' + data.cashtag + '</div>' +
+                  tagSubline(data.display_name, data.cashtag) + '' +
                 '</div></div>' +
                 '<button type="button" class="btn btn-sm fw-bold rounded-pill" style="background: #166534; color: #fff; font-size: 10px;" ' +
                 'onclick="selectUsdcReceiver(\'' + data.cashtag + '\', \'' + escapedName2 + '\', null)"><i class="ri-user-line me-1"></i>Chwazi</button>' +
@@ -1365,7 +1386,7 @@ function handleUsdcTagLookup() {
             '<div><div class="fw-bold" style="color: #166534; font-size: 12px;">' + data.display_name +
               '<span style="display: inline-block; background: var(--haiti-olive); color: #fff; font-size: 9px; font-weight: 800; padding: 1px 6px; border-radius: 99px; letter-spacing: 0.5px; margin-left: 5px; vertical-align: middle;">Pèsonèl</span>' +
             '</div>' +
-            '<div style="color: var(--haiti-olive); font-size: 10px;">$' + data.cashtag + '</div></div></div>' +
+            tagSubline(data.display_name, data.cashtag) + '</div></div>' +
             '<button type="button" class="btn btn-sm fw-bold rounded-pill" style="background: #166534; color: #fff; font-size: 10px;" ' +
             'onclick="selectUsdcReceiver(\'' + data.cashtag + '\', \'' + escapedName2 + '\', null)"><i class="ri-check-line me-1"></i>Chwazi</button></div>';
         }
@@ -1394,7 +1415,7 @@ function selectUsdcReceiver(cashtag, name, bizSlug) {
     ? '<span style="display: inline-block; background: var(--haiti-gold); color: var(--haiti-charcoal); font-size: 9px; font-weight: 800; padding: 1px 5px; border-radius: 99px; margin-left: 4px; vertical-align: middle;">Biznis</span>'
     : '<span style="display: inline-block; background: var(--haiti-olive); color: #fff; font-size: 9px; font-weight: 800; padding: 1px 5px; border-radius: 99px; margin-left: 4px; vertical-align: middle;">Pèsonèl</span>';
 
-  resultDiv.innerHTML = '<div class="small fw-bold" style="color: #166534; font-size: 11px;"><i class="ri-check-line me-1"></i>' + name + ' · $' + cashtag + ' ' + typeLabel + '</div>';
+  resultDiv.innerHTML = '<div class="small fw-bold" style="color: #166534; font-size: 11px;"><i class="ri-check-line me-1"></i>' + nameWithTag(name, cashtag) + ' ' + typeLabel + '</div>';
 }
 
 function toggleManualWallet() {
