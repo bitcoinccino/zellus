@@ -3,6 +3,21 @@
 <% end %>
 
 <style>
+  /* ── Incoming payment requests: rows beyond the first 3 collapse ── */
+  .incoming-more > summary { list-style: none; }
+  .incoming-more > summary::-webkit-details-marker { display: none; }
+  .incoming-more-toggle {
+    display: flex; align-items: center; justify-content: center; gap: 4px;
+    cursor: pointer; padding: 6px 0 2px; font-size: 12px; font-weight: 700;
+    color: var(--haiti-charcoal);
+  }
+  .incoming-more-toggle i { font-size: 16px; transition: transform 0.2s ease; }
+  .incoming-more[open] > .incoming-more-toggle { margin-bottom: 8px; }
+  .incoming-more[open] > .incoming-more-toggle i { transform: rotate(180deg); }
+  .incoming-more .when-open,
+  .incoming-more[open] .when-closed { display: none; }
+  .incoming-more[open] .when-open { display: inline; }
+
   /* bb-dark-field base styles in application.css; page-specific overrides here */
   .bb-dark-field::placeholder {
     color: rgba(255,255,255,0.5) !important;
@@ -232,7 +247,7 @@
 
 <% content_for :full_width, true %>
 <div class="d-flex justify-content-center" style="min-height: 80vh; padding-top: 24px;">
-  <div class="w-100 px-3" style="max-width: 560px;">
+  <div class="w-100 px-3" style="max-width: 560px; min-width: 0;"><%# min-width: 0 keeps wide content from stretching this flex item past the screen %>
 
     <%# ══════════════════════════════════════════ %>
     <%# ── Pòtfèy Card (centered single column) ── %>
@@ -1592,9 +1607,9 @@
     <%# ══════════════════════════════════════ %>
     <% if @incoming_requests.any? %>
       <div id="section-incoming" class="mb-3">
-        <div class="p-3 rounded-4" style="background: rgba(197,160,89,0.12); border: 1.5px solid rgba(197,160,89,0.55);">
+        <div class="p-2 p-sm-3 rounded-4" style="background: rgba(197,160,89,0.12); border: 1.5px solid rgba(197,160,89,0.55);">
           <div class="d-flex align-items-center gap-2 mb-2">
-            <i class="ri-mail-download-line" style="color: var(--haiti-gold); font-size: 18px;"></i>
+            <i class="ri-hand-coin-fill" style="color: var(--haiti-gold); font-size: 18px;"></i>
             <span class="fw-black" style="color: var(--haiti-charcoal); font-size: 14px;">
               Demann Peman
               <span class="badge rounded-pill ms-1" style="background: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 10px;">
@@ -1603,70 +1618,60 @@
             </span>
           </div>
 
-          <% @incoming_requests.each do |req| %>
+          <%# Show the 3 most recent; the rest sit behind a toggle so a pile of
+              requests doesn't push the whole wallet down the page. %>
+          <% visible_requests = @incoming_requests.first(3) %>
+          <% hidden_requests  = @incoming_requests.drop(3) %>
+          <% [ visible_requests, hidden_requests ].each_with_index do |group, group_idx| %>
+          <% next if group.empty? %>
+          <% if group_idx == 1 %>
+          <details class="incoming-more">
+            <summary class="incoming-more-toggle">
+              <span class="when-closed">Wè <%= group.size %> lòt demann</span>
+              <span class="when-open">Kache lòt demann yo</span>
+              <i class="ri-arrow-down-s-line"></i>
+            </summary>
+          <% end %>
+          <% group.each do |req| %>
             <%
-              # Urgency from countdown (uses model helper if available)
-              hours_left = req.respond_to?(:hours_until_expiry) ? req.hours_until_expiry.to_f : nil
-              urgency_color =
-                if    hours_left.nil?     then "var(--haiti-olive)"
-                elsif hours_left < 1      then "#991b1b"   # red
-                elsif hours_left < 12     then "var(--haiti-gold)"
-                else                           "var(--haiti-olive)"
-                end
               amount_str =
                 if req.htg?
-                  "HTG #{number_with_precision(req.amount, precision: 0)}"
+                  "HTG #{number_with_precision(req.amount, precision: 0, delimiter: ",")}"
                 else
-                  "#{number_with_precision(req.amount, precision: 2)} #{req.asset == 'usd' ? 'USD' : req.asset.upcase}"
+                  "#{number_with_precision(req.amount, precision: 2, delimiter: ",")} #{req.asset == 'usd' ? 'USD' : req.asset.upcase}"
                 end
-              initial = req.user.display_name.to_s.strip.chars.first&.upcase || "?"
+              # display_name is "$cashtag" — use the cashtag so the avatar isn't always "$"
+              initial = (req.user.cashtag.presence || req.user.display_name).to_s.delete("$").strip.chars.first&.upcase || "?"
             %>
-            <div class="d-flex align-items-center gap-3 p-3 rounded-3 mb-2" style="background: #ffffff; border: 1px solid rgba(46,46,56,0.06);">
-              <%# Avatar circle (first letter of payer) %>
+            <%# Minimum on the wallet: who's asking + how much. The note, expiry
+                and everything else are on the request page behind Peye. %>
+            <div class="incoming-row d-flex align-items-center gap-2 p-2 p-sm-3 rounded-3 mb-2" style="background: #ffffff; border: 1px solid rgba(46,46,56,0.06);">
+              <%# Avatar circle (first letter of requester) %>
               <div class="d-flex align-items-center justify-content-center flex-shrink-0 fw-black"
-                   style="width: 38px; height: 38px; border-radius: 50%; background: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 14px;">
+                   style="width: 36px; height: 36px; border-radius: 50%; background: var(--haiti-charcoal); color: var(--haiti-gold); font-size: 14px;">
                 <%= initial %>
               </div>
 
-              <%# Body — name, note, countdown — wraps to next line on overflow %>
               <%= link_to public_payment_request_path(req.token), class: "flex-grow-1 text-decoration-none", style: "min-width: 0;" do %>
                 <div class="fw-bold text-truncate" style="color: var(--haiti-charcoal); font-size: 13px;">
                   $<%= req.user.cashtag.presence || req.user.display_name %>
-                  <span style="color: var(--haiti-olive); font-weight: 500;">mande ou</span>
                 </div>
-                <div class="d-flex align-items-center gap-1 text-truncate" style="font-size: 11px;">
-                  <% if req.note.present? %>
-                    <span style="color: var(--haiti-olive);"><%= req.note %></span>
-                    <span style="color: rgba(46,46,56,0.25);">·</span>
-                  <% end %>
-                  <span class="fw-bold" style="color: <%= urgency_color %>;">
-                    <i class="ri-time-line me-1"></i><%= req.expiry_countdown_label %>
-                  </span>
-                </div>
-              <% end %>
-
-              <%# Right — amount + Peye pill %>
-              <div class="d-flex flex-column align-items-end gap-1 flex-shrink-0">
-                <div class="fw-black" style="color: var(--haiti-charcoal); font-size: 14px; line-height: 1;">
+                <div class="fw-black text-truncate" style="color: var(--haiti-charcoal); font-size: 14px;">
                   <%= amount_str %>
                 </div>
-                <%= link_to public_payment_request_path(req.token),
-                      class: "btn btn-sm fw-bold rounded-pill border-0 d-inline-flex align-items-center gap-1",
-                      style: "background: var(--haiti-gold); color: var(--haiti-charcoal); font-size: 11px; padding: 4px 12px; line-height: 1.2;" do %>
-                  Peye <i class="ri-arrow-right-s-line" style="font-size: 13px;"></i>
-                <% end %>
-              </div>
-
-              <%# Dismiss (X) — neutral grey hover into red %>
-              <%= button_to dismiss_payment_request_path(req.token),
-                    method: :post,
-                    class: "btn btn-sm p-0 border-0 bg-transparent flex-shrink-0",
-                    style: "width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; color: rgba(46,46,56,0.35);",
-                    title: "Kache",
-                    data: { turbo_confirm: "Kache demann #{req.user.display_name}?" } do %>
-                <i class="ri-close-line" style="font-size: 16px;"></i>
               <% end %>
+
+              <%= link_to public_payment_request_path(req.token),
+                    class: "btn btn-sm fw-bold rounded-pill border-0 d-inline-flex align-items-center gap-1 flex-shrink-0",
+                    style: "background: var(--haiti-gold); color: var(--haiti-charcoal); font-size: 12px; padding: 6px 14px; line-height: 1.2;" do %>
+                <i class="ri-send-plane-fill" style="font-size: 12px;"></i> Peye
+              <% end %>
+
             </div>
+          <% end %>
+          <% if group_idx == 1 %>
+          </details>
+          <% end %>
           <% end %>
         </div>
       </div>

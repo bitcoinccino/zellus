@@ -1073,7 +1073,11 @@
         </nav>
 
         <%# ── Main Content ── %>
-        <main class="flex-grow-1 <%= content_for?(:full_width) ? '' : 'container' %>">
+        <%# min-width: 0 — as a flex item, <main> otherwise defaults to
+            min-width: auto and grows to fit its widest unbreakable content
+            (a long one-line note, a big balance), pushing the page past the
+            screen edge on phones. %>
+        <main class="flex-grow-1 <%= content_for?(:full_width) ? '' : 'container' %>" style="min-width: 0;">
           <%= yield %>
         </main>
       </div>
