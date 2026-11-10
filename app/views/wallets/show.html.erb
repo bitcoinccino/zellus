@@ -543,10 +543,11 @@
     <%# ══════════════════════════════════════ %>
     <div id="panel-deposit" class="panel-slide mb-3">
       <div class="panel-body">
-        <div class="d-flex align-items-center justify-content-between mb-3">
+        <%# Title centered; the ✕ sits at the right edge without pushing it off-center %>
+        <div class="position-relative d-flex align-items-center justify-content-center mb-3" style="min-height: 28px;">
           <%# Hidden on the USD QR screen (selectDepositMethod), which has its own "Depoze USD" line %>
-          <div id="deposit-title" class="fw-black" style="color: var(--haiti-charcoal); font-size: 18px;">Depoze Lajan</div>
-          <button type="button" onclick="togglePanel('deposit')" class="btn btn-sm p-0" style="color: var(--haiti-olive);">
+          <div id="deposit-title" class="fw-black text-center" style="color: var(--haiti-charcoal); font-size: 18px; padding: 0 28px;">Depoze Lajan</div>
+          <button type="button" onclick="togglePanel('deposit')" class="btn btn-sm p-0 position-absolute top-50 end-0 translate-middle-y" style="color: var(--haiti-olive);" aria-label="Fèmen">
             <i class="ri-close-line" style="font-size: 20px;"></i>
           </button>
         </div>
@@ -554,7 +555,7 @@
             opens that source's section; closing and reopening the panel
             (togglePanel → showDepositSources) comes back here. ── %>
         <div id="deposit-source-list">
-          <div class="small mb-3" style="color: var(--haiti-olive);">Chwazi yon metòd pou depoze lajan sou kont Zèllus ou.</div>
+          <div class="small mb-3 text-center" style="color: var(--haiti-olive);">Chwazi yon metòd pou depoze lajan sou kont Zèllus ou.</div>
           <div class="dep-group-label">Lajan</div>
           <div class="dep-group mb-3">
             <button type="button" class="dep-source" onclick="selectDepositMethod('cash')">
@@ -755,14 +756,15 @@
     <%# ══════════════════════════════════════════ %>
     <div id="panel-withdraw" class="panel-slide mb-3">
       <div class="panel-body">
-        <div class="d-flex align-items-center justify-content-between mb-3">
-          <div class="fw-black" style="color: var(--haiti-charcoal); font-size: 18px;">Retire Lajan</div>
-          <button type="button" onclick="togglePanel('withdraw')" class="btn btn-sm p-0" style="color: var(--haiti-olive);">
+        <%# Title centered; the ✕ sits at the right edge without pushing it off-center %>
+        <div class="position-relative d-flex align-items-center justify-content-center mb-3" style="min-height: 28px;">
+          <div class="fw-black text-center" style="color: var(--haiti-charcoal); font-size: 18px; padding: 0 28px;">Retire Lajan</div>
+          <button type="button" onclick="togglePanel('withdraw')" class="btn btn-sm p-0 position-absolute top-50 end-0 translate-middle-y" style="color: var(--haiti-olive);" aria-label="Fèmen">
             <i class="ri-close-line" style="font-size: 20px;"></i>
           </button>
         </div>
 
-        <div class="small mb-3" style="color: var(--haiti-olive);">Chwazi sous, metòd, montan, epi konfime.</div>
+        <div class="small mb-3 text-center" style="color: var(--haiti-olive);">Chwazi sous, metòd, montan, epi konfime.</div>
 
         <% if current_user.transfer_pin_set? %>
 
@@ -1328,13 +1330,14 @@
     <%# ══════════════════════════════════════════ %>
     <div id="panel-convert" class="panel-slide mb-3">
       <div class="panel-body">
-        <div class="d-flex align-items-center justify-content-between mb-3">
-          <div class="fw-black" style="color: var(--haiti-charcoal); font-size: 18px;">Konvèti</div>
-          <button type="button" onclick="togglePanel('convert')" class="btn btn-sm p-0" style="color: var(--haiti-olive);">
+        <%# Title centered; the ✕ sits at the right edge without pushing it off-center %>
+        <div class="position-relative d-flex align-items-center justify-content-center mb-3" style="min-height: 28px;">
+          <div class="fw-black text-center" style="color: var(--haiti-charcoal); font-size: 18px; padding: 0 28px;">Konvèti</div>
+          <button type="button" onclick="togglePanel('convert')" class="btn btn-sm p-0 position-absolute top-50 end-0 translate-middle-y" style="color: var(--haiti-olive);" aria-label="Fèmen">
             <i class="ri-close-line" style="font-size: 20px;"></i>
           </button>
         </div>
-        <p style="color: var(--haiti-olive); font-size: 12px; margin-bottom: 14px; line-height: 1.5;">Konvèti Goud oswa Dola soti nan Pèsonèl ale nan Biznis, e vis vèsa.</p>
+        <p class="text-center" style="color: var(--haiti-olive); font-size: 12px; margin-bottom: 14px; line-height: 1.5;">Konvèti Goud oswa Dola soti nan Pèsonèl ale nan Biznis, e vis vèsa.</p>
 
         <% cv_stock_meta = {
              "tslax"  => { name: "Tesla",     logo: "tslax_logo",  color: "#CC0000", accent: "rgba(204,0,0,0.08)" },
