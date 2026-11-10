@@ -164,7 +164,8 @@ class WbtcDepositMonitorWorker
 
   def credit_user(user, wbtc_amount, tx_hash)
     # Rate limit: skip if user received too many deposits recently
-    recent_count = user.notifications.where(notification_type: "transfer_received")
+    # crypto_deposit_received creates "deposit_confirmed" notifications
+    recent_count = user.notifications.where(notification_type: "deposit_confirmed")
                        .where("created_at > ?", 1.hour.ago).count
     if recent_count >= DEPOSIT_RATE_LIMIT
       Rails.logger.warn "WbtcDepositMonitor: rate limit hit for user=#{user.id} (#{recent_count} deposits/hr), skipping notification"

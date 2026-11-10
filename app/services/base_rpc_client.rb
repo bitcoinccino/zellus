@@ -27,6 +27,7 @@ class BaseRpcClient
 
   def initialize(url: nil)
     primary = url || ENV["BASE_RPC_URL"].presence || "https://mainnet.base.org"
+    @primary = primary
     @urls = ([ primary ] + FALLBACK_URLS).uniq
   end
 
@@ -39,6 +40,7 @@ class BaseRpcClient
           return execute(url, method, params)
         rescue Faraday::TimeoutError, Faraday::ConnectionFailed, Net::OpenTimeout, Net::ReadTimeout, JSON::ParserError => e
           last_error = e
+          warn_not_an_rpc_endpoint(url) if e.is_a?(JSON::ParserError) && url == @primary
           delay = BASE_DELAY * (2 ** attempt) # 1s, 2s, 4s
           Rails.logger.warn "BaseRpcClient: #{method} via #{url} attempt #{attempt + 1} failed (#{e.class}), retrying in #{delay}s"
           sleep(delay) if attempt < MAX_RETRIES - 1
@@ -54,6 +56,22 @@ class BaseRpcClient
   end
 
   private
+
+  # A configured URL that answers with HTML (e.g. BASE_RPC_URL set to the
+  # base.org website) silently pushes every call onto the public fallback,
+  # whose limits then break things like the deposit monitor. Say so plainly,
+  # once per process.
+  def warn_not_an_rpc_endpoint(url)
+    return if self.class.warned_urls.include?(url)
+
+    self.class.warned_urls << url
+    Rails.logger.error "BaseRpcClient: #{url} did not return JSON-RPC data — BASE_RPC_URL must be a Base " \
+                       "JSON-RPC endpoint (from an RPC provider), not a website. Falling back to public RPC."
+  end
+
+  def self.warned_urls
+    @warned_urls ||= Set.new
+  end
 
   def execute(url, method, params)
     conn = Faraday.new(url: url) do |f|

@@ -9,7 +9,8 @@ class UsdDepositMonitorWorker
   USD_ADDRESS   = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
   USD_DECIMALS  = 6
   MONITOR_NAME   = "usd_base_mainnet"
-  POLL_RANGE     = 200   # max blocks per poll (smaller to avoid RPC limits)
+  POLL_RANGE     = 200   # preferred blocks per poll; shrinks automatically if the RPC allows fewer
+  MIN_POLL_RANGE = 1
   REQUEUE_DELAY  = 300   # seconds between polls (5 min for mainnet public RPC)
 
   # Where a monitor with no saved progress starts. Starting at the chain head
@@ -57,30 +58,39 @@ class UsdDepositMonitorWorker
     else
                    first_scan_block(current_block)
     end
-    to_block = [ from_block + POLL_RANGE - 1, current_block ].min
 
     if from_block > current_block
       schedule_next
       return
     end
 
-    # Query in batches (eth_getLogs topics array has practical limits)
+    # Query in batches (eth_getLogs topics array has practical limits).
+    # The block range adapts to the RPC's eth_getLogs limit (see
+    # with_block_range_limit); a retry after shrinking may re-read logs from
+    # earlier batches, which is safe — deposits are keyed by tx hash.
     deposits_count = 0
-    all_addresses.each_slice(BATCH_SIZE) do |batch|
-      padded_batch = batch.map { |addr| "0x" + addr.delete_prefix("0x").rjust(64, "0") }
+    to_block = with_block_range_limit do |range|
+      to = [ from_block + range - 1, current_block ].min
+      deposits_count = 0
 
-      logs = rpc_call(rpc_url, "eth_getLogs", [ {
-        fromBlock: "0x#{from_block.to_s(16)}",
-        toBlock:   "0x#{to_block.to_s(16)}",
-        address:   USD_ADDRESS,
-        topics:    [ TRANSFER_TOPIC, nil, padded_batch ]
-      } ])
+      all_addresses.each_slice(BATCH_SIZE) do |batch|
+        padded_batch = batch.map { |addr| "0x" + addr.delete_prefix("0x").rjust(64, "0") }
 
-      (logs || []).each do |log|
-        if process_deposit_log(log)
-          deposits_count += 1
+        logs = rpc_call(rpc_url, "eth_getLogs", [ {
+          fromBlock: "0x#{from_block.to_s(16)}",
+          toBlock:   "0x#{to.to_s(16)}",
+          address:   USD_ADDRESS,
+          topics:    [ TRANSFER_TOPIC, nil, padded_batch ]
+        } ])
+
+        (logs || []).each do |log|
+          if process_deposit_log(log)
+            deposits_count += 1
+          end
         end
       end
+
+      to
     end
 
     monitor.update!(last_processed_block: to_block)
@@ -170,7 +180,8 @@ class UsdDepositMonitorWorker
 
   def credit_user(user, usd_amount, tx_hash)
     # Rate limit: skip if user received too many deposits recently
-    recent_count = user.notifications.where(notification_type: "transfer_received")
+    # crypto_deposit_received creates "deposit_confirmed" notifications
+    recent_count = user.notifications.where(notification_type: "deposit_confirmed")
                        .where("created_at > ?", 1.hour.ago).count
     if recent_count >= DEPOSIT_RATE_LIMIT
       Rails.logger.warn "UsdDepositMonitor: rate limit hit for user=#{user.id} (#{recent_count} deposits/hr), skipping notification"
@@ -208,6 +219,42 @@ class UsdDepositMonitorWorker
   rescue => e
     Rails.logger.error "UsdDepositMonitor: deposit failed for user=#{user.id}, tx=#{tx_hash}: #{e.message}"
     false
+  end
+
+  # eth_getLogs block-range limit handling.
+  #
+  # RPC providers cap how many blocks one eth_getLogs may span (some public
+  # endpoints allow only 10). Asking for more fails every time, so the monitor
+  # never advanced. Yields a range size; if the RPC rejects it as too wide,
+  # retries with the size the error suggests (or half), down to 1 block.
+  # The working size is remembered so later runs start with it.
+  RANGE_LIMIT_ERROR = /block range|range should work|range (is )?too (large|wide|big)|exceed\w* .*range|max(imum)? .*range/i
+  RANGE_CACHE_KEY   = "#{MONITOR_NAME}:poll_range"
+
+  def with_block_range_limit
+    range = (Rails.cache.read(RANGE_CACHE_KEY) || POLL_RANGE).to_i.clamp(MIN_POLL_RANGE, POLL_RANGE)
+
+    loop do
+      result = yield(range)
+      Rails.cache.write(RANGE_CACHE_KEY, range, expires_in: 1.day)
+      return result
+    rescue BaseRpcClient::RpcError => e
+      raise unless e.message.match?(RANGE_LIMIT_ERROR) && range > MIN_POLL_RANGE
+
+      smaller = suggested_range(e.message) || range / 2
+      smaller = smaller.clamp(MIN_POLL_RANGE, range - 1)
+      Rails.logger.warn "UsdDepositMonitor: RPC rejected a #{range}-block eth_getLogs range, retrying with #{smaller}"
+      range = smaller
+    end
+  end
+
+  # Some providers say which range would work, e.g. "...should work: [0x349e714, 0x349e71d]"
+  def suggested_range(message)
+    from_hex, to_hex = message.scan(/0x\h+/).last(2)
+    return nil unless from_hex && to_hex
+
+    size = to_hex.to_i(16) - from_hex.to_i(16) + 1
+    size.positive? ? size : nil
   end
 
   def first_scan_block(current_block)
