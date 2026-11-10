@@ -63,9 +63,37 @@
   .deposit-currency-select:focus { outline: none; box-shadow: 0 0 0 2px var(--haiti-gold); }
   .deposit-currency-select option { background: var(--haiti-charcoal); color: white; font-weight: 700; padding: 8px; }
 
-  .dep-method-btn { opacity: 0.5; }
-  .dep-method-btn.selected { opacity: 1; box-shadow: 0 0 0 2px var(--haiti-gold); }
-  .dep-method-btn:hover { opacity: 0.85; }
+  /* Depoze / Retire / Konvèti panels sit flat inside the main card — no second
+     background or border of their own. */
+  .panel-body { padding: 0; }
+
+  /* Depoze Lajan — grouped funding-source list. Matches the Retire panel's
+     source picker (.wd-src-toggle / .wd-src-option): mint box, 14px radius,
+     36px icons, 13px bold name + 10px olive subline, gold chevron. */
+  .dep-group-label { font-size: 11px; font-weight: 700; color: var(--haiti-olive); margin-bottom: 4px; }
+  .dep-group {
+    background: var(--haiti-mint); border: 1px solid rgba(46,46,56,0.1); border-radius: 14px; overflow: hidden;
+  }
+  .dep-source {
+    display: flex; align-items: center; gap: 12px; width: 100%;
+    padding: 12px 14px; background: transparent; border: 0; text-align: left; cursor: pointer;
+    transition: background 0.12s;
+  }
+  .dep-source + .dep-source { border-top: 1px solid rgba(46,46,56,0.06); }
+  .dep-source:hover, .dep-source:focus-visible { background: rgba(197,160,89,0.08); outline: none; }
+  .dep-source > img, .dep-source > svg { flex-shrink: 0; }
+  .dep-source-text { display: flex; flex-direction: column; flex-grow: 1; min-width: 0; }
+  .dep-source-name { font-weight: 700; font-size: 13px; color: var(--haiti-charcoal); }
+  .dep-source-sub { font-size: 10px; font-weight: 600; color: var(--haiti-olive); }
+  .dep-source-chevron { font-size: 20px; color: var(--haiti-gold); flex-shrink: 0; }
+  .dep-source-disabled { cursor: default; }
+  .dep-source-disabled:hover { background: transparent; }
+  /* Logos stay in full color; only the text is muted */
+  .dep-source-disabled .dep-source-text { opacity: 0.5; }
+  .dep-source-soon {
+    flex-shrink: 0; font-size: 10px; font-weight: 700; color: var(--haiti-olive);
+    background: rgba(93,99,69,0.1); padding: 3px 8px; border-radius: 99px;
+  }
 
   .withdraw-option { cursor: pointer; transition: all 0.15s ease; border-bottom: 1px solid rgba(93,99,69,0.12); }
   .withdraw-option:hover { background: rgba(93,99,69,0.05); }
@@ -514,46 +542,63 @@
 
     <%# ══════════════════════════════════════ %>
     <div id="panel-deposit" class="panel-slide mb-3">
-      <div class="p-3 rounded-4" style="background: var(--haiti-cream); border: 1.5px solid rgba(93,99,69,0.2);">
-        <div class="d-flex align-items-center justify-content-between mb-2">
-          <div class="fw-black" style="color: var(--haiti-charcoal); font-size: 18px;">Depoze Lajan</div>
+      <div class="panel-body">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+          <%# Hidden on the USD QR screen (selectDepositMethod), which has its own "Depoze USD" line %>
+          <div id="deposit-title" class="fw-black" style="color: var(--haiti-charcoal); font-size: 18px;">Depoze Lajan</div>
           <button type="button" onclick="togglePanel('deposit')" class="btn btn-sm p-0" style="color: var(--haiti-olive);">
             <i class="ri-close-line" style="font-size: 20px;"></i>
           </button>
         </div>
-        <p class="mb-3" style="color: var(--haiti-olive); font-size: 12px; line-height: 1.5;">
-          Ajoute lajan nan kont ou fasil e rapid. Chwazi MonCash pou depo cash oswa voye kripto dirèkteman sou adrès Base ou.
-        </p>
-        <%# ── Deposit Method Selector ── %>
-        <div class="d-flex gap-2 mb-3">
-          <%# Cash toggle %>
-          <button type="button" id="dep-btn-cash" onclick="selectDepositMethod('cash')"
-                  class="flex-grow-1 d-flex align-items-center gap-2 p-2 rounded-3 border-0 dep-method-btn selected"
-                  style="background: var(--haiti-gold); cursor: pointer;">
-            <%= image_tag "moncash.svg", size: "28x28", style: "border-radius: 6px;" %>
-            <div class="text-start">
-              <div class="fw-bold" style="font-size: 13px; color: var(--haiti-charcoal);">Cash</div>
-              <div style="font-size: 9px; color: rgba(46,46,56,0.5);">MonCash</div>
-            </div>
-          </button>
-          <%# Kripto toggle %>
-          <button type="button" id="dep-btn-kripto" onclick="selectDepositMethod('kripto')"
-                  class="flex-grow-1 d-flex align-items-center gap-2 p-2 rounded-3 border-0 dep-method-btn"
-                  style="background: var(--haiti-mint); cursor: pointer;">
-            <div class="d-flex" style="margin-left: -4px;">
-              <%= usd_logo(size: 20) %>
-              <%= wbtc_base_logo_svg(size: 20) %>
-              <%= eth_base_logo_svg(size: 20) %>
-            </div>
-            <div class="text-start">
-              <div class="fw-bold" style="font-size: 13px; color: var(--haiti-charcoal);">Kripto</div>
-              <div style="font-size: 9px; color: var(--haiti-olive);">Sou Base</div>
-            </div>
-          </button>
+        <%# ── Funding sources: grouped list (Lajan / Kripto). Tapping a row
+            opens that source's section; closing and reopening the panel
+            (togglePanel → showDepositSources) comes back here. ── %>
+        <div id="deposit-source-list">
+          <div class="small mb-3" style="color: var(--haiti-olive);">Chwazi yon metòd pou depoze lajan sou kont Zèllus ou.</div>
+          <div class="dep-group-label">Lajan</div>
+          <div class="dep-group mb-3">
+            <button type="button" class="dep-source" onclick="selectDepositMethod('cash')">
+              <%= image_tag "moncash.svg", size: "36x36", style: "border-radius: 8px;", alt: "" %>
+              <span class="dep-source-text">
+                <span class="dep-source-name">MonCash</span>
+                <span class="dep-source-sub">Depoze an HTG</span>
+              </span>
+              <i class="ri-arrow-right-s-line dep-source-chevron"></i>
+            </button>
+          </div>
+
+          <div class="dep-group-label">Kripto</div>
+          <div class="dep-group">
+            <%# USD is live. Bitcoin / Ethereum show as "Byento" (disabled) until
+                FeatureFlags::CRYPTO_DEPOSIT_BTC_ETH is turned on. %>
+            <% [ [ "usd",  "USD",      usd_logo(size: 36),           true ],
+                 [ "wbtc", "Bitcoin",  wbtc_base_logo_svg(size: 36), FeatureFlags.crypto_deposit_btc_eth? ],
+                 [ "eth",  "Ethereum", eth_base_logo_svg(size: 36),  FeatureFlags.crypto_deposit_btc_eth? ] ].each do |key, name, logo, enabled| %>
+              <% if enabled %>
+                <button type="button" class="dep-source" onclick="selectDepositMethod('kripto', '<%= key %>')">
+                  <%= logo %>
+                  <span class="dep-source-text">
+                    <span class="dep-source-name"><%= name %></span>
+                    <span class="dep-source-sub">Rezo Base</span>
+                  </span>
+                  <i class="ri-arrow-right-s-line dep-source-chevron"></i>
+                </button>
+              <% else %>
+                <div class="dep-source dep-source-disabled" aria-disabled="true">
+                  <%= logo %>
+                  <span class="dep-source-text">
+                    <span class="dep-source-name"><%= name %></span>
+                    <span class="dep-source-sub">Rezo Base</span>
+                  </span>
+                  <span class="dep-source-soon">Byento</span>
+                </div>
+              <% end %>
+            <% end %>
+          </div>
         </div>
 
         <%# ── Cash (MonCash) Section ── %>
-        <div id="deposit-cash-section">
+        <div id="deposit-cash-section" style="display: none;">
           <%= form_with(url: deposit_wallet_path, method: :post, local: true, id: "deposit-form", html: { onsubmit: "return handleDepositSubmit(this);" }) do %>
 
             <%# ══ STEP 1: Amount + MonCash Number ══ %>
@@ -660,20 +705,17 @@
         <%# ── Kripto (Base Address + QR) Section ── %>
         <div id="deposit-kripto-section" style="display: none;">
           <% if CryptoProvider.deposit_address_for(current_user).present? %>
-            <%# Supported assets %>
-            <div class="d-flex align-items-center justify-content-center gap-3 mb-3 py-2 rounded-3" style="background: rgba(46,46,56,0.06);">
-              <div class="text-center">
-                <%= usd_logo(size: 22) %>
-                <div style="font-size: 8px; font-weight: 700; color: var(--haiti-olive); margin-top: 2px;">USD</div>
-              </div>
-              <div class="text-center">
-                <%= wbtc_base_logo_svg(size: 22) %>
-                <div style="font-size: 8px; font-weight: 700; color: var(--haiti-olive); margin-top: 2px;">wBTC</div>
-              </div>
-              <div class="text-center">
-                <%= eth_base_logo_svg(size: 22) %>
-                <div style="font-size: 8px; font-weight: 700; color: var(--haiti-olive); margin-top: 2px;">ETH</div>
-              </div>
+            <%# Chosen asset (all three share the one Base address) %>
+            <div class="d-flex align-items-center justify-content-center gap-2 mb-3">
+              <span id="deposit-kripto-logo-usd" class="dep-kripto-logo"><%= usd_logo(size: 24) %></span>
+              <span id="deposit-kripto-logo-wbtc" class="dep-kripto-logo" style="display: none;"><%= wbtc_base_logo_svg(size: 24) %></span>
+              <span id="deposit-kripto-logo-eth" class="dep-kripto-logo" style="display: none;"><%= eth_base_logo_svg(size: 24) %></span>
+              <span class="fw-bold" style="color: var(--haiti-charcoal); font-size: 14px;">
+                Depoze <span id="deposit-kripto-name">USD</span>
+              </span>
+            </div>
+            <div class="text-center mb-3" style="color: var(--haiti-olive); font-size: 12px; margin-top: -8px;">
+              Eskane oswa kopye adrès la pou depoze <span id="deposit-kripto-howto-name">USD</span> sou Base
             </div>
 
             <%# QR Code %>
@@ -696,11 +738,8 @@
               </button>
             </div>
 
-            <div class="text-center" style="color: var(--haiti-olive); font-size: 10px;">
-              <i class="ri-information-line"></i> Voye USD sou adrès sa a
-              <div style="font-size: 9px; margin-top: 2px; color: var(--haiti-gold); font-weight: 700;">
-                <i class="ri-error-warning-line"></i> Rezo Base sèlman — pa Ethereum mainnet
-              </div>
+            <div class="text-center" style="font-size: 9px; color: var(--haiti-gold); font-weight: 700;">
+              <i class="ri-error-warning-line"></i> Itilize rezo Base sèlman. Si w voye sou yon lòt rezo (tankou Ethereum), w ap pèdi lajan an.
             </div>
           <% else %>
             <div class="text-center py-3" style="color: var(--haiti-olive); font-size: 12px;">
@@ -715,7 +754,7 @@
     <%# ── WITHDRAW PANEL (Cash App style)    ── %>
     <%# ══════════════════════════════════════════ %>
     <div id="panel-withdraw" class="panel-slide mb-3">
-      <div class="p-3 rounded-4" style="background: var(--haiti-cream); border: 1.5px solid rgba(93,99,69,0.2);">
+      <div class="panel-body">
         <div class="d-flex align-items-center justify-content-between mb-3">
           <div class="fw-black" style="color: var(--haiti-charcoal); font-size: 18px;">Retire Lajan</div>
           <button type="button" onclick="togglePanel('withdraw')" class="btn btn-sm p-0" style="color: var(--haiti-olive);">
@@ -1288,7 +1327,7 @@
     <%# ── CONVERT PANEL (Konvèti)           ── %>
     <%# ══════════════════════════════════════════ %>
     <div id="panel-convert" class="panel-slide mb-3">
-      <div class="p-3 rounded-4" style="background: var(--haiti-cream); border: 1.5px solid rgba(93,99,69,0.2);">
+      <div class="panel-body">
         <div class="d-flex align-items-center justify-content-between mb-3">
           <div class="fw-black" style="color: var(--haiti-charcoal); font-size: 18px;">Konvèti</div>
           <button type="button" onclick="togglePanel('convert')" class="btn btn-sm p-0" style="color: var(--haiti-olive);">
@@ -2137,12 +2176,7 @@
     <%# ── AKTIVITE TAB (Transaction History) ── %>
     <%# ══════════════════════════════════════ %>
     <div id="section-aktivite" class="mb-3" style="display: none;">
-      <%# ── Section Header ── %>
-      <div class="pt-3 mb-2" style="border-top: 1px solid rgba(93,99,69,0.08);">
-        <div style="color: var(--haiti-olive); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px;">
-          <i class="ri-history-line me-1" style="color: var(--haiti-gold);"></i>Aktivite
-        </div>
-      </div>
+      <%# ── Section Header (removed — the Aktivite tab above already labels it) ── %>
       <% if @ledger_entries.any? %>
         <%# Pre-load receiver users for transfer_out entries to avoid N+1 %>
         <%
@@ -3214,23 +3248,45 @@ function togglePanel(panel) {
   if (sectionWalletStack) sectionWalletStack.style.display = 'none';
   if (sectionPortfolio) sectionPortfolio.style.display = 'none';
 
-  if (panel === 'deposit') depositPanel.classList.add('open');
+  if (panel === 'deposit') { showDepositSources(); depositPanel.classList.add('open'); }
   else if (panel === 'convert') convertPanel.classList.add('open');
   else withdrawPanel.classList.add('open');
   activePanel = panel;
 }
 
-function selectDepositMethod(method) {
+// Depoze Lajan: open one funding source from the grouped list.
+// method: 'cash' (MonCash) | 'kripto'; asset (kripto only): 'usd' | 'wbtc' | 'eth'
+var DEPOSIT_KRIPTO_NAMES = { usd: 'USD', wbtc: 'Bitcoin', eth: 'Ethereum' };
+function selectDepositMethod(method, asset) {
+  document.getElementById('deposit-source-list').style.display = 'none';
   document.getElementById('deposit-cash-section').style.display = method === 'cash' ? 'block' : 'none';
   document.getElementById('deposit-kripto-section').style.display = method === 'kripto' ? 'block' : 'none';
-  var cashBtn = document.getElementById('dep-btn-cash');
-  var kriptoBtn = document.getElementById('dep-btn-kripto');
-  cashBtn.classList.toggle('selected', method === 'cash');
-  kriptoBtn.classList.toggle('selected', method === 'kripto');
-  // Gold active, mint inactive
-  cashBtn.style.background = method === 'cash' ? 'var(--haiti-gold)' : 'var(--haiti-mint)';
-  kriptoBtn.style.background = method === 'kripto' ? 'var(--haiti-gold)' : 'var(--haiti-mint)';
-  if (method === 'kripto') generateDepositQR();
+  document.getElementById('deposit-title').style.visibility = method === 'kripto' ? 'hidden' : '';
+
+  if (method === 'kripto') {
+    asset = DEPOSIT_KRIPTO_NAMES[asset] ? asset : 'usd';
+    ['usd', 'wbtc', 'eth'].forEach(function(a) {
+      var logo = document.getElementById('deposit-kripto-logo-' + a);
+      if (logo) logo.style.display = a === asset ? '' : 'none';
+    });
+    ['deposit-kripto-name', 'deposit-kripto-howto-name'].forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) el.textContent = DEPOSIT_KRIPTO_NAMES[asset];
+    });
+    generateDepositQR();
+  }
+}
+
+function showDepositSources() {
+  if (document.getElementById('deposit-step-2') &&
+      document.getElementById('deposit-step-2').style.display !== 'none' &&
+      typeof backToDepositStep1 === 'function') {
+    backToDepositStep1();
+  }
+  document.getElementById('deposit-cash-section').style.display = 'none';
+  document.getElementById('deposit-kripto-section').style.display = 'none';
+  document.getElementById('deposit-title').style.visibility = '';
+  document.getElementById('deposit-source-list').style.display = '';
 }
 
 function generateDepositQR() {

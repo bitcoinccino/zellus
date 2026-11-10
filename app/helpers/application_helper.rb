@@ -67,9 +67,12 @@ module ApplicationHelper
     brand_logo("moncash.svg", alt: "MonCash", size: size)
   end
 
-  # USD logo
+  # USD logo. usd.svg is already a full-bleed round flag, so it skips
+  # brand_logo's 120% zoom-and-crop (meant for logos with built-in padding),
+  # which cut the flag's edge and showed white bands top and bottom.
   def usd_logo(size: 28)
-    brand_logo("usd.svg", alt: "USD", size: size)
+    img = image_tag("usd.svg", style: "width: 100%; height: 100%; display: block;", alt: "USD")
+    content_tag(:span, img, style: "display: inline-flex; width: #{size}px; height: #{size}px; border-radius: 50%; overflow: hidden; flex-shrink: 0;")
   end
 
   # Base (Coinbase L2) logo

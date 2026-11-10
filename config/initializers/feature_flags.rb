@@ -24,6 +24,9 @@ module FeatureFlags
   # OFF: Zellus only needs identity verification. Turning this
   # on also requires adding the crime:status scope in devise.rb.
 
+  # ── DEPOSITS ──
+  CRYPTO_DEPOSIT_BTC_ETH     = false  # Depoze Lajan: Bitcoin + Ethereum rows (shown "Byento" while off; USD always on)
+
   # ── REMITTANCE / UMA ──
   UMA_RECEIVING              = false  # inbound UMA payments via Lightspark Grid (enable when more providers support UMA)
 
@@ -41,5 +44,6 @@ module FeatureFlags
     def admin_advanced_tools?;    ADMIN_ADVANCED_TOOLS; end
     def bulk_credit?;             BULK_CREDIT; end
     def uma_receiving?;            UMA_RECEIVING; end
+    def crypto_deposit_btc_eth?;  CRYPTO_DEPOSIT_BTC_ETH; end
   end
 end
