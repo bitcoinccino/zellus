@@ -63,6 +63,19 @@ class PaymentRequest < ApplicationRecord
     end
   end
 
+  # Time left as "47h 59m" / "29m" — nil when there's no expiry or it has
+  # passed. The request page shows it as "Ekspire nan <time>" (other pages
+  # keep the "… rete" style of expiry_countdown_label).
+  def expires_in_time
+    return nil if expires_at.blank? || expired_now?
+
+    remaining = time_until_expiry.to_i
+    hours = remaining / 3600
+    minutes = (remaining % 3600) / 60
+
+    hours > 0 ? "#{hours}h #{minutes}m" : "#{[ minutes, 0 ].max}m"
+  end
+
   def mark_expired_if_needed!
     return false unless active? && expired_now?
 
